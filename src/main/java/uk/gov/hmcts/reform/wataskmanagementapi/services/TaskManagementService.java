@@ -660,7 +660,7 @@ public class TaskManagementService {
             task = findByIdAndObtainLock(taskId);
         } catch (ResourceNotFoundException e) {
             //Perform Camunda updates
-            log.info("Task for id {} not found in the database, trying delete the task in camunda if exist", taskId);
+            log.warn("Task for id {} not found in the database, trying delete the task in camunda if exist", taskId);
             camundaService.deleteCftTaskState(taskId);
             return;
         }

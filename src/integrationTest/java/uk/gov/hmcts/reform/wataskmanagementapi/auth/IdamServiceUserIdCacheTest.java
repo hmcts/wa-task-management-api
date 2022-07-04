@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth;
 
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +27,7 @@ public class IdamServiceUserIdCacheTest {
     @Autowired
     private IdamService idamService;
 
-//    @Test
+    @Test
     void getUserIdIsCached() {
 
         when(idamWebApi.userInfo(anyString()))
