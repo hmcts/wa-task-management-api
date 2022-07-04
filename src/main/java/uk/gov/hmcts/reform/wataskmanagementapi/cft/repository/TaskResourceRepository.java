@@ -38,6 +38,9 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     List<TaskResource> findByStateInAndReconfigureRequestTimeIsNotNull(
         List<CFTTaskState> states);
 
+    List<TaskResource> findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
+        List<String> taskIds, List<CFTTaskState> states, OffsetDateTime retry);
+
     @Modifying
     @QueryHints({
         @QueryHint(name = "javax.persistence.lock.timeout", value = "0"),
