@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,6 +59,9 @@ class ExecuteTaskReconfigurationServiceTest {
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
+            .thenReturn(taskResources.get(0))
+            .thenReturn(taskResources.get(1));
+        when(cftTaskDatabaseService.saveTask(any()))
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
 
@@ -104,7 +108,36 @@ class ExecuteTaskReconfigurationServiceTest {
             taskResource1.setReconfigureRequestTime(reconfigureTime);
             taskResource2.setReconfigureRequestTime(reconfigureTime);
         }
+        taskResource1.setLastReconfigurationTime(reconfigureTime.minusDays(2));
+        taskResource2.setLastReconfigurationTime(reconfigureTime.minusDays(2));
         return List.of(taskResource1, taskResource2);
+    }
+
+    @Test
+    void should_get_reconfiguration_fail_log() {
+
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
+        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
+
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeIsNotNull(
+            anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+            .thenReturn(null);
+
+        when(cftTaskDatabaseService
+                 .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(anyList(), anyList(), any())
+            ).thenReturn(taskResources);
+
+        TaskOperationRequest request = new TaskOperationRequest(
+            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, ""), taskFilters
+        );
+
+        assertThatThrownBy(() -> executeTaskReconfigurationService.performOperation(request))
+            .hasNoCause()
+            .hasMessageContaining("Task Execute Reconfiguration Failed: "
+                            + "Task Reconfiguration process failed to execute reconfiguration for the following tasks:")
+            .hasMessageContaining("1234 ,someTaskName ,UNASSIGNED")
+            .hasMessageContaining("4567 ,someTaskName ,ASSIGNED");
     }
 }
 
