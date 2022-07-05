@@ -81,6 +81,7 @@ public class TaskResourceDao {
             selections.addAll(List.of(root.get("priorityDate"), root.get("majorPriority"), root.get("minorPriority")));
         } else {
             sortingParameters.forEach(p -> selections.add(root.get(p.getSortBy().getCftVariableName())));
+            selections.addAll(List.of(root.get("priorityDate"), root.get("majorPriority"), root.get("minorPriority")));
         }
         return selections;
     }
@@ -178,13 +179,13 @@ public class TaskResourceDao {
         final List<SortingParameter> sortingParameters = searchTaskRequest.getSortingParameters();
 
         List<Order> orders = new ArrayList<>();
-        if (sortingParameters == null || sortingParameters.isEmpty()) {
-            Stream.of("majorPriority", "priorityDate", "minorPriority")
-                .map(s -> builder.asc(root.get(s)))
-                .collect(Collectors.toCollection(() -> orders));
-        } else {
+
+        if (sortingParameters != null && !sortingParameters.isEmpty()) {
             orders.addAll(generateOrders(sortingParameters, builder, root));
         }
+        Stream.of("majorPriority", "priorityDate", "minorPriority")
+            .map(s -> builder.asc(root.get(s)))
+            .collect(Collectors.toCollection(() -> orders));
 
         return orders;
     }

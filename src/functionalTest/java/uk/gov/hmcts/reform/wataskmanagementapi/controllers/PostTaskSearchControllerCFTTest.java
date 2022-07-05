@@ -951,8 +951,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", equalTo(2))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", contains(taskVariables2.getCaseId(), taskVariables1.getCaseId()))
-            .body("tasks.id", contains(taskId2, taskId1))
+            .body("tasks.case_id", contains(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
+            .body("tasks.id", contains(taskId1, taskId2))
             .body("tasks.work_type_id", hasItems(
                 TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"),
                 TASK_TYPE_WORK_TYPE_MAP.get("arrangeOfflinePayment"))
