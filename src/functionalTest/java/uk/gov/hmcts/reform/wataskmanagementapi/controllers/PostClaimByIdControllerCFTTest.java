@@ -198,7 +198,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
+    public void should_return_a_204_when_claiming_a_task_that_was_already_claimed() {
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
@@ -225,17 +225,10 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
 
         result.then().assertThat()
-            .statusCode(HttpStatus.CONFLICT.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.CONFLICT.value()))
-            .body("message", equalTo(String.format(
-                "Task '%s' is already claimed by someone else.",
-                taskId
-            )));
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
