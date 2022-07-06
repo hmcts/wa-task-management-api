@@ -176,14 +176,14 @@ public class TaskManagementService {
     @Transactional
     public void claimTask(String taskId,
                           AccessControlResponse accessControlResponse) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        String userId = accessControlResponse.getUserInfo().getUid();
+        requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
 
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(
                 FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                accessControlResponse.getUserInfo().getUid(),
-                accessControlResponse.getUserInfo().getEmail()
+                userId, accessControlResponse.getUserInfo().getEmail()
             );
         if (isFeatureEnabled) {
             roleAssignmentVerification.verifyRoleAssignments(
@@ -192,25 +192,9 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.ASSIGNED);
-            task.setAssignee(accessControlResponse.getUserInfo().getUid());
+            task.setAssignee(userId);
 
-            //Get Camunda Task State
-            final Map<String, CamundaVariable> camundaVariableMap = camundaService.getTaskVariables(taskId);
-            String camundaTaskState =
-                camundaService.getVariableValue(
-                    camundaVariableMap.get(TASK_STATE.value()),
-                    String.class
-                );
-
-            log.info("Performing claim on taskId: {},  Current Camunda taskState: {}.", taskId, camundaTaskState);
-
-            //Perform Camunda updates
-            if (camundaTaskState != null && camundaTaskState.equals(TaskState.ASSIGNED.value())) {
-                log.info("Unclaim taskId: {} in Camunda before attempting to claim.", taskId);
-                camundaService.unclaimTask(taskId, false);
-            }
-
-            camundaService.claimTask(taskId, accessControlResponse.getUserInfo().getUid());
+            camundaService.assignTask(taskId, userId, false);
 
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
