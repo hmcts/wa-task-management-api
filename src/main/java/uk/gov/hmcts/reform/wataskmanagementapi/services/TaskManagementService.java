@@ -654,15 +654,27 @@ public class TaskManagementService {
      */
     @Transactional
     public void terminateTask(String taskId, TerminateInfo terminateInfo) {
-        //Find and Lock Task
-        TaskResource task = findByIdAndObtainLock(taskId);
-        //Update cft task and terminate reason
-        task.setState(CFTTaskState.TERMINATED);
-        task.setTerminationReason(terminateInfo.getTerminateReason());
-        //Perform Camunda updates
-        camundaService.deleteCftTaskState(taskId);
-        //Commit transaction
-        cftTaskDatabaseService.saveTask(task);
+        TaskResource task = null;
+        try {
+            //Find and Lock Task
+            task = findByIdAndObtainLock(taskId);
+        } catch (ResourceNotFoundException e) {
+            //Perform Camunda updates
+            log.warn("Task for id {} not found in the database, trying delete the task in camunda if exist", taskId);
+            camundaService.deleteCftTaskState(taskId);
+            return;
+        }
+
+        //Terminate the task if found in the database
+        if (task != null) {
+            //Update cft task and terminate reason
+            task.setState(CFTTaskState.TERMINATED);
+            task.setTerminationReason(terminateInfo.getTerminateReason());
+            //Perform Camunda updates
+            camundaService.deleteCftTaskState(taskId);
+            //Commit transaction
+            cftTaskDatabaseService.saveTask(task);
+        }
     }
 
     /**
