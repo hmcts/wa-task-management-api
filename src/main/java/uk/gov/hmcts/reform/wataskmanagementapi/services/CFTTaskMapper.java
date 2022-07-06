@@ -470,13 +470,13 @@ public class CFTTaskMapper {
                     }
                     break;
                 case MINOR_PRIORITY:
-                    taskResource.setMinorPriority(Integer.parseInt((String) value));
+                    taskResource.setMinorPriority((Integer) value);
                     break;
                 case MAJOR_PRIORITY:
-                    taskResource.setMajorPriority(Integer.parseInt((String) value));
+                    taskResource.setMajorPriority((Integer) value);
                     break;
                 case PRIORITY_DATE:
-                    taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
+                    taskResource.setPriorityDate((OffsetDateTime) value);
                     break;
                 default:
                     break;
