@@ -1729,6 +1729,38 @@ class CFTTaskMapperTest {
 
     }
 
+    @Test
+    void should_map_configuration_attributes_priority_from_string() {
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(CamundaVariableDefinition.CASE_ID.value(), "otherCaseId");
+        mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
+        mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
+        mappedValues.put(CamundaVariableDefinition.DESCRIPTION.value(), "aDescription");
+        mappedValues.put(PRIORITY_DATE.value(), "2022-05-09T20:15:45.345875+01:00");
+        mappedValues.put(MAJOR_PRIORITY.value(), "5000");
+        mappedValues.put(MINOR_PRIORITY.value(), "500");
+
+        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues)
+        );
+
+
+        assertEquals("otherCaseId", taskResource.getCaseId());
+        assertEquals("otherTaskId", taskResource.getTaskId());
+        assertEquals("otherTaskName", taskResource.getTaskName());
+        assertEquals("aDescription", taskResource.getDescription());
+
+    }
+
     private TaskResource createTaskResourceWithRoleResource(TaskRoleResource roleResource) {
         return new TaskResource(
             "taskId",
