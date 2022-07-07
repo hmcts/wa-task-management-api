@@ -607,13 +607,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Nested
     @DisplayName("claimTask()")
     class Release2EndpointsClaimTask {
+
         @Test
         void claimTask_should_succeed() {
-
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
+
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
                 .thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -625,9 +626,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
             taskManagementService.claimTask(taskId, accessControlResponse);
 
-            verify(camundaService, times(1)).claimTask(taskId, IDAM_USER_ID);
+            verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
+
         }
 
         @Test
