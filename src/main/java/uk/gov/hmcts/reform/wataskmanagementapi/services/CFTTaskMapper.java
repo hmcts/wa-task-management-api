@@ -86,7 +86,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411"})
+        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411",
+        "PMD.ExcessiveMethodLength"})
 @Slf4j
 public class CFTTaskMapper {
 
@@ -470,13 +471,26 @@ public class CFTTaskMapper {
                     }
                     break;
                 case MINOR_PRIORITY:
-                    taskResource.setMinorPriority((Integer) value);
+                    if (value instanceof String) {
+                        taskResource.setMinorPriority(Integer.parseInt((String) value));
+                    } else {
+                        taskResource.setMinorPriority((Integer) value);
+                    }
+
                     break;
                 case MAJOR_PRIORITY:
-                    taskResource.setMajorPriority((Integer) value);
+                    if (value instanceof String) {
+                        taskResource.setMajorPriority(Integer.parseInt((String) value));
+                    } else {
+                        taskResource.setMajorPriority((Integer) value);
+                    }
                     break;
                 case PRIORITY_DATE:
-                    taskResource.setPriorityDate((OffsetDateTime) value);
+                    if (value instanceof String) {
+                        taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
+                    } else {
+                        taskResource.setPriorityDate((OffsetDateTime) value);
+                    }
                     break;
                 default:
                     break;
