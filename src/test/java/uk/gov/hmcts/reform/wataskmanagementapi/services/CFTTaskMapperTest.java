@@ -1198,6 +1198,35 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_set_priority_date_null_no_error() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        List<TaskAttribute> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate,
+                                                              null);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        taskResource.setPriorityDate(null);
+        Set<PermissionTypes> permissionsUnion = new HashSet<>(
+            asList(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.MANAGE,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.REFER
+            )
+        );
+        Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
+
+        assertNotEquals(task.getDueDate(), task.getPriorityDate());
+        assertNotNull(task.getDueDate());
+        assertNotNull(task.getCreatedDate());
+    }
+
+    @Test
     void should_convert_task_resource_to_map_object() {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
