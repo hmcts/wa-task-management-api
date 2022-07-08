@@ -3,9 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -23,7 +21,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
@@ -116,8 +113,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_if_task_was_not_previously_assigned() {
 
@@ -204,44 +199,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
-    public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
-
-        TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
-            JURISDICTION, "WA"
-        );
-
-        taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
-
-        given.iClaimATaskWithIdAndAuthorization(
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(JURISDICTION, "SSCS"));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                ROLE_ASSIGNMENT_VERIFICATION_TYPE))
-            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
-            .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
-
-        common.cleanUpTask(taskId);
-    }
-
     @Test
     public void should_return_a_204_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
@@ -274,11 +231,9 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         common.cleanUpTask(taskId);
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIdsWithCustomVariable(REGION, "1", "requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "processApplication", "process application", "process task");
@@ -520,45 +475,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
-    @Test
-    public void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_tru() {
-
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
-
-        taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
-
-        restApiActions.post(
-            CLAIM_ENDPOINT,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(JURISDICTION, "SSCS"));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            new CompleteTaskRequest(new CompletionOptions(true)),
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
-            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
-            .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
-
-        common.cleanUpTask(taskId);
-
-    }
-
     @Test
     public void should_return_a_204_and_retrieve_task_role_assignment_attributes_match_and_assign_and_complete_true() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
@@ -593,11 +509,9 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_permission_region_did_not_match_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIdsWithCustomVariable(REGION, "1", "requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "processApplication", "process application", "process task");
