@@ -48,6 +48,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
@@ -661,6 +662,68 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).claimTask(any(), any());
+        }
+
+        @Test
+        void claimTask_assigned_task_should_throw_exception() {
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+            TaskResource taskResource = spy(TaskResource.class);
+
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+            when(taskResource.getAssignee()).thenReturn("OTHER_USER_ID");
+            when(taskResource.getTaskId()).thenReturn("TASK_ID");
+
+
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+                .thenReturn(Optional.of(taskResource));
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            assertThatThrownBy(() -> taskManagementService.claimTask(
+                taskId,
+                accessControlResponse
+            ))
+                .isInstanceOf(ConflictException.class)
+                .hasNoCause()
+                .hasMessage("Task 'TASK_ID' is already claimed by someone else.");
+
+            verify(camundaService, times(0)).claimTask(any(), any());
+
+        }
+
+        @Test
+        void claimTask_assigned_task_should_succeed_for_same_user() {
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+            TaskResource taskResource = spy(TaskResource.class);
+
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+            when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
+
+
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+                .thenReturn(Optional.of(taskResource));
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            taskManagementService.claimTask(taskId, accessControlResponse);
+
+            verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
         }
     }
 
