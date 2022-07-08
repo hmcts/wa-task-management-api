@@ -193,7 +193,6 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
-                cftTaskDatabaseService.saveTask(task);
                 throw new ConflictException("Task '" + task.getTaskId()
                     + "' is already claimed by someone else.", null);
             }
