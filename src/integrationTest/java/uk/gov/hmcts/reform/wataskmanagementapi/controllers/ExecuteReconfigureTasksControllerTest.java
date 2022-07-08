@@ -129,6 +129,16 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(EXECUTE_RECONFIGURE,
+                                                           executeTaskFilters(OffsetDateTime.now().plusDays(1)))))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(EXECUTE_RECONFIGURE,
                     executeTaskFilters(OffsetDateTime.now().minus(Duration.ofDays(1))))))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
@@ -186,7 +196,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, List<TaskFilter<?>> taskFilters) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString());
+        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 10);
         return new TaskOperationRequest(operation, taskFilters);
     }
 
