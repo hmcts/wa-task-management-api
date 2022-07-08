@@ -21,10 +21,15 @@ public class TaskOperation {
 
     private final String runId;
 
+    private final long maxTimeLimit;
+
     @JsonCreator
-    public TaskOperation(TaskOperationName name, @JsonProperty("runId") @JsonAlias("run_id") String runId) {
+    public TaskOperation(TaskOperationName name,
+                         @JsonProperty("runId") @JsonAlias("run_id") String runId,
+                         @JsonProperty("maxTimeLimit") @JsonAlias("maxTimeLimit") long maxTimeLimit) {
         this.name = name;
         this.runId = runId;
+        this.maxTimeLimit = maxTimeLimit;
     }
 
     public TaskOperationName getName() {
@@ -33,5 +38,9 @@ public class TaskOperation {
 
     public String getRunId() {
         return runId;
+    }
+
+    public long getMaxTimeLimit() {
+        return maxTimeLimit;
     }
 }

@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
@@ -65,7 +66,16 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
 
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskOperationRequest(TaskOperationName.EXECUTE_RECONFIGURE, OffsetDateTime.now().minus(Duration.ofDays(1))),
+            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationExecuteRequest(TaskOperationName.EXECUTE_RECONFIGURE, OffsetDateTime.now().minus(Duration.ofDays(1))),
             caseworkerCredentials.getHeaders()
         );
 
@@ -75,17 +85,27 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
         common.cleanUpTask(taskId);
     }
 
-    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName,
+    private TaskOperationRequest taskOperationExecuteRequest(TaskOperationName operationName,
                                                       OffsetDateTime reconfigureRequestTime) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString());
-        return new TaskOperationRequest(operation, taskFilters(reconfigureRequestTime));
+        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 120);
+        return new TaskOperationRequest(operation, taskExecuteFilters(reconfigureRequestTime));
     }
 
-    private List<TaskFilter<?>> taskFilters(OffsetDateTime reconfigureRequestTime) {
+    private List<TaskFilter<?>> taskExecuteFilters(OffsetDateTime reconfigureRequestTime) {
         ExecuteReconfigureTaskFilter filter = new ExecuteReconfigureTaskFilter(
             "reconfigure_request_time", reconfigureRequestTime, TaskFilterOperator.AFTER);
         return List.of(filter);
     }
 
+    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
+        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 120);
+        return new TaskOperationRequest(operation, taskFilters(caseId));
+    }
+
+    private List<TaskFilter<?>> taskFilters(String caseId) {
+        MarkTaskToReconfigureTaskFilter filter = new MarkTaskToReconfigureTaskFilter(
+            "case_id", List.of(caseId), TaskFilterOperator.IN);
+        return List.of(filter);
+    }
 }
 

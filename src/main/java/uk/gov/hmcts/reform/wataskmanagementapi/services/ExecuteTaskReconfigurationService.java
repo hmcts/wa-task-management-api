@@ -62,10 +62,14 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
             .map(TaskResource::getTaskId)
             .collect(Collectors.toList());
 
-        List<String> failedTaskIds = executeReconfiguration(taskIds, successfulTaskResources);
+        List<String> failedTaskIds = executeReconfiguration(taskIds,
+                                                            successfulTaskResources,
+                                                            request.getOperation().getMaxTimeLimit());
 
         if (!failedTaskIds.isEmpty()) {
-            failedTaskIds = executeReconfiguration(failedTaskIds, successfulTaskResources);
+            failedTaskIds = executeReconfiguration(failedTaskIds,
+                                                   successfulTaskResources,
+                                                   request.getOperation().getMaxTimeLimit());
         }
 
         if (!failedTaskIds.isEmpty()) {
@@ -90,9 +94,27 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
     }
 
     private List<String> executeReconfiguration(List<String> taskIds,
-                                                      List<TaskResource> successfulTaskResources) {
+                                                List<TaskResource> successfulTaskResources,
+                                                long maxTimeLimit) {
+
+        final OffsetDateTime endTimer  = OffsetDateTime.now().plusSeconds(maxTimeLimit);
+        List<String> failedTaskIds = reconfigureTasks(taskIds, successfulTaskResources, endTimer);
+
+        List<String> secondaryFailedTaskIds = new ArrayList<>();
+
+        if (!failedTaskIds.isEmpty()) {
+            secondaryFailedTaskIds = reconfigureTasks(failedTaskIds, successfulTaskResources, endTimer);
+        }
+
+        return secondaryFailedTaskIds;
+    }
+
+    private List<String> reconfigureTasks(List<String> taskIds, List<TaskResource> successfulTaskResources,
+                                          OffsetDateTime endTimer) {
         List<String> failedTaskIds = new ArrayList<>();
-        taskIds.forEach(taskId -> {
+        taskIds.stream()
+            .filter(timeCheck -> (endTimer.isAfter(OffsetDateTime.now())))
+            .forEach(taskId -> {
 
             try {
                 Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
@@ -110,7 +132,6 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
                 failedTaskIds.add(taskId);
             }
         });
-
         return failedTaskIds;
     }
 

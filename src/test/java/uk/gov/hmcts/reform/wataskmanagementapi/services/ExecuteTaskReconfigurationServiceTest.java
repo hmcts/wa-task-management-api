@@ -68,7 +68,7 @@ class ExecuteTaskReconfigurationServiceTest {
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
 
         TaskOperationRequest request = new TaskOperationRequest(
-            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, ""), taskFilters
+            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, "", 10), taskFilters
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
@@ -129,7 +129,7 @@ class ExecuteTaskReconfigurationServiceTest {
             ).thenReturn(taskResources);
 
         TaskOperationRequest request = new TaskOperationRequest(
-            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, ""), taskFilters
+            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, "", 120), taskFilters
         );
 
         assertThatThrownBy(() -> executeTaskReconfigurationService.performOperation(request))

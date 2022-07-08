@@ -380,7 +380,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString());
+        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 120);
         return new TaskOperationRequest(operation, taskFilters(caseId));
     }
 
