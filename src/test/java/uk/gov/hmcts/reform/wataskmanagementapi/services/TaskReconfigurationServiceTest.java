@@ -47,11 +47,11 @@ class TaskReconfigurationServiceTest {
     void setup() {
         lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
             anyMap())).thenReturn(List.of(
-            new ConfigurationDmnEvaluationResponse(
-                CamundaValue.stringValue("caseName"),
-                CamundaValue.stringValue("Value"),
-                CamundaValue.booleanValue(true)
-            )
+                new ConfigurationDmnEvaluationResponse(
+                    CamundaValue.stringValue("caseName"),
+                    CamundaValue.stringValue("Value"),
+                    CamundaValue.booleanValue(true)
+                )
         ));
     }
 
@@ -113,11 +113,11 @@ class TaskReconfigurationServiceTest {
         List<TaskFilter<?>> taskFilters = createTaskFilters();
         when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
             any())).thenReturn(List.of(
-            new ConfigurationDmnEvaluationResponse(
-                CamundaValue.stringValue("caseName"),
-                CamundaValue.stringValue("Value"),
-                CamundaValue.booleanValue(false)
-            )
+                new ConfigurationDmnEvaluationResponse(
+                    CamundaValue.stringValue("caseName"),
+                    CamundaValue.stringValue("Value"),
+                    CamundaValue.booleanValue(false)
+                )
         ));
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(List.of());

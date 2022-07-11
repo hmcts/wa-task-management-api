@@ -14,11 +14,11 @@ plugins {
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.0.11.RELEASE'
   id 'org.springframework.boot' version '2.7.0'
-  id 'org.owasp.dependencycheck' version '7.1.0.1'
+  id 'org.owasp.dependencycheck' version '7.1.1'
   id 'com.github.ben-manes.versions' version '0.38.0'
   id 'org.sonarqube' version '3.2.0'
   id 'info.solidsoft.pitest' version '1.7.4'
-  id 'io.freefair.lombok' version '5.3.3.3'
+  id 'io.freefair.lombok' version '6.5.0.2'
   // If Pact version is changed, make sure serenity report works.
   id 'au.com.dius.pact' version '4.1.8'
   id 'org.flywaydb.flyway' version '6.5.7'
@@ -33,12 +33,6 @@ version = '0.0.1'
 allprojects {
   sourceCompatibility = '11'
   targetCompatibility = '11'
-}
-
-lombok {
-  config['config.stopBubbling'] = 'true'
-  config['lombok.addLombokGeneratedAnnotation'] = 'true'
-  config['lombok.anyConstructor.addConstructorProperties'] = 'true'
 }
 
 sourceSets {
@@ -139,7 +133,7 @@ project.ext {
 
 checkstyle {
   maxWarnings = 0
-  toolVersion = '9.2.1'
+  toolVersion = '10.3'
   getConfigDirectory().set(new File(rootDir, 'config/checkstyle'))
 }
 
@@ -240,27 +234,9 @@ dependencyCheck {
 
 dependencyManagement {
   dependencies {
-    dependency group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.68'
-    //
-    dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
     dependency group: 'commons-io', name: 'commons-io', version: '2.8.0'
 
-    //CVE-2021-27568
-    dependency group: 'net.minidev', name: 'json-smart', version: '2.4.7'
-
-    //CVE-2021-28170
-    dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.1'
-
-    //CVE-2020-23171
-    dependency group: 'com.nimbusds', name: 'lang-tag', version: '1.5'
-
-    //CVE-2021-42550
-    dependencySet(group: 'ch.qos.logback', version: '1.2.10') {
-      entry 'logback-classic'
-      entry 'logback-core'
-    }
-    dependency group: 'org.springframework.security', name: 'spring-security-core', version: '5.7.1'
-    dependencySet(group: 'org.seleniumhq.selenium', version: '4.1.2') {
+    dependencySet(group: 'org.seleniumhq.selenium', version: '4.2.2') {
       entry 'selenium-java'
       entry 'selenium-remote-driver'
       entry 'selenium-firefox-driver'
@@ -280,16 +256,17 @@ repositories {
 }
 
 def versions = [
-  junit        : '5.7.2',
-  junitPlatform: '1.7.2',
-  reformLogging: '6.0.1',
-  springDoc    : '1.6.6',
-  serenity     : '3.1.20',
-  gradlePitest : '1.5.1',
-  pitest       : '1.5.2',
-  sonarPitest  : '0.5',
-  pactVersion  : '4.3.4',
-  logbook      : '2.6.2'
+  junit         : '5.7.2',
+  junitPlatform : '1.7.2',
+  reformLogging : '5.1.9',
+  springDoc     : '1.6.6',
+  serenity      : '3.1.20',
+  gradlePitest  : '1.5.1',
+  pitest        : '1.5.2',
+  sonarPitest   : '0.5',
+  pactVersion   : '4.3.4',
+  logbook       : '2.6.2',
+  testcontainers: '1.17.2'
 ]
 
 ext.libraries = [
@@ -328,10 +305,10 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
 
   implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.6.5.Final'
-  implementation group: 'org.hibernate', name: 'hibernate-validator', version: '6.2.0.Final'
+  implementation group: 'org.hibernate', name: 'hibernate-validator', version: '7.0.4.Final'
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.1'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.17.1'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.17.2'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.64'
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.64'
@@ -351,9 +328,9 @@ dependencies {
   //cache
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.0.4'
 
-  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.15.3'
-  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.15.3'
-  testImplementation group: 'com.h2database', name: 'h2', version: '1.4.197'
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: versions.testcontainers
+  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: versions.testcontainers
+  testImplementation group: 'com.h2database', name: 'h2', version: '2.1.214'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
@@ -361,11 +338,11 @@ dependencies {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
 
-  testImplementation(group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '2.32.0') {
+  testImplementation(group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '2.33.2') {
     exclude group: 'com.github.jknack.handlebars.java'
   }
 
-  testImplementation group: 'com.github.hmcts', name: 'document-management-client', version: '7.0.0'
+  testImplementation group: 'com.github.hmcts', name: 'document-management-client', version: '7.0.1'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   testImplementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: '1.6.0'
