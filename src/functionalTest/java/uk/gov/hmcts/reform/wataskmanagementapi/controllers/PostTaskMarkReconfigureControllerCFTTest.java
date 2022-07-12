@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -43,9 +44,100 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
     }
 
     @Test
-    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned_for_WA() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
+
+        String assignEndpoint = "task/{task-id}/assign";
+        String taskId = taskVariables.getTaskId();
+        Response result = restApiActions.post(
+            assignEndpoint,
+            taskId,
+            new AssignTaskRequest(assigneeId),
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+
+        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", assigneeId, caseworkerCredentials.getHeaders());
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", notNullValue());
+
+        common.cleanUpTask(taskId);
+    }
+
+
+    @Test
+    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        String taskId = taskVariables.getTaskId();
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("unassigned"))
+            .body("task.reconfigure_request_time", notNullValue());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    @Ignore("IA specific tests")
+    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned_for_IA() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
                      "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
         );
@@ -96,10 +188,11 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
 
     @Test
-    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned() {
+    @Ignore("IA Specific")
+    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_IA() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
                      "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
         );
