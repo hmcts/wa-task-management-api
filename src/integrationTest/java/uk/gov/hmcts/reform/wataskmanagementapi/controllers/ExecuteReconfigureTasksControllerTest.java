@@ -88,11 +88,11 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
         lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
             any())).thenReturn(List.of(
-            new ConfigurationDmnEvaluationResponse(
-                CamundaValue.stringValue("caseName"),
-                CamundaValue.stringValue("Value"),
-                CamundaValue.booleanValue(true)
-            )
+                new ConfigurationDmnEvaluationResponse(
+                    CamundaValue.stringValue("caseName"),
+                    CamundaValue.stringValue("Value"),
+                    CamundaValue.booleanValue(true)
+                )
         ));
 
         testTaskResource = new TaskResource(taskId, "someTaskName", "someTaskType", CFTTaskState.ASSIGNED, "caseId101", dueDate);
