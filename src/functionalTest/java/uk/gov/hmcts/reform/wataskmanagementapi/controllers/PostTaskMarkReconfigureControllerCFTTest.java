@@ -78,7 +78,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         result = restApiActions.get(
-            "task/{task-id}",
+            "/task/{task-id}",
             taskId,
             caseworkerCredentials.getHeaders()
         );
@@ -114,7 +114,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         String taskId = taskVariables.getTaskId();
 
         result = restApiActions.get(
-            "task/{task-id}",
+            "/task/{task-id}",
             taskId,
             caseworkerCredentials.getHeaders()
         );

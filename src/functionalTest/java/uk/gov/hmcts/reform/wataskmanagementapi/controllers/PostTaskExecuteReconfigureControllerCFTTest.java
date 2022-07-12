@@ -80,7 +80,7 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         result = restApiActions.get(
-            "task/{task-id}",
+            "/task/{task-id}",
             taskId,
             caseworkerCredentials.getHeaders()
         );
