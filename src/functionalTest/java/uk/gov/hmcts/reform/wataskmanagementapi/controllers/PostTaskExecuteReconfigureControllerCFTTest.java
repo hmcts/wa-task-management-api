@@ -88,7 +88,7 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("Assigned"))
+            .body("task.task_state", is("assigned"))
             .body("task.reconfigure_request_time", nullValue())
             .body("task.work_type_id", notNullValue());
 
