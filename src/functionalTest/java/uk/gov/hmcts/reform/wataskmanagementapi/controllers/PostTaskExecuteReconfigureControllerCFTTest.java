@@ -67,7 +67,7 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
         assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee",
-                                                 assigneeId, caseworkerCredentials.getHeaders());
+            assigneeId, caseworkerCredentials.getHeaders());
 
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

@@ -61,11 +61,9 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String SOME_ASSIGNEE = "someAssignee";
+    private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     OffsetDateTime createdDate = OffsetDateTime.now();
     OffsetDateTime dueDate = createdDate.plusDays(1);
-
-    private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-
     @MockBean
     private ClientAccessControlService clientAccessControlService;
     @MockBean
@@ -170,7 +168,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(EXECUTE_RECONFIGURE,
-                                                           executeTaskFilters(OffsetDateTime.now().plusDays(1)))))
+                    executeTaskFilters(OffsetDateTime.now().plusDays(1)))))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
