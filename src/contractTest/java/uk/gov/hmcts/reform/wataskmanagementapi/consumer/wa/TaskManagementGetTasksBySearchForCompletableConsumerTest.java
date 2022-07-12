@@ -169,7 +169,8 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         })
                         .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
                         .stringType("description", "a description")
-
+                        .stringType("next_hearing_id", "nextHearingId")
+                        .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )).build();
     }
 
@@ -216,6 +217,8 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                                 .stringValue(PermissionTypes.EXECUTE.value())
                                 .stringValue(PermissionTypes.REFER.value()));
                         })
+                        .stringType("next_hearing_id", "nextHearingId")
+                        .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )
         ).build();
     }
@@ -272,7 +275,8 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         )
                         .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
                         .stringType("description", "a description")
-
+                        .stringType("next_hearing_id", "nextHearingId")
+                        .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )).build();
     }
 

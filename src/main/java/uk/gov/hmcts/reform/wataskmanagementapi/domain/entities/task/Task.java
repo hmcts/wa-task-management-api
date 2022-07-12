@@ -16,6 +16,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
     "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming"})
 @Schema(allowableValues = "Task")
 public class Task {
+    public static final String SAMPLE_ISO_DATE_TIME = "2020-09-05T14:47:01.250542+01:00";
     @Schema(
         required = true,
         description = "Unique identifier for the task"
@@ -60,14 +61,14 @@ public class Task {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
-        example = "2020-09-05T14:47:01.250542+01:00",
+        example = SAMPLE_ISO_DATE_TIME,
         description = "Optional due date for the task that will be created"
     )
     private final ZonedDateTime createdDate;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
-        example = "2020-09-05T14:47:01.250542+01:00",
+        example = SAMPLE_ISO_DATE_TIME,
         description = "Optional due date for the task that will be created"
     )
     private final ZonedDateTime dueDate;
@@ -147,11 +148,20 @@ public class Task {
     @Schema(required = true,
         description = "A value describing the additional properties")
     private final Map<String, String> additionalProperties;
+    @Schema(description = "Next hearing identifier")
+    private final String nextHearingId;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @JsonFormat(pattern = DATE_TIME_FORMAT)
+    @Schema(
+        example = SAMPLE_ISO_DATE_TIME,
+        description = "Next hearing date time"
+    )
+    private final ZonedDateTime nextHearingDate;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
-        example = "2020-09-05T14:47:01.250542+01:00",
+        example = SAMPLE_ISO_DATE_TIME,
         description = "Optional reconfigure request time"
     )
     private ZonedDateTime reconfigureRequestTime;
@@ -184,7 +194,9 @@ public class Task {
                 TaskPermissions taskPermissions,
                 String roleCategory,
                 String description,
-                Map<String, String> additionalProperties) {
+                Map<String, String> additionalProperties,
+                String nextHearingId,
+                ZonedDateTime nextHearingDate) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
         this.id = id;
@@ -216,6 +228,8 @@ public class Task {
         this.roleCategory = roleCategory;
         this.description = description;
         this.additionalProperties = additionalProperties;
+        this.nextHearingId = nextHearingId;
+        this.nextHearingDate = nextHearingDate;
     }
 
     public Task(String id,
@@ -247,6 +261,8 @@ public class Task {
                 String roleCategory,
                 String description,
                 Map<String, String> additionalProperties,
+                String nextHearingId,
+                ZonedDateTime nextHearingDate,
                 ZonedDateTime reconfigureRequestTime) {
         this(id,
             name,
@@ -276,7 +292,10 @@ public class Task {
             taskPermissions,
             roleCategory,
             description,
-            additionalProperties);
+             additionalProperties,
+             nextHearingId,
+             nextHearingDate
+        );
         this.reconfigureRequestTime = reconfigureRequestTime;
     }
 
@@ -394,6 +413,14 @@ public class Task {
 
     public Map<String, String> getAdditionalProperties() {
         return additionalProperties;
+    }
+
+    public String getNextHearingId() {
+        return nextHearingId;
+    }
+
+    public ZonedDateTime getNextHearingDate() {
+        return nextHearingDate;
     }
 
     public ZonedDateTime getReconfigureRequestTime() {

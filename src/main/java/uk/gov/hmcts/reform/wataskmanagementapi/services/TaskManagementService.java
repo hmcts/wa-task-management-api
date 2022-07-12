@@ -175,14 +175,14 @@ public class TaskManagementService {
     @Transactional
     public void claimTask(String taskId,
                           AccessControlResponse accessControlResponse) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        String userId = accessControlResponse.getUserInfo().getUid();
+        requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
 
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(
                 FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                accessControlResponse.getUserInfo().getUid(),
-                accessControlResponse.getUserInfo().getEmail()
+                userId, accessControlResponse.getUserInfo().getEmail()
             );
         if (isFeatureEnabled) {
             roleAssignmentVerification.verifyRoleAssignments(
@@ -191,11 +191,13 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.ASSIGNED);
-            task.setAssignee(accessControlResponse.getUserInfo().getUid());
-            //Perform Camunda updates
-            camundaService.claimTask(taskId, accessControlResponse.getUserInfo().getUid());
+            task.setAssignee(userId);
+
+            camundaService.assignTask(taskId, userId, false);
+
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
+
         } else {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
             roleAssignmentVerification.verifyRoleAssignments(
@@ -566,7 +568,6 @@ public class TaskManagementService {
      *
      * @param searchEventAndCase    the search request.
      * @param accessControlResponse the access control response containing user id and role assignments.
-     * @return
      */
     @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
@@ -653,15 +654,27 @@ public class TaskManagementService {
      */
     @Transactional
     public void terminateTask(String taskId, TerminateInfo terminateInfo) {
-        //Find and Lock Task
-        TaskResource task = findByIdAndObtainLock(taskId);
-        //Update cft task and terminate reason
-        task.setState(CFTTaskState.TERMINATED);
-        task.setTerminationReason(terminateInfo.getTerminateReason());
-        //Perform Camunda updates
-        camundaService.deleteCftTaskState(taskId);
-        //Commit transaction
-        cftTaskDatabaseService.saveTask(task);
+        TaskResource task = null;
+        try {
+            //Find and Lock Task
+            task = findByIdAndObtainLock(taskId);
+        } catch (ResourceNotFoundException e) {
+            //Perform Camunda updates
+            log.warn("Task for id {} not found in the database, trying delete the task in camunda if exist", taskId);
+            camundaService.deleteCftTaskState(taskId);
+            return;
+        }
+
+        //Terminate the task if found in the database
+        if (task != null) {
+            //Update cft task and terminate reason
+            task.setState(CFTTaskState.TERMINATED);
+            task.setTerminationReason(terminateInfo.getTerminateReason());
+            //Perform Camunda updates
+            camundaService.deleteCftTaskState(taskId);
+            //Commit transaction
+            cftTaskDatabaseService.saveTask(task);
+        }
     }
 
     /**

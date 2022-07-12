@@ -18,27 +18,32 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/claim";
 
     private TestAuthenticationCredentials caseworkerCredentials;
+    private TestAuthenticationCredentials currentCaseworkerCredentials;
     private GrantType testGrantType = GrantType.SPECIFIC;
 
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        currentCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
     }
 
     @After
     public void cleanUp() {
         if (testGrantType == GrantType.CHALLENGED) {
             common.clearAllRoleAssignmentsForChallenged(caseworkerCredentials.getHeaders());
+            common.clearAllRoleAssignmentsForChallenged(currentCaseworkerCredentials.getHeaders());
         } else {
             common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+            common.clearAllRoleAssignments(currentCaseworkerCredentials.getHeaders());
         }
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(currentCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void user_should_not_claim_task_when_grant_type_specific_and_permission_read() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
@@ -67,7 +72,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_specific_and_permission_own() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -90,7 +95,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_specific_and_permission_execute() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupFtpaJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -113,7 +118,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_not_claim_task_when_grant_type_specific_and_permission_manage() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -141,7 +146,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_not_claim_task_when_grant_type_specific_and_permission_cancel() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
@@ -171,7 +176,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_specific_and_permissions_own_manage() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -196,7 +201,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_specific_and_permissions_execute_manage() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupFtpaJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -221,7 +226,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_not_claim_task_when_grant_type_specific_and_permissions_read_manage_cancel() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -251,7 +256,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_specific_and_permissions_execute_read_manage_own_cancel() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
@@ -276,7 +281,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_specific_and_permissions_execute_read_manage_execute_cancel() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -299,9 +304,43 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
+    public void user_should_claim_task_when_task_is_already_claimed() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        String taskId = taskVariables.getTaskId();
+
+        common.setupCaseManagerForSpecificAccess(currentCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        initiateTask(currentCaseworkerCredentials.getHeaders(), taskVariables,
+                     "processApplication", "process application", "process task");
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            currentCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
     public void user_should_not_claim_task_when_grant_type_challenged_and_permission_read() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -329,7 +368,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_challenged_and_permissions_own_manage() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -354,7 +393,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_not_claim_task_when_grant_type_challenged_and_permission_manage() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -382,7 +421,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_challenged_and_permission_execute() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -405,7 +444,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_not_claim_task_when_grant_type_challenged_and_permission_cancel() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -436,7 +475,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_not_claim_task_when_grant_type_challenged_and_permission_read_manage_cancel() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -466,7 +505,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_challenged_and_permissions_read_manage_own_cancel() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -491,7 +530,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_challenged_and_permissions_read_manage_execute_cancel() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -516,7 +555,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_not_claim_task_when_grant_type_challenged_and_excluded() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
 
         common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
@@ -548,7 +587,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_grant_type_specific_and_excluded() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 

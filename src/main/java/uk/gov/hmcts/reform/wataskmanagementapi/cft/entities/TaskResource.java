@@ -45,7 +45,8 @@ import javax.persistence.OneToMany;
         )
     }
 )
-@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields", "PMD.UnnecessaryFullyQualifiedName"})
+@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields",
+    "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
 public class TaskResource implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
@@ -137,6 +138,12 @@ public class TaskResource implements Serializable {
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime lastReconfigurationTime;
+
+    private String nextHearingId;
+
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime nextHearingDate;
+
 
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
@@ -266,7 +273,9 @@ public class TaskResource implements Serializable {
                         OffsetDateTime created,
                         Set<TaskRoleResource> taskRoleResources,
                         String caseCategory,
-                        Map<String, String> additionalProperties) {
+                        Map<String, String> additionalProperties,
+                        String nextHearingId,
+                        OffsetDateTime nextHearingDate) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
@@ -300,6 +309,8 @@ public class TaskResource implements Serializable {
         this.taskRoleResources = taskRoleResources;
         this.caseCategory = caseCategory;
         this.additionalProperties = additionalProperties;
+        this.nextHearingId = nextHearingId;
+        this.nextHearingDate = nextHearingDate;
     }
 
     public void setTaskId(String taskId) {
@@ -440,5 +451,13 @@ public class TaskResource implements Serializable {
 
     public void setLastReconfigurationTime(OffsetDateTime reconfigurationTime) {
         this.lastReconfigurationTime = reconfigurationTime;
+    }
+
+    public void setNextHearingId(String nextHearingId) {
+        this.nextHearingId = nextHearingId;
+    }
+
+    public void setNextHearingDate(OffsetDateTime nextHearingDate) {
+        this.nextHearingDate = nextHearingDate;
     }
 }

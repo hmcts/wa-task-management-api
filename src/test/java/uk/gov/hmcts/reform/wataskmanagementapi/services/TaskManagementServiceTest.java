@@ -302,11 +302,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
         lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
             anyMap())).thenReturn(List.of(
-            new ConfigurationDmnEvaluationResponse(
-                CamundaValue.stringValue("caseName"),
-                CamundaValue.stringValue("Value"),
-                CamundaValue.booleanValue(true)
-            )
+                new ConfigurationDmnEvaluationResponse(
+                    CamundaValue.stringValue("caseName"),
+                    CamundaValue.stringValue("Value"),
+                    CamundaValue.booleanValue(true)
+                )
         ));
     }
 
@@ -611,13 +611,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Nested
     @DisplayName("claimTask()")
     class Release2EndpointsClaimTask {
+
         @Test
         void claimTask_should_succeed() {
-
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
+
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
                 .thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -629,9 +630,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
             taskManagementService.claimTask(taskId, accessControlResponse);
 
-            verify(camundaService, times(1)).claimTask(taskId, IDAM_USER_ID);
+            verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
+
         }
 
         @Test
@@ -2778,19 +2781,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
             }
 
             @Test
-            void should_throw_exception_when_task_resource_not_found() {
-
-                TaskResource taskResource = spy(TaskResource.class);
-
+            void should_handle_when_task_resource_not_found_and_delete_task_in_camunda() {
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.empty());
 
-                assertThatThrownBy(() -> taskManagementService.terminateTask(taskId, terminateInfo))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasNoCause()
-                    .hasMessage("Resource not found");
-                verify(camundaService, times(0)).deleteCftTaskState(taskId);
-                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+                taskManagementService.terminateTask(taskId, terminateInfo);
+
+                verify(camundaService, times(1)).deleteCftTaskState(taskId);
+                verify(cftTaskDatabaseService, times(0)).saveTask(any(TaskResource.class));
             }
 
         }
@@ -2821,19 +2819,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
 
             @Test
-            void should_throw_exception_when_task_resource_not_found() {
-
-                TaskResource taskResource = spy(TaskResource.class);
-
+            void should_handle_when_task_resource_not_found_and_delete_task_in_camunda() {
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.empty());
 
-                assertThatThrownBy(() -> taskManagementService.terminateTask(taskId, terminateInfo))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasNoCause()
-                    .hasMessage("Resource not found");
-                verify(camundaService, times(0)).deleteCftTaskState(taskId);
-                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+                taskManagementService.terminateTask(taskId, terminateInfo);
+
+                verify(camundaService, times(1)).deleteCftTaskState(taskId);
+                verify(cftTaskDatabaseService, times(0)).saveTask(any(TaskResource.class));
             }
 
         }
@@ -2862,19 +2855,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
             }
 
             @Test
-            void should_throw_exception_when_task_resource_not_found() {
-
-                TaskResource taskResource = spy(TaskResource.class);
-
+            void should_handle_when_task_resource_not_found_and_delete_task_in_camunda() {
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.empty());
 
-                assertThatThrownBy(() -> taskManagementService.terminateTask(taskId, terminateInfo))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasNoCause()
-                    .hasMessage("Resource not found");
-                verify(camundaService, times(0)).deleteCftTaskState(taskId);
-                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+                taskManagementService.terminateTask(taskId, terminateInfo);
+
+                verify(camundaService, times(1)).deleteCftTaskState(taskId);
+                verify(cftTaskDatabaseService, times(0)).saveTask(any(TaskResource.class));
             }
 
         }
