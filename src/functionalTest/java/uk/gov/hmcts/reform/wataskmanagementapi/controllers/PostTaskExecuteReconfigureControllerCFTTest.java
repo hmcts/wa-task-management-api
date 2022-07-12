@@ -5,6 +5,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
@@ -20,6 +21,12 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.nullValue;
 
 public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunctionalBaseTest {
 
@@ -71,6 +78,20 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
+        result = restApiActions.get(
+            "task/{task-id}",
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("Assigned"))
+            .body("task.reconfigure_request_time", nullValue())
+            .body("task.work_type_id", notNullValue());
 
         common.cleanUpTask(taskId);
     }

@@ -5,6 +5,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
@@ -19,7 +20,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import java.util.List;
 import java.util.UUID;
 
-public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBaseTest {
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
+
+public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     private TestAuthenticationCredentials caseworkerCredentials;
@@ -71,6 +77,18 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        result = restApiActions.get(
+            "task/{task-id}",
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.reconfigure_request_time", notNullValue());
+
         common.cleanUpTask(taskId);
     }
 
@@ -94,6 +112,18 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         String taskId = taskVariables.getTaskId();
+
+        result = restApiActions.get(
+            "task/{task-id}",
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.reconfigure_request_time", notNullValue());
 
         common.cleanUpTask(taskId);
     }

@@ -109,7 +109,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     }
 
     @Test
-    void should_execute_reconfigure_for_reconfigure_request_time() throws Exception {
+    void should_successfully_mark_to_configure_and_then_execute_reconfigure_on_task() throws Exception {
 
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, "caseId101");
         mockMvc.perform(
