@@ -20,10 +20,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import java.util.List;
 import java.util.UUID;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
 
 public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunctionalBaseTest {
 
