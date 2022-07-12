@@ -71,12 +71,6 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
         common.cleanUpTask(taskId);
     }
 
@@ -100,12 +94,6 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         String taskId = taskVariables.getTaskId();
-
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
 
         common.cleanUpTask(taskId);
     }
