@@ -35,11 +35,9 @@ import static org.mockito.Mockito.when;
 class MarkTaskReconfigurationServiceTest {
 
     @Mock
-    private CFTTaskDatabaseService cftTaskDatabaseService;
-
-    @Mock
     CaseConfigurationProviderService caseConfigurationProviderService;
-
+    @Mock
+    private CFTTaskDatabaseService cftTaskDatabaseService;
     @InjectMocks
     private MarkTaskReconfigurationService markTaskReconfigurationService;
 
@@ -47,11 +45,11 @@ class MarkTaskReconfigurationServiceTest {
     void setup() {
         lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
             anyMap())).thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(
-                    CamundaValue.stringValue("caseName"),
-                    CamundaValue.stringValue("Value"),
-                    CamundaValue.booleanValue(true)
-                )
+            new ConfigurationDmnEvaluationResponse(
+                CamundaValue.stringValue("caseName"),
+                CamundaValue.stringValue("Value"),
+                CamundaValue.booleanValue(true)
+            )
         ));
     }
 
@@ -111,11 +109,11 @@ class MarkTaskReconfigurationServiceTest {
         List<TaskFilter<?>> taskFilters = createTaskFilters();
         when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
             any())).thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(
-                    CamundaValue.stringValue("caseName"),
-                    CamundaValue.stringValue("Value"),
-                    CamundaValue.booleanValue(false)
-                )
+            new ConfigurationDmnEvaluationResponse(
+                CamundaValue.stringValue("caseName"),
+                CamundaValue.stringValue("Value"),
+                CamundaValue.booleanValue(false)
+            )
         ));
 
         List<TaskResource> taskResourcesMarked = markTaskReconfigurationService.markTasksToReconfigure(taskFilters);
