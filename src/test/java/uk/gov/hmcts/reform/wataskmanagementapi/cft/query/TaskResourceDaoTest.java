@@ -234,7 +234,7 @@ class TaskResourceDaoTest {
                 false,
                 false,
                 false,
-                new String[]{"SPECIFIC", "BASIC"},
+                new String[]{"SPECIFIC", "STANDARD"},
                 0,
                 false,
                 "JUDICIAL",
@@ -252,7 +252,7 @@ class TaskResourceDaoTest {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))

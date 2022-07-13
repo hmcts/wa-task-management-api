@@ -16,7 +16,7 @@ import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.utils.CreateTaskMessageBuilder.createBasicMessageForTask;
+import static uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.utils.CreateTaskMessageBuilder.createMessageForTask;
 
 @Slf4j
 public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
@@ -46,7 +46,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
         caseId = given.iCreateACcdCase();
 
         String taskTypeId = "followUpOverdueReasonsForAppeal";
-        createTaskMessage = createBasicMessageForTask(taskTypeId, caseId).build();
+        createTaskMessage = createMessageForTask(taskTypeId, caseId).build();
         taskId = createTask(createTaskMessage);
         log.info("task found [{}]", taskId);
 
@@ -93,7 +93,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
     @Test
     public void given_configure_task_then_expect_task_state_is_unassigned() throws IOException {
         caseId = given.iCreateACcdCase();
-        createTaskMessage = createBasicMessageForTask("wa-task-configuration-api-task", UUID.randomUUID().toString())
+        createTaskMessage = createMessageForTask("wa-task-configuration-api-task", UUID.randomUUID().toString())
             .withCaseId(caseId)
             .build();
         taskId = createTask(createTaskMessage);
