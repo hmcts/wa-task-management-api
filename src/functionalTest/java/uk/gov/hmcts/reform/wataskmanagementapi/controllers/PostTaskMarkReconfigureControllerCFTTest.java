@@ -32,7 +32,6 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
     private TestAuthenticationCredentials caseworkerCredentials;
     private TestAuthenticationCredentials assignerCredentials;
     private TestAuthenticationCredentials assigneeCredentials;
-    private TestAuthenticationCredentials secondAssigneeCredentials;
     private GrantType testGrantType = GrantType.SPECIFIC;
     private String taskId;
     private String assigneeId;
