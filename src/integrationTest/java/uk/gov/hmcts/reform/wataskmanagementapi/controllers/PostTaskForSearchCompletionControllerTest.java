@@ -466,7 +466,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             "caseCategory",
             ADDITIONAL_PROPERTIES,
                 "nextHearingId",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
     }

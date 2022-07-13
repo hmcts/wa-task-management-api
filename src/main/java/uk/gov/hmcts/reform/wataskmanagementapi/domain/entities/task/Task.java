@@ -209,7 +209,6 @@ public class Task {
                 Map<String, String> additionalProperties,
                 String nextHearingId,
                 ZonedDateTime nextHearingDate,
-                Map<String, String> additionalProperties,
                 Integer minorPriority,
                 Integer majorPriority,
                 ZonedDateTime priorityDate) {

@@ -87,7 +87,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
         "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411",
-        "PMD.ExcessiveMethodLength"})
+        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity"})
 @Slf4j
 public class CFTTaskMapper {
 
@@ -154,7 +154,7 @@ public class CFTTaskMapper {
             read(attributes, TASK_CASE_CATEGORY, null),
             read(attributes, TASK_ADDITIONAL_PROPERTIES, null),
             read(attributes, TASK_NEXT_HEARING_ID, null),
-            readDate(attributes, TASK_NEXT_HEARING_DATE, null)
+            readDate(attributes, TASK_NEXT_HEARING_DATE, null),
             priorityDate
         );
     }

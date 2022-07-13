@@ -34,10 +34,11 @@ public enum CamundaVariableDefinition {
     DESCRIPTION("description"),
     ADDITIONAL_PROPERTIES("additionalProperties"),
     NEXT_HEARING_ID("nextHearingId"),
-    NEXT_HEARING_DATE("nextHearingDate");
+    NEXT_HEARING_DATE("nextHearingDate"),
     MINOR_PRIORITY("minorPriority"),
     MAJOR_PRIORITY("majorPriority"),
     PRIORITY_DATE("priorityDate");
+
 
     private final String value;
 
