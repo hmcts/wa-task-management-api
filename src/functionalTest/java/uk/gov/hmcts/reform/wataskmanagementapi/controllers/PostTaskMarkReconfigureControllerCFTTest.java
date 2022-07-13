@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
@@ -29,58 +30,61 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     private TestAuthenticationCredentials caseworkerCredentials;
+    private TestAuthenticationCredentials assignerCredentials;
+    private TestAuthenticationCredentials assigneeCredentials;
+    private TestAuthenticationCredentials secondAssigneeCredentials;
+    private GrantType testGrantType = GrantType.SPECIFIC;
+    private String taskId;
     private String assigneeId;
 
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
+        assignerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        assigneeCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
     }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+
+        common.clearAllRoleAssignments(assignerCredentials.getHeaders());
+        common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
+
+        authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
+
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned_for_WA() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
 
-        String assignEndpoint = "task/{task-id}/assign";
-        String taskId = taskVariables.getTaskId();
+
+        common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        initiateTask(assignerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+
+        common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
         Response result = restApiActions.post(
-            assignEndpoint,
-            taskId,
-            new AssignTaskRequest(assigneeId),
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-
-        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
-        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", assigneeId, caseworkerCredentials.getHeaders());
-
-        result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
-            caseworkerCredentials.getHeaders()
+            assigneeCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
+        taskId = taskVariables.getTaskId();
 
         result = restApiActions.get(
             "/task/{task-id}",
             taskId,
-            caseworkerCredentials.getHeaders()
+            assigneeCredentials.getHeaders()
         );
 
         result.prettyPrint();
@@ -99,26 +103,27 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
+
+
+        common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        initiateTask(assignerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
-            caseworkerCredentials.getHeaders()
+            assigneeCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        String taskId = taskVariables.getTaskId();
+        taskId = taskVariables.getTaskId();
 
         result = restApiActions.get(
             "/task/{task-id}",
             taskId,
-            caseworkerCredentials.getHeaders()
+            assigneeCredentials.getHeaders()
         );
 
         result.prettyPrint();
@@ -139,7 +144,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
         );
 
         String assignEndpoint = "task/{task-id}/assign";
@@ -194,7 +199,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
         );
 
         Response result = restApiActions.post(
@@ -235,6 +240,33 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         MarkTaskToReconfigureTaskFilter filter = new MarkTaskToReconfigureTaskFilter(
             "case_id", List.of(caseId), TaskFilterOperator.IN);
         return List.of(filter);
+    }
+
+    private void assignTaskAndValidate(TestVariables taskVariables, String assigneeId) {
+
+        Response result = restApiActions.post(
+            "task/{task-id}/assign",
+            taskVariables.getTaskId(),
+            new AssignTaskRequest(assigneeId),
+            assignerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        switch (testGrantType) {
+            case SPECIFIC:
+                common.setupCFTOrganisationalRoleAssignment(assignerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+                break;
+            case CHALLENGED:
+                common.setupCFTOrganisationalRoleAssignmentForChallengedAccess(assignerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+                break;
+            default:
+        }
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+        assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned", assignerCredentials.getHeaders());
+        assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee", assigneeId, assignerCredentials.getHeaders());
     }
 
 }
