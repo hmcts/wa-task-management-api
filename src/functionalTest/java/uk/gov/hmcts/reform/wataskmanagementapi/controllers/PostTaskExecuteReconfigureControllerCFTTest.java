@@ -76,6 +76,23 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        String taskId = taskVariables.getTaskId();
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", notNullValue());
+
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequest(TaskOperationName.EXECUTE_RECONFIGURE, OffsetDateTime.now().minus(Duration.ofDays(1))),
@@ -85,7 +102,6 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        String taskId = taskVariables.getTaskId();
         result = restApiActions.get(
             "/task/{task-id}",
             taskId,
