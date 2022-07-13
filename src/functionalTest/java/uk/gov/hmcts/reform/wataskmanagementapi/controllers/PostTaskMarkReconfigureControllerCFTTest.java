@@ -114,7 +114,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
-            assigneeCredentials.getHeaders()
+            assignerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -125,7 +125,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         result = restApiActions.get(
             "/task/{task-id}",
             taskId,
-            assigneeCredentials.getHeaders()
+            assignerCredentials.getHeaders()
         );
 
         result.prettyPrint();
