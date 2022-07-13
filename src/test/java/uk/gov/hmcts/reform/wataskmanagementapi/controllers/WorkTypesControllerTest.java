@@ -75,7 +75,7 @@ class WorkTypesControllerTest {
             RoleType.CASE,
             "Judge",
             Classification.PUBLIC,
-            GrantType.BASIC,
+            GrantType.SPECIFIC,
             RoleCategory.JUDICIAL,
             false,
             Map.of("workTypes", "hearing_work"));
@@ -111,7 +111,7 @@ class WorkTypesControllerTest {
             RoleType.CASE,
             "Judge",
             Classification.PUBLIC,
-            GrantType.BASIC,
+            GrantType.SPECIFIC,
             RoleCategory.JUDICIAL,
             false,
             Map.of(workTypeKey, "hearing_work,upper_tribunal"));
@@ -158,7 +158,7 @@ class WorkTypesControllerTest {
             RoleType.CASE,
             "Judge",
             Classification.PUBLIC,
-            GrantType.BASIC,
+            GrantType.SPECIFIC,
             RoleCategory.JUDICIAL,
             false,
             workTypesMap);
@@ -186,7 +186,7 @@ class WorkTypesControllerTest {
             RoleType.CASE,
             "Judge",
             Classification.PUBLIC,
-            GrantType.BASIC,
+            GrantType.SPECIFIC,
             RoleCategory.JUDICIAL,
             false,
             new HashMap<>());
