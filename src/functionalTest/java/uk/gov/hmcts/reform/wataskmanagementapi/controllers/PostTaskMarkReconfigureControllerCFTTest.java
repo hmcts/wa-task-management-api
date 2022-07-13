@@ -102,45 +102,6 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
 
     @Test
-    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
-
-
-        common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(assignerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
-            assignerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        taskId = taskVariables.getTaskId();
-
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            assignerCredentials.getHeaders()
-        );
-
-        result.prettyPrint();
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("unassigned"))
-            .body("task.reconfigure_request_time", notNullValue());
-
-        common.cleanUpTask(taskId);
-    }
-
-    @Test
     @Ignore("IA specific tests")
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned_for_IA() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -194,7 +155,6 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         common.cleanUpTask(taskId);
     }
 
-
     @Test
     @Ignore("IA Specific")
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_IA() {
@@ -214,7 +174,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        String taskId = taskVariables.getTaskId();
+        taskId = taskVariables.getTaskId();
 
         result = restApiActions.get(
             "/task/{task-id}",
