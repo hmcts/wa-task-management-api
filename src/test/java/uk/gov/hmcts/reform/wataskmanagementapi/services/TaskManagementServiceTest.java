@@ -299,11 +299,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
         lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
             anyMap())).thenReturn(List.of(
-            new ConfigurationDmnEvaluationResponse(
-                CamundaValue.stringValue("caseName"),
-                CamundaValue.stringValue("Value"),
-                CamundaValue.booleanValue(true)
-            )
+                new ConfigurationDmnEvaluationResponse(
+                    CamundaValue.stringValue("caseName"),
+                    CamundaValue.stringValue("Value"),
+                    CamundaValue.booleanValue(true)
+                )
         ));
     }
 

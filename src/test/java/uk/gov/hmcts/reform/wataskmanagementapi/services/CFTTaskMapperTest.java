@@ -990,7 +990,7 @@ class CFTTaskMapperTest {
             false,
             false,
             false,
-            new String[]{"SPECIFIC", "BASIC"},
+            new String[]{"SPECIFIC", "STANDARD"},
             0,
             false,
             "JUDICIAL",
@@ -1043,7 +1043,7 @@ class CFTTaskMapperTest {
             true,
             true,
             true,
-            new String[]{"SPECIFIC", "BASIC"},
+            new String[]{"SPECIFIC", "STANDARD"},
             0,
             false,
             "JUDICIAL",
@@ -1563,7 +1563,7 @@ class CFTTaskMapperTest {
             true,
             true,
             true,
-            new String[]{"SPECIFIC", "BASIC"},
+            new String[]{"SPECIFIC", "STANDARD"},
             0,
             false,
             "JUDICIAL",
@@ -1586,7 +1586,7 @@ class CFTTaskMapperTest {
 
         assertFalse(taskRolePermissions.getAuthorisations().isEmpty());
         assertTrue(taskRolePermissions.getAuthorisations().contains("SPECIFIC"));
-        assertTrue(taskRolePermissions.getAuthorisations().contains("BASIC"));
+        assertTrue(taskRolePermissions.getAuthorisations().contains("STANDARD"));
     }
 
     @Test
