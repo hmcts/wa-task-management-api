@@ -60,6 +60,9 @@ class ExecuteTaskReconfigurationServiceTest {
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
+        when(cftTaskDatabaseService.saveTask(any()))
+            .thenReturn(taskResources.get(0))
+            .thenReturn(taskResources.get(1));
 
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
 
