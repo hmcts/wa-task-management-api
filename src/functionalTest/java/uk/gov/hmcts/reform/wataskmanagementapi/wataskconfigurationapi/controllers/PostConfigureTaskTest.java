@@ -4,7 +4,6 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -13,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticatio
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
