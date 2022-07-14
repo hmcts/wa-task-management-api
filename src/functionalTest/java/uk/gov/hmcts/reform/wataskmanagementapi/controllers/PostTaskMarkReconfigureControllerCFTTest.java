@@ -217,17 +217,8 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        switch (testGrantType) {
-            case SPECIFIC:
-                common.setupCFTOrganisationalRoleAssignment(assignerCredentials.getHeaders(),
-                    WA_JURISDICTION, WA_CASE_TYPE);
-                break;
-            case CHALLENGED:
-                common.setupCFTOrganisationalRoleAssignmentForChallengedAccess(assignerCredentials.getHeaders(),
-                    WA_JURISDICTION, WA_CASE_TYPE);
-                break;
-            default:
-        }
+        common.setupCFTOrganisationalRoleAssignment(assignerCredentials.getHeaders(),
+                                                    WA_JURISDICTION, WA_CASE_TYPE);
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned",

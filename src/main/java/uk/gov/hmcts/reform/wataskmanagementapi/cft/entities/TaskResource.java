@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.EqualsAndHashCode;
@@ -125,6 +126,7 @@ public class TaskResource implements Serializable {
     @JoinColumn(name = "executionTypeCode", referencedColumnName = "execution_code")
     private ExecutionTypeResource executionTypeCode;
 
+    @JsonBackReference
     @ToString.Exclude
     @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<TaskRoleResource> taskRoleResources;
@@ -449,8 +451,8 @@ public class TaskResource implements Serializable {
         this.reconfigureRequestTime = reconfigureRequestTime;
     }
 
-    public void setLastReconfigurationTime(OffsetDateTime reconfigurationTime) {
-        this.lastReconfigurationTime = reconfigurationTime;
+    public void setLastReconfigurationTime(OffsetDateTime lastReconfigurationTime) {
+        this.lastReconfigurationTime = lastReconfigurationTime;
     }
 
     public void setNextHearingId(String nextHearingId) {

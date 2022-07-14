@@ -15,8 +15,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -52,20 +55,40 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
             .getActiveTasksAndReconfigureRequestTimeIsNotNull(
                 List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
 
-        taskResources.stream()
-            .map(task -> cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(task.getTaskId())
-                .orElseGet(() -> null))
-            .filter(Objects::nonNull)
-            .filter(task -> task.getReconfigureRequestTime().isAfter(reconfigureDateTime))
-            .forEach(taskResource -> {
-                taskResource = configureTask(taskResource);
-                taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
-                taskResource.setReconfigureRequestTime(null);
-                taskResource.setLastReconfigurationTime(OffsetDateTime.now());
-                cftTaskDatabaseService.saveTask(taskResource);
-            });
+        List<TaskResource> successfulTaskResources = new ArrayList<>();
 
-        return taskResources;
+        List<String> taskIds = taskResources.stream()
+            .map(TaskResource::getTaskId)
+            .collect(Collectors.toList());
+
+        reconfigureTask(taskIds, successfulTaskResources);
+
+        return successfulTaskResources;
+    }
+
+    private List<String> reconfigureTask(List<String> taskIds,
+                                                      List<TaskResource> successfulTaskResources) {
+        List<String> failedTaskIds = new ArrayList<>();
+        taskIds.forEach(taskId -> {
+
+            try {
+                Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
+                    .findByIdAndObtainPessimisticWriteLock(taskId);
+
+                if (optionalTaskResource.isPresent()) {
+                    TaskResource taskResource = optionalTaskResource.get();
+                    taskResource = configureTask(taskResource);
+                    taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+                    taskResource.setReconfigureRequestTime(null);
+                    taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+                    successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
+                }
+            } catch (Exception e) {
+                failedTaskIds.add(taskId);
+            }
+        });
+
+        return failedTaskIds;
     }
 
     private OffsetDateTime getReconfigureRequestTime(List<TaskFilter<?>> taskFilters) {
