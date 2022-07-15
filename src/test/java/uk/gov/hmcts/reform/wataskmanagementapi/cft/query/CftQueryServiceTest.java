@@ -156,7 +156,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 false,
                 false,
                 false,
-                new String[]{"SPECIFIC", "BASIC"},
+                new String[]{"SPECIFIC", "STANDARD"},
                 0,
                 false,
                 "JUDICIAL",
@@ -207,21 +207,12 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
     private static List<RoleAssignment> roleAssignmentWithAllGrantTypes() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
-            .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
-            .roleType(RoleType.ORGANISATION)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
         final Map<String, String> specificAttributes = Map.of(
             RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
             RoleAttributeDefinition.JURISDICTION.value(), "IA",
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(Classification.PUBLIC)
             .attributes(specificAttributes)
             .roleType(RoleType.ORGANISATION)

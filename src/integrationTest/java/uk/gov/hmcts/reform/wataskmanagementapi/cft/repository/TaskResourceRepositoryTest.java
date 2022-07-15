@@ -176,7 +176,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
         final TaskRoleResource taskRoleResource = taskRoleResources.get(0);
 
-        String[] expectedAuthorizations = new String[]{"SPECIFIC", "BASIC"};
+        String[] expectedAuthorizations = new String[]{"SPECIFIC", "STANDARD"};
 
         assertAll(
             () -> assertNotNull(taskRoleResource.getTaskRoleId()),
@@ -238,7 +238,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 false,
                 false,
                 false,
-                new String[]{"SPECIFIC", "BASIC"},
+                new String[]{"SPECIFIC", "STANDARD"},
                 0,
                 false,
                 "JUDICIAL",
