@@ -23,7 +23,10 @@ public enum SortField {
     CASE_ID_SNAKE_CASE("case_id", "caseId", "caseId"),
 
     CASE_NAME_CAMEL_CASE("caseName", "caseName", "caseName"),
-    CASE_NAME_SNAKE_CASE("case_name", "caseName", "caseName");
+    CASE_NAME_SNAKE_CASE("case_name", "caseName", "caseName"),
+
+    NEXT_HEARING_DATE_CAMEL_CASE("nextHearingDate", "nextHearingDate", "nextHearingDate"),
+    NEXT_HEARING_DATE_SNAKE_CASE("next_hearing_date", "nextHearingDate", "nextHearingDate");
 
     @JsonValue
     private final String id;

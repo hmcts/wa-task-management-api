@@ -96,7 +96,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "grantTypeWithAvailableTasksOnlyScenarioHappyPath",
         "inActiveRole",
         "sortByFieldScenario",
-        "paginatedResultsScenario"
+        "paginatedResultsScenario",
+        "sortByFieldNexHearingDateAscOrder",
+        "sortByFieldNexHearingDateDescOrder"
     })
     void should_retrieve_tasks(TaskQueryScenario scenario) {
 
@@ -451,9 +453,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
+                                 )
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
@@ -465,11 +467,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(4)
             .expectedTotalRecords(4)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
+                                 )
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
@@ -481,13 +483,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(6)
             .expectedTotalRecords(6)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
+                                 )
             ).build();
 
         return Stream.of(
@@ -595,8 +597,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000013", "1623278362400013"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000013", "1623278362400013"
+                                 )
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
@@ -608,8 +610,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000013", "1623278362400013"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000013", "1623278362400013"
+                                 )
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
@@ -621,8 +623,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000013", "1623278362400013"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000013", "1623278362400013"
+                                 )
             ).build();
 
         return Stream.of(
@@ -711,9 +713,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000016", "1623278362400016"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000016", "1623278362400016"
+                                 )
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
@@ -725,11 +727,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(4)
             .expectedTotalRecords(4)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000017", "1623278362400017",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000016", "1623278362400016",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000018", "1623278362400018"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000017", "1623278362400017",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000016", "1623278362400016",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000018", "1623278362400018"
+                                 )
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
@@ -741,13 +743,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(6)
             .expectedTotalRecords(6)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000017", "1623278362400017",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000019", "1623278362400019",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000016", "1623278362400016",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000018", "1623278362400018",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000020", "1623278362400020"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000017", "1623278362400017",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000019", "1623278362400019",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000016", "1623278362400016",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000018", "1623278362400018",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000020", "1623278362400020"
+                                 )
             ).build();
 
         return Stream.of(
@@ -823,9 +825,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
+                                 )
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
@@ -837,11 +839,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(4)
             .expectedTotalRecords(4)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
+                                 )
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
@@ -853,15 +855,15 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
+                                 )
             ).build();
 
         return Stream.of(
@@ -937,8 +939,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015"
+                                 )
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
@@ -950,10 +952,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(3)
             .expectedTotalRecords(3)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000017", "1623278362400017",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000018", "1623278362400018"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000017", "1623278362400017",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000018", "1623278362400018"
+                                 )
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
@@ -965,12 +967,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(5)
             .expectedTotalRecords(5)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000017", "1623278362400017",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000019", "1623278362400019",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000018", "1623278362400018",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000020", "1623278362400020"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000015", "1623278362400015",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000017", "1623278362400017",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000019", "1623278362400019",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000018", "1623278362400018",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000020", "1623278362400020"
+                                 )
             ).build();
 
         return Stream.of(
@@ -1047,8 +1049,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
+                                 )
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
@@ -1060,9 +1062,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
+                                 )
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
@@ -1074,10 +1076,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(3)
             .expectedTotalRecords(3)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
+                                 )
             ).build();
 
         return Stream.of(
@@ -1105,15 +1107,15 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012"
+                                 )
             ).build();
 
         searchTaskRequest = new SearchTaskRequest(
@@ -1136,21 +1138,86 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004"
+                                 )
             ).build();
 
         return Stream.of(
             sortByCaseId,
             sortByMultipleFields
         );
+    }
+
+    private static Stream<TaskQueryScenario> sortByFieldNexHearingDateAscOrder() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of(PRIMARY_LOCATION))
+            ),
+            List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario sortByNextHearingDateAsc = TaskQueryScenario.builder()
+            .scenarioName("Sort by next hearing date asc")
+            .firstResult(0)
+            .maxResults(10)
+            .roleAssignments(sortByField(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012"
+                                 )
+            ).build();
+
+        return Stream.of(sortByNextHearingDateAsc);
+    }
+
+
+    private static Stream<TaskQueryScenario> sortByFieldNexHearingDateDescOrder() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of(PRIMARY_LOCATION))
+            ),
+            List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
+        );
+
+        final TaskQueryScenario sortByNextHearingDateDesc = TaskQueryScenario.builder()
+            .scenarioName("Sort by next hearing date desc")
+            .firstResult(0)
+            .maxResults(10)
+            .roleAssignments(sortByField(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
+                                 )
+            ).build();
+
+        return Stream.of(sortByNextHearingDateDesc);
     }
 
     private static Stream<TaskQueryScenario> paginatedResultsScenario() {
@@ -1160,7 +1227,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of(PRIMARY_LOCATION)),
                 new SearchParameterList(WORK_TYPE, IN, singletonList("hearing_work"))
             ),
-            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
 
         final TaskQueryScenario allTasks = TaskQueryScenario.builder()
             .scenarioName("All records")
@@ -1171,27 +1239,27 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(20)
             .expectedTotalRecords(22)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000021", "1623278362400021",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000022", "1623278362400022",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000023", "1623278362400023",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000024", "1623278362400024",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000025", "1623278362400025",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000028", "1623278362400028",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000029", "1623278362400029",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000030", "1623278362400030"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000021", "1623278362400021",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000022", "1623278362400022",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000023", "1623278362400023",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000024", "1623278362400024",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000025", "1623278362400025",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000028", "1623278362400028",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000029", "1623278362400029",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000030", "1623278362400030"
+                                 )
             ).build();
 
         final TaskQueryScenario firstPage = TaskQueryScenario.builder()
@@ -1203,17 +1271,17 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(10)
             .expectedTotalRecords(22)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010"
+                                 )
             ).build();
 
         final TaskQueryScenario firstTwoRecords = TaskQueryScenario.builder()
@@ -1225,9 +1293,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(22)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
+                                 )
             ).build();
 
         final TaskQueryScenario secondPage = TaskQueryScenario.builder()
@@ -1239,17 +1307,17 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(10)
             .expectedTotalRecords(22)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000021", "1623278362400021",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000022", "1623278362400022",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000023", "1623278362400023"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000021", "1623278362400021",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000022", "1623278362400022",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000023", "1623278362400023"
+                                 )
             ).build();
 
         final TaskQueryScenario twoPages = TaskQueryScenario.builder()
@@ -1261,12 +1329,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(5)
             .expectedTotalRecords(22)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005"
-                )
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005"
+                                 )
             ).build();
 
         return Stream.of(
