@@ -1089,6 +1089,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(20)
             .roleAssignments(defaultSort(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
@@ -1482,21 +1483,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("sorting-role")
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        return roleAssignments;
-    }
-
-    private static List<RoleAssignment> defaultSort(Classification classification) {
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("sorting-role")
-            .classification(classification)
-            .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
