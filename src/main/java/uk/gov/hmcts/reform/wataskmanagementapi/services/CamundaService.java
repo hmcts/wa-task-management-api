@@ -64,6 +64,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_UPDATE_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_UNABLE_TO_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_UNABLE_TO_UPDATE_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_CANCEL_PENDING_TERMINATION_TASK;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_CANCEL_UNABLE_TO_CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_CLAIM_UNABLE_TO_CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_CLAIM_UNABLE_TO_UPDATE_STATE;
@@ -127,10 +128,38 @@ public class CamundaService {
     }
 
     public void cancelTask(String taskId) {
+        Map<String, Object> body = Map.of(
+            "variableName", CFT_TASK_STATE.value(),
+            "taskIdIn", singleton(taskId)
+        );
+
+        List<HistoryVariableInstance> results = null;
+
         try {
-            performCancelTaskAction(taskId);
-        } catch (CamundaTaskCancelException ex) {
-            throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
+            //Check if the task has already been deleted or pending termination
+            results = camundaServiceApi.searchHistory(authTokenGenerator.generate(), body);
+
+            //Is task in pending termination
+            Optional<HistoryVariableInstance> cftTaskState = results.stream()
+                .filter(r -> r.getName().equals(CFT_TASK_STATE.value()))
+                .filter(r -> r.getValue().equals("pendingTermination"))
+                .findFirst();
+
+            if (cftTaskState.isPresent()) {
+                //TODO : Confirm if this is the required action
+                throw new TaskCancelException(TASK_CANCEL_PENDING_TERMINATION_TASK);
+            }
+        } catch (FeignException ex) {
+            log.info("Task not found in history");
+        }
+
+        if (results == null || results.isEmpty()) {
+            //Task has not been canceled by dmn, perform the delete action
+            try {
+                performCancelTaskAction(taskId);
+            } catch (CamundaTaskCancelException ex) {
+                throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
+            }
         }
     }
 
