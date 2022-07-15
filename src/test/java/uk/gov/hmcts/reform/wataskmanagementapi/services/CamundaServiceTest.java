@@ -254,6 +254,45 @@ class CamundaServiceTest extends CamundaHelpers {
         }
 
         @Test
+        void should_cancel_task_when_search_history_throw_an_error() {
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).searchHistory(eq(BEARER_SERVICE_TOKEN), any());
+
+            camundaService.cancelTask(taskId);
+            verify(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
+        }
+
+        @Test
+        void should_skip_cancel_operation_for_already_cancelled_task() {
+            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                "someId",
+                CFT_TASK_STATE.value(),
+                "someValue"
+            );
+            when(camundaServiceApi.searchHistory(eq(BEARER_SERVICE_TOKEN), any()))
+                .thenReturn(singletonList(historyVariableInstance));
+
+            camundaService.cancelTask(taskId);
+            verify(camundaServiceApi, never()).bpmnEscalation(any(), any(), anyMap());
+        }
+
+        @Test
+        void should_throw_a_task_cancel_exception_when_cancelling_a_pending_termination_task() {
+            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                "someId",
+                CFT_TASK_STATE.value(),
+                "pendingTermination"
+            );
+            when(camundaServiceApi.searchHistory(eq(BEARER_SERVICE_TOKEN), any()))
+                .thenReturn(singletonList(historyVariableInstance));
+
+            assertThatThrownBy(() -> camundaService.cancelTask(taskId))
+                .isInstanceOf(TaskCancelException.class)
+                .hasNoCause()
+                .hasMessage("Task Cancel Error: Task is in pending termination status.");
+        }
+
+        @Test
         void cancelTask_should_throw_a_task_cancel_exception_when_cancelling_task_fails() {
 
             doThrow(FeignException.FeignServerException.class)

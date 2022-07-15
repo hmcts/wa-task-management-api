@@ -29,6 +29,9 @@ public enum ErrorMessages {
     TASK_CANCEL_UNABLE_TO_CANCEL(
         "Unable to cancel the task."),
 
+    TASK_CANCEL_PENDING_TERMINATION_TASK(
+        "Task is in pending termination status."),
+
     TASK_ASSIGN_UNABLE_TO_UPDATE_STATE(
         "Task assign failed. "
         + "Unable to update task state to assigned."),
