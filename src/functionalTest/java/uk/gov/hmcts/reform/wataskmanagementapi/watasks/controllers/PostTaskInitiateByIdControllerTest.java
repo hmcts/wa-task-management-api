@@ -357,7 +357,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "key3", "value3",
                 "key4", "value4"
             ))).body("minor_priority", equalTo(500))
-            .body("major_priority", equalTo(5000));
+            .body("major_priority", equalTo(1000));
 
         common.cleanUpTask(taskId);
     }
