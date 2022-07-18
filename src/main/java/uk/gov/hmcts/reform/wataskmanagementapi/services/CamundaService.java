@@ -142,13 +142,11 @@ public class CamundaService {
             //Is task in pending termination
             Optional<HistoryVariableInstance> cftTaskState = results.stream()
                 .filter(r -> r.getName().equals(CFT_TASK_STATE.value()))
-                .filter(r -> r.getValue().equals("pendingTermination"))
                 .findFirst();
 
-            if (cftTaskState.isPresent()) {
-                //TODO : Confirm if this is the required action
-                throw new TaskCancelException(TASK_CANCEL_PENDING_TERMINATION_TASK);
-            }
+            cftTaskState.ifPresent(historyVariableInstance -> log.info(
+                "Cancelling task with cft_task_state: {}", historyVariableInstance.getValue()
+            ));
         } catch (FeignException ex) {
             log.info("Task not found in history");
         }

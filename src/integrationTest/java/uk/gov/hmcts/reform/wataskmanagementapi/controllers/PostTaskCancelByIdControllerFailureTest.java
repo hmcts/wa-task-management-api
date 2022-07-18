@@ -190,44 +190,6 @@ class PostTaskCancelByIdControllerFailureTest extends SpringBootIntegrationBaseT
 
     }
 
-    @Test
-    void should_return_500_with_application_problem_response_when_task_is_in_pending_termination() throws Exception {
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
-        mockServices.mockServiceAPIs();
-
-        when(permissionEvaluatorService.hasAccess(any(), any(), any()))
-            .thenReturn(true);
-
-        initiateATask(taskId);
-
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
-
-        when(camundaServiceApi.searchHistory(eq(IDAM_AUTHORIZATION_TOKEN), any()))
-            .thenReturn(singletonList(new HistoryVariableInstance(
-                "someId",
-                CFT_TASK_STATE.value(),
-                "pendingTermination"
-            )));
-
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().is5xxServerError(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-cancel-error"),
-                jsonPath("$.title").value("Task Cancel Error"),
-                jsonPath("$.status").value(500),
-                jsonPath("$.detail").value(
-                    "Task Cancel Error: Task is in pending termination status.")
-            ));
-    }
-
     private void initiateATask(String id) {
 
         TaskResource taskResource = new TaskResource(

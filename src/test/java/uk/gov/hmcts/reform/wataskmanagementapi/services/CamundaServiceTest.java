@@ -277,22 +277,6 @@ class CamundaServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void should_throw_a_task_cancel_exception_when_cancelling_a_pending_termination_task() {
-            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
-                "someId",
-                CFT_TASK_STATE.value(),
-                "pendingTermination"
-            );
-            when(camundaServiceApi.searchHistory(eq(BEARER_SERVICE_TOKEN), any()))
-                .thenReturn(singletonList(historyVariableInstance));
-
-            assertThatThrownBy(() -> camundaService.cancelTask(taskId))
-                .isInstanceOf(TaskCancelException.class)
-                .hasNoCause()
-                .hasMessage("Task Cancel Error: Task is in pending termination status.");
-        }
-
-        @Test
         void cancelTask_should_throw_a_task_cancel_exception_when_cancelling_task_fails() {
 
             doThrow(FeignException.FeignServerException.class)
