@@ -75,7 +75,7 @@ public class WorkTypeProviderTest extends SpringBootContractProviderBaseTest {
 
         List<RoleAssignment> roleAssignmentList = List.of(
             new RoleAssignment(ActorIdType.IDAM, "actorId", RoleType.CASE, "roleName",
-                Classification.RESTRICTED, GrantType.BASIC, RoleCategory.JUDICIAL, false, attributes)
+                Classification.RESTRICTED, GrantType.SPECIFIC, RoleCategory.JUDICIAL, false, attributes)
         );
         final Optional<WorkType> workType = Optional.of(new WorkType("hearing_work", "Hearing Work"));
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));

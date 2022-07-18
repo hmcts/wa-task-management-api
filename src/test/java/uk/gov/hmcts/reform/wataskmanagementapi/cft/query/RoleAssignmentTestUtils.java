@@ -24,7 +24,7 @@ public class RoleAssignmentTestUtils {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -129,7 +129,7 @@ public class RoleAssignmentTestUtils {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary1")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().plusYears(1))
             .endTime(LocalDateTime.now().minusYears(1))
             .build();
@@ -138,7 +138,7 @@ public class RoleAssignmentTestUtils {
         roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary2")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .endTime(LocalDateTime.now().minusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
@@ -146,7 +146,7 @@ public class RoleAssignmentTestUtils {
         roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary3")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
@@ -154,7 +154,7 @@ public class RoleAssignmentTestUtils {
         roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary4")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().minusYears(1))
             .build();
@@ -163,7 +163,7 @@ public class RoleAssignmentTestUtils {
         roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary5")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().plusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -210,21 +210,12 @@ public class RoleAssignmentTestUtils {
 
     protected static List<RoleAssignment> roleAssignmentWithAllGrantTypes() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
-            .classification(Classification.PUBLIC)
-            .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
         final Map<String, String> specificAttributes = Map.of(
             RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
             RoleAttributeDefinition.JURISDICTION.value(), "IA",
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(Classification.PRIVATE)
             .attributes(specificAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
@@ -293,12 +284,12 @@ public class RoleAssignmentTestUtils {
         return Collections.singletonList(roleAssignment);
     }
 
-    protected static List<RoleAssignment> roleAssignmentWithBasicGrantTypeOnly(Classification classification) {
+    protected static List<RoleAssignment> roleAssignmentWithSpecificGrantTypeOnly(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(classification)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
