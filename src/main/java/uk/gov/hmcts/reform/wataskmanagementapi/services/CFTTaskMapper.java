@@ -83,8 +83,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 
-
-
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
