@@ -102,7 +102,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "defaultSortedResultsScenario",
         "secondaryLocationSortedResultsAscScenario",
         "secondaryLocationSortedResultsDscScenario",
-        "secondaryCaseNameSortedResultsAscScenario"
+        "secondaryCaseNameSortedResultsAscScenario",
+        "secondaryCaseNameSortedResultsDescScenario",
+        "secondaryDueDateSortedResultsAscScenario",
+        "secondaryCaseIdSortedResultsDescScenario",
+        "secondaryTaskTitleSortedResultsAscScenario",
+        "secondaryTaskTitleSortedResultsDescScenario",
+        "secondaryCaseCategorySortedResultsAscScenario",
+        "secondaryCaseCategorySortedResultsDescScenario"
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
         log.info("Running scenario: {}", scenario.scenarioName);
@@ -1148,7 +1155,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         );
 
         final TaskQueryScenario allTasks = TaskQueryScenario.builder()
-            .scenarioName("Secondary ascending sort on location with default sort all records")
+            .scenarioName("Secondary ascending sort on case name with default sort all records")
             .firstResult(0)
             .maxResults(20)
             .roleAssignments(defaultSort(Classification.RESTRICTED))
@@ -1165,6 +1172,219 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
                 "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007"
+            )).build();
+
+        return Stream.of(
+            allTasks
+        );
+    }
+
+    private static Stream<TaskQueryScenario> secondaryCaseNameSortedResultsDescScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))),
+            List.of(new SortingParameter(SortField.CASE_NAME_SNAKE_CASE, SortOrder.DESCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Secondary descending sort on case name with default sort all records")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(defaultSort(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
+            .expectedTaskDetails(newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005"
+            )).build();
+
+        return Stream.of(
+            allTasks
+        );
+    }
+
+    private static Stream<TaskQueryScenario> secondaryDueDateSortedResultsAscScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))),
+            List.of(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Secondary ascending sort on due date with default sort all records")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(defaultSort(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
+            .expectedTaskDetails(newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006"
+
+            )).build();
+
+        return Stream.of(
+            allTasks
+        );
+    }
+
+    private static Stream<TaskQueryScenario> secondaryCaseIdSortedResultsDescScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.DESCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Secondary descending sort on case id with default sort all records")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(defaultSort(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
+            .expectedTaskDetails(newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000"
+            )).build();
+
+        return Stream.of(
+            allTasks
+        );
+    }
+
+    private static Stream<TaskQueryScenario> secondaryTaskTitleSortedResultsAscScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))),
+            List.of(new SortingParameter(SortField.TASK_TITLE_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Secondary ascending sort on task title with default sort all records")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(defaultSort(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
+            .expectedTaskDetails(newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007"
+            )).build();
+
+        return Stream.of(
+            allTasks
+        );
+    }
+
+    private static Stream<TaskQueryScenario> secondaryTaskTitleSortedResultsDescScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))),
+            List.of(new SortingParameter(SortField.TASK_TITLE_SNAKE_CASE, SortOrder.DESCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Secondary descending sort on task title with default sort all records")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(defaultSort(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
+            .expectedTaskDetails(newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004"
+            )).build();
+
+        return Stream.of(
+            allTasks
+        );
+    }
+
+    private static Stream<TaskQueryScenario> secondaryCaseCategorySortedResultsAscScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))),
+            List.of(new SortingParameter(SortField.CASE_CATEGORY_CAMEL_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Secondary ascending sort on case category with default sort all records")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(defaultSort(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
+            .expectedTaskDetails(newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007"
+            )).build();
+
+        return Stream.of(
+            allTasks
+        );
+    }
+
+    private static Stream<TaskQueryScenario> secondaryCaseCategorySortedResultsDescScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))),
+            List.of(new SortingParameter(SortField.CASE_CATEGORY_CAMEL_CASE, SortOrder.DESCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Secondary descending sort on case category with default sort all records")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(defaultSort(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
+            .expectedTaskDetails(newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002"
+
             )).build();
 
         return Stream.of(
