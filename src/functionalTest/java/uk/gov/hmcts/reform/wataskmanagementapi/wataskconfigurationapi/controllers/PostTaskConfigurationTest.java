@@ -21,7 +21,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.utils.CreateTaskMessageBuilder.createBasicMessageForTask;
+import static uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.utils.CreateTaskMessageBuilder.createMessageForTask;
 
 @Slf4j
 public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
@@ -49,7 +49,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
     public void given_task_is_configured_then_expect_task_is_auto_assigned() throws Exception {
         caseId = given.iCreateACcdCase();
 
-        createTaskMessage = createBasicMessageForTask("arrangeOfflinePayment", caseId).build();
+        createTaskMessage = createMessageForTask("arrangeOfflinePayment", caseId).build();
         taskId = createTask(createTaskMessage);
         log.info("task found [{}]", taskId);
 
@@ -92,7 +92,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_task_configuration_then_expect_task_is_unassigned() throws Exception {
         caseId = given.iCreateACcdCase();
-        createTaskMessage = createBasicMessageForTask("wa-task-configuration-api-task", UUID.randomUUID().toString())
+        createTaskMessage = createMessageForTask("wa-task-configuration-api-task", UUID.randomUUID().toString())
             .withCaseId(caseId)
             .build();
         taskId = createTask(createTaskMessage);

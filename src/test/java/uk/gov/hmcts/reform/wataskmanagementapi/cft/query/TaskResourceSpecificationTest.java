@@ -40,8 +40,8 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.PUBLIC;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithBasicGrantTypeOnly;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithSpecificGrantType;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithSpecificGrantTypeOnly;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
@@ -109,7 +109,7 @@ public class TaskResourceSpecificationTest {
     void should_build_task_query_with_single_parameter(SearchTaskRequestScenario scenario) {
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
+            roleAssignmentWithSpecificGrantTypeOnly(PUBLIC)
         );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
@@ -132,7 +132,7 @@ public class TaskResourceSpecificationTest {
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, roleAssignmentWithBasicGrantTypeOnly(PUBLIC), permissionsRequired,
+            searchTaskRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
 
@@ -151,7 +151,7 @@ public class TaskResourceSpecificationTest {
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, roleAssignmentWithBasicGrantTypeOnly(PUBLIC), permissionsRequired,
+            searchTaskRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
 
@@ -173,7 +173,7 @@ public class TaskResourceSpecificationTest {
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
-        List<RoleAssignment> roleAssignments = roleAssignmentWithBasicGrantTypeOnly(PUBLIC);
+        List<RoleAssignment> roleAssignments = roleAssignmentWithSpecificGrantTypeOnly(PUBLIC);
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchTaskRequest, roleAssignments, permissionsRequired,
             criteriaBuilder, root
@@ -211,7 +211,7 @@ public class TaskResourceSpecificationTest {
         lenient().when(criteriaBuilder.conjunction()).thenReturn(null);
 
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, roleAssignmentWithBasicGrantTypeOnly(PUBLIC), permissionsRequired,
+            searchTaskRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
         assertNotNull(predicate);
@@ -237,7 +237,7 @@ public class TaskResourceSpecificationTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, roleAssignmentWithBasicGrantTypeOnly(PUBLIC), permissionsRequired,
+            searchTaskRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
 
@@ -261,7 +261,7 @@ public class TaskResourceSpecificationTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, roleAssignmentWithBasicGrantTypeOnly(PUBLIC), permissionsRequired,
+            searchTaskRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
 
@@ -301,7 +301,7 @@ public class TaskResourceSpecificationTest {
 
         Predicate predicate = TaskSearchQueryBuilder.buildQueryForCompletable(
             scenario.searchEventAndCase,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC),
+            roleAssignmentWithSpecificGrantTypeOnly(PUBLIC),
             permissionsRequired,
             List.of("taskType"),
             criteriaBuilder,
@@ -325,7 +325,7 @@ public class TaskResourceSpecificationTest {
 
         Predicate predicate = TaskSearchQueryBuilder.buildQueryForCompletable(
             searchEventAndCase,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC),
+            roleAssignmentWithSpecificGrantTypeOnly(PUBLIC),
             permissionsRequired,
             emptyList(),
             criteriaBuilder,
