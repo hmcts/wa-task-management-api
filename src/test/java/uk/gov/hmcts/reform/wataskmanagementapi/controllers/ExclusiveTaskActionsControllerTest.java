@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
@@ -19,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -100,8 +98,8 @@ class ExclusiveTaskActionsControllerTest {
             .isInstanceOf(GenericForbiddenException.class)
             .hasNoCause()
             .hasMessage("Forbidden: "
-                        + "The action could not be completed because the "
-                        + "client/user had insufficient rights to a resource.");
+                            + "The action could not be completed because the "
+                            + "client/user had insufficient rights to a resource.");
     }
 
     @Test
@@ -161,8 +159,8 @@ class ExclusiveTaskActionsControllerTest {
             .isInstanceOf(GenericForbiddenException.class)
             .hasNoCause()
             .hasMessage("Forbidden: "
-                        + "The action could not be completed because the "
-                        + "client/user had insufficient rights to a resource.");
+                            + "The action could not be completed because the "
+                            + "client/user had insufficient rights to a resource.");
 
     }
 

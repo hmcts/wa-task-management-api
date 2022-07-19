@@ -6,8 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 
-import java.util.Map;
-
 @ToString
 @EqualsAndHashCode
 @Builder

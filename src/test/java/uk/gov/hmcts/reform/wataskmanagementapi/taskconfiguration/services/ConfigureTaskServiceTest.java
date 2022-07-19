@@ -2,12 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
@@ -20,11 +15,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.configurators.TaskConfigurator;
 
-import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,6 +28,9 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
@@ -47,13 +43,19 @@ class ConfigureTaskServiceTest {
 
     private static final String ASSIGNEE = "assignee1";
     private static final TaskToConfigure TASK_TO_CONFIGURE
-        = new TaskToConfigure("taskId", "taskTypeId", "caseId", "taskName");
+        = new TaskToConfigure("taskId", "taskTypeId", "caseId", "taskName",
+                              Map.of(
+                                  TaskAttributeDefinition.TASK_TYPE.value(), "taskTypeId",
+                                  TASK_NAME.value(), "taskName",
+                                  TASK_CASE_ID.value(), "caseId",
+                                  TASK_TITLE.value(), "A test task"
+                              )
+    );
     private TaskConfigurationCamundaService camundaService;
     private ConfigureTaskService configureTaskService;
     private TaskConfigurator taskVariableExtractor;
     private TaskAutoAssignmentService autoAssignmentService;
     private CFTTaskMapper cftTaskMapper;
-    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @BeforeEach
     void setup() {
@@ -61,24 +63,13 @@ class ConfigureTaskServiceTest {
         taskVariableExtractor = mock(TaskConfigurator.class);
         autoAssignmentService = mock(TaskAutoAssignmentService.class);
         cftTaskMapper = mock(CFTTaskMapper.class);
-        featureFlagProvider = mock(LaunchDarklyFeatureFlagProvider.class);
         configureTaskService = new ConfigureTaskService(
             camundaService,
             Collections.singletonList(taskVariableExtractor),
             autoAssignmentService,
-            cftTaskMapper,
-            featureFlagProvider
+            cftTaskMapper
         );
 
-    }
-
-    public static Stream<Arguments> scenarioProvider() {
-        return Stream.of(
-            Arguments.of(true, TASK_TO_CONFIGURE.toBuilder()
-                .taskAttributes(Map.of(TaskAttributeDefinition.TASK_TYPE.value(), "taskTypeId"
-                )).build()),
-            Arguments.of(false, TASK_TO_CONFIGURE)
-        );
     }
 
     @Test
@@ -115,7 +106,8 @@ class ConfigureTaskServiceTest {
         mappedValues.put(TASK_TYPE.value(), "taskTypeId");
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
 
-        when(taskVariableExtractor.getConfigurationVariables(TASK_TO_CONFIGURE))
+        TaskToConfigure taskToConfigure = TASK_TO_CONFIGURE.toBuilder().taskAttributes(null).build();
+        when(taskVariableExtractor.getConfigurationVariables(taskToConfigure))
             .thenReturn(new TaskConfigurationResults(mappedValues));
 
         configureTaskService.configureTask(TASK_TO_CONFIGURE.getId());
@@ -131,7 +123,7 @@ class ConfigureTaskServiceTest {
             modifications
         );
 
-        verify(taskVariableExtractor).getConfigurationVariables(TASK_TO_CONFIGURE);
+        verify(taskVariableExtractor).getConfigurationVariables(taskToConfigure);
     }
 
     @Test
@@ -161,12 +153,13 @@ class ConfigureTaskServiceTest {
         );
 
         doReturn(processVariables).when(camundaService).getVariables(TASK_TO_CONFIGURE.getId());
+        TaskToConfigure taskToConfigure = TASK_TO_CONFIGURE.toBuilder().taskAttributes(null).build();
 
         HashMap<String, Object> mappedValues = new HashMap<>();
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
         mappedValues.put(TASK_TYPE.value(), "taskTypeId");
 
-        when(taskVariableExtractor.getConfigurationVariables(TASK_TO_CONFIGURE))
+        when(taskVariableExtractor.getConfigurationVariables(taskToConfigure))
             .thenReturn(new TaskConfigurationResults(mappedValues));
 
         configureTaskService.configureTask(TASK_TO_CONFIGURE.getId());
@@ -247,11 +240,8 @@ class ConfigureTaskServiceTest {
         assertEquals(configureTaskResponse.getCaseId(), TASK_TO_CONFIGURE.getCaseId());
     }
 
-    @ParameterizedTest
-    @MethodSource("scenarioProvider")
-    void given_r2_feature_flag_value_when_configure_cft_tasks_requested_then_taskToConfigure_is_as_expected(
-        boolean featureFlag,
-        TaskToConfigure expectedTaskToConfigure) {
+    @Test
+    void should_configure_task_as_expected() {
 
         HashMap<String, Object> mappedValues = new HashMap<>();
         mappedValues.put("key1", "value1");
@@ -259,11 +249,8 @@ class ConfigureTaskServiceTest {
         mappedValues.put(TASK_TYPE.value(), "taskTypeId");
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
 
-        when(taskVariableExtractor.getConfigurationVariables(expectedTaskToConfigure))
+        when(taskVariableExtractor.getConfigurationVariables(TASK_TO_CONFIGURE))
             .thenReturn(new TaskConfigurationResults(mappedValues));
-
-        when(featureFlagProvider.getBooleanValue(eq(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE), any(), any()))
-            .thenReturn(featureFlag);
 
         when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(Map.of("taskType", "taskTypeId"));
 
@@ -271,6 +258,6 @@ class ConfigureTaskServiceTest {
 
         configureTaskService.configureCFTTask(skeletonMappedTask, TASK_TO_CONFIGURE);
 
-        verify(taskVariableExtractor).getConfigurationVariables(eq(expectedTaskToConfigure));
+        verify(taskVariableExtractor).getConfigurationVariables(eq(TASK_TO_CONFIGURE));
     }
 }
