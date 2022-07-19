@@ -51,9 +51,10 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Stream<CompletableTaskScenario> scenarios = tasksToCompleteScenarios();
         scenarios.forEach(scenario -> {
 
-            TestVariables testVariables = common.setupWATaskAndRetrieveIds();
+            TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
             initiateTask(caseworkerCredentials.getHeaders(), testVariables,
-                "processApplication", "process application", "process task");
+                         "processApplication", "process application", "process task"
+            );
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
                 testVariables.getCaseId(),
@@ -95,16 +96,20 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                 .body("tasks.case_management_category", everyItem(equalTo("Protection")))
                 .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
                 .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Refer", "Execute"))))
-                .body("tasks.description",
+                .body(
+                    "tasks.description",
                     everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                      + "trigger/decideAnApplication)")))
+                                          + "trigger/decideAnApplication)"))
+                )
                 .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
                 .body("tasks.additional_properties", everyItem(equalToObject(Map.of(
                     "key1", "value1",
                     "key2", "value2",
                     "key3", "value3",
                     "key4", "value4"
-                ))));
+                ))))
+                .body("tasks.next_hearing_id", everyItem(equalTo("next-hearing-id")))
+                .body("tasks.next_hearing_date", everyItem(notNullValue()));
 
             common.cleanUpTask(testVariables.getTaskId());
         });
@@ -126,13 +131,15 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             "key8", "value8"
         );
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestLegalOps", "task name", "task title",
-            additionalProperties);
+                     "reviewSpecificAccessRequestLegalOps", "task name", "task title",
+                     additionalProperties
+        );
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(),
-            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+                                                 taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        );
 
         CompletableTaskScenario scenario = new CompletableTaskScenario(
             "reviewSpecificAccessRequestLegalOps",

@@ -51,7 +51,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_manage_should_not_assign_a_task_to_assignee_with_read_permission() {
         //assigner role : manage
         //assignee role : read
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -83,7 +83,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_manage_should_assign_a_task_to_assignee_with_own_permission() {
         //assigner role : manage
         //assignee role : own
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -100,7 +100,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_manage_should_assign_a_task_to_assignee_with_execute() {
         //assigner role : manage
         //assignee role : execute
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -117,7 +117,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_manage_can_assign_other_already_assigned_task() {
         //assigner role : manage
         //assignee role : execute
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -139,7 +139,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_manage_own_should_assign_a_task_to_assignee_with_manage_own_permission() {
         //assigner role : manage, own
         //assignee role : manage, own
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -158,7 +158,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_manage_own_should_assign_a_task_to_assignee_with_own_permission() {
         //assigner role : manage, own
         //assignee role : manage, execute
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -179,7 +179,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         //assigner role : manage, own
         //assignee role : manage, execute
         //second assignee role : read, manage, cancel
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -204,7 +204,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_execute_manage_should_assign_a_task_to_assignee_with_execute_manage_permission() {
         //assigner role : execute, manage
         //assignee role : execute, manage
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupFtpaJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -224,7 +224,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_execute_manage_should_assign_a_task_to_assignee_with_own_manage_permission() {
         //assigner role : execute, manage
         //assignee role : own, manage
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupFtpaJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -244,7 +244,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_execute_manage_can_assign_other_already_assigned_task() {
         //assigner role : execute, manage
         //assignee role : own, manage
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupFtpaJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -269,7 +269,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permissions_read_manage_cancel_should_assign_a_task() {
         //assigner role : read, manage, cancel
         //assignee role : own, manage
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -289,7 +289,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_read_manage_cancel_can_assign_other_already_assigned_task() {
         //assigner role : read, manage, cancel
         //assignee role : own, manage
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -314,7 +314,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_read_manage_own_cancel_should_assign_a_task() {
         //assigner role : read, manage, own, cancel
         //assignee role : read, manage, own, cancel
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupLeadJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
@@ -334,7 +334,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_read_manage_own_cancel_can_assign_other_already_assigned_task() {
         //assigner role : read, manage, own, cancel
         //assignee role : read, manage, own, cancel
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupLeadJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
@@ -359,7 +359,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_read_manage_execute_cancel_can_assign_task() {
         //assigner role : read, manage, execute, cancel
         //assignee role : read, manage, execute, cancel
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -380,7 +380,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_read_manage_execute_cancel_can_assign_other_already_assigned_task() {
         //assigner role : read, manage, execute, cancel
         //assignee role : read, manage, execute, cancel
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -405,7 +405,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         //assigner role : manage
         //assignee role : read
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessLegalOps(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -438,7 +438,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         //assigner role : own, manage
         //assignee role : cancel
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessAdmin(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -473,7 +473,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         //assigner role : manage
         //assignee role : own, manage
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessJudiciary(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -494,7 +494,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         //assigner role : read, manage, cancel
         //assignee role : execute, manage
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessLegalOps(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -514,7 +514,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void should_not_assign_task_when_assignee_grant_type_challenged_and_excluded() {
 
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessLegalOps(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);

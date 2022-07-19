@@ -27,7 +27,6 @@ import javax.persistence.criteria.Root;
 
 import static java.util.Collections.emptyList;
 import static java.util.List.of;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType.BASIC;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType.CHALLENGED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType.EXCLUDED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType.SPECIFIC;
@@ -73,8 +72,8 @@ public final class RoleAssignmentFilter {
         );
         List<RoleAssignmentForSearch> roleAssignmentsForSearch = searchData.getRoleAssignmentsForSearch();
 
-        // builds query for grant type BASIC, SPECIFIC
-        final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
+        // builds query for grant type SPECIFIC
+        final Predicate specific = RoleAssignmentFilter.buildQueryForSpecific(
             root, taskRoleResources, builder, roleAssignmentsForSearch);
 
         // builds query for grant type STANDARD, CHALLENGED
@@ -99,7 +98,7 @@ public final class RoleAssignmentFilter {
             permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
         }
 
-        return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded), permissionPredicate);
+        return builder.and(builder.or(specific, standardChallengedExcluded), permissionPredicate);
     }
 
     public static Predicate buildQueryToRetrieveRoleInformation(
@@ -132,12 +131,12 @@ public final class RoleAssignmentFilter {
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
-    private static Predicate buildQueryForBasicAndSpecific(Root<TaskResource> root,
-                                                           final Join<TaskResource, TaskRoleResource> taskRoleResources,
-                                                           CriteriaBuilder builder,
-                                                           List<RoleAssignmentForSearch> roleAssignmentList) {
+    private static Predicate buildQueryForSpecific(Root<TaskResource> root,
+                                                   final Join<TaskResource, TaskRoleResource> taskRoleResources,
+                                                   CriteriaBuilder builder,
+                                                   List<RoleAssignmentForSearch> roleAssignmentList) {
 
-        final Set<GrantType> grantTypes = Set.of(BASIC, SPECIFIC);
+        final Set<GrantType> grantTypes = Set.of(SPECIFIC);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
                                                          roleAssignmentList, grantTypes
         );

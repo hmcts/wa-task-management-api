@@ -320,7 +320,7 @@ public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
     }
 
     private static Stream<GrantType> getGrantTypes() {
-        return Stream.of(GrantType.BASIC, GrantType.STANDARD, GrantType.SPECIFIC);
+        return Stream.of(GrantType.STANDARD, GrantType.SPECIFIC);
     }
 
 }

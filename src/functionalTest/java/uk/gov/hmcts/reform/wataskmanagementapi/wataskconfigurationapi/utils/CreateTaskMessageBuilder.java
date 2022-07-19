@@ -36,7 +36,7 @@ public class CreateTaskMessageBuilder {
         return new CreateTaskMessage(messageName, processVariables);
     }
 
-    public static CreateTaskMessageBuilder createBasicMessageForTask(String taskTypeId, String caseId) {
+    public static CreateTaskMessageBuilder createMessageForTask(String taskTypeId, String caseId) {
         HashMap<String, CamundaValue<?>> processVariables = new HashMap<>();
         processVariables.put("caseId", stringValue(caseId));
         processVariables.put("hasWarnings", new CamundaValue<>(false, "boolean"));

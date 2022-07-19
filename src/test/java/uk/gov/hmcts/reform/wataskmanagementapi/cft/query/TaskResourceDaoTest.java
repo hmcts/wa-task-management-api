@@ -234,7 +234,7 @@ class TaskResourceDaoTest {
                 false,
                 false,
                 false,
-                new String[]{"SPECIFIC", "BASIC"},
+                new String[]{"SPECIFIC", "STANDARD"},
                 0,
                 false,
                 "JUDICIAL",
@@ -242,7 +242,9 @@ class TaskResourceDaoTest {
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
             "caseCategory",
-            ADDITIONAL_PROPERTIES
+            ADDITIONAL_PROPERTIES,
+            "next-hearing-date",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
     }
 
@@ -250,7 +252,7 @@ class TaskResourceDaoTest {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))

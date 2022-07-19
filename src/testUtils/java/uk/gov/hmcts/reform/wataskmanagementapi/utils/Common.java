@@ -165,6 +165,27 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
+    public TestVariables setupWATaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value, String resourceFileName) {
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
+                                                                                         "WA",
+                                                                                         "Asylum"
+        );
+        processVariables.put(key.value(), new CamundaValue<>(value, "String"));
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+    }
+
+
     public TestVariables setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
         CamundaVariableDefinition key, String value
     ) {
@@ -232,9 +253,9 @@ public class Common {
         return response;
     }
 
-    public TestVariables setupWATaskAndRetrieveIds() {
+    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName) {
 
-        String caseId = given.iCreateWACcdCase();
+        String caseId = given.iCreateWACcdCase(resourceFileName);
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType")
