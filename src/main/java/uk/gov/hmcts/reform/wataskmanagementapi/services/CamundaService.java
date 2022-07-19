@@ -47,6 +47,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -132,25 +133,30 @@ public class CamundaService {
             "taskIdIn", singleton(taskId)
         );
 
-        List<HistoryVariableInstance> results = null;
+        AtomicBoolean deletable = new AtomicBoolean(false);
 
         try {
             //Check if the task has already been deleted or pending termination
-            results = camundaServiceApi.searchHistory(authTokenGenerator.generate(), body);
+            List<HistoryVariableInstance> result = camundaServiceApi.searchHistory(authTokenGenerator.generate(), body);
 
-            //Is task in pending termination
-            Optional<HistoryVariableInstance> cftTaskState = results.stream()
-                .filter(r -> r.getName().equals(CFT_TASK_STATE.value()))
-                .findFirst();
+            if (result == null || result.isEmpty()) {
+                deletable.set(true);
+            } else {
+                Optional<HistoryVariableInstance> cftTaskState = result.stream()
+                    .filter(r -> r.getName().equals(CFT_TASK_STATE.value()))
+                    .findFirst();
 
-            cftTaskState.ifPresent(historyVariableInstance -> log.info(
-                "Cancelling task with cft_task_state: {}", historyVariableInstance.getValue()
-            ));
+                cftTaskState.ifPresent(historyVariableInstance -> {
+                    log.info("Cancelling task with cft_task_state: {}", historyVariableInstance.getValue());
+                    deletable.set(true);
+                });
+            }
         } catch (FeignException ex) {
+            deletable.set(true);
             log.info("Task not found in history");
         }
 
-        if (results == null || results.isEmpty()) {
+        if (deletable.get()) {
             //Task has not been canceled by dmn, perform the delete action
             try {
                 performCancelTaskAction(taskId);

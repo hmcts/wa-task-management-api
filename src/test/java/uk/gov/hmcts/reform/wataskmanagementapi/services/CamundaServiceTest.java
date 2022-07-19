@@ -74,6 +74,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
@@ -266,7 +267,7 @@ class CamundaServiceTest extends CamundaHelpers {
         void should_skip_cancel_operation_for_already_cancelled_task() {
             HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
                 "someId",
-                CFT_TASK_STATE.value(),
+                TASK_STATE.value(),
                 "someValue"
             );
             when(camundaServiceApi.searchHistory(eq(BEARER_SERVICE_TOKEN), any()))
