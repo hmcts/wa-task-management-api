@@ -5,7 +5,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
@@ -72,7 +71,8 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         String taskId = taskVariables.getTaskId();
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -84,7 +84,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -99,7 +99,8 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         String taskId = taskVariables.getTaskId();
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -131,7 +132,8 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
 
@@ -163,7 +165,8 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
@@ -194,12 +197,13 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
+    public void should_return_a_204_when_claiming_a_task_that_was_already_claimed() {
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
@@ -220,17 +224,10 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
 
         result.then().assertThat()
-            .statusCode(HttpStatus.CONFLICT.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.CONFLICT.value()))
-            .body("message", equalTo(String.format(
-                "Task '%s' is already claimed by someone else.",
-                taskId
-            )));
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -242,7 +239,8 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -274,7 +272,8 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
         String taskId = taskVariables.getTaskId();
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -309,7 +308,8 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         String taskId = taskVariables.getTaskId();
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),

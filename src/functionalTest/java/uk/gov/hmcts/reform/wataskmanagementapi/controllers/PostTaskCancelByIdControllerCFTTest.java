@@ -13,6 +13,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
@@ -147,15 +149,17 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        Map<String, Object> taskAttributes = Map.of(
+            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+            TASK_TITLE.value(), "A test task",
+            TASK_CASE_ID.value(), testVariables.getCaseId(),
+            TASK_HAS_WARNINGS.value(), true,
+            TASK_CREATED.value(), formattedCreatedDate,
+            TASK_DUE_DATE.value(), formattedDueDate
+        );
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,

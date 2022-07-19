@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
@@ -50,13 +49,7 @@ public class RoleAssignmentFilterTest {
     @Mock
     private Root<TaskResource> root;
     @Mock
-    private Root<Object> objectRoot;
-    @Mock
-    private CriteriaQuery<?> query;
-    @Mock
     private CriteriaBuilder builder;
-    @Mock
-    private Path<String> stringPath;
     @Mock
     private Predicate permissionsPredicate;
     @Mock
@@ -75,7 +68,6 @@ public class RoleAssignmentFilterTest {
     private Path<Object> classificationPath;
 
     @BeforeEach
-    @SuppressWarnings("unchecked")
     public void setUp() {
         lenient().when(root.join("taskRoleResources")).thenReturn(taskRoleResources);
         lenient().when(taskRoleResources.get("read")).thenReturn(pathObject);
@@ -89,7 +81,7 @@ public class RoleAssignmentFilterTest {
 
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC"})
-    void should_build_query_for_basic_and_specific(Classification classification) {
+    void should_build_query_for_specific(Classification classification) {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -136,7 +128,7 @@ public class RoleAssignmentFilterTest {
 
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC"})
-    void should_build_query_for_basic_and_specific_when_attributes_does_not_match(Classification classification) {
+    void should_build_query_for_specific_when_attributes_does_not_match(Classification classification) {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -145,7 +137,7 @@ public class RoleAssignmentFilterTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .roleType(RoleType.ORGANISATION)
             .classification(classification)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -191,7 +183,7 @@ public class RoleAssignmentFilterTest {
     }
 
     @Test
-    void should_build_query_for_basic_and_specific_with_out_attributes() {
+    void should_build_query_for_specific_with_out_attributes() {
 
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
@@ -200,7 +192,7 @@ public class RoleAssignmentFilterTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -249,8 +241,6 @@ public class RoleAssignmentFilterTest {
         RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, roleAssignmentWithStandardGrantType(classification), false, builder, root);
 
-        //Mockito.verify(builder, Mockito.times(1)).equal(pathObject, "senior-tribunal-caseworker");
-        //verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
         verify(builder, times(1)).equal(pathObject, new String[]{});
         verify(builder, times(1)).equal(pathObject, "Asylum");
         verify(builder, times(1)).equal(pathObject, "IA");
@@ -301,13 +291,15 @@ public class RoleAssignmentFilterTest {
 
         verify(root, times(1)).join(anyString());
         verify(root, times(6)).get(anyString());
-        verify(builder, times(2)).in(any());
         verify(builder, times(4)).or(any());
         verify(builder, times(3)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(1)).and(
             any(), any(), any(), any(), any(), any(), any());
         verify(builder, times(2)).conjunction();
+        if (classification != Classification.PUBLIC) {
+            verify(builder, times(2)).in(any());
+        }
     }
 
     @Test
@@ -335,7 +327,7 @@ public class RoleAssignmentFilterTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(null)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -348,7 +340,7 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
-        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+        RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, roleAssignments, false, builder, root);
 
         verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
@@ -375,7 +367,7 @@ public class RoleAssignmentFilterTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.UNKNOWN)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();

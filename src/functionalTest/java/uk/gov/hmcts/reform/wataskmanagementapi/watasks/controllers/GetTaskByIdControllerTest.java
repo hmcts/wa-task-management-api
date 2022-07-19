@@ -16,6 +16,7 @@ import java.util.UUID;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
+import static org.hamcrest.Matchers.nullValue;
 
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -36,7 +37,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_task_and_correct_properties() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -83,7 +84,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "key2", "value2",
                 "key3", "value3",
                 "key4", "value4"
-            )));
+            )))
+            .body("task.next_hearing_id", equalTo("next-hearing-id"))
+            .body("task.next_hearing_date", notNullValue());
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -95,84 +98,18 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void test() {
+    public void should_return_a_200_with_task_when_next_hearing_date_is_null() {
 
-        Object body = "{\n"
-                      + "    \"caseType\": {\n"
-                      + "        \"caseAccessCategory\": \"categoryA,categoryC\",\n"
-                      + "        \"appealType\": \"protection\",\n"
-                      + "        \"appellantGivenNames\": \"Bob\",\n"
-                      + "        \"appellantFamilyName\": \"Smith\",\n"
-                      + "        \"TextField\": \"Some text field\"\n"
-                      + "    },\n"
-                      + "    \"taskAttributes\": {\n"
-                      + "        \"caseTypeId\": \"a case type id\",\n"
-                      + "        \"majorPriority\": 1,\n"
-                      + "        \"jurisdiction\": \"a jurisdiction\",\n"
-                      + "        \"regionName\": \"a region name\",\n"
-                      + "        \"description\": \"a task description\",\n"
-                      + "        \"roleCategory\": \"LEGAL_OPERATIONS\",\n"
-                      + "        \"autoAssigned\": true,\n"
-                      + "        \"title\": \"a task title\",\n"
-                      + "        \"taskType\": \"processApplication\",\n"
-                      + "        \"hasWarnings\": false,\n"
-                      + "        \"caseId\": \"1655308607943415\",\n"
-                      + "        \"state\": \"UNCONFIGURED\",\n"
-                      + "        \"terminationReason\": \"a termination reason\",\n"
-                      + "        \"locationName\": \"a location name\",\n"
-                      + "        \"minorPriority\": 100,\n"
-                      + "        \"created\": \"2022-06-15T16:57:19.784+01:00\",\n"
-                      + "        \"dueDateTime\": \"2022-06-16T16:57:19.784+01:00\",\n"
-                      + "        \"taskName\": \"task name\",\n"
-                      + "        \"assignmentExpiry\": \"2022-06-16T16:57:19.784+01:00\",\n"
-                      + "        \"location\": \"a location\",\n"
-                      + "        \"assignee\": \"some assignee\",\n"
-                      + "        \"caseCategory\": \"a case category\",\n"
-                      + "        \"additionalProperties\": {\n"
-                      + "            \"roleAssignmentId\": \"12345678\",\n"
-                      + "            \"key8\": \"value8\",\n"
-                      + "            \"key7\": \"value7\",\n"
-                      + "            \"key6\": \"value6\",\n"
-                      + "            \"key5\": \"value5\",\n"
-                      + "            \"key4\": \"value4\",\n"
-                      + "            \"key3\": \"value3\",\n"
-                      + "            \"key2\": \"value2\",\n"
-                      + "            \"key1\": \"value1\"\n"
-                      + "        },\n"
-                      + "        \"region\": \"a region\",\n"
-                      + "        \"taskId\": \"c8d67bb0-ecc3-11ec-9bd1-0242ac11000c\"\n"
-                      + "    }\n"
-                      + "}";
-
-        Response result = restApiActions.post(
-            "http://camunda-local-bpm/engine-rest/decision-definition/key/wa-task-configuration-wa-wacasetype/tenant-id/wa/evaluate",
-            body,
-            caseworkerCredentials.getHeaders()
-        );
-
-        List<Map<String, Object>> list = result.then()
-            .extract()
-            .body()
-            //.asString()
-            .jsonPath()
-            //.getMap("");
-            .getList("");
-        result.prettyPrint();
-
-    }
-
-    @Test
-    public void should_return_a_200_with_task_and_correct_properties_V2() {
-
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables
+            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        initiateTask2(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "processApplication", "process application", "process task");
 
         Response result = restApiActions.get(
-            "/task/v2/{task-id}",
+            ENDPOINT_BEING_TESTED,
             taskId,
             caseworkerCredentials.getHeaders()
         );
@@ -204,14 +141,16 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.work_type_id", equalTo("hearing_work"))
             .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")))
             .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                              + "trigger/decideAnApplication)"))
+                                                  + "trigger/decideAnApplication)"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task.additional_properties", equalToObject(Map.of(
                 "key1", "value1",
                 "key2", "value2",
                 "key3", "value3",
                 "key4", "value4"
-            )));
+            )))
+            .body("task.next_hearing_id", nullValue())
+            .body("task.next_hearing_date", nullValue());
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -221,12 +160,11 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         common.cleanUpTask(taskId);
     }
-
 
     @Test
     public void should_return_403_when_user_grant_type_standard_and_excluded() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -273,7 +211,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "key2", "value2",
                 "key3", "value3",
                 "key4", "value4"
-            )));
+            )))
+            .body("task.next_hearing_id", equalTo("next-hearing-id"))
+            .body("task.next_hearing_date", notNullValue());
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -304,7 +244,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_replace_additional_properties_in_configuration_dmn_and_return_task_with_sent_properties() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
         String roleAssignmentId = UUID.randomUUID().toString();
         common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(),

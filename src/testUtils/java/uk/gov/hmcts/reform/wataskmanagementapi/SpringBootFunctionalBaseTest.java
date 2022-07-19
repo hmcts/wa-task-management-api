@@ -27,8 +27,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest2;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
@@ -44,9 +42,6 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -72,8 +67,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -97,7 +90,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL =
         "Role Assignment Verification: "
-        + "The user being assigned the Task has failed the Role Assignment checks performed.";
+            + "The user being assigned the Task has failed the Role Assignment checks performed.";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED =
         "Role Assignment Verification: The request failed the Role Assignment checks performed.";
 
@@ -174,9 +167,9 @@ public abstract class SpringBootFunctionalBaseTest {
                         .body("[0].name", is(taskName));
 
                     response.set(camundaGetTaskResult
-                        .then()
-                        .extract()
-                        .path("[0].id"));
+                                     .then()
+                                     .extract()
+                                     .path("[0].id"));
                     return true;
                 });
         return response;
@@ -229,18 +222,18 @@ public abstract class SpringBootFunctionalBaseTest {
                 new Warning("Code2", "Text2")
             ));
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, taskType),
-            new TaskAttribute(TASK_NAME, taskName),
-            new TaskAttribute(TASK_TITLE, taskTitle),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
-            new TaskAttribute(TASK_ADDITIONAL_PROPERTIES, additionalProperties),
-            new TaskAttribute(TASK_SECURITY_CLASSIFICATION, SecurityClassification.PUBLIC),
-            new TaskAttribute(TASK_WARNINGS, warningValues)
+        Map<String, Object> taskAttributes = new HashMap<>();
+        taskAttributes.put(TASK_TYPE.value(), taskType);
+        taskAttributes.put(TASK_NAME.value(), taskName);
+        taskAttributes.put(TASK_TITLE.value(), taskTitle);
+        taskAttributes.put(TASK_CASE_ID.value(), testVariables.getCaseId());
+        taskAttributes.put(TASK_CREATED.value(), formattedCreatedDate);
+        taskAttributes.put(TASK_DUE_DATE.value(), formattedDueDate);
+        taskAttributes.put(TASK_ADDITIONAL_PROPERTIES.value(), additionalProperties);
+        taskAttributes.put(TASK_SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
+        taskAttributes.put(TASK_WARNINGS.value(), warningValues);
 
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT,
@@ -266,16 +259,16 @@ public abstract class SpringBootFunctionalBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        List<TaskAttribute> taskAttributes = new ArrayList<>();
-        taskAttributes.add(new TaskAttribute(TASK_TYPE, taskType));
-        taskAttributes.add(new TaskAttribute(TASK_NAME, taskName));
-        taskAttributes.add(new TaskAttribute(TASK_TITLE, taskTitle));
-        taskAttributes.add(new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()));
-        taskAttributes.add(new TaskAttribute(TASK_CREATED, formattedCreatedDate));
-        taskAttributes.add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
+        Map<String, Object> taskAttributes = new HashMap<>();
+        taskAttributes.put(TASK_TYPE.value(), taskType);
+        taskAttributes.put(TASK_NAME.value(), taskName);
+        taskAttributes.put(TASK_TITLE.value(), taskTitle);
+        taskAttributes.put(TASK_CASE_ID.value(), testVariables.getCaseId());
+        taskAttributes.put(TASK_CREATED.value(), formattedCreatedDate);
+        taskAttributes.put(TASK_DUE_DATE.value(), formattedDueDate);
 
         if (additionalProperties != null) {
-            taskAttributes.add(new TaskAttribute(TASK_ADDITIONAL_PROPERTIES, additionalProperties));
+            taskAttributes.put(TASK_ADDITIONAL_PROPERTIES.value(), additionalProperties);
         }
 
         InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -353,7 +346,10 @@ public abstract class SpringBootFunctionalBaseTest {
         attributes.put("minorPriority", 100);
         attributes.put("assignee", "some assignee");
         attributes.put("autoAssigned", true);
-        attributes.put("executionTypeCode", new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"));
+        attributes.put(
+            "executionTypeCode",
+            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description")
+        );
         attributes.put("workTypeResource", new WorkTypeResource("routine_work", "Routine work"));
         attributes.put("roleCategory", RoleCategory.LEGAL_OPERATIONS.name());
         attributes.put("hasWarnings", false);

@@ -21,7 +21,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -31,13 +30,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -147,7 +146,8 @@ public class Common {
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            caseId,
             "IA",
             "Asylum"
         );
@@ -165,11 +165,34 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
+    public TestVariables setupWATaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value, String resourceFileName) {
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            caseId,
+            "WA",
+            "Asylum"
+        );
+        processVariables.put(key.value(), new CamundaValue<>(value, "String"));
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+    }
+
+
     public TestVariables setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
         CamundaVariableDefinition key, String value
     ) {
         final String caseId = UUID.randomUUID().toString();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            caseId,
             "IA",
             "Asylum"
         );
@@ -232,9 +255,9 @@ public class Common {
         return response;
     }
 
-    public TestVariables setupWATaskAndRetrieveIds() {
+    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName) {
 
-        String caseId = given.iCreateWACcdCase();
+        String caseId = given.iCreateWACcdCase(resourceFileName);
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType")
@@ -268,14 +291,16 @@ public class Common {
         Stream.of(taskId).forEach(task -> {
             log.info("Cleaning task {}", task);
             camundaApiActions.post(ENDPOINT_COMPLETE_TASK, task,
-                authorizationProvider.getServiceAuthorizationHeadersOnly());
+                                   authorizationProvider.getServiceAuthorizationHeadersOnly()
+            );
         });
     }
 
     public void cleanUpAndValidateCftTaskState(String taskId, String reason) {
         log.info("Cleaning task {}", taskId);
         Response response = camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-            authorizationProvider.getServiceAuthorizationHeadersOnly());
+                                                   authorizationProvider.getServiceAuthorizationHeadersOnly()
+        );
 
         response.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value())
@@ -284,7 +309,8 @@ public class Common {
 
     public Response getCamundaTask(String taskId) {
         return camundaApiActions.get("/task", taskId,
-            authorizationProvider.getServiceAuthorizationHeadersOnly());
+                                     authorizationProvider.getServiceAuthorizationHeadersOnly()
+        );
     }
 
     public void clearAllRoleAssignments(Headers headers) {
@@ -333,7 +359,8 @@ public class Common {
             null,
             "2020-01-01T00:00:00Z",
             null,
-            userInfo.getUid());
+            userInfo.getUid()
+        );
     }
 
     public void setupOrganisationalRoleAssignment(Headers headers) {
@@ -377,7 +404,8 @@ public class Common {
             null,
             "2020-01-01T00:00:00Z",
             null,
-            userInfo.getUid());
+            userInfo.getUid()
+        );
     }
 
     public void setupCFTOrganisationalRoleAssignment(Headers headers, String jurisdiction, String caseType) {
@@ -1212,7 +1240,7 @@ public class Common {
 
     public void insertTaskInCftTaskDb(TestVariables testVariables, String taskType, Headers authenticationHeaders) {
         String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-                          + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
 
         ZonedDateTime createdDate = ZonedDateTime.now();
@@ -1220,19 +1248,20 @@ public class Common {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, taskType),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_WARNINGS, warnings),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put(TASK_TYPE.value(), taskType);
+        attributes.put(TASK_NAME.value(), "aTaskName");
+        attributes.put(TASK_CASE_ID.value(), testVariables.getCaseId());
+        attributes.put(TASK_TITLE.value(), "A test task");
+        attributes.put(TASK_CASE_CATEGORY.value(), "Protection");
+        attributes.put(TASK_ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
+        attributes.put(TASK_HAS_WARNINGS.value(), true);
+        attributes.put(TASK_WARNINGS.value(), warnings);
+        attributes.put(TASK_AUTO_ASSIGNED.value(), true);
+        attributes.put(TASK_CREATED.value(), formattedCreatedDate);
+        attributes.put(TASK_DUE_DATE.value(), formattedDueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, attributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
@@ -1261,18 +1290,19 @@ public class Common {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, taskType),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put(TASK_TYPE.value(), taskType);
+        attributes.put(TASK_NAME.value(), "aTaskName");
+        attributes.put(TASK_CASE_ID.value(), testVariables.getCaseId());
+        attributes.put(TASK_TITLE.value(), "A test task");
+        attributes.put(TASK_CASE_CATEGORY.value(), "Protection");
+        attributes.put(TASK_ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
+        attributes.put(TASK_HAS_WARNINGS.value(), true);
+        attributes.put(TASK_AUTO_ASSIGNED.value(), true);
+        attributes.put(TASK_CREATED.value(), formattedCreatedDate);
+        attributes.put(TASK_DUE_DATE.value(), formattedDueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, attributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
@@ -1338,8 +1368,9 @@ public class Common {
                                     String assignerId) {
 
         String body = getBody(caseId, actorId, roleName, resourceFilename, attributes, grantType, roleCategory,
-            authorisations, roleType, classification, process, reference, replaceExisting,
-            readOnly, notes, beginTime, endTime, assignerId);
+                              authorisations, roleType, classification, process, reference, replaceExisting,
+                              readOnly, notes, beginTime, endTime, assignerId
+        );
 
         roleAssignmentServiceApi.createRoleAssignment(
             body,
@@ -1387,11 +1418,19 @@ public class Common {
             }
 
             caseRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+                                            roleAssignmentServiceApi.deleteRoleAssignmentById(
+                                                assignment.getId(),
+                                                userToken,
+                                                serviceToken
+                                            )
             );
 
             organisationalRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+                                                      roleAssignmentServiceApi.deleteRoleAssignmentById(
+                                                          assignment.getId(),
+                                                          userToken,
+                                                          serviceToken
+                                                      )
             );
         }
     }
@@ -1425,11 +1464,19 @@ public class Common {
                 .collect(toList());
 
             caseRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+                                            roleAssignmentServiceApi.deleteRoleAssignmentById(
+                                                assignment.getId(),
+                                                userToken,
+                                                serviceToken
+                                            )
             );
 
             organisationalRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+                                                      roleAssignmentServiceApi.deleteRoleAssignmentById(
+                                                          assignment.getId(),
+                                                          userToken,
+                                                          serviceToken
+                                                      )
             );
         }
     }

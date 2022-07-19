@@ -90,7 +90,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_201_when_initiating_a_process_application_task_by_id() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -99,14 +99,17 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "process Application"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "process Application"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "processApplication",
+                TASK_NAME.value(), "Process Application",
+                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                TASK_TITLE.value(), "Process Application",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -122,12 +125,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("process Application"))
+            .body("task_name", equalTo("Process Application"))
             .body("task_type", equalTo("processApplication"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("process Application"))
+            .body("title", equalTo("Process Application"))
             .body("created", notNullValue())
             .body("due_date_time", notNullValue())
             .body("auto_assigned", equalTo(false))
@@ -218,7 +221,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_201_when_initiating_a_specific_access_task_by_id() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -227,14 +230,17 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "reviewSpecificAccessRequestJudiciary"),
-            new TaskAttribute(TASK_NAME, "additionalProperties_roleAssignmentId"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "Specific Access Task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "reviewSpecificAccessRequestJudiciary",
+                TASK_NAME.value(), "additionalProperties_roleAssignmentId",
+                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                TASK_TITLE.value(), "Specific Access Task",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -318,7 +324,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_201_when_initiating_a_process_application_task_by_id_V2() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 

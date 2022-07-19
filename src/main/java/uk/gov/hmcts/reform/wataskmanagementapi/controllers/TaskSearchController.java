@@ -166,7 +166,7 @@ public class TaskSearchController extends BaseController {
         + " criteria that are eligible for automatic completion")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
-            schema = @Schema(implementation = GetTasksCompletableResponse.class))}),
+                schema = @Schema(implementation = GetTasksCompletableResponse.class))}),
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),

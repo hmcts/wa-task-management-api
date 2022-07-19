@@ -3,12 +3,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
@@ -68,6 +68,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_400_if_search_request_is_empty() {
 
@@ -289,6 +290,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_400_with_empty_search_results_with_negative_firstResult_pagination() {
 
@@ -315,6 +317,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_400_with_empty_search_results_with_negative_maxResults_pagination() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
@@ -688,15 +691,18 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+                TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+                TASK_HAS_WARNINGS.value(), true,
+                TASK_TITLE.value(), "A test task",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
 
         Response result = restApiActions.post(
             "task/{task-id}",

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -19,7 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -30,14 +30,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValue
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
-import java.lang.reflect.Field;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -68,6 +66,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MAJOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MINOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLES;
@@ -79,6 +79,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 @Service
 @SuppressWarnings(
@@ -96,118 +97,54 @@ public class CFTTaskMapper {
 
     public TaskResource mapToTaskResource(String taskId, Map<String, Object> taskAttributes) {
         log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
+        Map<TaskAttributeDefinition, Object> attributes = taskAttributes.entrySet().stream()
+            .map(e -> new TaskAttribute(TaskAttributeDefinition.forValue(e.getKey()), e.getValue()))
+            .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
 
-        List<NoteResource> notes = extractWarningNotes(taskAttributes);
-        ExecutionTypeResource executionTypeResource = extractExecutionType(taskAttributes);
-        OffsetDateTime dueDate = readDate(taskAttributes, TASK_DUE_DATE, null);
-        OffsetDateTime createdDate = readDate(taskAttributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
+        List<NoteResource> notes = extractWarningNotes(attributes);
+        ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
+        OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
+        OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
 
         Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
 
-        WorkTypeResource workTypeResource = extractWorkType(taskAttributes);
+        WorkTypeResource workTypeResource = extractWorkType(attributes);
         return new TaskResource(
             taskId,
-            read(taskAttributes, "name", null),
-            read(taskAttributes, "taskType", null),
+            read(attributes, TASK_NAME, null),
+            read(attributes, TASK_TYPE, null),
             dueDate,
             CFTTaskState.UNCONFIGURED,
-            read(taskAttributes, "system", null),
-            read(taskAttributes, "securityClassification", null),
-            read(taskAttributes, "title", null),
-            read(taskAttributes, "description", null),
+            read(attributes, TASK_SYSTEM, null),
+            read(attributes, TASK_SECURITY_CLASSIFICATION, null),
+            read(attributes, TASK_TITLE, null),
+            read(attributes, TASK_DESCRIPTION, null),
             notes,
-            read(taskAttributes, "majorPriority", null),
-            read(taskAttributes, "minorPriority", null),
-            read(taskAttributes, "assignee", null),
-            read(taskAttributes, "autoAssigned", false),
+            read(attributes, TASK_MAJOR_PRIORITY, null),
+            read(attributes, TASK_MINOR_PRIORITY, null),
+            read(attributes, TASK_ASSIGNEE, null),
+            read(attributes, TASK_AUTO_ASSIGNED, false),
             executionTypeResource,
             workTypeResource,
-            read(taskAttributes, "roleCategory", null),
-            read(taskAttributes, "hasWarnings", false),
-            read(taskAttributes, "assignmentExpiry", null),
-            read(taskAttributes, "caseId", null),
-            read(taskAttributes, "caseTypeId", null),
-            read(taskAttributes, TASK_CASE_NAME, null),
-            read(taskAttributes, TASK_JURISDICTION, null),
-            read(taskAttributes, TASK_REGION, null),
-            read(taskAttributes, TASK_REGION_NAME, null),
-            read(taskAttributes, TASK_LOCATION, null),
-            read(taskAttributes, TASK_LOCATION_NAME, null),
-            read(taskAttributes, TASK_BUSINESS_CONTEXT, null),
-            read(taskAttributes, TASK_TERMINATION_REASON, null),
+            read(attributes, TASK_ROLE_CATEGORY, null),
+            read(attributes, TASK_HAS_WARNINGS, false),
+            read(attributes, TASK_ASSIGNMENT_EXPIRY, null),
+            read(attributes, TASK_CASE_ID, null),
+            read(attributes, TASK_CASE_TYPE_ID, null),
+            read(attributes, TASK_CASE_NAME, null),
+            read(attributes, TASK_JURISDICTION, null),
+            read(attributes, TASK_REGION, null),
+            read(attributes, TASK_REGION_NAME, null),
+            read(attributes, TASK_LOCATION, null),
+            read(attributes, TASK_LOCATION_NAME, null),
+            read(attributes, TASK_BUSINESS_CONTEXT, null),
+            read(attributes, TASK_TERMINATION_REASON, null),
             createdDate,
-            read(taskAttributes, TASK_ROLES, null),
-            read(taskAttributes, TASK_CASE_CATEGORY, null),
-            read(taskAttributes, TASK_ADDITIONAL_PROPERTIES, null)
-        );
-    }
-
-    public TaskResource mapToTaskResource2(String taskId, Map<String, Object> taskAttributes) {
-        log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
-
-        TaskResource taskResource = createTaskResource(taskAttributes);
-        return taskResource;
-    }
-
-    private TaskResource createTaskResource(Map<String, Object> taskAttributes) {
-        //todo: add field validation
-        String taskId = objectMapper.convertValue(taskAttributes.get("taskId"), new TypeReference<>() {
-        });
-        Objects.requireNonNull(taskId, "task id cannot be null");
-
-        String taskName = objectMapper.convertValue(taskAttributes.get("taskName"), new TypeReference<>() {
-        });
-        Objects.requireNonNull(taskId, "task name cannot be null");
-
-        String taskType = objectMapper.convertValue(taskAttributes.get("taskType"), new TypeReference<>() {
-        });
-        Objects.requireNonNull(taskId, "task type cannot be null");
-
-        CFTTaskState cftTaskState = objectMapper.convertValue(taskAttributes.get("state"), new TypeReference<>() {
-        });
-        Objects.requireNonNull(taskId, "task state cannot be null");
-
-
-        TaskResource taskResource = new TaskResource(taskId, taskName, taskType, cftTaskState);
-
-        Field[] fields = (TaskResource.class).getDeclaredFields();
-
-        Iterator<Field> iterator = Arrays.stream(fields).iterator();
-        String key;
-        Class type;
-        String className = null;
-        Object value;
-        while (iterator.hasNext()) {
-
-            Field field = iterator.next();
-            key = field.getName();
-            type = field.getType();
-
-            if (!taskAttributes.containsKey(key)) {
-                log.info("field not found in taskAttributes : {}", field);
-                continue;
-            }
-
-            try {
-                if (type.equals(OffsetDateTime.class)) {
-                    value = readDate2(taskAttributes.get(key));
-                } else {
-                    className = (taskAttributes.get(key)).getClass().getTypeName();
-                    log.info(className);
-                    Class<?> clazz = Class.forName(className);
-                    value = objectMapper.convertValue(taskAttributes.get(key), clazz);
-
-                }
-                field.setAccessible(true);
-                field.set(taskResource, value);
-            } catch (Exception e) {
-                log.info("when processing field: [{}] class name : [{}]an exception occurred: [{}]",
-                    field, className, e.getMessage());
-            }
-
-        }
-
-        return taskResource;
+            read(attributes, TASK_ROLES, null),
+            read(attributes, TASK_CASE_CATEGORY, null),
+            read(attributes, TASK_ADDITIONAL_PROPERTIES, null),
+            read(attributes, TASK_NEXT_HEARING_ID, null),
+            readDate(attributes, TASK_NEXT_HEARING_DATE, null));
     }
 
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
@@ -253,7 +190,11 @@ public class CFTTaskMapper {
             new TaskPermissions(permissionsUnionForUser),
             taskResource.getRoleCategory(),
             taskResource.getDescription(),
-            taskResource.getAdditionalProperties()
+            taskResource.getAdditionalProperties(),
+            taskResource.getNextHearingId(),
+            taskResource.getNextHearingDate() == null ? null : taskResource.getNextHearingDate().toZonedDateTime(),
+            taskResource.getReconfigureRequestTime() == null ? null
+                : taskResource.getReconfigureRequestTime().toZonedDateTime()
         );
     }
 
@@ -269,32 +210,22 @@ public class CFTTaskMapper {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T read(Map<String, Object> attributesMap,
-                      String extractor,
+    public <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
+                      TaskAttributeDefinition extractor,
                       Object defaultValue) {
         return (T) map(attributesMap, extractor).orElse(defaultValue);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T readDate(Map<String, Object> attributesMap,
+    public <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
                           TaskAttributeDefinition extractor,
                           Object defaultValue) {
         Optional<T> maybeValue = map(attributesMap, extractor);
         if (maybeValue.isPresent()) {
-            return (T) OffsetDateTime.parse((String) maybeValue.get(), CamundaTime.CAMUNDA_DATA_TIME_FORMATTER);
+            return (T) OffsetDateTime.parse((String) maybeValue.get(), CAMUNDA_DATA_TIME_FORMATTER);
         } else {
             return (T) defaultValue;
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T readDate2(Object date) {
-        try {
-            return (T) OffsetDateTime.parse((String) date, CamundaTime.CAMUNDA_DATA_TIME_FORMATTER);
-        } catch (Exception e) {
-            return null;
-        }
-
     }
 
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
@@ -331,7 +262,8 @@ public class CFTTaskMapper {
             taskRoleResource.getRoleCategory(),
             taskRoleResource.getRoleName(),
             List.copyOf(permissionTypes),
-            authorisations);
+            authorisations
+        );
     }
 
     private Set<PermissionTypes> evaluatePermissionsFoundAndCollectResults(TaskRoleResource taskRoleResource) {
@@ -357,8 +289,8 @@ public class CFTTaskMapper {
         return accumulator;
     }
 
-    private WorkTypeResource extractWorkType(Map<String, Object> attributes) {
-        String workTypeId = read(attributes, "workType", null);
+    private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
+        String workTypeId = read(attributes, TASK_WORK_TYPE, null);
         return workTypeId == null ? null : new WorkTypeResource(workTypeId);
     }
 
@@ -513,6 +445,16 @@ public class CFTTaskMapper {
                     Map<String, String> additionalProperties = extractAdditionalProperties(value);
                     taskResource.setAdditionalProperties(additionalProperties);
                     break;
+                case NEXT_HEARING_ID:
+                    if (value != null && Strings.isNotBlank((String) value)) {
+                        taskResource.setNextHearingId((String) value);
+                    }
+                    break;
+                case NEXT_HEARING_DATE:
+                    if (value != null && Strings.isNotBlank((String) value)) {
+                        taskResource.setNextHearingDate(ZonedDateTime.parse((String) value).toOffsetDateTime());
+                    }
+                    break;
                 default:
                     break;
             }
@@ -531,8 +473,8 @@ public class CFTTaskMapper {
         return null;
     }
 
-    private ExecutionTypeResource extractExecutionType(Map<String, Object> attributes) {
-        String executionTypeName = read(attributes, "executionType", null);
+    private ExecutionTypeResource extractExecutionType(Map<TaskAttributeDefinition, Object> attributes) {
+        String executionTypeName = read(attributes, TASK_EXECUTION_TYPE_NAME, null);
 
         if (executionTypeName != null) {
             Optional<ExecutionType> value = ExecutionType.from(executionTypeName);
@@ -551,7 +493,7 @@ public class CFTTaskMapper {
         return null;
     }
 
-    private List<NoteResource> extractWarningNotes(Map<String, Object> attributes) {
+    private List<NoteResource> extractWarningNotes(Map<TaskAttributeDefinition, Object> attributes) {
         List<NoteResource> notes = null;
         WarningValues warningList = read(attributes, TASK_WARNINGS, null);
         if (warningList != null) {
@@ -582,12 +524,13 @@ public class CFTTaskMapper {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Optional<T> map(Map<String, Object> object, String key) {
+    private <T> Optional<T> map(Map<TaskAttributeDefinition, Object> object, TaskAttributeDefinition extractor) {
 
         if (object == null) {
             return Optional.empty();
         }
-        Object value = object.get(key);
+        Object obj = object.get(extractor);
+        Object value = objectMapper.convertValue(obj, extractor.getTypeReference());
 
         return value == null ? Optional.empty() : Optional.of((T) value);
     }

@@ -15,6 +15,8 @@ import java.util.Map;
 public final class ConfigurationDmnEvaluationResponse implements EvaluationResponse {
     private CamundaValue<String> name;
     private CamundaValue<String> value;
+    @SuppressWarnings("PMD.LinguisticNaming")
+    private CamundaValue<Boolean> canReconfigure;
 
     public ConfigurationDmnEvaluationResponse() {
         //No-op constructor for deserialization
@@ -25,11 +27,24 @@ public final class ConfigurationDmnEvaluationResponse implements EvaluationRespo
         this.value = value;
     }
 
+    public ConfigurationDmnEvaluationResponse(CamundaValue<String> name,
+                                              CamundaValue<String> value,
+                                              CamundaValue<Boolean> canReconfigure
+    ) {
+        this.name = name;
+        this.value = value;
+        this.canReconfigure = canReconfigure;
+    }
+
     public CamundaValue<String> getName() {
         return name;
     }
 
     public CamundaValue<String> getValue() {
         return value;
+    }
+
+    public CamundaValue<Boolean> getCanReconfigure() {
+        return canReconfigure;
     }
 }

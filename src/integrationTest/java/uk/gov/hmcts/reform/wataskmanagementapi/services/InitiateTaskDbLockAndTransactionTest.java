@@ -25,8 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfigu
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
@@ -34,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -55,6 +54,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
@@ -76,16 +76,15 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     OffsetDateTime dueDate = createdDate.plusDays(1);
     String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-    private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
-        InitiateTaskOperation.INITIATION,
-        List.of(
-            new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
-            new TaskAttribute(TASK_ASSIGNEE, SOME_ASSIGNEE),
-            new TaskAttribute(TASK_CASE_ID, SOME_CASE_ID),
-            new TaskAttribute(TASK_NAME, A_TASK_NAME),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        )
+    Map<String, Object> taskAttributes = Map.of(
+        TASK_TYPE.value(), A_TASK_TYPE,
+        TASK_NAME.value(), A_TASK_NAME,
+        TASK_ASSIGNEE.value(), SOME_ASSIGNEE,
+        TASK_CASE_ID.value(), SOME_CASE_ID,
+        TASK_DUE_DATE.value(), formattedDueDate
     );
+
+    private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
@@ -160,10 +159,10 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                           IDAM_USER_ID,
+                           IDAM_USER_EMAIL
+                       )
         ).thenReturn(true);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);

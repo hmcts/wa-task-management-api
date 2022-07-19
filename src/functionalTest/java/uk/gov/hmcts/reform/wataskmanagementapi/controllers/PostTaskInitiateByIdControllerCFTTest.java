@@ -21,13 +21,13 @@ import static java.util.Arrays.asList;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
@@ -60,14 +60,17 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "reviewHearingBundle"),
-            new TaskAttribute(TASK_NAME, "review Hearing Bundle"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "review Hearing Bundle"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "reviewHearingBundle",
+                TASK_NAME.value(), "review Hearing Bundle",
+                TASK_TITLE.value(), "review Hearing Bundle",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -104,7 +107,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                            + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
@@ -117,7 +120,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
-                entry("execute", false),
+                entry("execute", true),
                 entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
@@ -132,9 +135,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("own", true),
                 entry("manage", false),
                 entry("execute", false),
-                entry("cancel", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
-                entry("authorizations", List.of("373")),
+                entry("authorizations", List.of()),
                 entry("role_category", "JUDICIAL"),
                 entry("auto_assignable", true),
                 entry("assignment_priority", 1)
@@ -146,9 +149,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("read", true),
                 entry("refer", true),
                 entry("own", true),
-                entry("manage", false),
+                entry("manage", true),
                 entry("execute", false),
-                entry("cancel", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of("373")),
                 entry("role_category", "JUDICIAL"),
@@ -163,9 +166,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("read", true),
                 entry("refer", true),
                 entry("own", false),
-                entry("manage", false),
+                entry("manage", true),
                 entry("execute", true),
-                entry("cancel", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
                 entry("role_category", "LEGAL_OPERATIONS"),
@@ -179,9 +182,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("read", true),
                 entry("refer", true),
                 entry("own", false),
-                entry("manage", false),
+                entry("manage", true),
                 entry("execute", true),
-                entry("cancel", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
                 entry("role_category", "LEGAL_OPERATIONS"),
@@ -210,14 +213,17 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "allocateHearingJudge"),
-            new TaskAttribute(TASK_NAME, "allocate Hearing Judge"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "allocate Hearing Judge"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "reviewHearingBundle",
+                TASK_NAME.value(), "review Hearing Bundle",
+                TASK_TITLE.value(), "review Hearing Bundle",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -254,11 +260,11 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                            + "(Typically this will be in CCD.)")
             )
-            .body("work_type_resource.id", nullValue())
-            .body("work_type_resource.label", nullValue())
-            .body("task_role_resources.size()", equalTo(5));
+            .body("work_type_resource.id", equalTo("hearing_work"))
+            .body("work_type_resource.label", equalTo("Hearing work"))
+            .body("task_role_resources.size()", equalTo(2));
 
         assertPermissions(
             getTaskResource(result, "hearing-centre-admin"),
@@ -266,9 +272,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("read", true),
                 entry("refer", true),
                 entry("own", true),
-                entry("manage", false),
+                entry("manage", true),
                 entry("execute", false),
-                entry("cancel", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
                 entry("role_category", "ADMIN"),
@@ -284,7 +290,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
-                entry("execute", false),
+                entry("execute", true),
                 entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
@@ -292,51 +298,19 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             )
         );
         assertPermissions(
-            getTaskResource(result, "judge"),
+            getTaskResource(result, "hearing-centre-admin"),
             Map.ofEntries(
                 entry("read", true),
                 entry("refer", true),
-                entry("own", false),
-                entry("manage", false),
-                entry("execute", true),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of("373")),
-                entry("role_category", "JUDICIAL"),
-                entry("auto_assignable", false),
-                entry("assignment_priority", 2)
-            )
-        );
-        assertPermissions(
-            getTaskResource(result, "senior-tribunal-caseworker"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", false),
-                entry("manage", false),
-                entry("execute", true),
-                entry("cancel", false),
+                entry("own", true),
+                entry("manage", true),
+                entry("execute", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
-                entry("role_category", "LEGAL_OPERATIONS"),
+                entry("role_category", "ADMIN"),
                 entry("auto_assignable", false),
-                entry("assignment_priority", 2)
-            )
-        );
-        assertPermissions(
-            getTaskResource(result, "tribunal-caseworker"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", false),
-                entry("manage", false),
-                entry("execute", true),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of()),
-                entry("role_category", "LEGAL_OPERATIONS"),
-                entry("auto_assignable", false),
-                entry("assignment_priority", 2)
+                entry("assignment_priority", 1)
             )
         );
 
@@ -360,14 +334,17 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "arrangeOfflinePayment"),
-            new TaskAttribute(TASK_NAME, "arrange Offline Payment"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "arrange Offline Payment"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "arrangeOfflinePayment",
+                TASK_NAME.value(), "arrange Offline Payment",
+                TASK_TITLE.value(), "arrange Offline Payment",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -404,28 +381,12 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                            + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("routine_work"))
             .body("work_type_resource.label", equalTo("Routine work"))
-            .body("task_role_resources.size()", equalTo(2));
+            .body("task_role_resources.size()", equalTo(1));
 
-        assertPermissions(
-            getTaskResource(result, "national-business-centre"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", true),
-                entry("manage", false),
-                entry("execute", false),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of()),
-                entry("role_category", "ADMIN"),
-                entry("auto_assignable", false),
-                entry("assignment_priority", 1)
-            )
-        );
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
             Map.ofEntries(
@@ -433,7 +394,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
-                entry("execute", false),
+                entry("execute", true),
                 entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
@@ -461,14 +422,17 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "aTaskType",
+                TASK_NAME.value(), "aTaskName",
+                TASK_TITLE.value(), "A test task",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -505,7 +469,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 "execution_type_code.description",
                 equalTo(
                     "The task requires a case management event to be executed by the user."
-                    + " (Typically this will be in CCD.)")
+                        + " (Typically this will be in CCD.)")
             )
             .body("execution_type_code.execution_name", equalTo("Case Management Task"))
             .body("task_role_resources.size()", equalTo(1));
@@ -513,14 +477,14 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
             Map.of("read", true,
-                "refer", true,
-                "own", false,
-                "manage", true,
-                "execute", false,
-                "cancel", true,
-                "task_id", taskId,
-                "authorizations", List.of(),
-                "auto_assignable", false
+                   "refer", true,
+                   "own", false,
+                   "manage", true,
+                   "execute", true,
+                   "cancel", true,
+                   "task_id", taskId,
+                   "authorizations", List.of(),
+                   "auto_assignable", false
             )
         );
 
@@ -545,14 +509,18 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+                TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+                TASK_HAS_WARNINGS.value(), true,
+                TASK_TITLE.value(), "A test task",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
 
         //First call
         Response resultFirstCall = restApiActions.post(
@@ -584,7 +552,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             .body("status", equalTo(503))
             .body("detail", equalTo(
                 "Database Conflict Error: The action could not be completed because "
-                + "there was a conflict in the database."));
+                    + "there was a conflict in the database."));
 
         common.cleanUpTask(taskId);
     }
@@ -598,13 +566,17 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_CASE_ID, taskId)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+                TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+                TASK_HAS_WARNINGS.value(), true,
+                TASK_TITLE.value(), "A test task",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_CASE_ID.value(), taskVariables.getCaseId()
+            )
+        );
         //First call
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -621,8 +593,10 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             .body("title", equalTo("Constraint Violation"))
             .body("status", equalTo(400))
             .body("violations[0].field", equalTo("task_due_date"))
-            .body("violations[0].message",
-                equalTo("Each task to initiate must contain task_due_date field present and populated."));
+            .body(
+                "violations[0].message",
+                equalTo("Each task to initiate must contain task_due_date field present and populated.")
+            );
     }
 
     @Test
@@ -637,13 +611,17 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+                TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+                TASK_TITLE.value(), "A test task",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
+
         //First call
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -668,14 +646,17 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_CASE_ID, "someInvalidCaseID"),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+                TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+                TASK_CASE_ID.value(), "someInvalidCaseID",
+                TASK_TITLE.value(), "A test task",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -698,14 +679,17 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+                TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                TASK_TITLE.value(), "A test task",
+                TASK_CREATED.value(), formattedCreatedDate,
+                TASK_DUE_DATE.value(), formattedDueDate
+            )
+        );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             UUID.randomUUID().toString(),
@@ -720,7 +704,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
 
     private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
         expectedPermissions.keySet().forEach(key ->
-            assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
+                                                 assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
 
         assertThat(resource.get("task_role_id")).isNotNull();
     }

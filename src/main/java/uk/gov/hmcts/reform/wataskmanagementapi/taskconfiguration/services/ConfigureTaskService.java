@@ -99,23 +99,7 @@ public class ConfigureTaskService {
     }
 
     public TaskResource configureCFTTask(TaskResource skeletonMappedTask, TaskToConfigure taskToConfigure) {
-        TaskToConfigure.TaskToConfigureBuilder taskToConfigureBuilder = taskToConfigure.toBuilder();
-        if (featureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            StringUtils.EMPTY,
-            StringUtils.EMPTY
-        )) {
-            Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(skeletonMappedTask);
-            taskToConfigureBuilder.taskAttributes(taskAttributes);
-        }
-
-        TaskConfigurationResults configurationVariables = getConfigurationResults(taskToConfigureBuilder.build());
-        return cftTaskMapper.mapConfigurationAttributes(skeletonMappedTask, configurationVariables);
-    }
-
-    public TaskResource configureCFTTask2(TaskResource skeletonMappedTask, TaskToConfigure taskToConfigure) {
-        TaskToConfigure.TaskToConfigureBuilder taskToConfigureBuilder = taskToConfigure.toBuilder();
-        TaskConfigurationResults configurationVariables = getConfigurationResults(taskToConfigureBuilder.build());
+        TaskConfigurationResults configurationVariables = getConfigurationResults(taskToConfigure);
         return cftTaskMapper.mapConfigurationAttributes(skeletonMappedTask, configurationVariables);
     }
 

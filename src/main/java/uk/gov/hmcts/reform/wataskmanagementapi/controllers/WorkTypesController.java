@@ -40,7 +40,7 @@ public class WorkTypesController extends BaseController {
     @Operation(description = "Retrieve a list of work types with or without filter by user")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
-            schema = @Schema(implementation = GetWorkTypesResponse.class))}),
+                schema = @Schema(implementation = GetWorkTypesResponse.class))}),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),

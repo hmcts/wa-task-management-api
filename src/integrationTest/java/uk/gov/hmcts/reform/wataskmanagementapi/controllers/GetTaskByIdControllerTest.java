@@ -71,8 +71,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
@@ -290,16 +293,17 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
             .thenThrow(new RuntimeException("some error"));
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        ZonedDateTime dueDate = createdDate.plusDays(1);
+        ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
         String formattedDueDate = CamundaTime.CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        Map<String, Object> taskAttributes = Map.of(
+            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+            TASK_TITLE.value(), "A test task",
+            TASK_CASE_ID.value(), "someCaseId",
+            TASK_DUE_DATE.value(), formattedDueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
 
         //first initiate call
         mockMvc

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,6 +11,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -22,7 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,8 +37,23 @@ class TaskReconfigurationServiceTest {
     @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
+    @Mock
+    CaseConfigurationProviderService caseConfigurationProviderService;
+
     @InjectMocks
     private TaskReconfigurationService taskReconfigurationService;
+
+    @BeforeEach
+    void setup() {
+        lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
+            anyMap())).thenReturn(List.of(
+                new ConfigurationDmnEvaluationResponse(
+                    CamundaValue.stringValue("caseName"),
+                    CamundaValue.stringValue("Value"),
+                    CamundaValue.booleanValue(true)
+                )
+        ));
+    }
 
 
     @Test
@@ -79,6 +100,25 @@ class TaskReconfigurationServiceTest {
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
         List<TaskFilter<?>> taskFilters = createTaskFilters();
 
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(List.of());
+
+        List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
+
+        assertEquals(0, taskResourcesMarked.size());
+    }
+
+    @Test
+    void should_not_mark_tasks_to_reconfigure_if_task_resource_cannot_be_reconfigurable() {
+        List<TaskFilter<?>> taskFilters = createTaskFilters();
+        when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
+            any())).thenReturn(List.of(
+                new ConfigurationDmnEvaluationResponse(
+                    CamundaValue.stringValue("caseName"),
+                    CamundaValue.stringValue("Value"),
+                    CamundaValue.booleanValue(false)
+                )
+        ));
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(List.of());
 

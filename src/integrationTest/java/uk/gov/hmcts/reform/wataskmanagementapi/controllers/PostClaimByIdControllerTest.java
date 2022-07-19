@@ -46,6 +46,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -342,6 +343,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        verify(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+        verify(camundaServiceApi).assignTask(anyString(), anyString(), any());
     }
 
     @ParameterizedTest
@@ -448,7 +452,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY)
+            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC)
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
@@ -463,10 +467,10 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY.getRoleName(),
+            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY.getRoleCategory().name()
+            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name()
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 
@@ -510,7 +514,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY)
+            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC)
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
@@ -523,10 +527,10 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY.getRoleName(),
+            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY.getRoleCategory().name()
+            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name()
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 

@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticatio
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -85,8 +86,8 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
-            .body("task.permissions.values", hasSize(3))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("task.permissions.values", hasSize(5))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("ADMIN"));
 
@@ -100,16 +101,18 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "allocateHearingJudge"),
-            new TaskAttribute(TASK_NAME, "Allocate hearing judge"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "ADMIN")
+        Map<String, Object> taskAttributes = Map.of(
+            TASK_TYPE.value(), "allocateHearingJudge",
+            TASK_NAME.value(), "Allocate hearing judge",
+            TASK_TITLE.value(), "A test task",
+            TASK_CASE_ID.value(), taskVariables.getCaseId(),
+            TASK_CREATED.value(), formattedCreatedDate,
+            TASK_DUE_DATE.value(), formattedDueDate,
+            TASK_ROLE_CATEGORY.value(), "ADMIN"
+        );
 
-        ));
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),

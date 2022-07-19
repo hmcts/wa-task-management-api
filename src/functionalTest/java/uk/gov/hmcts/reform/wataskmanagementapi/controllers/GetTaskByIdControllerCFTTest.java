@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
@@ -19,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValue
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,25 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SYSTEM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
@@ -110,7 +92,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -148,9 +130,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.warnings", is(false))
             .body("task.case_management_category", equalTo("Protection"))
             .body("task.work_type_id", equalTo("decision_making_work"))
-            .body("task.work_type_label", equalTo("Decision-making work"))
-            .body("task.permissions.values.size()", equalTo(3))
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
+            .body("task.permissions.values.size()", equalTo(5))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
@@ -219,8 +200,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
             .body("task.warnings", is(true))
-            .body("task.permissions.values.size()", equalTo(3))
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own"));
+            .body("task.permissions.values.size()", equalTo(5))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "task.warning_list.values");
@@ -282,8 +263,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values.size()", equalTo(3))
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
+            .body("task.permissions.values.size()", equalTo(5))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
@@ -440,14 +421,17 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        Map<String, Object> taskAttributes = Map.of(
+            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+            TASK_TITLE.value(), "A test task",
+            TASK_CASE_ID.value(), taskVariables.getCaseId(),
+            TASK_CREATED.value(), formattedCreatedDate,
+            TASK_DUE_DATE.value(), formattedDueDate
+        );
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
@@ -471,27 +455,29 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, taskType),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_SYSTEM, "SELF"),
-            new TaskAttribute(TASK_SECURITY_CLASSIFICATION, SecurityClassification.PUBLIC),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
-            new TaskAttribute(TASK_LOCATION_NAME, "aLocationName"),
-            new TaskAttribute(TASK_LOCATION, "aLocation"),
-            new TaskAttribute(TASK_EXECUTION_TYPE_NAME, "Manual"),
-            new TaskAttribute(TASK_JURISDICTION, "IA"),
-            new TaskAttribute(TASK_REGION_NAME, "aRegion"),
-            new TaskAttribute(TASK_CASE_TYPE_ID, "aTaskCaseTypeId"),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_CASE_NAME, "aCaseName"),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_WARNINGS, warningValues)
-        ));
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put(TASK_TYPE.value(), taskType);
+        attributes.put(TASK_NAME.value(), "follow Up Overdue Reasons For Appeal");
+        attributes.put(TASK_TITLE.value(), "A test task");
+        attributes.put(TASK_SYSTEM.value(), "SELF");
+        attributes.put(TASK_CASE_ID.value(), taskVariables.getCaseId());
+        attributes.put(TASK_CREATED.value(), formattedCreatedDate);
+        attributes.put(TASK_DUE_DATE.value(), formattedDueDate);
+        attributes.put(TASK_SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
+        attributes.put(TASK_ROLE_CATEGORY.value(), "ADMIN");
+        attributes.put(TASK_LOCATION_NAME.value(), "aLocationName");
+        attributes.put(TASK_LOCATION.value(), "aLocation");
+        attributes.put(TASK_EXECUTION_TYPE_NAME.value(), "Manual");
+        attributes.put(TASK_JURISDICTION.value(), "IA");
+        attributes.put(TASK_REGION_NAME.value(), "aRegion");
+        attributes.put(TASK_CASE_TYPE_ID.value(), "aTaskCaseTypeId");
+        attributes.put(TASK_CASE_CATEGORY.value(), "Protection");
+        attributes.put(TASK_CASE_NAME.value(), "aCaseName");
+        attributes.put(TASK_AUTO_ASSIGNED.value(), true);
+        attributes.put(TASK_HAS_WARNINGS.value(), true);
+        attributes.put(TASK_WARNINGS.value(), warningValues);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, attributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,

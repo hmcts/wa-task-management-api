@@ -16,7 +16,6 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
@@ -24,7 +23,6 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
@@ -363,25 +361,32 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         InitiateTaskRequest req;
         if (hasWarnings) {
-            req = new InitiateTaskRequest(INITIATION, asList(
-                new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-                new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-                new TaskAttribute(TASK_TITLE, "A test task"),
-                new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-                new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-                new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
-                new TaskAttribute(TASK_HAS_WARNINGS, true),
-                new TaskAttribute(TASK_WARNINGS, warnings)
-            ));
+            req = new InitiateTaskRequest(
+                INITIATION,
+                Map.of(
+                    TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+                    TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+                    TASK_HAS_WARNINGS.value(), true,
+                    TASK_WARNINGS.value(), warnings,
+                    TASK_TITLE.value(), "A test task",
+                    TASK_CREATED.value(), formattedCreatedDate,
+                    TASK_CASE_ID.value(), testVariables.getCaseId(),
+                    TASK_DUE_DATE.value(), formattedDueDate
+                )
+            );
         } else {
-            req = new InitiateTaskRequest(INITIATION, asList(
-                new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-                new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-                new TaskAttribute(TASK_TITLE, "A test task"),
-                new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-                new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-                new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-            ));
+
+            req = new InitiateTaskRequest(
+                INITIATION,
+                Map.of(
+                    TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+                    TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+                    TASK_TITLE.value(), "A test task",
+                    TASK_CREATED.value(), formattedCreatedDate,
+                    TASK_CASE_ID.value(), testVariables.getCaseId(),
+                    TASK_DUE_DATE.value(), formattedDueDate
+                )
+            );
         }
 
         Response result = restApiActions.post(

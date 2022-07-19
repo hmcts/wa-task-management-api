@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Termi
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
@@ -59,9 +60,9 @@ class ExclusiveTaskActionsControllerTest {
 
         InitiateTaskRequest req = new InitiateTaskRequest(
             INITIATION,
-            asList(
-                new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-                new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal")
+            Map.of(
+                TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+                TASK_NAME.value(), "follow Up Overdue Reasons For Appeal"
             )
         );
 
@@ -86,9 +87,9 @@ class ExclusiveTaskActionsControllerTest {
 
         InitiateTaskRequest req = new InitiateTaskRequest(
             INITIATION,
-            asList(
-                new TaskAttribute(TASK_TITLE, "aTaskTitle"),
-                new TaskAttribute(TASK_NAME, "aTaskName")
+            Map.of(
+                TASK_TITLE.value(), "aTaskTitle",
+                TASK_NAME.value(), "aTaskName"
             )
         );
 

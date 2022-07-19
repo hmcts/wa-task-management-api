@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -68,11 +69,8 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(
-            camundaService,
-            cftTaskMapper,
-            entityManager,
-            allowedJurisdictionConfiguration
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
+                                              allowedJurisdictionConfiguration
         );
     }
 
@@ -328,7 +326,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     }
 
     private static Stream<GrantType> getGrantTypes() {
-        return Stream.of(GrantType.BASIC, GrantType.STANDARD, GrantType.SPECIFIC);
+        return Stream.of(GrantType.STANDARD, GrantType.SPECIFIC);
     }
 
 }

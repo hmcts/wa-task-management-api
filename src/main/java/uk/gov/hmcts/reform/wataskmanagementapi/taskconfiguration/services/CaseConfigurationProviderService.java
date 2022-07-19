@@ -117,6 +117,28 @@ public class CaseConfigurationProviderService {
         );
     }
 
+    public List<ConfigurationDmnEvaluationResponse> evaluateConfigurationDmn(
+        String caseId,
+        Map<String, Object> taskAttributes) {
+        // Obtain case from ccd
+        CaseDetails caseDetails = ccdDataService.getCaseData(caseId);
+
+        String jurisdiction = caseDetails.getJurisdiction();
+        String caseType = caseDetails.getCaseType();
+
+        String caseDataString = writeValueAsString(caseDetails.getData());
+        String taskAttributesString = writeValueAsString(taskAttributes);
+
+        // Evaluate Dmns
+        return
+            dmnEvaluationService.evaluateTaskConfigurationDmn(
+                jurisdiction,
+                caseType,
+                caseDataString,
+                taskAttributesString
+            );
+    }
+
     private List<ConfigurationDmnEvaluationResponse> updateTaskConfigurationDmnResultsForAdditionalProperties(
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults) {
 
