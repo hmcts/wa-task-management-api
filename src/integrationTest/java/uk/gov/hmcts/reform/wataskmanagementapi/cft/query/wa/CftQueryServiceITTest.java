@@ -153,7 +153,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         Assertions.assertThat(allTasks.getTasks())
             .hasSize(scenario.expectedAmountOfTasksInResponse)
             .flatExtracting(Task::getId, Task::getCaseId,
-                            t -> t.getNextHearingDate().format(CAMUNDA_DATA_TIME_FORMATTER)
+                            t -> t.getNextHearingDate().toOffsetDateTime().format(CAMUNDA_DATA_TIME_FORMATTER)
             )
             .containsExactly(
                 scenario.expectedTaskDetails.toArray()
