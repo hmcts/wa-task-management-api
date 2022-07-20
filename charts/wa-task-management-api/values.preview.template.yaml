@@ -29,3 +29,5 @@ java:
     POSTGRES_CONNECTION_OPTIONS: ""
   postgresql:
     enabled: true
+    auth:
+      database: cft_task_db
