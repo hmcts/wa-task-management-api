@@ -150,10 +150,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         Assertions.assertThat(allTasks.getTotalRecords())
             .isEqualTo(scenario.expectedTotalRecords);
         //then
+        String TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
         Assertions.assertThat(allTasks.getTasks())
             .hasSize(scenario.expectedAmountOfTasksInResponse)
             .flatExtracting(Task::getId, Task::getCaseId,
-                            t -> t.getNextHearingDate().format(DateTimeFormatter.ISO_DATE_TIME))
+                            t -> t.getNextHearingDate().format(DateTimeFormatter.ofPattern(TIME_FORMAT))
+            )
             .containsExactly(
                 scenario.expectedTaskDetails.toArray()
             );
@@ -1206,21 +1208,21 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                                     "2022-10-09T20:09:45.345875+01:00",
+                                     "2022-10-09T20:09:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
-                                     "2022-10-09T20:10:45.345875+01:00",
+                                     "2022-10-09T20:10:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                                     "2022-10-09T20:11:45.345875+01:00",
+                                     "2022-10-09T20:11:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                                     "2022-10-09T20:12:45.345875+01:00",
+                                     "2022-10-09T20:12:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
-                                     "2022-10-09T20:13:45.345875+01:00",
+                                     "2022-10-09T20:13:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                                     "2022-10-09T20:14:45.345875+01:00",
+                                     "2022-10-09T20:14:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                                     "2022-10-09T20:15:45.345875+01:00",
+                                     "2022-10-09T20:15:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                                     "2022-10-09T20:16:45.345875+01:00"
+                                     "2022-10-09T20:16:45.345+0100"
                                  )
             ).build();
 
@@ -1247,21 +1249,21 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                                     "2022-10-09T20:16:45.345875+01:00",
+                                     "2022-10-09T20:16:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                                     "2022-10-09T20:15:45.345875+01:00",
+                                     "2022-10-09T20:15:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                                     "2022-10-09T20:14:45.345875+01:00",
+                                     "2022-10-09T20:14:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
-                                     "2022-10-09T20:13:45.345875+01:00",
+                                     "2022-10-09T20:13:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                                     "2022-10-09T20:12:45.345875+01:00",
+                                     "2022-10-09T20:12:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                                     "2022-10-09T20:11:45.345875+01:00",
+                                     "2022-10-09T20:11:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
-                                     "2022-10-09T20:10:45.345875+01:00",
+                                     "2022-10-09T20:10:45.345+0100",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                                     "2022-10-09T20:09:45.345875+01:00"
+                                     "2022-10-09T20:09:45.345+0100"
                                  )
             ).build();
 
