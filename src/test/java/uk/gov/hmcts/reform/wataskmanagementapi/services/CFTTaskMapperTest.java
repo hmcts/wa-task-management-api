@@ -62,10 +62,31 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.*;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_MANAGEMENT_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings({"PMD.UseConcurrentHashMap"})
 class CFTTaskMapperTest {
 
     public static final Map<String, String> EXPECTED_ADDITIONAL_PROPERTIES = Map.of(
@@ -1702,17 +1723,6 @@ class CFTTaskMapperTest {
         attributes.put(TaskAttributeDefinition.TASK_SYSTEM.value(), "SELF");
         attributes.put(TaskAttributeDefinition.TASK_TITLE.value(), "someTitle");
         attributes.put(TaskAttributeDefinition.TASK_TYPE.value(), "someTaskType");
-        //Unmapped
-//        attributes.put(TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_BUSINESS_CONTEXT.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_MAJOR_PRIORITY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_MINOR_PRIORITY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_ROLES.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_ROLE_CATEGORY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_REGION_NAME.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_TERMINATION_REASON.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_WORK_TYPE.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_NOTES.value(), null);
         attributes.put(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
         attributes.put(TaskAttributeDefinition.TASK_NEXT_HEARING_ID.value(), "nextHearingId");
         attributes.put(
@@ -1730,8 +1740,6 @@ class CFTTaskMapperTest {
         attributes.put(TaskAttributeDefinition.TASK_CASE_ID.value(), "00000");
         attributes.put(TaskAttributeDefinition.TASK_CASE_NAME.value(), "someCaseName");
         attributes.put(TaskAttributeDefinition.TASK_CASE_TYPE_ID.value(), "someCaseType");
-//        attributes.put(TaskAttributeDefinition.TASK_CREATED.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_DUE_DATE.value(), null);
         attributes.put(TaskAttributeDefinition.TASK_DESCRIPTION.value(), "someCamundaTaskDescription");
         attributes.put(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME.value(), "MANUAL");
         attributes.put(TaskAttributeDefinition.TASK_HAS_WARNINGS.value(), false);
@@ -1745,17 +1753,6 @@ class CFTTaskMapperTest {
         attributes.put(TaskAttributeDefinition.TASK_SYSTEM.value(), "SELF");
         attributes.put(TaskAttributeDefinition.TASK_TITLE.value(), "someTitle");
         attributes.put(TaskAttributeDefinition.TASK_TYPE.value(), "someTaskType");
-        //Unmapped
-//        attributes.put(TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_BUSINESS_CONTEXT.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_MAJOR_PRIORITY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_MINOR_PRIORITY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_ROLES.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_ROLE_CATEGORY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_REGION_NAME.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_TERMINATION_REASON.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_WORK_TYPE.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_NOTES.value(), null);
         attributes.put(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
         attributes.put(TaskAttributeDefinition.TASK_NEXT_HEARING_ID.value(), "nextHearingId");
         attributes.put(
@@ -1788,17 +1785,7 @@ class CFTTaskMapperTest {
         attributes.put(TaskAttributeDefinition.TASK_SYSTEM.value(), "SELF");
         attributes.put(TaskAttributeDefinition.TASK_TITLE.value(), "someTitle");
         attributes.put(TaskAttributeDefinition.TASK_TYPE.value(), "someTaskType");
-        //Unmapped
-//        attributes.put(TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_BUSINESS_CONTEXT.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_MAJOR_PRIORITY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_MINOR_PRIORITY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_ROLES.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_ROLE_CATEGORY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_REGION_NAME.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_TERMINATION_REASON.value(), null);
         attributes.put(TaskAttributeDefinition.TASK_WORK_TYPE.value(), "someWorkType");
-//        attributes.put(TaskAttributeDefinition.TASK_NOTES.value(), null);
         attributes.put(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
         attributes.put(TaskAttributeDefinition.TASK_NEXT_HEARING_ID.value(), "nextHearingId");
         attributes.put(
@@ -1831,16 +1818,6 @@ class CFTTaskMapperTest {
         attributes.put(TaskAttributeDefinition.TASK_SYSTEM.value(), "SELF");
         attributes.put(TaskAttributeDefinition.TASK_TITLE.value(), "someTitle");
         attributes.put(TaskAttributeDefinition.TASK_TYPE.value(), "someTaskType");
-        //Unmapped
-//        attributes.put(TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_BUSINESS_CONTEXT.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_MAJOR_PRIORITY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_MINOR_PRIORITY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_ROLES.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_ROLE_CATEGORY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_REGION_NAME.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_TERMINATION_REASON.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_NOTES.value(), null);
         attributes.put(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
         attributes.put(TaskAttributeDefinition.TASK_NEXT_HEARING_ID.value(), "nextHearingId");
         attributes.put(
@@ -1876,17 +1853,6 @@ class CFTTaskMapperTest {
         attributes.put(TaskAttributeDefinition.TASK_TITLE.value(), "someTitle");
         attributes.put(TaskAttributeDefinition.TASK_TYPE.value(), "someTaskType");
         attributes.put(TaskAttributeDefinition.TASK_WARNINGS.value(), values);
-        //Unmapped
-//        attributes.put(TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_BUSINESS_CONTEXT.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_MAJOR_PRIORITY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_MINOR_PRIORITY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_ROLES.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_ROLE_CATEGORY.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_REGION_NAME.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_TERMINATION_REASON.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_WORK_TYPE.value(), null);
-//        attributes.put(TaskAttributeDefinition.TASK_NOTES.value(), null);
         attributes.put(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
         attributes.put(TaskAttributeDefinition.TASK_NEXT_HEARING_ID.value(), "nextHearingId");
         attributes.put(

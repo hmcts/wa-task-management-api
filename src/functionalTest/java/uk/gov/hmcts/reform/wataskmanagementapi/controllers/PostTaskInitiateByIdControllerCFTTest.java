@@ -105,7 +105,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
+                        + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
@@ -591,10 +591,8 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             .body("title", equalTo("Constraint Violation"))
             .body("status", equalTo(400))
             .body("violations[0].field", equalTo("task_due_date"))
-            .body(
-                "violations[0].message",
-                equalTo("Each task to initiate must contain task_due_date field present and populated.")
-            );
+            .body("violations[0].message",
+                equalTo("Each task to initiate must contain task_due_date field present and populated."));
     }
 
     @Test

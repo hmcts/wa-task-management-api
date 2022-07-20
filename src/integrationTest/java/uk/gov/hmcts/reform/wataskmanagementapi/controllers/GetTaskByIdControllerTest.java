@@ -29,7 +29,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
@@ -71,10 +70,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
@@ -236,12 +233,13 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
+            jsonPath("$.type").value(
+                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
             jsonPath("$.title").value("Role Assignment Verification"),
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Role Assignment Verification: "
-                + "The request failed the Role Assignment checks performed.")
+                    + "The request failed the Role Assignment checks performed.")
         );
 
     }
@@ -250,10 +248,10 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Execution(ExecutionMode.CONCURRENT)
     void should_return_404_when_initiation_request_failed_to_retrieve_data_from_ccd() throws Exception {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
-            )
+                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                           IDAM_USER_ID,
+                           IDAM_USER_EMAIL
+                       )
         ).thenReturn(true);
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
@@ -301,17 +299,18 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
             TASK_TITLE.value(), "A test task",
             TASK_CASE_ID.value(), "someCaseId",
-            TASK_DUE_DATE.value(), formattedDueDate);
+            TASK_DUE_DATE.value(), formattedDueDate
+        );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
 
         //first initiate call
         mockMvc
             .perform(post("/task/" + taskId)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                         .contentType(APPLICATION_JSON_VALUE)
+                         .content(asJsonString(req)))
             //.andDo(print())
             .andExpectAll(
                 status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()),
@@ -321,16 +320,16 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.title").value("Generic Server Error"),
                 jsonPath("$.status").value(500),
                 jsonPath("$.detail").value("Generic Server Error: The action could not be "
-                                           + "completed because there was a problem when initiating the task.")
+                                               + "completed because there was a problem when initiating the task.")
             );
 
         //second initiate call
         mockMvc
             .perform(post("/task/" + taskId)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                         .contentType(APPLICATION_JSON_VALUE)
+                         .content(asJsonString(req)))
             //.andDo(print())
             .andExpectAll(
                 status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()),
@@ -340,7 +339,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.title").value("Generic Server Error"),
                 jsonPath("$.status").value(500),
                 jsonPath("$.detail").value("Generic Server Error: The action could not be "
-                                           + "completed because there was a problem when initiating the task.")
+                                               + "completed because there was a problem when initiating the task.")
             );
 
         //retrieve task
