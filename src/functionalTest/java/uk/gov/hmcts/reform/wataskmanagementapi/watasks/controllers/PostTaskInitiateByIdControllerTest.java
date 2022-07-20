@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest2;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -146,13 +145,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                            + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                         + "trigger/decideAnApplication)"))
+                                             + "trigger/decideAnApplication)"))
             .body("task_role_resources.size()", equalTo(10))
             .body("additional_properties", equalToObject(Map.of(
                 "key1", "value1",
@@ -277,7 +276,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                            + "(Typically this will be in CCD.)")
             )
             .body("task_role_resources.size()", equalTo(9))
             .body("additional_properties", equalToObject(Map.of(
@@ -383,7 +382,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         attributes.put("minorPriority", 100);
         attributes.put("assignee", "some assignee");
         attributes.put("autoAssigned", true);
-        attributes.put("executionTypeCode", new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"));
+        attributes.put(
+            "executionTypeCode",
+            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description")
+        );
         attributes.put("workTypeResource", new WorkTypeResource("routine_work", "Routine work"));
         attributes.put("roleCategory", RoleCategory.LEGAL_OPERATIONS.name());
         attributes.put("hasWarnings", false);
@@ -437,13 +439,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                            + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                         + "trigger/decideAnApplication)"))
+                                             + "trigger/decideAnApplication)"))
             .body("task_role_resources.size()", equalTo(10))
             .body("additional_properties", equalToObject(Map.of(
                 "key1", "value1",
@@ -657,7 +659,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
         expectedPermissions.keySet().forEach(key ->
-            assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
+                                                 assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
 
         assertThat(resource.get("task_role_id")).isNotNull();
     }
@@ -676,18 +678,18 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @NotNull
     private String getCcdData() {
         return "{"
-               + "\"jurisdiction\": \"wa\","
-               + "\"case_type_id\": \"WaCaseType\","
-               + "\"security_classification\": \"PUBLIC\","
-               + "\"data\": {}"
-               + "}";
+            + "\"jurisdiction\": \"wa\","
+            + "\"case_type_id\": \"WaCaseType\","
+            + "\"security_classification\": \"PUBLIC\","
+            + "\"data\": {}"
+            + "}";
     }
 
     @NotNull
     private String getTaskAttributes() {
         return "{\n"
-               + "    \"taskType\": \"processApplication\"\n"
-               + "}";
+            + "    \"taskType\": \"processApplication\"\n"
+            + "}";
     }
 
 
