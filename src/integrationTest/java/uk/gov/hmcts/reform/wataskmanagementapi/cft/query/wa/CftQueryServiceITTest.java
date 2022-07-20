@@ -36,7 +36,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +46,7 @@ import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayLi
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
@@ -150,11 +150,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         Assertions.assertThat(allTasks.getTotalRecords())
             .isEqualTo(scenario.expectedTotalRecords);
         //then
-        String TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
         Assertions.assertThat(allTasks.getTasks())
             .hasSize(scenario.expectedAmountOfTasksInResponse)
             .flatExtracting(Task::getId, Task::getCaseId,
-                            t -> t.getNextHearingDate().format(DateTimeFormatter.ofPattern(TIME_FORMAT))
+                            t -> t.getNextHearingDate().format(CAMUNDA_DATA_TIME_FORMATTER)
             )
             .containsExactly(
                 scenario.expectedTaskDetails.toArray()
