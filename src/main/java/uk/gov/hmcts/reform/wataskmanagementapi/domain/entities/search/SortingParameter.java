@@ -14,7 +14,7 @@ public class SortingParameter {
 
     @Schema(required = true,
         allowableValues = "dueDate, due_date, taskTitle, task_title, locationName, location_name, caseCategory, "
-                          + "case_category, caseId, case_id, caseName, case_name",
+                          + "case_category, caseId, case_id, caseName, case_name, nextHearingDate, next_hearing_date",
         description = "Support snake_case and camelCase values",
         example = "due_date")
     private final SortField sortBy;
