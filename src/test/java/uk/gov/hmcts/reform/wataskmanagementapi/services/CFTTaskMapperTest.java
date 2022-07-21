@@ -86,7 +86,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings({"PMD.UseConcurrentHashMap"})
 class CFTTaskMapperTest {
 
     public static final Map<String, String> EXPECTED_ADDITIONAL_PROPERTIES = Map.of(
