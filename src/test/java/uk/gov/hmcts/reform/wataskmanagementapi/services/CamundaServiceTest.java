@@ -74,6 +74,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
@@ -251,6 +252,29 @@ class CamundaServiceTest extends CamundaHelpers {
 
             camundaService.cancelTask(taskId);
             verify(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
+        }
+
+        @Test
+        void should_cancel_task_when_search_history_throw_an_error() {
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).searchHistory(eq(BEARER_SERVICE_TOKEN), any());
+
+            camundaService.cancelTask(taskId);
+            verify(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
+        }
+
+        @Test
+        void should_skip_cancel_operation_for_already_cancelled_task() {
+            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                "someId",
+                TASK_STATE.value(),
+                "someValue"
+            );
+            when(camundaServiceApi.searchHistory(eq(BEARER_SERVICE_TOKEN), any()))
+                .thenReturn(singletonList(historyVariableInstance));
+
+            camundaService.cancelTask(taskId);
+            verify(camundaServiceApi, never()).bpmnEscalation(any(), any(), anyMap());
         }
 
         @Test

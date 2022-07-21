@@ -10,6 +10,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
@@ -193,4 +196,103 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
+    @Test
+    public void should_return_200_with_tasks_sorted_on_next_hearing_date_desc() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        List<TestVariables> tasksCreated = new ArrayList<>();
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "reviewSpecificAccessRequestLegalOps", "task name", "task title");
+
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "reviewSpecificAccessRequestLegalOps", "task name", "task title");
+
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+            ),
+            List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
+        );
+
+        tasksCreated.forEach(testVariable ->
+                                 common.insertTaskInCftTaskDb(testVariable, "processApplication", caseworkerCredentials.getHeaders()));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("tasks[0].id", is(taskIds.get(1)))
+            .body("tasks[1].id", is(taskIds.get(0)))
+            .body("total_records", equalTo(2));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+    }
+
+    @Test
+    public void should_return_200_with_tasks_sorted_on_next_hearing_date_asc() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        List<TestVariables> tasksCreated = new ArrayList<>();
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "reviewSpecificAccessRequestLegalOps", "task name", "task title");
+
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "reviewSpecificAccessRequestLegalOps", "task name", "task title");
+
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+            ),
+            List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
+        );
+
+        tasksCreated.forEach(testVariable ->
+                                 common.insertTaskInCftTaskDb(testVariable, "processApplication", caseworkerCredentials.getHeaders()));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("tasks[0].id", is(taskIds.get(0)))
+            .body("tasks[1].id", is(taskIds.get(1)))
+            .body("total_records", equalTo(2));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+    }
 }
