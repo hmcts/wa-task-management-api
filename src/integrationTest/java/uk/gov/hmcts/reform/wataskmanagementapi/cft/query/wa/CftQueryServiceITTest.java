@@ -36,6 +36,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,10 +44,10 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 
 import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayList;
+import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
@@ -63,6 +64,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @Sql("/scripts/wa/search_tasks_data.sql")
 public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
     @MockBean
@@ -153,7 +155,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         Assertions.assertThat(allTasks.getTasks())
             .hasSize(scenario.expectedAmountOfTasksInResponse)
             .flatExtracting(Task::getId, Task::getCaseId,
-                            t -> t.getNextHearingDate().toOffsetDateTime().format(CAMUNDA_DATA_TIME_FORMATTER)
+                            t -> t.getNextHearingDate().toOffsetDateTime().format(DATE_TIME_FORMATTER)
             )
             .containsExactly(
                 scenario.expectedTaskDetails.toArray()
@@ -1207,21 +1209,21 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                                     "2022-10-09T20:09:45.345+0100",
+                                     "2022-10-09T20:09:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
-                                     "2022-10-09T20:10:45.345+0100",
+                                     "2022-10-09T20:10:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                                     "2022-10-09T20:11:45.345+0100",
+                                     "2022-10-09T20:11:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                                     "2022-10-09T20:12:45.345+0100",
+                                     "2022-10-09T20:12:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
-                                     "2022-10-09T20:13:45.345+0100",
+                                     "2022-10-09T20:13:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                                     "2022-10-09T20:14:45.345+0100",
+                                     "2022-10-09T20:14:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                                     "2022-10-09T20:15:45.345+0100",
+                                     "2022-10-09T20:15:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                                     "2022-10-09T20:16:45.345+0100"
+                                     "2022-10-09T20:16:45.345"
                                  )
             ).build();
 
@@ -1248,21 +1250,21 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                                     "2022-10-09T20:16:45.345+0100",
+                                     "2022-10-09T20:16:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                                     "2022-10-09T20:15:45.345+0100",
+                                     "2022-10-09T20:15:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                                     "2022-10-09T20:14:45.345+0100",
+                                     "2022-10-09T20:14:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
-                                     "2022-10-09T20:13:45.345+0100",
+                                     "2022-10-09T20:13:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                                     "2022-10-09T20:12:45.345+0100",
+                                     "2022-10-09T20:12:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                                     "2022-10-09T20:11:45.345+0100",
+                                     "2022-10-09T20:11:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
-                                     "2022-10-09T20:10:45.345+0100",
+                                     "2022-10-09T20:10:45.345",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                                     "2022-10-09T20:09:45.345+0100"
+                                     "2022-10-09T20:09:45.345"
                                  )
             ).build();
 
