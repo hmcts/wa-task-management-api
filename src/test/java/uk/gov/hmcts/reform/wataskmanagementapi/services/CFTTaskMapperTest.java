@@ -1076,7 +1076,17 @@ class CFTTaskMapperTest {
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.REFER,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.COMPLETE_OWN,
+                PermissionTypes.CANCEL_OWN,
+                PermissionTypes.CLAIM,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.ASSIGN,
+                PermissionTypes.UNASSIGN,
+                PermissionTypes.UNCLAIM_ASSIGN,
+                PermissionTypes.UNASSIGN_CLAIM,
+                PermissionTypes.UNASSIGN_ASSIGN
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -1113,6 +1123,16 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.EXECUTE));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.REFER));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.COMPLETE));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.COMPLETE_OWN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL_OWN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CLAIM));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNCLAIM));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.ASSIGN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNCLAIM_ASSIGN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN_ASSIGN));
         assertNull(task.getReconfigureRequestTime());
         assertNull(task.getLastReconfigurationTime());
     }
