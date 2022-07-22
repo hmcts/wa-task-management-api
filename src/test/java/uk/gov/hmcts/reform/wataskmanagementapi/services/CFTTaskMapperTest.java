@@ -1724,6 +1724,41 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_map_task_role_permissions_when_authorisations_are_null() {
+        TaskRoleResource roleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null,
+            0,
+            false,
+            "JUDICIAL",
+            "taskId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            false, false, false, false, false, false, false, false, false, false
+            );
+
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
+
+        assertEquals("tribunal-caseworker", taskRolePermissions.getRoleName());
+        assertEquals("JUDICIAL", taskRolePermissions.getRoleCategory());
+        assertNotNull(taskRolePermissions.getPermissions());
+        assertFalse(taskRolePermissions.getPermissions().isEmpty());
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.READ));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.OWN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.MANAGE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
+
+        assertTrue(taskRolePermissions.getAuthorisations().isEmpty());
+    }
+
+    @Test
     void should_map_configuration_attributes_description() {
         TaskResource skeletonTask = new TaskResource(
             taskId,

@@ -186,6 +186,7 @@ public class TaskRoleResource implements Serializable {
         this.created = created;
     }
 
+    @SuppressWarnings("squid:S00107")
     public TaskRoleResource(String roleName,
                             Boolean read,
                             Boolean own,
