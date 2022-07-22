@@ -162,6 +162,7 @@ public class CFTTaskMapper {
         return taskResource;
     }
 
+    @SuppressWarnings("PMD.NPathComplexity")
     public Task mapToTaskWithPermissions(TaskResource taskResource, Set<PermissionTypes> permissionsUnionForUser) {
         return new Task(
             taskResource.getTaskId(),
@@ -197,7 +198,9 @@ public class CFTTaskMapper {
             taskResource.getNextHearingId(),
             taskResource.getNextHearingDate() == null ? null : taskResource.getNextHearingDate().toZonedDateTime(),
             taskResource.getReconfigureRequestTime() == null ? null
-                : taskResource.getReconfigureRequestTime().toZonedDateTime()
+                : taskResource.getReconfigureRequestTime().toZonedDateTime(),
+            taskResource.getLastReconfigurationTime() == null ? null
+                : taskResource.getLastReconfigurationTime().toZonedDateTime()
         );
     }
 
