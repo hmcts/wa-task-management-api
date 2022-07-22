@@ -28,8 +28,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
@@ -82,6 +85,9 @@ public class TaskMapper {
             = getTypedVariableValue(variables.get(ADDITIONAL_PROPERTIES.value()), new TypeReference<>() {});
         String nextHearingId = getVariableValue(variables.get(NEXT_HEARING_ID.value()), String.class);
         ZonedDateTime nextHearingDate = getVariableValue(variables.get(NEXT_HEARING_DATE.value()), ZonedDateTime.class);
+        Integer minorPriority = getVariableValue(variables.get(MINOR_PRIORITY.value()), Integer.class);
+        Integer majorPriority = getVariableValue(variables.get(MAJOR_PRIORITY.value()), Integer.class);
+        ZonedDateTime priorityDate = getVariableValue(variables.get(PRIORITY_DATE.value()), ZonedDateTime.class);
         return new Task(
             id,
             name,
@@ -116,7 +122,10 @@ public class TaskMapper {
             description,
             additionalProperties,
             nextHearingId,
-            nextHearingDate
+            nextHearingDate,
+            minorPriority,
+            majorPriority,
+            priorityDate
         );
     }
 

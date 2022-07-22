@@ -43,13 +43,15 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     })
     @Query(
         value =
-            "INSERT INTO {h-schema}tasks (task_id, created, due_date_time) VALUES (:task_id, :created, :due_date_time)",
+            "INSERT INTO {h-schema}tasks (task_id, created, due_date_time, priority_date) "
+                + "VALUES (:task_id, :created, :due_date_time, :priority_date)",
         nativeQuery = true)
     @Transactional
     void insertAndLock(
         @Param("task_id") String taskId,
         @Param("created") OffsetDateTime created,
-        @Param("due_date_time") OffsetDateTime dueDate
+        @Param("due_date_time") OffsetDateTime dueDate,
+        @Param("priority_date") OffsetDateTime priorityDate
     );
 
 }

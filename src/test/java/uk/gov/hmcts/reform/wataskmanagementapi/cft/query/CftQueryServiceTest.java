@@ -166,7 +166,9 @@ public class CftQueryServiceTest extends CamundaHelpers {
             "caseCategory",
             ADDITIONAL_PROPERTIES,
                 "nextHearingId",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+        );
     }
 
     private Task getTask() {
@@ -201,6 +203,9 @@ public class CftQueryServiceTest extends CamundaHelpers {
             "Description",
             ADDITIONAL_PROPERTIES,
             "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
             ZonedDateTime.now()
         );
     }
