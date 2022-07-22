@@ -49,7 +49,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_201_when_initiating_a_process_application_task_by_id() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -179,7 +179,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_201_when_initiating_a_specific_access_task_by_id() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
