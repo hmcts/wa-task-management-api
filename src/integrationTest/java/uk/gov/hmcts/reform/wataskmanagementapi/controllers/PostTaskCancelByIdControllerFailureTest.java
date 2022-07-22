@@ -198,6 +198,7 @@ class PostTaskCancelByIdControllerFailureTest extends SpringBootIntegrationBaseT
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
         taskResourceRepository.save(taskResource);
     }
 
