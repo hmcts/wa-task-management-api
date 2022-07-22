@@ -48,7 +48,6 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -196,16 +195,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         );
 
         inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
-//        inOrder.verify(configureTaskService).configureCFTTask(
-//            taskResourceCaptor.capture(),
-//            eq(new TaskToConfigure(
-//                taskId,
-//                A_TASK_TYPE,
-//                SOME_CASE_ID,
-//                A_TASK_NAME,
-//                initiateTaskRequest.getTaskAttributes()
-//            ))
-//        );
         inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class));
         inOrder.verify(camundaService).updateCftTaskState(any(), any());
         inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
