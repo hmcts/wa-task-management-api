@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.ia;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +64,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/ia/data.sql")
+@Slf4j
 public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
@@ -96,9 +98,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "withAllGrantTypesHappyPath",
         "inActiveRole",
         "sortByFieldScenario",
-        "paginatedResultsScenario"
+        "paginatedResultsScenario",
+        "defaultSortedResultsScenario"
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
+        log.info("Running scenario: {}", scenario.scenarioName);
 
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, scenario.roleAssignments);
@@ -580,7 +584,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static Stream<TaskQueryScenario> grantTypeWithStandardAndExcludedScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
-        ));
+        ), List.of(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT)));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
             .scenarioName("excluded_grant_type_with_classification_as_public")
@@ -861,7 +865,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static Stream<TaskQueryScenario> withAllGrantTypesHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
-        ));
+        ), List.of(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT)));
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
             .scenarioName("includes_all_grant_types_with_classification_as_restricted")
@@ -1071,6 +1075,36 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             firstTwoRecords,
             secondPage,
             twoPages
+        );
+    }
+
+    private static Stream<TaskQueryScenario> defaultSortedResultsScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
+        ));
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Default sort all records")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(defaultSort(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007"
+                                 )
+            ).build();
+
+        return Stream.of(
+            allTasks
         );
     }
 
@@ -1433,6 +1467,20 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         roleAssignments.add(roleAssignment);
 
         roleAssignment = RoleAssignment.builder().roleName("pagination-role")
+            .classification(classification)
+            .roleType(RoleType.ORGANISATION)
+            .grantType(GrantType.SPECIFIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
+    private static List<RoleAssignment> defaultSort(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("sorting-role")
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.SPECIFIC)
