@@ -171,19 +171,31 @@ public class TaskRoleResource implements Serializable {
                             String roleCategory,
                             String taskId,
                             OffsetDateTime created) {
-        this.roleName = roleName;
-        this.read = read;
-        this.own = own;
-        this.execute = execute;
-        this.manage = manage;
-        this.cancel = cancel;
-        this.refer = refer;
-        this.authorizations = authorizations == null ? new String[]{} : authorizations.clone();
-        this.assignmentPriority = assignmentPriority;
-        this.autoAssignable = autoAssignable;
-        this.roleCategory = roleCategory;
-        this.taskId = taskId;
-        this.created = created;
+        this(
+            roleName,
+            read,
+            own,
+            execute,
+            manage,
+            cancel,
+            refer,
+            authorizations,
+            assignmentPriority,
+            autoAssignable,
+            roleCategory,
+            taskId,
+            created,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        );
     }
 
     @SuppressWarnings("squid:S00107")
