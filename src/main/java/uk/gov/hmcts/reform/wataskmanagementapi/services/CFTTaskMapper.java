@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
@@ -98,8 +97,8 @@ public class CFTTaskMapper {
     public TaskResource mapToTaskResource(String taskId, Map<String, Object> taskAttributes) {
         log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
         Map<TaskAttributeDefinition, Object> attributes = taskAttributes.entrySet().stream()
-            .map(e -> new TaskAttribute(TaskAttributeDefinition.forValue(e.getKey()), e.getValue()))
-            .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
+            .collect(Collectors.toMap(key -> TaskAttributeDefinition.forValue(key.getKey()),
+                                      Map.Entry::getValue));
 
         List<NoteResource> notes = extractWarningNotes(attributes);
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
