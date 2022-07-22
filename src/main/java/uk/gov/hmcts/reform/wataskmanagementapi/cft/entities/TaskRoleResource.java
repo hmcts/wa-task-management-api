@@ -74,7 +74,7 @@ public class TaskRoleResource implements Serializable {
     private OffsetDateTime created;
 
     @JoinColumn(name = "task_id", insertable = false, updatable = false)
-    @ManyToOne(targetEntity = TaskResource.class, fetch = FetchType.LAZY)
+    @ManyToOne(targetEntity = TaskResource.class, fetch = FetchType.EAGER)
     @ToString.Exclude
     private TaskResource taskResource;
 

@@ -26,10 +26,7 @@ The general approach and interaction with Access Management is depicted below.  
 
 ![task-management](access-management-process.png)
 
-
-Since Spring Boot 2.1 bean overriding is disabled. If you want to enable it you will need to set `spring.main.allow-bean-definition-overriding` to `true`.
-
-JUnit 5 is now enabled by default in the project. Please refrain from using JUnit4 and use the next generation
+JUnit 5 is now enabled by default in the project. Please refrain from using JUnit4.
 
 ## Building and deploying the application
 
