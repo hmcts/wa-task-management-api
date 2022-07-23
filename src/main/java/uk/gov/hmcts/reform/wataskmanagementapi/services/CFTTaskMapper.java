@@ -68,6 +68,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLES;
@@ -81,10 +82,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
+
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411"})
+        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411",
+        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity"})
 @Slf4j
 public class CFTTaskMapper {
 
@@ -108,8 +111,12 @@ public class CFTTaskMapper {
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
         OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
+        OffsetDateTime priorityDate = readDate(attributes, TASK_PRIORITY_DATE, null);
 
         Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
+        if (priorityDate == null) {
+            priorityDate = dueDate;
+        }
 
         WorkTypeResource workTypeResource = extractWorkType(attributes);
         return new TaskResource(
@@ -123,8 +130,8 @@ public class CFTTaskMapper {
             read(attributes, TASK_TITLE, null),
             read(attributes, TASK_DESCRIPTION, null),
             notes,
-            read(attributes, TASK_MAJOR_PRIORITY, null),
-            read(attributes, TASK_MINOR_PRIORITY, null),
+            read(attributes, TASK_MAJOR_PRIORITY, 5000),
+            read(attributes, TASK_MINOR_PRIORITY, 500),
             read(attributes, TASK_ASSIGNEE, null),
             read(attributes, TASK_AUTO_ASSIGNED, false),
             executionTypeResource,
@@ -147,7 +154,9 @@ public class CFTTaskMapper {
             read(attributes, TASK_CASE_CATEGORY, null),
             read(attributes, TASK_ADDITIONAL_PROPERTIES, null),
             read(attributes, TASK_NEXT_HEARING_ID, null),
-            readDate(attributes, TASK_NEXT_HEARING_DATE, null));
+            readDate(attributes, TASK_NEXT_HEARING_DATE, null),
+            priorityDate
+        );
     }
 
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
@@ -196,6 +205,9 @@ public class CFTTaskMapper {
             taskResource.getAdditionalProperties(),
             taskResource.getNextHearingId(),
             taskResource.getNextHearingDate() == null ? null : taskResource.getNextHearingDate().toZonedDateTime(),
+            taskResource.getMinorPriority(),
+            taskResource.getMajorPriority(),
+            taskResource.getPriorityDate() == null ? null : taskResource.getPriorityDate().toZonedDateTime(),
             taskResource.getReconfigureRequestTime() == null ? null
                 : taskResource.getReconfigureRequestTime().toZonedDateTime()
         );
@@ -456,6 +468,28 @@ public class CFTTaskMapper {
                 case NEXT_HEARING_DATE:
                     if (value != null && Strings.isNotBlank((String) value)) {
                         taskResource.setNextHearingDate(ZonedDateTime.parse((String) value).toOffsetDateTime());
+                    }
+                    break;
+                case MINOR_PRIORITY:
+                    if (value instanceof String) {
+                        taskResource.setMinorPriority(Integer.parseInt((String) value));
+                    } else {
+                        taskResource.setMinorPriority((Integer) value);
+                    }
+
+                    break;
+                case MAJOR_PRIORITY:
+                    if (value instanceof String) {
+                        taskResource.setMajorPriority(Integer.parseInt((String) value));
+                    } else {
+                        taskResource.setMajorPriority((Integer) value);
+                    }
+                    break;
+                case PRIORITY_DATE:
+                    if (value instanceof String) {
+                        taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
+                    } else {
+                        taskResource.setPriorityDate((OffsetDateTime) value);
                     }
                     break;
                 default:

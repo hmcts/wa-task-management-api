@@ -64,7 +64,11 @@ class TaskTest {
             "a description",
             ADDITIONAL_PROPERTIES,
                 "nextHearingId",
-            ZonedDateTime.now());
+            ZonedDateTime.now(),
+            500,
+            5000,
+            dueDate
+        );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
         Assertions.assertThat(task.getName()).isEqualTo("some-name");
@@ -138,7 +142,11 @@ class TaskTest {
             "a description",
             ADDITIONAL_PROPERTIES,
                 "nextHearingId",
-            ZonedDateTime.now());
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now()
+        );
 
         Assertions.assertThat(task.isAutoAssigned()).isFalse();
         Assertions.assertThat(task.getAssignee()).isNull();
