@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
@@ -35,7 +34,6 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
     private TestAuthenticationCredentials caseworkerCredentials;
     private TestAuthenticationCredentials assignerCredentials;
     private TestAuthenticationCredentials assigneeCredentials;
-    private final GrantType testGrantType = GrantType.SPECIFIC;
     private String taskId;
     private String assigneeId;
 
@@ -99,7 +97,8 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("assigned"))
-            .body("task.reconfigure_request_time", notNullValue());
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue());;
 
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

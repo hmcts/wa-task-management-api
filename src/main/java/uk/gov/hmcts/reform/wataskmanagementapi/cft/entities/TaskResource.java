@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.EqualsAndHashCode;
@@ -126,7 +126,7 @@ public class TaskResource implements Serializable {
     @JoinColumn(name = "executionTypeCode", referencedColumnName = "execution_code")
     private ExecutionTypeResource executionTypeCode;
 
-    @JsonBackReference
+    @JsonManagedReference
     @ToString.Exclude
     @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<TaskRoleResource> taskRoleResources;
@@ -146,6 +146,8 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime nextHearingDate;
 
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime priorityDate;
 
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
@@ -205,13 +207,15 @@ public class TaskResource implements Serializable {
                         String taskType,
                         CFTTaskState state,
                         OffsetDateTime created,
-                        OffsetDateTime dueDateTime) {
+                        OffsetDateTime dueDateTime,
+                        OffsetDateTime priorityDate) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
         this.state = state;
         this.created = created;
         this.dueDateTime = dueDateTime;
+        this.priorityDate = priorityDate;
     }
 
     public TaskResource(String taskId,
@@ -277,7 +281,8 @@ public class TaskResource implements Serializable {
                         String caseCategory,
                         Map<String, String> additionalProperties,
                         String nextHearingId,
-                        OffsetDateTime nextHearingDate) {
+                        OffsetDateTime nextHearingDate,
+                        OffsetDateTime priorityDate) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
@@ -313,6 +318,7 @@ public class TaskResource implements Serializable {
         this.additionalProperties = additionalProperties;
         this.nextHearingId = nextHearingId;
         this.nextHearingDate = nextHearingDate;
+        this.priorityDate = priorityDate;
     }
 
     public void setTaskId(String taskId) {
@@ -461,5 +467,9 @@ public class TaskResource implements Serializable {
 
     public void setNextHearingDate(OffsetDateTime nextHearingDate) {
         this.nextHearingDate = nextHearingDate;
+    }
+
+    public void setPriorityDate(OffsetDateTime priorityDate) {
+        this.priorityDate = priorityDate;
     }
 }

@@ -95,7 +95,11 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
             "a description",
             getAdditionalProperties(),
                 "nextHearingId",
-            ZonedDateTime.now());
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now()
+        );
         return singletonList(task);
     }
 
@@ -139,7 +143,11 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
             "aDescription",
             getAdditionalProperties(),
                 "nextHearingId",
-            ZonedDateTime.now());
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now()
+        );
 
         return singletonList(task);
     }
@@ -191,7 +199,11 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
             "a description",
             getAdditionalProperties(),
                 "nextHearingId",
-            ZonedDateTime.now());
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now()
+        );
 
         return singletonList(taskWithWarnings);
     }
