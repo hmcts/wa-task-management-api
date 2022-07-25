@@ -939,7 +939,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
                 TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList())),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
-        ));
+        ), List.of(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT)));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
