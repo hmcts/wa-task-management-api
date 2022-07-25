@@ -1114,6 +1114,7 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.REFER));
         assertNull(task.getReconfigureRequestTime());
+        assertNull(task.getLastReconfigurationTime());
     }
 
     @Test
