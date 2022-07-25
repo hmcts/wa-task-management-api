@@ -101,7 +101,8 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("assigned"))
-            .body("task.reconfigure_request_time", notNullValue());
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue());;
 
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

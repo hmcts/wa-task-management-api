@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 
 public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -85,7 +86,8 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("assigned"))
-            .body("task.reconfigure_request_time", notNullValue());
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue());;
 
         common.cleanUpTask(taskId);
     }
@@ -123,7 +125,8 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("unassigned"))
-            .body("task.reconfigure_request_time", notNullValue());
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue());;
 
         common.cleanUpTask(taskId);
     }
