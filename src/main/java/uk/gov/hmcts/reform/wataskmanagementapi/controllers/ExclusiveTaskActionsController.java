@@ -75,6 +75,7 @@ public class ExclusiveTaskActionsController extends BaseController {
             .body(savedTask);
     }
 
+
     @Operation(description = "Exclusive access only: Terminate a Task identified by an id.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task has been terminated", content = {
