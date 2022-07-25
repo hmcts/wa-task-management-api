@@ -106,6 +106,9 @@ class CFTTaskDatabaseServiceTest {
         final TaskResource actualTaskResource = cftTaskDatabaseService.saveTask(someTaskResource);
 
         assertNotNull(actualTaskResource);
+        verify(someTaskResource, times(1)).getPriorityDate();
+        verify(someTaskResource, times(1)).setPriorityDate(any());
+        verify(someTaskResource, times(1)).getDueDateTime();
     }
 
     @Test
@@ -114,12 +117,13 @@ class CFTTaskDatabaseServiceTest {
         OffsetDateTime dueDate = OffsetDateTime.now();
         OffsetDateTime created = OffsetDateTime.now().plusMinutes(1);
 
-        lenient().doNothing().when(taskResourceRepository).insertAndLock(taskId, dueDate, created);
+        lenient().doNothing().when(taskResourceRepository).insertAndLock(taskId, dueDate, created, dueDate);
 
         cftTaskDatabaseService.insertAndLock(taskId, dueDate);
 
         verify(taskResourceRepository, times(1))
             .insertAndLock(anyString(),
+                any(),
                 any(),
                 any()
             );

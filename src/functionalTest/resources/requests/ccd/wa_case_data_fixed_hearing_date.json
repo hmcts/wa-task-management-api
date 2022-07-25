@@ -4,5 +4,7 @@
   "appellantGivenNames": "Bob",
   "appellantFamilyName": "Smith",
   "appealType": "protection",
-  "urgent": "No"
+  "nextHearingId": "next-hearing-id",
+  "nextHearingDate": "2022-12-07T14:00:00+01:00",
+  "urgent": "Yes"
 }

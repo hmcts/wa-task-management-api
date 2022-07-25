@@ -51,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -73,8 +74,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
@@ -126,7 +130,7 @@ class CFTTaskMapperTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
+        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate, null);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
 
@@ -144,8 +148,8 @@ class CFTTaskMapperTest {
         assertEquals("someTitle", taskResource.getTitle());
         assertEquals("someCamundaTaskDescription", taskResource.getDescription());
         assertNull(taskResource.getNotes());
-        assertNull(taskResource.getMajorPriority());
-        assertNull(taskResource.getMinorPriority());
+        assertEquals(5000, taskResource.getMajorPriority());
+        assertEquals(500, taskResource.getMinorPriority());
         assertEquals("someAssignee", taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
         assertNull(taskResource.getWorkTypeResource());
@@ -173,6 +177,10 @@ class CFTTaskMapperTest {
             ExecutionType.MANUAL.getDescription()
         ), taskResource.getExecutionTypeCode());
         assertNull(taskResource.getTaskRoleResources());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getPriorityDate()
+        );
     }
 
     @Test
@@ -206,8 +214,8 @@ class CFTTaskMapperTest {
         assertEquals("Code2", taskResource.getNotes().get(1).getCode());
         assertEquals("WARNING", taskResource.getNotes().get(1).getNoteType());
         assertEquals("Text2", taskResource.getNotes().get(1).getContent());
-        assertNull(taskResource.getMajorPriority());
-        assertNull(taskResource.getMinorPriority());
+        assertEquals(5000, taskResource.getMajorPriority());
+        assertEquals(500, taskResource.getMinorPriority());
         assertEquals("someAssignee", taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
         assertNull(taskResource.getWorkTypeResource());
@@ -235,6 +243,10 @@ class CFTTaskMapperTest {
             ExecutionType.MANUAL.getDescription()
         ), taskResource.getExecutionTypeCode());
         assertNull(taskResource.getTaskRoleResources());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getPriorityDate()
+        );
     }
 
     @Test
@@ -301,6 +313,9 @@ class CFTTaskMapperTest {
         mappedValues.put(NEXT_HEARING_ID.value(), nextHearingId);
         String nextHearingDate = OffsetDateTime.now().toString();
         mappedValues.put(NEXT_HEARING_DATE.value(), nextHearingDate);
+        mappedValues.put(PRIORITY_DATE.value(), OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+        mappedValues.put(MAJOR_PRIORITY.value(), 5000);
+        mappedValues.put(MINOR_PRIORITY.value(), 500);
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
@@ -317,8 +332,6 @@ class CFTTaskMapperTest {
         assertEquals("someTitle", taskResource.getTitle());
         assertNull(taskResource.getDescription());
         assertNull(taskResource.getNotes());
-        assertNull(taskResource.getMajorPriority());
-        assertNull(taskResource.getMinorPriority());
         assertNull(taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
         assertNull(taskResource.getWorkTypeResource());
@@ -345,6 +358,9 @@ class CFTTaskMapperTest {
             ExecutionType.MANUAL.getDescription()
         ), taskResource.getExecutionTypeCode());
         assertEquals(emptySet(), taskResource.getTaskRoleResources());
+        assertEquals(5000, taskResource.getMajorPriority());
+        assertEquals(500, taskResource.getMinorPriority());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), taskResource.getPriorityDate());
     }
 
     @Test
@@ -772,7 +788,7 @@ class CFTTaskMapperTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
+        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate, null);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
@@ -934,7 +950,7 @@ class CFTTaskMapperTest {
         ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
+        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate, null);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         assertNotNull(taskResource.getCreated());
@@ -960,7 +976,7 @@ class CFTTaskMapperTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
+        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate, null);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         assertNotNull(taskResource.getDueDateTime());
@@ -1108,7 +1124,7 @@ class CFTTaskMapperTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
 
-        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
+        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate, null);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
@@ -1154,6 +1170,65 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_set_priority_date_different_from_priority_date() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        ZonedDateTime priorityDate = createdDate.plusDays(3);
+        String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
+
+        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate,
+            formattedPriorityDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        Set<PermissionTypes> permissionsUnion = new HashSet<>(
+            asList(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.MANAGE,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.REFER
+            )
+        );
+        Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
+
+        assertNotEquals(task.getDueDate(), task.getPriorityDate());
+        assertNotNull(task.getDueDate());
+        assertNotNull(task.getCreatedDate());
+    }
+
+    @Test
+    void should_set_priority_date_null_no_error() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate,
+                                                              null);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        taskResource.setPriorityDate(null);
+        Set<PermissionTypes> permissionsUnion = new HashSet<>(
+            asList(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.MANAGE,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.REFER
+            )
+        );
+        Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
+
+        assertNotEquals(task.getDueDate(), task.getPriorityDate());
+        assertNotNull(task.getDueDate());
+        assertNotNull(task.getCreatedDate());
+    }
+
+    @Test
     void should_convert_task_resource_to_map_object() {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -1165,7 +1240,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertThat(taskAttributes).size().isEqualTo(36);
+        assertThat(taskAttributes).size().isEqualTo(37);
     }
 
     @Test
@@ -1262,7 +1337,8 @@ class CFTTaskMapperTest {
             taskRoleResources,
             "caseCategory",
             EXPECTED_ADDITIONAL_PROPERTIES,
-            "nextHearingId",
+                "nextHearingId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
 
@@ -1655,6 +1731,38 @@ class CFTTaskMapperTest {
 
     }
 
+    @Test
+    void should_map_configuration_attributes_priority_from_string() {
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(CamundaVariableDefinition.CASE_ID.value(), "otherCaseId");
+        mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
+        mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
+        mappedValues.put(CamundaVariableDefinition.DESCRIPTION.value(), "aDescription");
+        mappedValues.put(PRIORITY_DATE.value(), "2022-05-09T20:15:45.345875+01:00");
+        mappedValues.put(MAJOR_PRIORITY.value(), "5000");
+        mappedValues.put(MINOR_PRIORITY.value(), "500");
+
+        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues)
+        );
+
+
+        assertEquals("otherCaseId", taskResource.getCaseId());
+        assertEquals("otherTaskId", taskResource.getTaskId());
+        assertEquals("otherTaskName", taskResource.getTaskName());
+        assertEquals("aDescription", taskResource.getDescription());
+
+    }
+
     private TaskResource createTaskResourceWithRoleResource(TaskRoleResource roleResource) {
         return new TaskResource(
             "taskId",
@@ -1690,12 +1798,13 @@ class CFTTaskMapperTest {
             singleton(roleResource),
             "caseCategory",
             EXPECTED_ADDITIONAL_PROPERTIES,
-            "nextHearingId",
+                "nextHearingId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
     }
 
-    private Map<String, Object> getDefaultAttributes(String createdDate, String dueDate) {
+    private Map<String, Object> getDefaultAttributes(String createdDate, String dueDate, String priorityDate) {
         HashMap<String, Object> attributes = new HashMap<>();
         attributes.put(TaskAttributeDefinition.TASK_ASSIGNEE.value(), "someAssignee");
         attributes.put(TaskAttributeDefinition.TASK_AUTO_ASSIGNED.value(), false);
@@ -1708,6 +1817,9 @@ class CFTTaskMapperTest {
         }
         if (dueDate != null) {
             attributes.put(TaskAttributeDefinition.TASK_DUE_DATE.value(), dueDate);
+        }
+        if (priorityDate != null) {
+            attributes.put(TaskAttributeDefinition.TASK_PRIORITY_DATE.value(), priorityDate);
         }
         attributes.put(TaskAttributeDefinition.TASK_DESCRIPTION.value(), "someCamundaTaskDescription");
         attributes.put(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME.value(), "MANUAL");
