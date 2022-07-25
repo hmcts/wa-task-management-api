@@ -29,14 +29,14 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
     private static final String WA_RECONFIGURE_TASK_BY_ID = WA_URL + "/operation";
 
     @Test
-    @PactTestFor(pactMethod = "executeReconfigureTaskById204", pactVersion = PactSpecVersion.V3)
-    void testReconfigureTaskByTaskId204Test(MockServer mockServer) {
+    @PactTestFor(pactMethod = "markTaskToReconfigureById204", pactVersion = PactSpecVersion.V3)
+    void testMarkTaskToReconfigureById204Test(MockServer mockServer) {
 
         SerenityRest
             .given()
             .headers(getTaskManagementServiceResponseHeaders())
             .contentType(ContentType.JSON)
-            .body(createTaskOperationRequest())
+            .body(createMarkTaskToReconfigureOperationRequest())
             .post(mockServer.getUrl() + WA_RECONFIGURE_TASK_BY_ID)
             .then()
             .statusCode(204);
@@ -44,7 +44,7 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
     }
 
     @Pact(provider = "wa_task_management_api_reconfigure_task_by_case_id", consumer = "wa_task_management_api")
-    public RequestResponsePact executeReconfigureTaskById204(PactDslWithProvider builder) {
+    public RequestResponsePact markTaskToReconfigureById204(PactDslWithProvider builder) {
 
         return builder
             .given("reconfigure a task using caseId")
@@ -52,7 +52,38 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
             .path(WA_RECONFIGURE_TASK_BY_ID)
             .method(HttpMethod.POST.toString())
             .headers(getTaskManagementServiceResponseHeaders())
-            .body(createTaskOperationRequest(), String.valueOf(ContentType.JSON))
+            .body(createMarkTaskToReconfigureOperationRequest(), String.valueOf(ContentType.JSON))
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .willRespondWith()
+            .status(HttpStatus.NO_CONTENT.value())
+            .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeReconfigurationTaskById204", pactVersion = PactSpecVersion.V3)
+    void testExecuteReconfigureTaskByTaskId204Test(MockServer mockServer) {
+
+        SerenityRest
+            .given()
+            .headers(getTaskManagementServiceResponseHeaders())
+            .contentType(ContentType.JSON)
+            .body(createExecuteReconfigureTaskOperationRequest())
+            .post(mockServer.getUrl() + WA_RECONFIGURE_TASK_BY_ID)
+            .then()
+            .statusCode(204);
+
+    }
+
+    @Pact(provider = "wa_task_management_api_reconfigure_task_by_case_id", consumer = "wa_task_management_api")
+    public RequestResponsePact executeReconfigurationTaskById204(PactDslWithProvider builder) {
+
+        return builder
+            .given("reconfigure a task")
+            .uponReceiving("reconfigure_request_time")
+            .path(WA_RECONFIGURE_TASK_BY_ID)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .body(createExecuteReconfigureTaskOperationRequest(), String.valueOf(ContentType.JSON))
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
             .willRespondWith()
             .status(HttpStatus.NO_CONTENT.value())
@@ -67,7 +98,7 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
     }
 
 
-    private String createTaskOperationRequest() {
+    private String createMarkTaskToReconfigureOperationRequest() {
 
         return "{\n"
                + "    \"operation\": \n"
@@ -86,5 +117,24 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
                + "        }\n"
                + "    ]\n"
                + "}";
+    }
+
+    private String createExecuteReconfigureTaskOperationRequest() {
+
+        return "{\n"
+            + "    \"operation\": \n"
+            + "        {\n"
+            + "            \"runId\": \"runid1\",\n"
+            + "            \"name\": \"EXECUTE_RECONFIGURE\"\n"
+            + "        },\n"
+            + "    \"taskFilter\": [\n"
+            + "        {\n"
+            + "            \"@type\": \"ExecuteReconfigureTaskFilter\",\n"
+            + "            \"key\": \"reconfigure_request_time\",\n"
+            + "            \"value\": \"2022-06-06T16:00:00.00000+01:00\",\n"
+            + "            \"operator\": \"AFTER\"\n"
+            + "        }\n"
+            + "    ]\n"
+            + "}";
     }
 }

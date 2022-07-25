@@ -1238,7 +1238,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertThat(taskAttributes).size().isEqualTo(37);
+        assertThat(taskAttributes).size().isEqualTo(38);
     }
 
     @Test

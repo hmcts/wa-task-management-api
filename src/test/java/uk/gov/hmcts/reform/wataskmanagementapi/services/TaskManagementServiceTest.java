@@ -158,7 +158,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
     AccessControlResponse accessControlResponse;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
-    TaskReconfigurationService taskReconfigurationService;
+    MarkTaskReconfigurationService markTaskReconfigurationService;
+    ExecuteTaskReconfigurationService executeTaskReconfigurationService;
     TaskManagementService taskManagementService;
     String taskId;
     @Mock
@@ -188,11 +189,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Mock
     private TypedQuery<TaskResource> query;
 
+
     @Test
     void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
-
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
+        TaskOperationRequest taskOperationRequest = taskOperationRequest();
 
         List<TaskResource> taskResources = taskResources(null);
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
@@ -204,9 +204,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
 
+        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
         List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
 
-        taskResourcesMarked.stream().forEach(taskResource -> {
+        taskResourcesMarked.forEach(taskResource -> {
             assertNotNull(taskResource.getReconfigureRequestTime());
             assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
         });
@@ -214,7 +215,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     @Test
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_not_active() {
-        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
+        TaskOperationRequest taskOperationRequest = taskOperationRequest();
 
         List<TaskResource> taskResources = cancelledTaskResources();
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
@@ -222,15 +223,13 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
         List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
 
-        taskResourcesMarked.stream().forEach(taskResource -> {
-            assertNull(taskResource.getReconfigureRequestTime());
-        });
+        taskResourcesMarked.forEach(taskResource -> assertNull(taskResource.getReconfigureRequestTime()));
 
     }
 
     @Test
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
-        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
+        TaskOperationRequest taskOperationRequest = taskOperationRequest();
 
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(List.of());
@@ -247,9 +246,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
             cftTaskDatabaseService,
             cftQueryService
         );
-        taskReconfigurationService = new TaskReconfigurationService(cftTaskDatabaseService,
+
+        markTaskReconfigurationService = new MarkTaskReconfigurationService(cftTaskDatabaseService,
             caseConfigurationProviderService
         );
+
+        executeTaskReconfigurationService = new ExecuteTaskReconfigurationService(cftTaskDatabaseService,
+            configureTaskService,
+            taskAutoAssignmentService);
 
         taskManagementService = new TaskManagementService(
             camundaService,
@@ -260,7 +264,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService,
+            List.of(markTaskReconfigurationService, executeTaskReconfigurationService),
             entityManager,
             allowedJurisdictionConfiguration
         );
@@ -346,8 +350,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         return List.of(taskResource1, taskResource2);
     }
 
-    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName) {
-        TaskOperation operation = new TaskOperation(operationName, "run_id1");
+    private TaskOperationRequest taskOperationRequest() {
+        TaskOperation operation = new TaskOperation(TaskOperationName.MARK_TO_RECONFIGURE, "run_id1");
         return new TaskOperationRequest(operation, taskFilters());
     }
 
