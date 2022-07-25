@@ -874,10 +874,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(4)
             .expectedTotalRecords(4)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004"
                                  )
             ).build();
 
@@ -890,14 +890,15 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
+                "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                "8d6cc5cf-c973-11eb-aaaa-000000000005", "1623278362400005",
+                "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
+                "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
+                "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012"
+
                                  )
             ).build();
 
