@@ -38,6 +38,12 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(caseIds, states);
     }
 
+    public List<TaskResource> getActiveTasksAndReconfigureRequestTimeIsNotNull(
+        List<CFTTaskState> states) {
+        return tasksRepository.findByStateInAndReconfigureRequestTimeIsNotNull(
+            states);
+    }
+
     public TaskResource saveTask(TaskResource task) {
         if (task.getPriorityDate() == null) {
             task.setPriorityDate(task.getDueDateTime());

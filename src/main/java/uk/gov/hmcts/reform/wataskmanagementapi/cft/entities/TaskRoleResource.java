@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -73,6 +74,7 @@ public class TaskRoleResource implements Serializable {
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime created;
 
+    @JsonBackReference
     @JoinColumn(name = "task_id", insertable = false, updatable = false)
     @ManyToOne(targetEntity = TaskResource.class, fetch = FetchType.LAZY)
     @ToString.Exclude

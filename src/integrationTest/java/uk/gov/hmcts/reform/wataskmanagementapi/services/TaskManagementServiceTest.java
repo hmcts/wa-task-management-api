@@ -111,11 +111,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-    @MockBean
-    private TaskReconfigurationService taskReconfigurationService;
 
     private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
+    @MockBean
+    private List<TaskOperationService> taskOperationServices;
 
     @BeforeEach
     void setUp() {
@@ -141,7 +141,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService,
+            taskOperationServices,
             entityManager,
             allowedJurisdictionConfiguration
         );

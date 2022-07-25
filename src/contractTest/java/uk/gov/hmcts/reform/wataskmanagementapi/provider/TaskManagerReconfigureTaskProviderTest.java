@@ -51,6 +51,11 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
         setInitMock();
     }
 
+    @State({"reconfigure a task"})
+    public void reconfigureTasks() {
+        setInitMock();
+    }
+
     private void setInitMock() {
         when(clientAccessControlService.hasExclusiveAccess(anyString())).thenReturn(true);
         when(taskManagementService.performOperation(any())).thenReturn(List.of());
