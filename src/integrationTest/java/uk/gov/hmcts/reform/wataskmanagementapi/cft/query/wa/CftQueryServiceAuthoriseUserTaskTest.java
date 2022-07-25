@@ -236,4 +236,78 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         );
         Assertions.assertThat(task.isPresent()).isTrue();
     }
+
+    @Test
+    void should_get_a_task_when_user_has_more_authorisations_than_task() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111020";
+        final String caseId = "1623278362431020";
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        final Map<String, String> tcAttributes = Map.of(
+            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_ID.value(), caseId
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
+            .classification(Classification.PUBLIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .authorisations(List.of("DIVORCE", "373"))
+            .grantType(GrantType.CHALLENGED)
+            .attributes(tcAttributes)
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignments
+        );
+        permissionsRequired.add(PermissionTypes.READ);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
+        );
+        Assertions.assertThat(task.isPresent()).isTrue();
+        Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+    }
+
+    @Test
+    void should_get_a_task_when_user_has_same_authorisation_as_task() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111021";
+        final String caseId = "1623278362431021";
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        final Map<String, String> tcAttributes = Map.of(
+            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_ID.value(), caseId
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
+            .classification(Classification.PUBLIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .authorisations(List.of("DIVORCE"))
+            .grantType(GrantType.CHALLENGED)
+            .attributes(tcAttributes)
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignments
+        );
+        permissionsRequired.add(PermissionTypes.READ);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
+        );
+        Assertions.assertThat(task.isPresent()).isTrue();
+        Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+    }
 }
