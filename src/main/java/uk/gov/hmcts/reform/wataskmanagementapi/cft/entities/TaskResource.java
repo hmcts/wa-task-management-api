@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.EqualsAndHashCode;
@@ -126,7 +126,7 @@ public class TaskResource implements Serializable {
     @JoinColumn(name = "executionTypeCode", referencedColumnName = "execution_code")
     private ExecutionTypeResource executionTypeCode;
 
-    @JsonBackReference
+    @JsonManagedReference
     @ToString.Exclude
     @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<TaskRoleResource> taskRoleResources;
