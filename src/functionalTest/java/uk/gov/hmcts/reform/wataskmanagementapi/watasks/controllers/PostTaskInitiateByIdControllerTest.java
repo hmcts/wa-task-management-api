@@ -297,7 +297,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        
+
         InitiateTaskRequest req = new InitiateTaskRequest(
             INITIATION,
             Map.of(

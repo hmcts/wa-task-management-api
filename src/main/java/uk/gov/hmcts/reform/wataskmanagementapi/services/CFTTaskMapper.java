@@ -482,10 +482,8 @@ public class CFTTaskMapper {
                     }
                     break;
                 case PRIORITY_DATE:
-                    if (value instanceof String) {
+                    if (value != null && Strings.isNotBlank((String) value)) {
                         taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
-                    } else {
-                        taskResource.setPriorityDate((OffsetDateTime) value);
                     }
                     break;
                 default:
