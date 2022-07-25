@@ -1047,7 +1047,7 @@ class CFTTaskMapperTest {
         assertNotNull(task.getPermissions());
         assertTrue(task.getPermissions().getValues().isEmpty());
         assertNotNull(task.getReconfigureRequestTime());
-        assertNull(task.getLastReconfigurationTime());
+        assertNotNull(task.getLastReconfigurationTime());
     }
 
     @Test
