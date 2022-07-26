@@ -31,7 +31,6 @@ import static org.hamcrest.Matchers.nullValue;
 public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-    private TestAuthenticationCredentials caseworkerCredentials;
     private TestAuthenticationCredentials assignerCredentials;
     private TestAuthenticationCredentials assigneeCredentials;
     private String taskId;
@@ -39,9 +38,9 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
 
     @Before
     public void setUp() {
-        assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
         assignerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         assigneeCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        assigneeId = getAssigneeId(assigneeCredentials.getHeaders());
     }
 
     @After
