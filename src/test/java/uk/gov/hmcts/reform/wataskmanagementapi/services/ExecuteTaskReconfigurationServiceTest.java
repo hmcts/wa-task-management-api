@@ -105,11 +105,9 @@ class ExecuteTaskReconfigurationServiceTest {
             "someCaseId"
         );
         if (Objects.nonNull(reconfigureTime)) {
-            taskResource1.setReconfigureRequestTime(reconfigureTime);
-            taskResource2.setReconfigureRequestTime(reconfigureTime);
+            taskResource1.setLastReconfigurationTime(reconfigureTime.minusDays(2));
+            taskResource2.setLastReconfigurationTime(reconfigureTime.minusDays(2));
         }
-        taskResource1.setLastReconfigurationTime(reconfigureTime.minusDays(2));
-        taskResource2.setLastReconfigurationTime(reconfigureTime.minusDays(2));
         return List.of(taskResource1, taskResource2);
     }
 

@@ -58,6 +58,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
                 List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
 
         List<TaskResource> successfulTaskResources = new ArrayList<>();
+
         List<String> taskIds = taskResources.stream()
             .map(TaskResource::getTaskId)
             .collect(Collectors.toList());
@@ -74,7 +75,6 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
 
         return successfulTaskResources;
     }
-
 
     private void configurationFailLog(List<String> failedTaskIds) {
         OffsetDateTime retry = OffsetDateTime.now().minusHours(2);

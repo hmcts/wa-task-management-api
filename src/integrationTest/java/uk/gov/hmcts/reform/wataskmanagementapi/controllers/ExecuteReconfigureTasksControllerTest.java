@@ -57,9 +57,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @SuppressWarnings("checkstyle:LineLength")
 class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTest {
 
-    public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
-    public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
-    public static final String SOME_ASSIGNEE = "someAssignee";
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     OffsetDateTime createdDate = OffsetDateTime.now();
     OffsetDateTime dueDate = createdDate.plusDays(1);
@@ -110,6 +107,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
         String caseIdToday = "caseId" + OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday);
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -120,6 +118,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
         taskResources.forEach(task -> {
             assertNotNull(task.getReconfigureRequestTime());
             assertTrue(LocalDate.now().equals(task.getReconfigureRequestTime().toLocalDate()));
@@ -136,6 +135,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
 
         taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
         taskResources.forEach(task -> {
             assertNotNull(task.getLastReconfigurationTime());
             assertNull(task.getReconfigureRequestTime());
@@ -149,16 +149,19 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
         String caseIdToday = "caseId" + OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday);
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
         taskResources.forEach(task -> {
             assertNotNull(task.getReconfigureRequestTime());
             assertTrue(LocalDate.now().equals(task.getReconfigureRequestTime().toLocalDate()));
@@ -175,6 +178,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
 
         taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
         taskResources.forEach(task -> {
             assertNull(task.getLastReconfigurationTime());
             assertNotNull(task.getReconfigureRequestTime());
@@ -193,7 +197,9 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     }
 
     private List<TaskFilter<?>> markTaskFilters(String caseId) {
-        TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter("case_id", List.of(caseId), TaskFilterOperator.IN);
+        TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter(
+            "case_id", List.of(caseId), TaskFilterOperator.IN
+        );
         return List.of(filter);
     }
 
