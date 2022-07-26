@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,6 +81,31 @@ class ExecuteTaskReconfigurationServiceTest {
             assertTrue(taskResource.getLastReconfigurationTime().isAfter(todayTestDatetime));
         });
 
+    }
+
+    @Test
+    void should_not_execute_reconfigure_if_tasks_are_not_found() {
+
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
+        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
+
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeIsNotNull(
+            anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+            .thenReturn(Optional.empty());
+
+        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
+
+        TaskOperationRequest request = new TaskOperationRequest(
+            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, ""), taskFilters
+        );
+
+        List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
+
+        verify(configureTaskService, times(0)).configureCFTTask(any(), any());
+        verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
+
+        assertEquals(0, taskResourcesReconfigured.size());
     }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
