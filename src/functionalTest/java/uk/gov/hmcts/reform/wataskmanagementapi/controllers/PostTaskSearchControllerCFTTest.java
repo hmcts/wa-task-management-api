@@ -505,7 +505,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("tasks[0].permissions.values.size()", equalTo(6))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Execute", "Cancel"))
+            .body("tasks[0].permissions.values", hasItems("Read", "Own", "Manage", "Execute", "Cancel"))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);

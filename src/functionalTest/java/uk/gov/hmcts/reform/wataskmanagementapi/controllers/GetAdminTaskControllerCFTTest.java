@@ -85,7 +85,7 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("task.permissions.values", hasItems("Read", "Own", "Manage", "Cancel"))
             .body("task.permissions.values", hasSize(5))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("ADMIN"));

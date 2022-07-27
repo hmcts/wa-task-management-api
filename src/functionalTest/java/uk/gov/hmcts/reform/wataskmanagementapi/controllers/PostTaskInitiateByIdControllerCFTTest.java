@@ -113,7 +113,6 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             getTaskResource(result, "task-supervisor"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
                 entry("execute", true),
@@ -127,7 +126,6 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             getTaskResource(result, "hearing-judge"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", true),
                 entry("manage", false),
                 entry("execute", false),
@@ -143,7 +141,6 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             getTaskResource(result, "judge"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", true),
                 entry("manage", true),
                 entry("execute", false),
@@ -160,7 +157,6 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             getTaskResource(result, "senior-tribunal-caseworker"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
                 entry("execute", true),
@@ -176,7 +172,6 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             getTaskResource(result, "tribunal-caseworker"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
                 entry("execute", true),
@@ -263,7 +258,6 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             getTaskResource(result, "hearing-centre-admin"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", true),
                 entry("manage", true),
                 entry("execute", false),
@@ -280,7 +274,6 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             getTaskResource(result, "task-supervisor"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
                 entry("execute", true),
@@ -294,7 +287,6 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             getTaskResource(result, "hearing-centre-admin"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", true),
                 entry("manage", true),
                 entry("execute", false),
@@ -381,7 +373,6 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             getTaskResource(result, "task-supervisor"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
                 entry("execute", true),
@@ -464,7 +455,6 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
             Map.of("read", true,
-                "refer", true,
                 "own", false,
                 "manage", true,
                 "execute", true,

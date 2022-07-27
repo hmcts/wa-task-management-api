@@ -101,7 +101,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 .body("task_required_for_event", is(false))
                 .body("tasks.size()", equalTo(1))
                 .body("tasks[0].permissions.values.size()", equalTo(5))
-                .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+                .body("tasks[0].permissions.values", hasItems("Read", "Own", "Manage", "Cancel"))
                 .body("tasks[0].type", equalTo(scenario.taskId))
                 .body("tasks[0].work_type_id", equalTo(scenario.workTypeId))
                 .body("tasks[0].work_type_label", equalTo(scenario.workTypeLabel))
@@ -216,7 +216,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].permissions.values.size()", equalTo(5))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("tasks[0].permissions.values", hasItems("Read", "Own", "Manage", "Cancel"))
             .body("tasks[0].id", equalTo(taskId2));
 
         common.cleanUpTask(taskId1);
@@ -264,7 +264,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
             .body("tasks[0].permissions.values.size()", equalTo(5))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("tasks[0].permissions.values", hasItems("Read", "Own", "Manage", "Cancel"))
             .body("tasks[0].description", equalTo(
                 "[Request respondent evidence](/case/IA/Asylum/${[CASE_REFERENCE]}/trigger/requestRespondentEvidence)"
             ))
@@ -333,7 +333,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].case_type_id", equalTo("Asylum"))
             .body("tasks[0].warnings", is(false))
             .body("tasks[0].permissions.values.size()", equalTo(5))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"));
+            .body("tasks[0].permissions.values", hasItems("Read", "Own", "Manage", "Cancel"));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "tasks[0].warning_list.values");
@@ -404,7 +404,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].case_type_id", equalTo("Asylum"))
             .body("tasks[0].warnings", is(true))
             .body("tasks[0].permissions.values.size()", equalTo(5))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"));
+            .body("tasks[0].permissions.values", hasItems("Read", "Own", "Manage", "Cancel"));
 
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(

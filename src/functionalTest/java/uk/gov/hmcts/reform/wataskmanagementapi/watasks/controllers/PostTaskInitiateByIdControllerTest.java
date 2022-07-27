@@ -124,7 +124,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             getTaskResource(result, "task-supervisor"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
                 entry("execute", false),
@@ -140,7 +139,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             getTaskResource(result, "senior-tribunal-caseworker"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", false),
                 entry("manage", false),
                 entry("execute", true),
@@ -156,10 +154,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             getTaskResource(result, "tribunal-caseworker"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
-                entry("own", false),
                 entry("manage", false),
-                entry("execute", true),
                 entry("cancel", false),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
@@ -247,7 +242,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             getTaskResource(result, "judge"),
             Map.ofEntries(
                 entry("read", true),
-                entry("refer", true),
                 entry("own", true),
                 entry("manage", false),
                 entry("execute", false),
@@ -261,8 +255,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
             Map.ofEntries(
+                //                //"Read,Manage,Cancel,Assign,Unassign,Unassignassign,Complete"
                 entry("read", true),
-                entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
                 entry("execute", false),
