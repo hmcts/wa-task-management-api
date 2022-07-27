@@ -3,12 +3,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
@@ -36,7 +34,6 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
     private TestAuthenticationCredentials caseworkerCredentials;
     private TestAuthenticationCredentials assignerCredentials;
     private TestAuthenticationCredentials assigneeCredentials;
-    private final GrantType testGrantType = GrantType.SPECIFIC;
     private String taskId;
     private String assigneeId;
 
@@ -63,7 +60,6 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
 
 
     @Test
-    @Ignore
     public void should_return_a_204_after_tasks_are_marked_and_executed_for_reconfigure() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
 
