@@ -20,7 +20,7 @@ plugins {
   id 'info.solidsoft.pitest' version '1.7.4'
   id 'io.freefair.lombok' version '6.5.0.2'
   // If Pact version is changed, make sure serenity report works.
-  id 'au.com.dius.pact' version '4.1.8'
+  id 'au.com.dius.pact' version '4.3.12'
   id 'org.flywaydb.flyway' version '6.5.7'
 }
 
@@ -303,7 +303,6 @@ dependencies {
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
-  implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
 
   implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.6.5.Final'
   implementation group: 'org.hibernate', name: 'hibernate-validator', version: '7.0.4.Final'
