@@ -378,10 +378,10 @@ public class TaskManagementService {
             CFTTaskState previousTaskState = task.getState();
             task.setState(CFTTaskState.CANCELLED);
 
-            String camundaCftTaskState = camundaService.getCftTaskState(taskId);
+            boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
-            log.info("{} previousTaskState : {} - camundaCftTaskState : {}",
-                taskId, previousTaskState, camundaCftTaskState);
+            log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
+                taskId, previousTaskState, isCftTaskStateExist);
 
             try {
                 //Perform Camunda updates
@@ -392,13 +392,19 @@ public class TaskManagementService {
                 log.info("{} cancelled in CFT", taskId);
             } catch (TaskCancelException ex) {
                 log.info("{} an error occurred when cancelling task. Checking Cft Task State to sync DBs", taskId);
-                if (camundaCftTaskState != null) {
+                if (isCftTaskStateExist) {
+                    log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda history", taskId);
                     throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
                 }
+
                 if (asList(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED).contains(previousTaskState)) {
                     task.setState(CFTTaskState.TERMINATED);
                     cftTaskDatabaseService.saveTask(task);
                     log.info("{} cftTaskState updated TERMINATED", taskId);
+                } else {
+                    log.info("{} cftTaskState is not updated due to CFTTaskState is not ASSIGNED or UNASSIGNED. "
+                             + "CurrentCFTTaskState : {}   ", taskId, previousTaskState);
+                    throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
                 }
             }
 

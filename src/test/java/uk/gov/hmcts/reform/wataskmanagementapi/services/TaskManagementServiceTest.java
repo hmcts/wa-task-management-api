@@ -1400,7 +1400,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
-            when(camundaService.getCftTaskState(taskId)).thenReturn(null);
+            when(camundaService.isCftTaskStateExistInCamunda(taskId)).thenReturn(false);
             when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
 
             doThrow(TaskCancelException.class)

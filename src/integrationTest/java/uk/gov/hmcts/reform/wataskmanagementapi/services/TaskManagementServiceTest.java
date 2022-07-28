@@ -291,7 +291,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 singletonList(CANCEL)
             )).thenReturn(true);
 
-            when(camundaService.getCftTaskState(taskId))
+            when(camundaService.isCftTaskStateExistInCamunda(taskId))
                 .thenReturn(null);
 
             doThrow(FeignException.FeignServerException.class)

@@ -56,6 +56,7 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -1802,12 +1803,10 @@ class CamundaServiceTest extends CamundaHelpers {
         @Test
         void should_return_expected_cft_task_state() {
 
-            String expectedCftTaskState = "someValue";
-
             HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
                 "someId",
                 CFT_TASK_STATE.value(),
-                expectedCftTaskState
+                "someValue"
             );
 
             Map<String, Object> body = Map.of(
@@ -1818,9 +1817,9 @@ class CamundaServiceTest extends CamundaHelpers {
             when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
                 .thenReturn(singletonList(historyVariableInstance));
 
-            String actualCftTaskState = camundaService.getCftTaskState(taskId);
+            boolean actualIsCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
-            assertEquals(expectedCftTaskState, actualCftTaskState);
+            assertTrue(actualIsCftTaskStateExist);
 
             verify(camundaServiceApi).searchHistory(BEARER_SERVICE_TOKEN, body);
 
@@ -1843,9 +1842,9 @@ class CamundaServiceTest extends CamundaHelpers {
             when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
                 .thenReturn(null);
 
-            String actualCftTaskState = camundaService.getCftTaskState(taskId);
+            boolean actualIsCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
-            assertNull(actualCftTaskState);
+            assertFalse(actualIsCftTaskStateExist);
 
         }
 
@@ -1860,9 +1859,9 @@ class CamundaServiceTest extends CamundaHelpers {
             when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
                 .thenReturn(emptyList());
 
-            String actualCftTaskState = camundaService.getCftTaskState(taskId);
+            boolean actualIsCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
-            assertNull(actualCftTaskState);
+            assertFalse(actualIsCftTaskStateExist);
 
         }
 
@@ -1883,9 +1882,9 @@ class CamundaServiceTest extends CamundaHelpers {
             when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
                 .thenReturn(singletonList(historyVariableInstance));
 
-            String actualCftTaskState = camundaService.getCftTaskState(taskId);
+            boolean actualIsCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
-            assertNull(actualCftTaskState);
+            assertFalse(actualIsCftTaskStateExist);
 
         }
 
@@ -1904,7 +1903,7 @@ class CamundaServiceTest extends CamundaHelpers {
                     body
                 );
 
-            assertThatThrownBy(() -> camundaService.getCftTaskState(taskId))
+            assertThatThrownBy(() -> camundaService.isCftTaskStateExistInCamunda(taskId))
                 .isInstanceOf(TaskCancelException.class)
                 .hasMessage("Task Cancel Error: Unable to cancel the task.");
 
