@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
@@ -63,6 +64,9 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_EMAIL;
@@ -150,10 +154,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         mockServices.mockServiceAPIs();
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                           IDAM_USER_ID,
-                           IDAM_USER_EMAIL
-                       )
+                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+            )
         ).thenReturn(true);
 
     }
@@ -193,7 +197,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         );
     }
 
-    void verifyTransactionWasRolledBack(String taskId) {
+    void verifyTransactionWasRolledBack(String taskId, CFTTaskState cftTaskState) {
         transactionHelper.doInNewTransaction(() -> {
             //Find the task
             Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
@@ -204,18 +208,32 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             assertEquals("taskName", savedTaskResource.get().getTaskName());
             assertEquals("taskType", savedTaskResource.get().getTaskType());
 
-            //Because transaction was rolled back we should have a state of unconfigured
-            assertEquals(UNCONFIGURED, savedTaskResource.get().getState());
+            //Because transaction was rolled back
+            assertEquals(cftTaskState, savedTaskResource.get().getState());
         });
     }
 
-    private void createAndSaveTestTask(String taskId) {
+    void verifyTransactionTerminated(String taskId) {
+        transactionHelper.doInNewTransaction(() -> {
+            //Find the task
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+
+            assertNotNull(savedTaskResource);
+            assertTrue(savedTaskResource.isPresent());
+            assertEquals(taskId, savedTaskResource.get().getTaskId());
+            assertEquals("taskName", savedTaskResource.get().getTaskName());
+            assertEquals("taskType", savedTaskResource.get().getTaskType());
+            assertEquals(TERMINATED, savedTaskResource.get().getState());
+        });
+    }
+
+    private void createAndSaveTestTask(String taskId, CFTTaskState cftTaskState) {
         transactionHelper.doInNewTransaction(() -> {
             TaskResource taskResource = new TaskResource(
                 taskId,
                 "taskName",
                 "taskType",
-                UNCONFIGURED,
+                cftTaskState,
                 OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
             );
             taskResource.setCreated(OffsetDateTime.now());
@@ -245,7 +263,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
-            createAndSaveTestTask(taskId);
+            createAndSaveTestTask(taskId, UNCONFIGURED);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                 () -> taskManagementService.cancelTask(taskId, accessControlResponse)))
@@ -253,9 +271,103 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .hasNoCause()
                 .hasMessage("Task Cancel Error: Unable to cancel the task.");
 
-            verifyTransactionWasRolledBack(taskId);
+            verifyTransactionWasRolledBack(taskId, UNCONFIGURED);
 
         }
+
+        @Test
+        void should_set_task_state_terminated_when_camunda_api_throws_an_exception_and_cft_task_state_is_assigned() {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+            when(accessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                roleAssignment,
+                singletonList(CANCEL)
+            )).thenReturn(true);
+
+            when(camundaService.getCftTaskState(taskId))
+                .thenReturn(null);
+
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
+
+            Optional<TaskResource> taskResource = Optional.of(new TaskResource(
+                taskId,
+                "taskName",
+                "taskType",
+                ASSIGNED,
+                OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+            ));
+
+            when(cftQueryService.getTask(any(), any(), any()))
+                .thenReturn(taskResource);
+
+            createAndSaveTestTask(taskId, ASSIGNED);
+
+            transactionHelper.doInNewTransaction(
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse)
+            );
+
+            verifyTransactionTerminated(taskId);
+
+        }
+
+        @Test
+        void should_no_change_in_cft_task_state_when_camunda_task_state_pending_termination() {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+            when(accessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                roleAssignment,
+                singletonList(CANCEL)
+            )).thenReturn(true);
+
+            List<HistoryVariableInstance> historyVariableInstances = singletonList(new HistoryVariableInstance(
+                "id",
+                "cftTaskState",
+                "pendingTermination"
+            ));
+
+            when(camundaServiceApi.searchHistory(any(), any()))
+                .thenReturn(historyVariableInstances);
+
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
+
+            Optional<TaskResource> taskResource = Optional.of(new TaskResource(
+                taskId,
+                "taskName",
+                "taskType",
+                UNASSIGNED,
+                OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+            ));
+            when(cftQueryService.getTask(any(), any(), any()))
+                .thenReturn(taskResource);
+
+            createAndSaveTestTask(taskId, UNASSIGNED);
+
+            assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse)))
+                .isInstanceOf(TaskCancelException.class)
+                .hasNoCause()
+                .hasMessage("Task Cancel Error: Unable to cancel the task.");
+
+            verifyTransactionWasRolledBack(taskId, UNASSIGNED);
+
+        }
+
     }
 
     @Nested
@@ -283,7 +395,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
-            createAndSaveTestTask(taskId);
+            createAndSaveTestTask(taskId, UNCONFIGURED);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                 () -> taskManagementService.completeTask(taskId, accessControlResponse)))
@@ -291,7 +403,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
 
-            verifyTransactionWasRolledBack(taskId);
+            verifyTransactionWasRolledBack(taskId, UNCONFIGURED);
 
         }
 
@@ -317,16 +429,16 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).completeTask(any(), any(), any());
 
-            createAndSaveTestTask(taskId);
+            createAndSaveTestTask(taskId, UNCONFIGURED);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                 () -> taskManagementService.completeTask(taskId, accessControlResponse)))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                                + "The Task state was updated to completed, but the Task could not be completed.");
+                            + "The Task state was updated to completed, but the Task could not be completed.");
 
-            verifyTransactionWasRolledBack(taskId);
+            verifyTransactionWasRolledBack(taskId, UNCONFIGURED);
 
         }
     }
@@ -358,7 +470,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
-                createAndSaveTestTask(taskId);
+                createAndSaveTestTask(taskId, UNCONFIGURED);
 
                 assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -372,7 +484,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                         "Task Assign and Complete Error: Task assign and complete partially succeeded. "
                         + "The Task was assigned to the user making the request but the Task could not be completed.");
 
-                verifyTransactionWasRolledBack(taskId);
+                verifyTransactionWasRolledBack(taskId, UNCONFIGURED);
 
             }
 
@@ -404,7 +516,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).completeTask(any(), any(), any());
 
-                createAndSaveTestTask(taskId);
+                createAndSaveTestTask(taskId, UNCONFIGURED);
 
                 assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -415,9 +527,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
                     .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                                    + "The Task state was updated to completed, but the Task could not be completed.");
+                                + "The Task state was updated to completed, but the Task could not be completed.");
 
-                verifyTransactionWasRolledBack(taskId);
+                verifyTransactionWasRolledBack(taskId, UNCONFIGURED);
             }
         }
     }
@@ -439,7 +551,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).searchHistory(any(), any());
 
-                createAndSaveTestTask(taskId);
+                createAndSaveTestTask(taskId, UNCONFIGURED);
 
                 assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                     () -> taskManagementService.terminateTask(
@@ -450,7 +562,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .hasCauseInstanceOf(FeignException.class)
                     .hasMessage("There was a problem when deleting the historic cftTaskState");
 
-                verifyTransactionWasRolledBack(taskId);
+                verifyTransactionWasRolledBack(taskId, UNCONFIGURED);
             }
         }
 
@@ -461,7 +573,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             @Test
             void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
-                createAndSaveTestTask(taskId);
+                createAndSaveTestTask(taskId, UNCONFIGURED);
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).searchHistory(any(), any());
 
@@ -476,7 +588,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .hasCauseInstanceOf(FeignException.class)
                     .hasMessage("There was a problem when deleting the historic cftTaskState");
 
-                verifyTransactionWasRolledBack(taskId);
+                verifyTransactionWasRolledBack(taskId, UNCONFIGURED);
             }
         }
 
@@ -487,7 +599,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             @Test
             void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
-                createAndSaveTestTask(taskId);
+                createAndSaveTestTask(taskId, UNCONFIGURED);
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).searchHistory(any(), any());
 
@@ -502,7 +614,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .hasCauseInstanceOf(FeignException.class)
                     .hasMessage("There was a problem when deleting the historic cftTaskState");
 
-                verifyTransactionWasRolledBack(taskId);
+                verifyTransactionWasRolledBack(taskId, UNCONFIGURED);
             }
         }
 
@@ -510,7 +622,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         void should_delete_camunda_task_when_task_id_not_found_in_db() {
             when(camundaServiceApi.searchHistory(any(), any()))
                 .thenReturn(List.of(new HistoryVariableInstance(taskId, CFT_TASK_STATE.value(), "pendingTermination")
-            ));
+                ));
 
             assertTrue(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId).isEmpty());
 

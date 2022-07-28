@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -54,6 +55,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictExc
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
@@ -135,6 +137,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     @Mock
     CamundaService camundaService;
+    @Mock
+    CamundaServiceApi camundaServiceApi;
     @Mock
     CamundaQueryBuilder camundaQueryBuilder;
     @Mock
@@ -301,12 +305,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
         lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
 
         lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
-            anyMap())).thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(
-                    CamundaValue.stringValue("caseName"),
-                    CamundaValue.stringValue("Value"),
-                    CamundaValue.booleanValue(true)
-                )
+            anyMap())).thenReturn(List.of(new ConfigurationDmnEvaluationResponse(CamundaValue.stringValue("caseName"),
+                CamundaValue.stringValue("Value"),
+                CamundaValue.booleanValue(true)
+            )
         ));
     }
 
@@ -1376,6 +1378,47 @@ class TaskManagementServiceTest extends CamundaHelpers {
             verify(camundaService, times(0)).cancelTask(any());
             verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
         }
+
+        @Test
+        void should_update_task_state_terminated_when_cft_task_state_is_null_and_feign_exception_thrown() {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
+                )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            when(camundaService.getCftTaskState(taskId)).thenReturn(null);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+
+            doThrow(TaskCancelException.class)
+                .when(camundaService).cancelTask(taskId);
+
+            taskManagementService.cancelTask(taskId, accessControlResponse);
+
+            verify(camundaServiceApi, never()).bpmnEscalation(any(), anyString(), anyMap());
+            verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+
+            taskResource.setState(CFTTaskState.TERMINATED);
+            verify(cftTaskDatabaseService)
+                .saveTask(
+                    eq(taskResource)
+                );
+        }
+
+
     }
 
     @Nested

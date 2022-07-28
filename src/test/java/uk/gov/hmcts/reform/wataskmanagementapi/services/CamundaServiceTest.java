@@ -52,6 +52,7 @@ import java.util.UUID;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -74,7 +75,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
@@ -256,25 +256,8 @@ class CamundaServiceTest extends CamundaHelpers {
 
         @Test
         void should_cancel_task_when_search_history_throw_an_error() {
-            doThrow(FeignException.FeignServerException.class)
-                .when(camundaServiceApi).searchHistory(eq(BEARER_SERVICE_TOKEN), any());
-
             camundaService.cancelTask(taskId);
             verify(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
-        }
-
-        @Test
-        void should_skip_cancel_operation_for_already_cancelled_task() {
-            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
-                "someId",
-                TASK_STATE.value(),
-                "someValue"
-            );
-            when(camundaServiceApi.searchHistory(eq(BEARER_SERVICE_TOKEN), any()))
-                .thenReturn(singletonList(historyVariableInstance));
-
-            camundaService.cancelTask(taskId);
-            verify(camundaServiceApi, never()).bpmnEscalation(any(), any(), anyMap());
         }
 
         @Test
@@ -1812,4 +1795,127 @@ class CamundaServiceTest extends CamundaHelpers {
 
     }
 
+    @Nested
+    @DisplayName("getCftTaskState()")
+    class GetCftTaskState {
+
+        @Test
+        void should_return_expected_cft_task_state() {
+
+            String expectedCftTaskState = "someValue";
+
+            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                "someId",
+                CFT_TASK_STATE.value(),
+                expectedCftTaskState
+            );
+
+            Map<String, Object> body = Map.of(
+                "variableName", CFT_TASK_STATE.value(),
+                "taskIdIn", singleton(taskId)
+            );
+
+            when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
+                .thenReturn(singletonList(historyVariableInstance));
+
+            String actualCftTaskState = camundaService.getCftTaskState(taskId);
+
+            assertEquals(expectedCftTaskState, actualCftTaskState);
+
+            verify(camundaServiceApi).searchHistory(BEARER_SERVICE_TOKEN, body);
+
+            verify(camundaServiceApi, times(1))
+                .searchHistory(
+                    BEARER_SERVICE_TOKEN,
+                    body
+                );
+
+        }
+
+        @Test
+        void should_return_null_when_search_response_is_null() {
+
+            Map<String, Object> body = Map.of(
+                "variableName", CFT_TASK_STATE.value(),
+                "taskIdIn", singleton(taskId)
+            );
+
+            when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
+                .thenReturn(null);
+
+            String actualCftTaskState = camundaService.getCftTaskState(taskId);
+
+            assertNull(actualCftTaskState);
+
+        }
+
+        @Test
+        void should_return_null_when_search_response_is_empty_list() {
+
+            Map<String, Object> body = Map.of(
+                "variableName", CFT_TASK_STATE.value(),
+                "taskIdIn", singleton(taskId)
+            );
+
+            when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
+                .thenReturn(emptyList());
+
+            String actualCftTaskState = camundaService.getCftTaskState(taskId);
+
+            assertNull(actualCftTaskState);
+
+        }
+
+        @Test
+        void should_return_null_when_cft_task_state_variable_not_exists_in_response() {
+
+            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                "someId",
+                "someVariable",
+                "someValue"
+            );
+
+            Map<String, Object> body = Map.of(
+                "variableName", CFT_TASK_STATE.value(),
+                "taskIdIn", singleton(taskId)
+            );
+
+            when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
+                .thenReturn(singletonList(historyVariableInstance));
+
+            String actualCftTaskState = camundaService.getCftTaskState(taskId);
+
+            assertNull(actualCftTaskState);
+
+        }
+
+        @Test
+        void should_throw_task_cancel_exception_when_camunda_client_throws_feign_exception() {
+
+            Map<String, Object> body = Map.of(
+                "variableName", CFT_TASK_STATE.value(),
+                "taskIdIn", singleton(taskId)
+            );
+
+            doThrow(FeignException.class)
+                .when(camundaServiceApi)
+                .searchHistory(
+                    BEARER_SERVICE_TOKEN,
+                    body
+                );
+
+            assertThatThrownBy(() -> camundaService.getCftTaskState(taskId))
+                .isInstanceOf(TaskCancelException.class)
+                .hasMessage("Task Cancel Error: Unable to cancel the task.");
+
+            verify(camundaServiceApi, times(1))
+                .searchHistory(
+                    BEARER_SERVICE_TOKEN,
+                    body
+                );
+
+        }
+
+
+    }
 }

@@ -47,7 +47,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -127,43 +127,48 @@ public class CamundaService {
         return performGetVariablesAction(taskId);
     }
 
-    public void cancelTask(String taskId) {
+    public String getCftTaskState(String taskId) {
         Map<String, Object> body = Map.of(
             "variableName", CFT_TASK_STATE.value(),
             "taskIdIn", singleton(taskId)
         );
 
-        AtomicBoolean deletable = new AtomicBoolean(false);
+        AtomicReference<String> cftTaskState = new AtomicReference<>(null);
 
         try {
             //Check if the task has already been deleted or pending termination
             List<HistoryVariableInstance> result = camundaServiceApi.searchHistory(authTokenGenerator.generate(), body);
 
             if (result == null || result.isEmpty()) {
-                deletable.set(true);
-            } else {
-                Optional<HistoryVariableInstance> cftTaskState = result.stream()
-                    .filter(r -> r.getName().equals(CFT_TASK_STATE.value()))
-                    .findFirst();
-
-                cftTaskState.ifPresent(historyVariableInstance -> {
-                    log.info("Cancelling task with cft_task_state: {}", historyVariableInstance.getValue());
-                    deletable.set(true);
-                });
+                return cftTaskState.get();
             }
+
+            Optional<HistoryVariableInstance> historyVariableInstance = result.stream()
+                .filter(r -> r.getName().equals(CFT_TASK_STATE.value()))
+                .findFirst();
+
+            historyVariableInstance.ifPresent(variable -> {
+                log.info("{} Cancelling task with cft_task_state: {}", taskId, variable.getValue());
+                cftTaskState.set(variable.getValue());
+            });
+
+            return cftTaskState.get();
+
         } catch (FeignException ex) {
-            deletable.set(true);
-            log.info("Task not found in history");
+            throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
         }
 
-        if (deletable.get()) {
-            //Task has not been canceled by dmn, perform the delete action
-            try {
-                performCancelTaskAction(taskId);
-            } catch (CamundaTaskCancelException ex) {
-                throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
-            }
+    }
+
+    public void cancelTask(String taskId) {
+
+        //Task has not been canceled by dmn, perform the delete action
+        try {
+            performCancelTaskAction(taskId);
+        } catch (CamundaTaskCancelException ex) {
+            throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
         }
+
     }
 
     public void claimTask(String taskId, String userId) {
@@ -534,7 +539,7 @@ public class CamundaService {
 
     private boolean filterOnlyHasWarningVarAndLocalTaskVars(CamundaVariableInstance camundaVariableInstance) {
         if (("hasWarnings".equals(camundaVariableInstance.getName())
-            || "warningList".equals(camundaVariableInstance.getName()))
+             || "warningList".equals(camundaVariableInstance.getName()))
             && camundaVariableInstance.getTaskId() == null) {
             return true;
         }

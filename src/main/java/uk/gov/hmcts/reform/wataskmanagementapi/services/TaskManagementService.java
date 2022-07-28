@@ -38,6 +38,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictExc
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
@@ -74,6 +75,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_CANCEL_UNABLE_TO_CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 
 @Slf4j
@@ -346,6 +348,7 @@ public class TaskManagementService {
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
      */
+    @SuppressWarnings("PMD.PreserveStackTrace")
     @Transactional
     public void cancelTask(String taskId,
                            AccessControlResponse accessControlResponse) {
@@ -372,11 +375,33 @@ public class TaskManagementService {
         if (isRelease2EndpointsFeatureEnabled) {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
+            CFTTaskState previousTaskState = task.getState();
             task.setState(CFTTaskState.CANCELLED);
-            //Perform Camunda updates
-            camundaService.cancelTask(taskId);
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
+
+            String camundaCftTaskState = camundaService.getCftTaskState(taskId);
+
+            log.info("{} previousTaskState : {} - camundaCftTaskState : {}",
+                taskId, previousTaskState, camundaCftTaskState);
+
+            try {
+                //Perform Camunda updates
+                camundaService.cancelTask(taskId);
+                log.info("{} cancelled in camunda", taskId);
+                //Commit transaction
+                cftTaskDatabaseService.saveTask(task);
+                log.info("{} cancelled in CFT", taskId);
+            } catch (TaskCancelException ex) {
+                log.info("{} an error occurred when cancelling task. Checking Cft Task State to sync DBs", taskId);
+                if (camundaCftTaskState != null) {
+                    throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
+                }
+                if (asList(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED).contains(previousTaskState)) {
+                    task.setState(CFTTaskState.TERMINATED);
+                    cftTaskDatabaseService.saveTask(task);
+                    log.info("{} cftTaskState updated TERMINATED", taskId);
+                }
+            }
+
         } else {
             camundaService.cancelTask(taskId);
         }
