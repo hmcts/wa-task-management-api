@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
-import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

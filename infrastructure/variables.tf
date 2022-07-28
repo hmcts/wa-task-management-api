@@ -40,3 +40,4 @@ variable "database_sku_name" {
 variable "database_sku_capacity" {
   default = "8"
 }
+
