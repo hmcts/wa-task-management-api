@@ -31,55 +31,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_BUSINESS_CONTEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DESCRIPTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MAJOR_PRIORITY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MINOR_PRIORITY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_PRIORITY_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SYSTEM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TERMINATION_REASON;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 
 
 @Service
@@ -99,13 +57,16 @@ public class CFTTaskMapper {
 
     public TaskResource mapToTaskResource(String taskId, Map<String, Object> taskAttributes) {
         log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
-        Map<TaskAttributeDefinition, Object> attributes = taskAttributes.entrySet().stream()
-            .collect(Collectors.toMap(key -> TaskAttributeDefinition.forValue(key.getKey()),
-                                      Map.Entry::getValue));
+        Map<CamundaVariableDefinition, Object> attributes = taskAttributes.entrySet().stream()
+            .filter(key -> CamundaVariableDefinition.from(key.getKey()).isPresent())
+            .collect(Collectors.toMap(
+                key -> CamundaVariableDefinition.from(key.getKey()).get(),
+                Map.Entry::getValue
+            ));
 
         List<NoteResource> notes = extractWarningNotes(attributes);
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
-        OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
+        OffsetDateTime dueDate = readDate(attributes, DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
         OffsetDateTime priorityDate = readDate(attributes, TASK_PRIORITY_DATE, null);
 
@@ -221,17 +182,17 @@ public class CFTTaskMapper {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
-                      TaskAttributeDefinition extractor,
+    public <T> T read(Map<CamundaVariableDefinition, Object> attributesMap,
+                      CamundaVariableDefinition extractor,
                       Object defaultValue) {
         return (T) map(attributesMap, extractor).orElse(defaultValue);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
-                          TaskAttributeDefinition extractor,
+    public <T> T readDate(Map<CamundaVariableDefinition, Object> attributesMap,
+                          CamundaVariableDefinition extractor,
                           Object defaultValue) {
-        Optional<T> maybeValue = map(attributesMap, extractor);
+        Optional<Object> maybeValue = Optional.ofNullable(attributesMap.get(extractor));
         if (maybeValue.isPresent()) {
             return (T) OffsetDateTime.parse((String) maybeValue.get(), CAMUNDA_DATA_TIME_FORMATTER);
         } else {
@@ -524,7 +485,7 @@ public class CFTTaskMapper {
         return null;
     }
 
-    private List<NoteResource> extractWarningNotes(Map<TaskAttributeDefinition, Object> attributes) {
+    private List<NoteResource> extractWarningNotes(Map<CamundaVariableDefinition, Object> attributes) {
         List<NoteResource> notes = null;
         WarningValues warningList = read(attributes, TASK_WARNINGS, null);
         if (warningList != null) {
@@ -555,7 +516,7 @@ public class CFTTaskMapper {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Optional<T> map(Map<TaskAttributeDefinition, Object> object, TaskAttributeDefinition extractor) {
+    private <T> Optional<T> map(Map<CamundaVariableDefinition, Object> object, CamundaVariableDefinition extractor) {
 
         if (object == null) {
             return Optional.empty();

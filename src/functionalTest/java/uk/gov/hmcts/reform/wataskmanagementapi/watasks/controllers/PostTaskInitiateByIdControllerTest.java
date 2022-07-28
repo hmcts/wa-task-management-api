@@ -22,12 +22,12 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
@@ -62,10 +62,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             Map.of(
                 TASK_TYPE.value(), "processApplication",
                 TASK_NAME.value(), "Process Application",
-                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                CASE_ID.value(), taskVariables.getCaseId(),
                 TASK_TITLE.value(), "Process Application",
                 TASK_CREATED.value(), formattedCreatedDate,
-                TASK_DUE_DATE.value(), formattedDueDate
+                DUE_DATE.value(), formattedDueDate
             )
         );
 
@@ -196,10 +196,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             Map.of(
                 TASK_TYPE.value(), "reviewSpecificAccessRequestJudiciary",
                 TASK_NAME.value(), "additionalProperties_roleAssignmentId",
-                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                CASE_ID.value(), taskVariables.getCaseId(),
                 TASK_TITLE.value(), "Specific Access Task",
                 TASK_CREATED.value(), formattedCreatedDate,
-                TASK_DUE_DATE.value(), formattedDueDate
+                DUE_DATE.value(), formattedDueDate
             )
         );
 
@@ -303,10 +303,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             Map.of(
                 TASK_TYPE.value(), "processApplication",
                 TASK_NAME.value(), "process Application",
-                TASK_CASE_ID.value(), taskVariables.getCaseId(),
+                CASE_ID.value(), taskVariables.getCaseId(),
                 TASK_TITLE.value(), "process Application",
                 TASK_CREATED.value(), formattedCreatedDate,
-                TASK_DUE_DATE.value(), formattedDueDate
+                DUE_DATE.value(), formattedDueDate
             )
         );
 

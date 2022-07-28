@@ -20,6 +20,7 @@ public enum CamundaVariableDefinition {
     SECURITY_CLASSIFICATION("securityClassification"),
     TASK_ID("taskId"),
     TASK_NAME("name"),
+    DUE_DATE("dueDate"),
     TASK_STATE("taskState"),
     TASK_SYSTEM("taskSystem"),
     TASK_TYPE("taskType"),

@@ -70,7 +70,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
@@ -780,11 +780,11 @@ public class TaskManagementService {
      */
     private OffsetDateTime extractDueDate(Map<String, Object> taskAttributes) {
 
-        Object dueDate = taskAttributes.get(TASK_DUE_DATE.value());
+        Object dueDate = taskAttributes.get(DUE_DATE.value());
 
         if (dueDate == null) {
             Violation violation = new Violation(
-                TASK_DUE_DATE.value(),
+                DUE_DATE.value(),
                 "Each task to initiate must contain task_due_date field present and populated."
             );
             throw new CustomConstraintViolationException(singletonList(violation));
