@@ -397,10 +397,13 @@ public class TaskManagementService {
                     throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
                 }
 
-                if (asList(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED).contains(previousTaskState)) {
+                if (asList(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED,
+                    CFTTaskState.COMPLETED, CFTTaskState.CANCELLED).contains(previousTaskState)) {
                     task.setState(CFTTaskState.TERMINATED);
                     cftTaskDatabaseService.saveTask(task);
                     log.info("{} cftTaskState updated TERMINATED", taskId);
+                } else if (CFTTaskState.TERMINATED.equals(previousTaskState)) {
+                    log.info("{} is already terminated. cftTaskState : {}", taskId, previousTaskState);
                 } else {
                     log.info("{} cftTaskState is not updated due to CFTTaskState is not ASSIGNED or UNASSIGNED. "
                              + "CurrentCFTTaskState : {}   ", taskId, previousTaskState);
