@@ -401,12 +401,13 @@ public class TaskManagementService {
                     CFTTaskState.COMPLETED, CFTTaskState.CANCELLED).contains(previousTaskState)) {
                     task.setState(CFTTaskState.TERMINATED);
                     cftTaskDatabaseService.saveTask(task);
-                    log.info("{} cftTaskState updated TERMINATED", taskId);
+                    log.info("{} CFTTaskState is not TERMINATED then updated. previousTaskState : {} ",
+                        taskId, previousTaskState);
                 } else if (CFTTaskState.TERMINATED.equals(previousTaskState)) {
                     log.info("{} is already terminated. cftTaskState : {}", taskId, previousTaskState);
                 } else {
-                    log.info("{} cftTaskState is not updated due to CFTTaskState is not ASSIGNED or UNASSIGNED. "
-                             + "CurrentCFTTaskState : {}   ", taskId, previousTaskState);
+                    log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
+                             + "CurrentCFTTaskState: {}", taskId, previousTaskState);
                     throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
                 }
             }
