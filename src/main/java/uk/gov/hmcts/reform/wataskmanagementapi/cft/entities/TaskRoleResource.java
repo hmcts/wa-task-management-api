@@ -57,6 +57,7 @@ public class TaskRoleResource implements Serializable {
     @Column(columnDefinition = "boolean default false")
     private Boolean refer;
 
+    //This string array cannot be converted to List<String> without significant compatibility work
     @ToString.Exclude
     @Type(type = "string-array")
     @Column(columnDefinition = "text[]")
