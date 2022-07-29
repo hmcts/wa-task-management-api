@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -171,6 +171,7 @@ public class CFTTaskMapper {
         return taskResource;
     }
 
+    @SuppressWarnings("PMD.NPathComplexity")
     public Task mapToTaskWithPermissions(TaskResource taskResource, Set<PermissionTypes> permissionsUnionForUser) {
         return new Task(
             taskResource.getTaskId(),
@@ -209,7 +210,9 @@ public class CFTTaskMapper {
             taskResource.getMajorPriority(),
             taskResource.getPriorityDate() == null ? null : taskResource.getPriorityDate().toZonedDateTime(),
             taskResource.getReconfigureRequestTime() == null ? null
-                : taskResource.getReconfigureRequestTime().toZonedDateTime()
+                : taskResource.getReconfigureRequestTime().toZonedDateTime(),
+            taskResource.getLastReconfigurationTime() == null ? null
+                : taskResource.getLastReconfigurationTime().toZonedDateTime()
         );
     }
 
