@@ -391,9 +391,9 @@ public class TaskManagementService {
                 cftTaskDatabaseService.saveTask(task);
                 log.info("{} cancelled in CFT", taskId);
             } catch (TaskCancelException ex) {
-                log.info("{} an error occurred when cancelling task. Checking Cft Task State to sync DBs", taskId);
                 if (isCftTaskStateExist) {
-                    log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda history", taskId);
+                    log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda history. "
+                             + "Exception: {}", taskId, ex.getMessage());
                     throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
                 }
 
@@ -407,7 +407,7 @@ public class TaskManagementService {
                     log.info("{} is already terminated. cftTaskState : {}", taskId, previousTaskState);
                 } else {
                     log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
-                             + "CurrentCFTTaskState: {}", taskId, previousTaskState);
+                             + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
                     throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
                 }
             }
