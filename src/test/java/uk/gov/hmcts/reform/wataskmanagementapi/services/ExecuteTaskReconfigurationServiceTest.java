@@ -109,6 +109,38 @@ class ExecuteTaskReconfigurationServiceTest {
         assertEquals(0, taskResourcesReconfigured.size());
     }
 
+    @Test
+    void should_skip_reconfigure_if_task_is_locked() {
+
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
+        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
+
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeIsNotNull(
+            anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(0).getTaskId()))
+            .thenReturn(Optional.empty());
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(1).getTaskId()))
+            .thenReturn(Optional.of(taskResources.get(1)));
+
+        when(configureTaskService.configureCFTTask(any(), any()))
+            .thenReturn(taskResources.get(1));
+        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
+            .thenReturn(taskResources.get(1));
+        when(cftTaskDatabaseService.saveTask(any()))
+            .thenReturn(taskResources.get(1));
+
+        TaskOperationRequest request = new TaskOperationRequest(
+            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, ""), taskFilters
+        );
+
+        List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
+
+        verify(configureTaskService, times(1)).configureCFTTask(any(), any());
+        verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
+
+        assertEquals(1, taskResourcesReconfigured.size());
+    }
+
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
         ExecuteReconfigureTaskFilter filter = new ExecuteReconfigureTaskFilter(
             "reconfigure_request_time", OffsetDateTime.now().minus(Duration.ofDays(10)), TaskFilterOperator.AFTER);
@@ -160,8 +192,8 @@ class ExecuteTaskReconfigurationServiceTest {
             .hasNoCause()
             .hasMessageContaining("Task Execute Reconfiguration Failed: "
                             + "Task Reconfiguration process failed to execute reconfiguration for the following tasks:")
-            .hasMessageContaining("1234 ,someTaskName ,UNASSIGNED")
-            .hasMessageContaining("4567 ,someTaskName ,ASSIGNED");
+            .hasMessageContaining("1234 ,someTaskName ,UNASSIGNED",  OffsetDateTime.now(), "null")
+            .hasMessageContaining("4567 ,someTaskName ,ASSIGNED",  OffsetDateTime.now(), "null");
     }
 }
 
