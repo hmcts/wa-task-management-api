@@ -6,25 +6,27 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 
+import java.time.OffsetDateTime;
+
 @Schema(
     name = "TaskFilter",
     description = "Name of filter and value"
 )
 @EqualsAndHashCode
 @ToString
-public class ExecuteReconfigureTaskFilter implements TaskFilter<String> {
+public class ExecuteReconfigureTaskFilter implements TaskFilter<OffsetDateTime> {
 
     @Schema(required = true)
     private final String key;
 
     @Schema(required = true)
-    private final String values;
+    private final OffsetDateTime values;
 
     @Schema(required = true)
     private final TaskFilterOperator operator;
 
     @JsonCreator
-    public ExecuteReconfigureTaskFilter(String key, String values, TaskFilterOperator operator) {
+    public ExecuteReconfigureTaskFilter(String key, OffsetDateTime values, TaskFilterOperator operator) {
         this.key = key;
         this.values = values;
         this.operator = operator;
@@ -36,7 +38,7 @@ public class ExecuteReconfigureTaskFilter implements TaskFilter<String> {
     }
 
     @Override
-    public String getValues() {
+    public OffsetDateTime getValues() {
         return values;
     }
 

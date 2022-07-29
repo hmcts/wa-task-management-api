@@ -5,8 +5,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
@@ -22,19 +24,18 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class TaskReconfigurationService {
+public class MarkTaskReconfigurationService implements TaskOperationService {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CaseConfigurationProviderService caseConfigurationProviderService;
 
-    public TaskReconfigurationService(CFTTaskDatabaseService cftTaskDatabaseService,
-                                      CaseConfigurationProviderService caseConfigurationProviderService) {
+    public MarkTaskReconfigurationService(CFTTaskDatabaseService cftTaskDatabaseService,
+                                          CaseConfigurationProviderService caseConfigurationProviderService) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.caseConfigurationProviderService = caseConfigurationProviderService;
     }
 
-    @Transactional(noRollbackFor = TaskReconfigurationException.class)
-    public List<TaskResource> markTasksToReconfigure(List<TaskFilter<?>> taskFilters) {
+    protected List<TaskResource> markTasksToReconfigure(List<TaskFilter<?>> taskFilters) {
         List<String> caseIds = taskFilters.stream()
             .filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
             .flatMap(filter -> ((MarkTaskToReconfigureTaskFilter) filter).getValues().stream())
@@ -42,7 +43,7 @@ public class TaskReconfigurationService {
             .collect(Collectors.toList());
 
         List<String> reconfigurableCaseIds = caseIds.stream()
-            .filter(caseId -> canReconfigure(caseId))
+            .filter(this::isReconfigurable)
             .collect(Collectors.toList());
 
         List<TaskResource> taskResources = cftTaskDatabaseService
@@ -67,7 +68,16 @@ public class TaskReconfigurationService {
         return successfulTaskResources;
     }
 
-    private boolean canReconfigure(String caseId) {
+    @Override
+    @Transactional(noRollbackFor = TaskReconfigurationException.class)
+    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
+        if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.MARK_TO_RECONFIGURE)) {
+            return markTasksToReconfigure(taskOperationRequest.getTaskFilter());
+        }
+        return List.of();
+    }
+
+    private boolean isReconfigurable(String caseId) {
         List<ConfigurationDmnEvaluationResponse> results = caseConfigurationProviderService
             .evaluateConfigurationDmn(caseId, null);
         return results.stream().filter(result -> result.getCanReconfigure() != null)
@@ -98,4 +108,6 @@ public class TaskReconfigurationService {
 
         return failedTaskIds;
     }
+
+
 }
