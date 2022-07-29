@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -94,8 +95,6 @@ class ExecuteTaskReconfigurationServiceTest {
             anyList())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(Optional.empty());
-
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
 
         TaskOperationRequest request = new TaskOperationRequest(
             new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, ""), taskFilters
@@ -194,6 +193,29 @@ class ExecuteTaskReconfigurationServiceTest {
                             + "Task Reconfiguration process failed to execute reconfiguration for the following tasks:")
             .hasMessageContaining("1234 ,someTaskName ,UNASSIGNED",  OffsetDateTime.now(), "null")
             .hasMessageContaining("4567 ,someTaskName ,ASSIGNED",  OffsetDateTime.now(), "null");
+    }
+
+    @Test
+    void should_get_no_tasks_on_reconfiguration_fail_log() {
+
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
+        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
+
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeIsNotNull(
+            anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+            .thenReturn(null);
+
+        when(cftTaskDatabaseService
+                 .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(anyList(), anyList(), any())
+        ).thenReturn(Collections.emptyList());
+
+        TaskOperationRequest request = new TaskOperationRequest(
+            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, ""), taskFilters
+        );
+
+        List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
+        assertEquals(0, taskResourcesReconfigured.size());
     }
 }
 
