@@ -9,7 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperation
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskExecuteReconfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED;
 
 @Slf4j
 @Component
@@ -39,7 +41,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
     }
 
     @Override
-    @Transactional(noRollbackFor = TaskReconfigurationException.class)
+    @Transactional(noRollbackFor = TaskExecuteReconfigurationException.class)
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.EXECUTE_RECONFIGURE)) {
             return executeTasksToReconfigure(taskOperationRequest);
@@ -61,13 +63,35 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
             .map(TaskResource::getTaskId)
             .collect(Collectors.toList());
 
-        reconfigureTask(taskIds, successfulTaskResources);
+        List<String> failedTaskIds = executeReconfiguration(taskIds, successfulTaskResources);
+
+        if (!failedTaskIds.isEmpty()) {
+            failedTaskIds = executeReconfiguration(failedTaskIds, successfulTaskResources);
+        }
+
+        if (!failedTaskIds.isEmpty()) {
+            configurationFailLog(failedTaskIds);
+        }
 
         return successfulTaskResources;
     }
 
-    private List<String> reconfigureTask(List<String> taskIds,
-                                                      List<TaskResource> successfulTaskResources) {
+    private void configurationFailLog(List<String> failedTaskIds) {
+        OffsetDateTime retry = OffsetDateTime.now().minusHours(2);
+
+        List<TaskResource> failedTasksToReport = cftTaskDatabaseService
+            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
+                failedTaskIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retry);
+
+        if (!failedTasksToReport.isEmpty()) {
+            throw new TaskExecuteReconfigurationException(TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED,
+                                                          failedTasksToReport
+            );
+        }
+    }
+
+    private List<String> executeReconfiguration(List<String> taskIds,
+                                         List<TaskResource> successfulTaskResources) {
         List<String> failedTaskIds = new ArrayList<>();
         taskIds.forEach(taskId -> {
 
