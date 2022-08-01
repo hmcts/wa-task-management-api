@@ -140,6 +140,9 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             "a description",
             getAdditionalProperties(),
             "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
             ZonedDateTime.now());
     }
 
@@ -190,6 +193,9 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             "a description",
             getAdditionalProperties(),
             "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
             ZonedDateTime.now());
     }
 
@@ -233,7 +239,11 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             "aDescription",
             getAdditionalProperties(),
                 "nextHearingId",
-            ZonedDateTime.now());
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now()
+        );
     }
 
 }

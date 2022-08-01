@@ -98,6 +98,20 @@ class CFTTaskDatabaseServiceTest {
     }
 
     @Test
+    void should_find_by_state_and_reconfigure_request_time_is_not_null() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByStateInAndReconfigureRequestTimeIsNotNull(
+            List.of(CFTTaskState.ASSIGNED))).thenReturn(List.of(someTaskResource));
+
+        final List<TaskResource> actualTaskResource = cftTaskDatabaseService
+            .getActiveTasksAndReconfigureRequestTimeIsNotNull(List.of(CFTTaskState.ASSIGNED));
+
+        assertNotNull(actualTaskResource);
+        assertEquals(someTaskResource, actualTaskResource.get(0));
+    }
+
+    @Test
     void should_save_task() {
         TaskResource someTaskResource = mock(TaskResource.class);
 
@@ -106,6 +120,9 @@ class CFTTaskDatabaseServiceTest {
         final TaskResource actualTaskResource = cftTaskDatabaseService.saveTask(someTaskResource);
 
         assertNotNull(actualTaskResource);
+        verify(someTaskResource, times(1)).getPriorityDate();
+        verify(someTaskResource, times(1)).setPriorityDate(any());
+        verify(someTaskResource, times(1)).getDueDateTime();
     }
 
     @Test
@@ -114,12 +131,13 @@ class CFTTaskDatabaseServiceTest {
         OffsetDateTime dueDate = OffsetDateTime.now();
         OffsetDateTime created = OffsetDateTime.now().plusMinutes(1);
 
-        lenient().doNothing().when(taskResourceRepository).insertAndLock(taskId, dueDate, created);
+        lenient().doNothing().when(taskResourceRepository).insertAndLock(taskId, dueDate, created, dueDate);
 
         cftTaskDatabaseService.insertAndLock(taskId, dueDate);
 
         verify(taskResourceRepository, times(1))
             .insertAndLock(anyString(),
+                any(),
                 any(),
                 any()
             );

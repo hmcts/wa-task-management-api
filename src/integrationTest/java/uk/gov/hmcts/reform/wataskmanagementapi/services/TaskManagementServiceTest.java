@@ -111,11 +111,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-    @MockBean
-    private TaskReconfigurationService taskReconfigurationService;
 
     private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
+    @MockBean
+    private List<TaskOperationService> taskOperationServices;
 
     @BeforeEach
     void setUp() {
@@ -141,7 +141,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService,
+            taskOperationServices,
             entityManager,
             allowedJurisdictionConfiguration
         );
@@ -219,6 +219,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
             );
             taskResource.setCreated(OffsetDateTime.now());
+            taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
             taskResourceRepository.save(taskResource);
         });
     }

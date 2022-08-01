@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -44,6 +45,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CAN
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
@@ -140,6 +142,49 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         assertEquals(CANCELLED, taskResource.get().getState());
     }
 
+    @Test
+    void should_succeed_and_return_204_when_task_is_already_deleted() throws Exception {
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+        initiateATask(taskId);
+
+        when(permissionEvaluatorService.hasAccess(any(), any(), any()))
+            .thenReturn(true);
+
+        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
+        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+
+        when(camundaServiceApi.searchHistory(eq(IDAM_AUTHORIZATION_TOKEN), any()))
+            .thenReturn(singletonList(new HistoryVariableInstance(
+                "someId",
+                CFT_TASK_STATE.value(),
+                "some state"
+            )));
+
+        TaskResource task = spy(TaskResource.class);
+        when(cftQueryService.getTask(anyString(), any(), any())).thenReturn(Optional.of(task));
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+        )).thenReturn(true);
+
+        mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isNoContent());
+
+        Optional<TaskResource> taskResource = taskResourceRepository.getByTaskId(taskId);
+
+        assertTrue(taskResource.isPresent());
+        assertEquals(CANCELLED, taskResource.get().getState());
+    }
+
     private void initiateATask(String id) {
 
         TaskResource taskResource = new TaskResource(
@@ -150,6 +195,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
         taskResourceRepository.save(taskResource);
     }
 

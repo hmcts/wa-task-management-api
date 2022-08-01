@@ -30,11 +30,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskReconfigurationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Locale;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -73,7 +74,7 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
     @MockBean
-    private TaskReconfigurationService taskReconfigurationService;
+    private List<TaskOperationService> taskOperationServices;
 
     @MockBean
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
@@ -108,7 +109,7 @@ public class TaskManagementProviderTestConfiguration {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerificationService,
-            taskReconfigurationService,
+            taskOperationServices,
             entityManager,
             allowedJurisdictionConfiguration
         );

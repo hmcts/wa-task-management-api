@@ -70,6 +70,9 @@ public class CamundaHelpers {
             "a description",
             ADDITIONAL_PROPERTIES,
             "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
             ZonedDateTime.now());
     }
 
