@@ -31,7 +31,6 @@ import static org.hamcrest.Matchers.nullValue;
 public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-    private TestAuthenticationCredentials caseworkerCredentials;
     private TestAuthenticationCredentials assignerCredentials;
     private TestAuthenticationCredentials assigneeCredentials;
     private String taskId;
@@ -39,30 +38,24 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
 
     @Before
     public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
         assignerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         assigneeCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        assigneeId = getAssigneeId(assigneeCredentials.getHeaders());
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-
         common.clearAllRoleAssignments(assignerCredentials.getHeaders());
         common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
 
         authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
-
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_and_executed_for_reconfigure() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
-
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
                                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
