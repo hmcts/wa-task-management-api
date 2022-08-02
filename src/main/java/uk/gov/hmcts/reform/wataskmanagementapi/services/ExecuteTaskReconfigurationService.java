@@ -74,18 +74,18 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
         }
 
         if (!failedTaskIds.isEmpty()) {
-            configurationFailLog(failedTaskIds);
+            configurationFailLog(failedTaskIds, request.getOperation().getRetryWindowHours());
         }
 
         return successfulTaskResources;
     }
 
-    private void configurationFailLog(List<String> failedTaskIds) {
-        OffsetDateTime retry = OffsetDateTime.now().minusHours(2);
+    private void configurationFailLog(List<String> failedTaskIds, long retryWindowHours) {
+        OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(retryWindowHours);
 
         List<TaskResource> failedTasksToReport = cftTaskDatabaseService
             .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
-                failedTaskIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retry);
+                failedTaskIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retryWindow);
 
         if (!failedTasksToReport.isEmpty()) {
             throw new TaskExecuteReconfigurationException(TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED,
@@ -113,26 +113,29 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
     private List<String> reconfigureTasks(List<String> taskIds, List<TaskResource> successfulTaskResources,
                                           OffsetDateTime endTimer) {
         List<String> failedTaskIds = new ArrayList<>();
-        taskIds.stream()
-            .filter(timeCheck -> endTimer.isAfter(OffsetDateTime.now()))
-            .forEach(taskId -> {
 
-                try {
-                    Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
-                        .findByIdAndObtainPessimisticWriteLock(taskId);
+        if (endTimer.isAfter(OffsetDateTime.now())) {
+            taskIds.stream()
+                .forEach(taskId -> {
 
-                    if (optionalTaskResource.isPresent()) {
-                        TaskResource taskResource = optionalTaskResource.get();
-                        taskResource = configureTask(taskResource);
-                        taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
-                        taskResource.setReconfigureRequestTime(null);
-                        taskResource.setLastReconfigurationTime(OffsetDateTime.now());
-                        successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
+                    try {
+                        Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
+                            .findByIdAndObtainPessimisticWriteLock(taskId);
+
+                        if (optionalTaskResource.isPresent()) {
+                            TaskResource taskResource = optionalTaskResource.get();
+                            taskResource = configureTask(taskResource);
+                            taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+                            taskResource.setReconfigureRequestTime(null);
+                            taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+                            successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
+                        }
+                    } catch (Exception e) {
+                        failedTaskIds.add(taskId);
                     }
-                } catch (Exception e) {
-                    failedTaskIds.add(taskId);
-                }
-            });
+                });
+        }
+
         return failedTaskIds;
     }
 

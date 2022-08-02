@@ -196,7 +196,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, List<TaskFilter<?>> taskFilters) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 10);
+        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 2, 120);
         return new TaskOperationRequest(operation, taskFilters);
     }
 
