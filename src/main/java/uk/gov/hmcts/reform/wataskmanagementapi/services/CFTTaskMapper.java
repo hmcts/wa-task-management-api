@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -460,9 +459,10 @@ public class CFTTaskMapper {
                     }
                     break;
                 case PRIORITY_DATE:
-                    if (value != null && Strings.isNotBlank((String) value)) {
-                        var priorityDate = OffsetDateTime.parse((String) value);
-                        taskResource.setPriorityDate(priorityDate);
+                    if (value instanceof String) {
+                        taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
+                    } else {
+                        taskResource.setPriorityDate((OffsetDateTime) value);
                     }
                     break;
                 default:

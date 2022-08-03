@@ -65,15 +65,15 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
@@ -256,7 +256,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "soe other task name",
             TITLE.value(), "A test task",
             CASE_ID.value(), "some other task case id",
-           DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest someOtherReq = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -298,7 +298,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
             TITLE.value(), "A test task",
             CASE_ID.value(), "someCaseId",
-           DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -372,7 +372,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
             TITLE.value(), "A test task",
             CASE_ID.value(), "someCaseId",
-           DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -501,7 +501,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "aTaskName",
             TITLE.value(), "A test task",
             CASE_ID.value(), "someCaseId",
-           DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -612,7 +612,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "aTaskName",
             TITLE.value(), "A test task",
             TASK_CASE_ID.value(), "someCaseId",
-           DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -724,7 +724,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "aTaskName",
             TITLE.value(), "A test task",
             CASE_ID.value(), "someCaseId",
-           DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -840,7 +840,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "aTaskName",
             TITLE.value(), "A test task",
             CASE_ID.value(), "someCaseId",
-           DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -954,7 +954,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "aTaskName",
             TITLE.value(), "A test task",
             CASE_ID.value(), "someCaseId",
-           DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -1076,7 +1076,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "aTaskName",
             TITLE.value(), "A test task",
             CASE_ID.value(), "someCaseId",
-           DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);

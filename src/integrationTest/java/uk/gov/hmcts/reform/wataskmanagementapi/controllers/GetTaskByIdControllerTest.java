@@ -299,7 +299,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
             TITLE.value(), "A test task",
             CASE_ID.value(), "someCaseId",
-           DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
