@@ -122,7 +122,7 @@ public class ConfigureTaskService {
         TaskConfigurationResults configurationVariables = caseConfigurationProviderService
             .getCaseRelatedConfiguration(taskResource.getCaseId(), taskAttributes);
 
-        return cftTaskMapper.reMapConfigurationAttributes(taskResource, configurationVariables);
+        return cftTaskMapper.reconfigureTaskResourceFromDmnResults(taskResource, configurationVariables);
     }
 
     private Map<String, CamundaValue<String>> convertToCamundaFormat(Map<String, Object> configurationVariables) {

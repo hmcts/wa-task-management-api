@@ -172,12 +172,12 @@ public class CFTTaskMapper {
         return taskResource;
     }
 
-    public TaskResource reMapConfigurationAttributes(TaskResource taskResource,
-                                                   TaskConfigurationResults taskConfigurationResults) {
+    public TaskResource reconfigureTaskResourceFromDmnResults(TaskResource taskResource,
+                                                              TaskConfigurationResults taskConfigurationResults) {
 
         List<ConfigurationDmnEvaluationResponse> configurations = taskConfigurationResults
             .getConfigurationDmnResponse();
-        configurations.forEach(response -> reMapVariableToTaskResourceProperty(
+        configurations.forEach(response -> reconfigureTaskAttributes(
             taskResource,
             response.getName().getValue(),
             response.getValue().getValue(),
@@ -520,10 +520,10 @@ public class CFTTaskMapper {
         }
     }
 
-    private void reMapVariableToTaskResourceProperty(TaskResource taskResource,
-                                                     String key,
-                                                     Object value,
-                                                     boolean canReconfigure) {
+    private void reconfigureTaskAttributes(TaskResource taskResource,
+                                           String key,
+                                           Object value,
+                                           boolean canReconfigure) {
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
         if (enumKey.isPresent() & canReconfigure) {
             switch (enumKey.get()) {
