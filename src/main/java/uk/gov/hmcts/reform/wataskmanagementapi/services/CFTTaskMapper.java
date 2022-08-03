@@ -175,9 +175,9 @@ public class CFTTaskMapper {
     public TaskResource reconfigureTaskResourceFromDmnResults(TaskResource taskResource,
                                                               TaskConfigurationResults taskConfigurationResults) {
 
-        List<ConfigurationDmnEvaluationResponse> configurations = taskConfigurationResults
+        List<ConfigurationDmnEvaluationResponse> configurationDmnVariables = taskConfigurationResults
             .getConfigurationDmnResponse();
-        configurations.forEach(response -> reconfigureTaskAttribute(
+        configurationDmnVariables.forEach(response -> reconfigureTaskAttribute(
             taskResource,
             response.getName().getValue(),
             response.getValue().getValue(),
