@@ -32,17 +32,20 @@ public class ConfigureTaskService {
     private final TaskConfigurationCamundaService taskConfigurationCamundaService;
     private final List<TaskConfigurator> taskConfigurators;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
+    private final CaseConfigurationProviderService caseConfigurationProviderService;
     private final CFTTaskMapper cftTaskMapper;
     private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     public ConfigureTaskService(TaskConfigurationCamundaService taskConfigurationCamundaService,
                                 List<TaskConfigurator> taskConfigurators,
                                 TaskAutoAssignmentService taskAutoAssignmentService,
+                                CaseConfigurationProviderService caseConfigurationProviderService,
                                 CFTTaskMapper cftTaskMapper,
                                 LaunchDarklyFeatureFlagProvider featureFlagProvider) {
         this.taskConfigurationCamundaService = taskConfigurationCamundaService;
         this.taskConfigurators = taskConfigurators;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
+        this.caseConfigurationProviderService = caseConfigurationProviderService;
         this.cftTaskMapper = cftTaskMapper;
         this.featureFlagProvider = featureFlagProvider;
     }
@@ -114,7 +117,11 @@ public class ConfigureTaskService {
     }
 
     public TaskResource reconfigureCFTTask(TaskResource taskResource) {
-        TaskConfigurationResults configurationVariables = getConfigurationResults(taskResource);
+        Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
+
+        TaskConfigurationResults configurationVariables = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(taskResource.getCaseId(), taskAttributes);
+
         return cftTaskMapper.reMapConfigurationAttributes(taskResource, configurationVariables);
     }
 
@@ -127,17 +134,6 @@ public class ConfigureTaskService {
     }
 
     private TaskConfigurationResults getConfigurationResults(TaskToConfigure task) {
-        TaskConfigurationResults configurationResults = new TaskConfigurationResults(new ConcurrentHashMap<>());
-
-        //loop through all task configurators in order and add results to configurationResults
-        taskConfigurators.stream()
-            .map(configurator -> configurator.getConfigurationVariables(task))
-            .forEach(result -> combineResults(result, configurationResults));
-
-        return configurationResults;
-    }
-
-    private TaskConfigurationResults getConfigurationResults(TaskResource task) {
         TaskConfigurationResults configurationResults = new TaskConfigurationResults(new ConcurrentHashMap<>());
 
         //loop through all task configurators in order and add results to configurationResults

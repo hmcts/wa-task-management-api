@@ -27,10 +27,8 @@ class CaseRelatedVariablesConfiguratorTest {
     @BeforeEach
     void setUp() {
         caseConfigurationProviderService = mock(CaseConfigurationProviderService.class);
-        cftTaskMapper = mock(CFTTaskMapper.class);
         caseRelatedVariablesConfigurator = new CaseRelatedVariablesConfigurator(
-            caseConfigurationProviderService,
-            cftTaskMapper
+            caseConfigurationProviderService
         );
     }
 
