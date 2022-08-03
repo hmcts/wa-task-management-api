@@ -1419,12 +1419,45 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             TaskResource expectedTaskResource = taskResource;
             expectedTaskResource.setState(TERMINATED);
-            
+
             TaskResource savedTaskResource = taskResourceCaptor.getValue();
 
             assertEquals(expectedTaskResource, savedTaskResource);
         }
 
+        @Test
+        void should_not_update_task_state_when_cft_feign_exception_thrown_and_task_already_terminated() {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
+                )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+
+            when(camundaService.isCftTaskStateExistInCamunda(taskId)).thenReturn(false);
+            when(taskResource.getState()).thenReturn(TERMINATED);
+
+            doThrow(TaskCancelException.class)
+                .when(camundaService).cancelTask(taskId);
+
+            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
+                .isInstanceOf(TaskCancelException.class);
+
+            verify(camundaServiceApi, never()).bpmnEscalation(any(), anyString(), anyMap());
+            
+            verify(cftTaskDatabaseService, never()).saveTask(any(TaskResource.class));
+        }
 
     }
 
