@@ -58,35 +58,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_MANAGEMENT_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
 
 @ExtendWith(MockitoExtension.class)
@@ -116,7 +92,7 @@ class CFTTaskMapperTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         attributes.put(TaskAttributeDefinition.TASK_ASSIGNEE.value(), "someAssignee");
-        attributes.put(TASK_DUE_DATE.value(), formattedDueDate);
+        attributes.put(DUE_DATE.value(), formattedDueDate);
         assertDoesNotThrow(() -> {
             cftTaskMapper.mapToTaskResource(taskId, attributes);
         });
@@ -598,7 +574,7 @@ class CFTTaskMapperTest {
     void should_throw_exception_when_execution_type_enum_is_not_mapped() {
 
         Map<String, Object> attributes = Map.of(
-            TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME.value(), "someExecutionType");
+            CamundaVariableDefinition.EXECUTION_TYPE.value(), "someExecutionType");
 
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
             .isInstanceOf(IllegalStateException.class)
@@ -610,14 +586,14 @@ class CFTTaskMapperTest {
     void should_throw_exception_when_no_due_date() {
 
         Map<String, Object> attributes = Map.of(
-            TaskAttributeDefinition.TASK_TYPE.value(), "aTaskType",
-            TaskAttributeDefinition.TASK_NAME.value(), "aTaskName",
+            CamundaVariableDefinition.TASK_TYPE.value(), "aTaskType",
+            CamundaVariableDefinition.TASK_NAME.value(), "aTaskName",
             TASK_CASE_ID.value(), "someCaseId"
         );
 
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
             .isInstanceOf(NullPointerException.class)
-            .hasMessage("TASK_DUE_DATE must not be null")
+            .hasMessage("DUE_DATE must not be null")
             .hasNoCause();
     }
 
@@ -628,9 +604,9 @@ class CFTTaskMapperTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         Map<String, Object> attributes = Map.of(
-            TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME.value(), "MANUAL",
-            TaskAttributeDefinition.TASK_SYSTEM.value(), "someTaskSystem",
-            TASK_DUE_DATE.value(), formattedDueDate
+            CamundaVariableDefinition.EXECUTION_TYPE.value(), "MANUAL",
+            CamundaVariableDefinition.TASK_SYSTEM.value(), "someTaskSystem",
+            DUE_DATE.value(), formattedDueDate
         );
 
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
@@ -649,10 +625,10 @@ class CFTTaskMapperTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         Map<String, Object> attributes = Map.of(
-            TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME.value(), "MANUAL",
-            TaskAttributeDefinition.TASK_SYSTEM.value(), "SELF",
-            TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION.value(), "someInvalidEnumValue",
-            TASK_DUE_DATE.value(), formattedDueDate
+            CamundaVariableDefinition.EXECUTION_TYPE.value(), "MANUAL",
+            CamundaVariableDefinition.TASK_SYSTEM.value(), "SELF",
+            CamundaVariableDefinition.SECURITY_CLASSIFICATION.value(), "someInvalidEnumValue",
+            DUE_DATE.value(), formattedDueDate
         );
 
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
@@ -941,7 +917,7 @@ class CFTTaskMapperTest {
         AssertionsForClassTypes.assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
             .isInstanceOf(NullPointerException.class)
             .hasNoCause()
-            .hasMessage("TASK_DUE_DATE must not be null");
+            .hasMessage("DUE_DATE must not be null");
     }
 
     @Test
@@ -1017,6 +993,7 @@ class CFTTaskMapperTest {
         );
         TaskResource taskResource = createTaskResourceWithRoleResource(roleResource);
         taskResource.setReconfigureRequestTime(OffsetDateTime.now());
+        taskResource.setLastReconfigurationTime(OffsetDateTime.now());
 
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, new HashSet<>());
 
@@ -1048,6 +1025,7 @@ class CFTTaskMapperTest {
         assertNotNull(task.getPermissions());
         assertTrue(task.getPermissions().getValues().isEmpty());
         assertNotNull(task.getReconfigureRequestTime());
+        assertNotNull(task.getLastReconfigurationTime());
     }
 
     @Test
@@ -1114,6 +1092,7 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.REFER));
         assertNull(task.getReconfigureRequestTime());
+        assertNull(task.getLastReconfigurationTime());
     }
 
     @Test
@@ -1179,7 +1158,8 @@ class CFTTaskMapperTest {
         String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
 
         Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate,
-            formattedPriorityDate);
+                                                              formattedPriorityDate
+        );
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
@@ -1207,7 +1187,8 @@ class CFTTaskMapperTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate,
-                                                              null);
+                                                              null
+        );
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         taskResource.setPriorityDate(null);
@@ -1240,7 +1221,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertThat(taskAttributes).size().isEqualTo(37);
+        assertThat(taskAttributes).size().isEqualTo(38);
     }
 
     @Test
@@ -1337,7 +1318,7 @@ class CFTTaskMapperTest {
             taskRoleResources,
             "caseCategory",
             EXPECTED_ADDITIONAL_PROPERTIES,
-                "nextHearingId",
+            "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
@@ -1798,7 +1779,7 @@ class CFTTaskMapperTest {
             singleton(roleResource),
             "caseCategory",
             EXPECTED_ADDITIONAL_PROPERTIES,
-                "nextHearingId",
+            "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
@@ -1806,38 +1787,39 @@ class CFTTaskMapperTest {
 
     private Map<String, Object> getDefaultAttributes(String createdDate, String dueDate, String priorityDate) {
         HashMap<String, Object> attributes = new HashMap<>();
-        attributes.put(TaskAttributeDefinition.TASK_ASSIGNEE.value(), "someAssignee");
-        attributes.put(TaskAttributeDefinition.TASK_AUTO_ASSIGNED.value(), false);
-        attributes.put(TaskAttributeDefinition.TASK_CASE_CATEGORY.value(), "someCaseCategory");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_ID.value(), "00000");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_NAME.value(), "someCaseName");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_TYPE_ID.value(), "someCaseType");
+        attributes.put(CamundaVariableDefinition.ASSIGNEE.value(), "someAssignee");
+        attributes.put(CamundaVariableDefinition.AUTO_ASSIGNED.value(), false);
+        attributes.put(CamundaVariableDefinition.CASE_CATEGORY.value(), "someCaseCategory");
+        attributes.put(CamundaVariableDefinition.CASE_ID.value(), "00000");
+        attributes.put(CamundaVariableDefinition.CASE_NAME.value(), "someCaseName");
+        attributes.put(CamundaVariableDefinition.CASE_TYPE_ID.value(), "someCaseType");
         if (createdDate != null) {
-            attributes.put(TaskAttributeDefinition.TASK_CREATED.value(), createdDate);
+            attributes.put(CamundaVariableDefinition.CREATED
+                               .value(), createdDate);
         }
         if (dueDate != null) {
-            attributes.put(TaskAttributeDefinition.TASK_DUE_DATE.value(), dueDate);
+            attributes.put(CamundaVariableDefinition.DUE_DATE.value(), dueDate);
         }
         if (priorityDate != null) {
-            attributes.put(TaskAttributeDefinition.TASK_PRIORITY_DATE.value(), priorityDate);
+            attributes.put(CamundaVariableDefinition.PRIORITY_DATE.value(), priorityDate);
         }
-        attributes.put(TaskAttributeDefinition.TASK_DESCRIPTION.value(), "someCamundaTaskDescription");
-        attributes.put(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME.value(), "MANUAL");
-        attributes.put(TaskAttributeDefinition.TASK_HAS_WARNINGS.value(), false);
-        attributes.put(TaskAttributeDefinition.TASK_JURISDICTION.value(), "someJurisdiction");
-        attributes.put(TaskAttributeDefinition.TASK_LOCATION.value(), "someStaffLocationId");
-        attributes.put(TaskAttributeDefinition.TASK_LOCATION_NAME.value(), "someStaffLocationName");
-        attributes.put(TaskAttributeDefinition.TASK_NAME.value(), "someCamundaTaskName");
-        attributes.put(TaskAttributeDefinition.TASK_REGION.value(), "someRegion");
-        attributes.put(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION.value(), "PUBLIC");
-        attributes.put(TaskAttributeDefinition.TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
-        attributes.put(TaskAttributeDefinition.TASK_SYSTEM.value(), "SELF");
-        attributes.put(TaskAttributeDefinition.TASK_TITLE.value(), "someTitle");
-        attributes.put(TaskAttributeDefinition.TASK_TYPE.value(), "someTaskType");
-        attributes.put(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
-        attributes.put(TaskAttributeDefinition.TASK_NEXT_HEARING_ID.value(), "nextHearingId");
+        attributes.put(CamundaVariableDefinition.DESCRIPTION.value(), "someCamundaTaskDescription");
+        attributes.put(CamundaVariableDefinition.EXECUTION_TYPE.value(), "MANUAL");
+        attributes.put(CamundaVariableDefinition.HAS_WARNINGS.value(), false);
+        attributes.put(CamundaVariableDefinition.JURISDICTION.value(), "someJurisdiction");
+        attributes.put(CamundaVariableDefinition.LOCATION.value(), "someStaffLocationId");
+        attributes.put(CamundaVariableDefinition.LOCATION_NAME.value(), "someStaffLocationName");
+        attributes.put(CamundaVariableDefinition.TASK_NAME.value(), "someCamundaTaskName");
+        attributes.put(CamundaVariableDefinition.REGION.value(), "someRegion");
+        attributes.put(CamundaVariableDefinition.SECURITY_CLASSIFICATION.value(), "PUBLIC");
+        attributes.put(CamundaVariableDefinition.TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
+        attributes.put(CamundaVariableDefinition.TASK_SYSTEM.value(), "SELF");
+        attributes.put(CamundaVariableDefinition.TITLE.value(), "someTitle");
+        attributes.put(CamundaVariableDefinition.TASK_TYPE.value(), "someTaskType");
+        attributes.put(CamundaVariableDefinition.ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
+        attributes.put(CamundaVariableDefinition.NEXT_HEARING_ID.value(), "nextHearingId");
         attributes.put(
-            TaskAttributeDefinition.TASK_NEXT_HEARING_DATE.value(),
+            CamundaVariableDefinition.NEXT_HEARING_DATE.value(),
             CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())
         );
         return attributes;
@@ -1845,29 +1827,29 @@ class CFTTaskMapperTest {
 
     private Map<String, Object> getDefaultAttributesWithoutDueDate() {
         Map<String, Object> attributes = new HashMap<>();
-        attributes.put(TaskAttributeDefinition.TASK_ASSIGNEE.value(), "someAssignee");
-        attributes.put(TaskAttributeDefinition.TASK_AUTO_ASSIGNED.value(), false);
-        attributes.put(TaskAttributeDefinition.TASK_CASE_CATEGORY.value(), "someCaseCategory");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_ID.value(), "00000");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_NAME.value(), "someCaseName");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_TYPE_ID.value(), "someCaseType");
-        attributes.put(TaskAttributeDefinition.TASK_DESCRIPTION.value(), "someCamundaTaskDescription");
-        attributes.put(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME.value(), "MANUAL");
-        attributes.put(TaskAttributeDefinition.TASK_HAS_WARNINGS.value(), false);
-        attributes.put(TaskAttributeDefinition.TASK_JURISDICTION.value(), "someJurisdiction");
-        attributes.put(TaskAttributeDefinition.TASK_LOCATION.value(), "someStaffLocationId");
-        attributes.put(TaskAttributeDefinition.TASK_LOCATION_NAME.value(), "someStaffLocationName");
-        attributes.put(TaskAttributeDefinition.TASK_NAME.value(), "someCamundaTaskName");
-        attributes.put(TaskAttributeDefinition.TASK_REGION.value(), "someRegion");
-        attributes.put(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION.value(), "PUBLIC");
-        attributes.put(TaskAttributeDefinition.TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
-        attributes.put(TaskAttributeDefinition.TASK_SYSTEM.value(), "SELF");
-        attributes.put(TaskAttributeDefinition.TASK_TITLE.value(), "someTitle");
-        attributes.put(TaskAttributeDefinition.TASK_TYPE.value(), "someTaskType");
-        attributes.put(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
-        attributes.put(TaskAttributeDefinition.TASK_NEXT_HEARING_ID.value(), "nextHearingId");
+        attributes.put(CamundaVariableDefinition.ASSIGNEE.value(), "someAssignee");
+        attributes.put(CamundaVariableDefinition.AUTO_ASSIGNED.value(), false);
+        attributes.put(CamundaVariableDefinition.CASE_CATEGORY.value(), "someCaseCategory");
+        attributes.put(CamundaVariableDefinition.CASE_ID.value(), "00000");
+        attributes.put(CamundaVariableDefinition.CASE_NAME.value(), "someCaseName");
+        attributes.put(CamundaVariableDefinition.CASE_TYPE_ID.value(), "someCaseType");
+        attributes.put(CamundaVariableDefinition.DESCRIPTION.value(), "someCamundaTaskDescription");
+        attributes.put(CamundaVariableDefinition.EXECUTION_TYPE.value(), "MANUAL");
+        attributes.put(CamundaVariableDefinition.HAS_WARNINGS.value(), false);
+        attributes.put(CamundaVariableDefinition.JURISDICTION.value(), "someJurisdiction");
+        attributes.put(CamundaVariableDefinition.LOCATION.value(), "someStaffLocationId");
+        attributes.put(CamundaVariableDefinition.LOCATION_NAME.value(), "someStaffLocationName");
+        attributes.put(CamundaVariableDefinition.TASK_NAME.value(), "someCamundaTaskName");
+        attributes.put(CamundaVariableDefinition.REGION.value(), "someRegion");
+        attributes.put(CamundaVariableDefinition.SECURITY_CLASSIFICATION.value(), "PUBLIC");
+        attributes.put(CamundaVariableDefinition.TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
+        attributes.put(CamundaVariableDefinition.TASK_SYSTEM.value(), "SELF");
+        attributes.put(CamundaVariableDefinition.TITLE.value(), "someTitle");
+        attributes.put(CamundaVariableDefinition.TASK_TYPE.value(), "someTaskType");
+        attributes.put(CamundaVariableDefinition.ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
+        attributes.put(CamundaVariableDefinition.NEXT_HEARING_ID.value(), "nextHearingId");
         attributes.put(
-            TaskAttributeDefinition.TASK_NEXT_HEARING_DATE.value(),
+            CamundaVariableDefinition.NEXT_HEARING_DATE.value(),
             CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())
         );
         return attributes;
@@ -1875,32 +1857,33 @@ class CFTTaskMapperTest {
 
     private Map<String, Object> getDefaultAttributesWithWorkType(String createdDate, String dueDate) {
         Map<String, Object> attributes = new HashMap<>();
-        attributes.put(TaskAttributeDefinition.TASK_ASSIGNEE.value(), "someAssignee");
-        attributes.put(TaskAttributeDefinition.TASK_AUTO_ASSIGNED.value(), false);
-        attributes.put(TaskAttributeDefinition.TASK_CASE_CATEGORY.value(), "someCaseCategory");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_ID.value(), "00000");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_NAME.value(), "someCaseName");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_TYPE_ID.value(), "someCaseType");
-        attributes.put(TaskAttributeDefinition.TASK_CREATED.value(), createdDate);
-        attributes.put(TaskAttributeDefinition.TASK_DUE_DATE.value(), dueDate);
-        attributes.put(TaskAttributeDefinition.TASK_DESCRIPTION.value(), "someCamundaTaskDescription");
-        attributes.put(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME.value(), "MANUAL");
-        attributes.put(TaskAttributeDefinition.TASK_HAS_WARNINGS.value(), false);
-        attributes.put(TaskAttributeDefinition.TASK_JURISDICTION.value(), "someJurisdiction");
-        attributes.put(TaskAttributeDefinition.TASK_LOCATION.value(), "someStaffLocationId");
-        attributes.put(TaskAttributeDefinition.TASK_LOCATION_NAME.value(), "someStaffLocationName");
-        attributes.put(TaskAttributeDefinition.TASK_NAME.value(), "someCamundaTaskName");
-        attributes.put(TaskAttributeDefinition.TASK_REGION.value(), "someRegion");
-        attributes.put(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION.value(), "PUBLIC");
-        attributes.put(TaskAttributeDefinition.TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
-        attributes.put(TaskAttributeDefinition.TASK_SYSTEM.value(), "SELF");
-        attributes.put(TaskAttributeDefinition.TASK_TITLE.value(), "someTitle");
-        attributes.put(TaskAttributeDefinition.TASK_TYPE.value(), "someTaskType");
-        attributes.put(TaskAttributeDefinition.TASK_WORK_TYPE.value(), "someWorkType");
-        attributes.put(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
-        attributes.put(TaskAttributeDefinition.TASK_NEXT_HEARING_ID.value(), "nextHearingId");
+        attributes.put(CamundaVariableDefinition.ASSIGNEE.value(), "someAssignee");
+        attributes.put(CamundaVariableDefinition.AUTO_ASSIGNED.value(), false);
+        attributes.put(CamundaVariableDefinition.CASE_CATEGORY.value(), "someCaseCategory");
+        attributes.put(CamundaVariableDefinition.CASE_ID.value(), "00000");
+        attributes.put(CamundaVariableDefinition.CASE_NAME.value(), "someCaseName");
+        attributes.put(CamundaVariableDefinition.CASE_TYPE_ID.value(), "someCaseType");
+        attributes.put(CamundaVariableDefinition.CREATED
+                           .value(), createdDate);
+        attributes.put(CamundaVariableDefinition.DUE_DATE.value(), dueDate);
+        attributes.put(CamundaVariableDefinition.DESCRIPTION.value(), "someCamundaTaskDescription");
+        attributes.put(CamundaVariableDefinition.EXECUTION_TYPE.value(), "MANUAL");
+        attributes.put(CamundaVariableDefinition.HAS_WARNINGS.value(), false);
+        attributes.put(CamundaVariableDefinition.JURISDICTION.value(), "someJurisdiction");
+        attributes.put(CamundaVariableDefinition.LOCATION.value(), "someStaffLocationId");
+        attributes.put(CamundaVariableDefinition.LOCATION_NAME.value(), "someStaffLocationName");
+        attributes.put(CamundaVariableDefinition.TASK_NAME.value(), "someCamundaTaskName");
+        attributes.put(CamundaVariableDefinition.REGION.value(), "someRegion");
+        attributes.put(CamundaVariableDefinition.SECURITY_CLASSIFICATION.value(), "PUBLIC");
+        attributes.put(CamundaVariableDefinition.TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
+        attributes.put(CamundaVariableDefinition.TASK_SYSTEM.value(), "SELF");
+        attributes.put(CamundaVariableDefinition.TITLE.value(), "someTitle");
+        attributes.put(CamundaVariableDefinition.TASK_TYPE.value(), "someTaskType");
+        attributes.put(CamundaVariableDefinition.WORK_TYPE.value(), "someWorkType");
+        attributes.put(CamundaVariableDefinition.ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
+        attributes.put(CamundaVariableDefinition.NEXT_HEARING_ID.value(), "nextHearingId");
         attributes.put(
-            TaskAttributeDefinition.TASK_NEXT_HEARING_DATE.value(),
+            CamundaVariableDefinition.NEXT_HEARING_DATE.value(),
             CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())
         );
         return attributes;
@@ -1908,31 +1891,32 @@ class CFTTaskMapperTest {
 
     private Map<String, Object> getDefaultAttributesWithoutWithWorkType(String createdDate, String dueDate) {
         Map<String, Object> attributes = new HashMap<>();
-        attributes.put(TaskAttributeDefinition.TASK_ASSIGNEE.value(), "someAssignee");
-        attributes.put(TaskAttributeDefinition.TASK_AUTO_ASSIGNED.value(), false);
-        attributes.put(TaskAttributeDefinition.TASK_CASE_CATEGORY.value(), "someCaseCategory");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_ID.value(), "00000");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_NAME.value(), "someCaseName");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_TYPE_ID.value(), "someCaseType");
-        attributes.put(TaskAttributeDefinition.TASK_CREATED.value(), createdDate);
-        attributes.put(TaskAttributeDefinition.TASK_DUE_DATE.value(), dueDate);
-        attributes.put(TaskAttributeDefinition.TASK_DESCRIPTION.value(), "someCamundaTaskDescription");
-        attributes.put(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME.value(), "MANUAL");
-        attributes.put(TaskAttributeDefinition.TASK_HAS_WARNINGS.value(), false);
-        attributes.put(TaskAttributeDefinition.TASK_JURISDICTION.value(), "someJurisdiction");
-        attributes.put(TaskAttributeDefinition.TASK_LOCATION.value(), "someStaffLocationId");
-        attributes.put(TaskAttributeDefinition.TASK_LOCATION_NAME.value(), "someStaffLocationName");
-        attributes.put(TaskAttributeDefinition.TASK_NAME.value(), "someCamundaTaskName");
-        attributes.put(TaskAttributeDefinition.TASK_REGION.value(), "someRegion");
-        attributes.put(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION.value(), "PUBLIC");
-        attributes.put(TaskAttributeDefinition.TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
-        attributes.put(TaskAttributeDefinition.TASK_SYSTEM.value(), "SELF");
-        attributes.put(TaskAttributeDefinition.TASK_TITLE.value(), "someTitle");
-        attributes.put(TaskAttributeDefinition.TASK_TYPE.value(), "someTaskType");
-        attributes.put(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
-        attributes.put(TaskAttributeDefinition.TASK_NEXT_HEARING_ID.value(), "nextHearingId");
+        attributes.put(CamundaVariableDefinition.ASSIGNEE.value(), "someAssignee");
+        attributes.put(CamundaVariableDefinition.AUTO_ASSIGNED.value(), false);
+        attributes.put(CamundaVariableDefinition.CASE_CATEGORY.value(), "someCaseCategory");
+        attributes.put(CamundaVariableDefinition.CASE_ID.value(), "00000");
+        attributes.put(CamundaVariableDefinition.CASE_NAME.value(), "someCaseName");
+        attributes.put(CamundaVariableDefinition.CASE_TYPE_ID.value(), "someCaseType");
+        attributes.put(CamundaVariableDefinition.CREATED
+                           .value(), createdDate);
+        attributes.put(CamundaVariableDefinition.DUE_DATE.value(), dueDate);
+        attributes.put(CamundaVariableDefinition.DESCRIPTION.value(), "someCamundaTaskDescription");
+        attributes.put(CamundaVariableDefinition.EXECUTION_TYPE.value(), "MANUAL");
+        attributes.put(CamundaVariableDefinition.HAS_WARNINGS.value(), false);
+        attributes.put(CamundaVariableDefinition.JURISDICTION.value(), "someJurisdiction");
+        attributes.put(CamundaVariableDefinition.LOCATION.value(), "someStaffLocationId");
+        attributes.put(CamundaVariableDefinition.LOCATION_NAME.value(), "someStaffLocationName");
+        attributes.put(CamundaVariableDefinition.TASK_NAME.value(), "someCamundaTaskName");
+        attributes.put(CamundaVariableDefinition.REGION.value(), "someRegion");
+        attributes.put(CamundaVariableDefinition.SECURITY_CLASSIFICATION.value(), "PUBLIC");
+        attributes.put(CamundaVariableDefinition.TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
+        attributes.put(CamundaVariableDefinition.TASK_SYSTEM.value(), "SELF");
+        attributes.put(CamundaVariableDefinition.TITLE.value(), "someTitle");
+        attributes.put(CamundaVariableDefinition.TASK_TYPE.value(), "someTaskType");
+        attributes.put(CamundaVariableDefinition.ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
+        attributes.put(CamundaVariableDefinition.NEXT_HEARING_ID.value(), "nextHearingId");
         attributes.put(
-            TaskAttributeDefinition.TASK_NEXT_HEARING_DATE.value(),
+            CamundaVariableDefinition.NEXT_HEARING_DATE.value(),
             CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())
         );
         return attributes;
@@ -1942,32 +1926,33 @@ class CFTTaskMapperTest {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
             + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
         Map<String, Object> attributes = new HashMap<>();
-        attributes.put(TaskAttributeDefinition.TASK_ASSIGNEE.value(), "someAssignee");
-        attributes.put(TaskAttributeDefinition.TASK_AUTO_ASSIGNED.value(), false);
-        attributes.put(TaskAttributeDefinition.TASK_CASE_CATEGORY.value(), "someCaseCategory");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_ID.value(), "00000");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_NAME.value(), "someCaseName");
-        attributes.put(TaskAttributeDefinition.TASK_CASE_TYPE_ID.value(), "someCaseType");
-        attributes.put(TaskAttributeDefinition.TASK_CREATED.value(), createdDate);
-        attributes.put(TaskAttributeDefinition.TASK_DUE_DATE.value(), dueDate);
-        attributes.put(TaskAttributeDefinition.TASK_DESCRIPTION.value(), "someCamundaTaskDescription");
-        attributes.put(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME.value(), "MANUAL");
-        attributes.put(TaskAttributeDefinition.TASK_HAS_WARNINGS.value(), true);
-        attributes.put(TaskAttributeDefinition.TASK_JURISDICTION.value(), "someJurisdiction");
-        attributes.put(TaskAttributeDefinition.TASK_LOCATION.value(), "someStaffLocationId");
-        attributes.put(TaskAttributeDefinition.TASK_LOCATION_NAME.value(), "someStaffLocationName");
-        attributes.put(TaskAttributeDefinition.TASK_NAME.value(), "someCamundaTaskName");
-        attributes.put(TaskAttributeDefinition.TASK_REGION.value(), "someRegion");
-        attributes.put(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION.value(), "PUBLIC");
-        attributes.put(TaskAttributeDefinition.TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
-        attributes.put(TaskAttributeDefinition.TASK_SYSTEM.value(), "SELF");
-        attributes.put(TaskAttributeDefinition.TASK_TITLE.value(), "someTitle");
-        attributes.put(TaskAttributeDefinition.TASK_TYPE.value(), "someTaskType");
-        attributes.put(TaskAttributeDefinition.TASK_WARNINGS.value(), values);
-        attributes.put(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
-        attributes.put(TaskAttributeDefinition.TASK_NEXT_HEARING_ID.value(), "nextHearingId");
+        attributes.put(CamundaVariableDefinition.ASSIGNEE.value(), "someAssignee");
+        attributes.put(CamundaVariableDefinition.AUTO_ASSIGNED.value(), false);
+        attributes.put(CamundaVariableDefinition.CASE_CATEGORY.value(), "someCaseCategory");
+        attributes.put(CamundaVariableDefinition.CASE_ID.value(), "00000");
+        attributes.put(CamundaVariableDefinition.CASE_NAME.value(), "someCaseName");
+        attributes.put(CamundaVariableDefinition.CASE_TYPE_ID.value(), "someCaseType");
+        attributes.put(CamundaVariableDefinition.CREATED
+                           .value(), createdDate);
+        attributes.put(CamundaVariableDefinition.DUE_DATE.value(), dueDate);
+        attributes.put(CamundaVariableDefinition.DESCRIPTION.value(), "someCamundaTaskDescription");
+        attributes.put(CamundaVariableDefinition.EXECUTION_TYPE.value(), "MANUAL");
+        attributes.put(CamundaVariableDefinition.HAS_WARNINGS.value(), true);
+        attributes.put(CamundaVariableDefinition.JURISDICTION.value(), "someJurisdiction");
+        attributes.put(CamundaVariableDefinition.LOCATION.value(), "someStaffLocationId");
+        attributes.put(CamundaVariableDefinition.LOCATION_NAME.value(), "someStaffLocationName");
+        attributes.put(CamundaVariableDefinition.TASK_NAME.value(), "someCamundaTaskName");
+        attributes.put(CamundaVariableDefinition.REGION.value(), "someRegion");
+        attributes.put(CamundaVariableDefinition.SECURITY_CLASSIFICATION.value(), "PUBLIC");
+        attributes.put(CamundaVariableDefinition.TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
+        attributes.put(CamundaVariableDefinition.TASK_SYSTEM.value(), "SELF");
+        attributes.put(CamundaVariableDefinition.TITLE.value(), "someTitle");
+        attributes.put(CamundaVariableDefinition.TASK_TYPE.value(), "someTaskType");
+        attributes.put(WARNING_LIST.value(), values);
+        attributes.put(CamundaVariableDefinition.ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
+        attributes.put(CamundaVariableDefinition.NEXT_HEARING_ID.value(), "nextHearingId");
         attributes.put(
-            TaskAttributeDefinition.TASK_NEXT_HEARING_DATE.value(),
+            CamundaVariableDefinition.NEXT_HEARING_DATE.value(),
             CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())
         );
         return attributes;

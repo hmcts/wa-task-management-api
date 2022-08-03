@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.EqualsAndHashCode;
@@ -125,6 +126,7 @@ public class TaskResource implements Serializable {
     @JoinColumn(name = "executionTypeCode", referencedColumnName = "execution_code")
     private ExecutionTypeResource executionTypeCode;
 
+    @JsonManagedReference
     @ToString.Exclude
     @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<TaskRoleResource> taskRoleResources;
@@ -136,6 +138,9 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime reconfigureRequestTime;
 
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime lastReconfigurationTime;
+
     private String nextHearingId;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
@@ -143,7 +148,6 @@ public class TaskResource implements Serializable {
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime priorityDate;
-
 
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
@@ -451,6 +455,10 @@ public class TaskResource implements Serializable {
 
     public void setReconfigureRequestTime(OffsetDateTime reconfigureRequestTime) {
         this.reconfigureRequestTime = reconfigureRequestTime;
+    }
+
+    public void setLastReconfigurationTime(OffsetDateTime lastReconfigurationTime) {
+        this.lastReconfigurationTime = lastReconfigurationTime;
     }
 
     public void setNextHearingId(String nextHearingId) {

@@ -32,27 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SYSTEM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -443,10 +423,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TASK_TITLE.value(), "A test task",
-            TASK_CASE_ID.value(), taskVariables.getCaseId(),
-            TASK_CREATED.value(), formattedCreatedDate,
-            TASK_DUE_DATE.value(), formattedDueDate
+            TITLE.value(), "A test task",
+            CASE_ID.value(), taskVariables.getCaseId(),
+            CREATED.value(), formattedCreatedDate,
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -477,24 +457,24 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         Map<String, Object> attributes = new HashMap<>();
         attributes.put(TASK_TYPE.value(), taskType);
         attributes.put(TASK_NAME.value(), "follow Up Overdue Reasons For Appeal");
-        attributes.put(TASK_TITLE.value(), "A test task");
+        attributes.put(TITLE.value(), "A test task");
         attributes.put(TASK_SYSTEM.value(), "SELF");
-        attributes.put(TASK_CASE_ID.value(), taskVariables.getCaseId());
-        attributes.put(TASK_CREATED.value(), formattedCreatedDate);
-        attributes.put(TASK_DUE_DATE.value(), formattedDueDate);
-        attributes.put(TASK_SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
-        attributes.put(TASK_ROLE_CATEGORY.value(), "ADMIN");
-        attributes.put(TASK_LOCATION_NAME.value(), "aLocationName");
-        attributes.put(TASK_LOCATION.value(), "aLocation");
-        attributes.put(TASK_EXECUTION_TYPE_NAME.value(), "Manual");
-        attributes.put(TASK_JURISDICTION.value(), "IA");
-        attributes.put(TASK_REGION_NAME.value(), "aRegion");
-        attributes.put(TASK_CASE_TYPE_ID.value(), "aTaskCaseTypeId");
-        attributes.put(TASK_CASE_CATEGORY.value(), "Protection");
-        attributes.put(TASK_CASE_NAME.value(), "aCaseName");
-        attributes.put(TASK_AUTO_ASSIGNED.value(), true);
-        attributes.put(TASK_HAS_WARNINGS.value(), true);
-        attributes.put(TASK_WARNINGS.value(), warningValues);
+        attributes.put(CASE_ID.value(), taskVariables.getCaseId());
+        attributes.put(CREATED.value(), formattedCreatedDate);
+        attributes.put(DUE_DATE.value(), formattedDueDate);
+        attributes.put(SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
+        attributes.put(ROLE_CATEGORY.value(), "ADMIN");
+        attributes.put(LOCATION_NAME.value(), "aLocationName");
+        attributes.put(LOCATION.value(), "aLocation");
+        attributes.put(EXECUTION_TYPE.value(), "Manual");
+        attributes.put(JURISDICTION.value(), "IA");
+        attributes.put(REGION_NAME.value(), "aRegion");
+        attributes.put(CASE_TYPE_ID.value(), "aTaskCaseTypeId");
+        attributes.put(CASE_CATEGORY.value(), "Protection");
+        attributes.put(CASE_NAME.value(), "aCaseName");
+        attributes.put(AUTO_ASSIGNED.value(), true);
+        attributes.put(HAS_WARNINGS.value(), true);
+        attributes.put(WARNING_LIST.value(), warningValues);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, attributes);
 

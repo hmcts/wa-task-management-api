@@ -44,17 +44,17 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
@@ -1242,7 +1242,6 @@ public class Common {
         String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
             + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
-
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);
@@ -1251,15 +1250,15 @@ public class Common {
         Map<String, Object> attributes = new HashMap<>();
         attributes.put(TASK_TYPE.value(), taskType);
         attributes.put(TASK_NAME.value(), "aTaskName");
-        attributes.put(TASK_CASE_ID.value(), testVariables.getCaseId());
-        attributes.put(TASK_TITLE.value(), "A test task");
-        attributes.put(TASK_CASE_CATEGORY.value(), "Protection");
-        attributes.put(TASK_ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
-        attributes.put(TASK_HAS_WARNINGS.value(), true);
-        attributes.put(TASK_WARNINGS.value(), warnings);
-        attributes.put(TASK_AUTO_ASSIGNED.value(), true);
-        attributes.put(TASK_CREATED.value(), formattedCreatedDate);
-        attributes.put(TASK_DUE_DATE.value(), formattedDueDate);
+        attributes.put(CASE_ID.value(), testVariables.getCaseId());
+        attributes.put(TITLE.value(), "A test task");
+        attributes.put(CASE_CATEGORY.value(), "Protection");
+        attributes.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
+        attributes.put(HAS_WARNINGS.value(), true);
+        attributes.put(WARNING_LIST.value(), warnings);
+        attributes.put(AUTO_ASSIGNED.value(), true);
+        attributes.put(CREATED.value(), formattedCreatedDate);
+        attributes.put(DUE_DATE.value(), formattedDueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, attributes);
 
@@ -1293,14 +1292,14 @@ public class Common {
         Map<String, Object> attributes = new HashMap<>();
         attributes.put(TASK_TYPE.value(), taskType);
         attributes.put(TASK_NAME.value(), "aTaskName");
-        attributes.put(TASK_CASE_ID.value(), testVariables.getCaseId());
-        attributes.put(TASK_TITLE.value(), "A test task");
-        attributes.put(TASK_CASE_CATEGORY.value(), "Protection");
-        attributes.put(TASK_ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
-        attributes.put(TASK_HAS_WARNINGS.value(), true);
-        attributes.put(TASK_AUTO_ASSIGNED.value(), true);
-        attributes.put(TASK_CREATED.value(), formattedCreatedDate);
-        attributes.put(TASK_DUE_DATE.value(), formattedDueDate);
+        attributes.put(CASE_ID.value(), testVariables.getCaseId());
+        attributes.put(TITLE.value(), "A test task");
+        attributes.put(CASE_CATEGORY.value(), "Protection");
+        attributes.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
+        attributes.put(HAS_WARNINGS.value(), true);
+        attributes.put(AUTO_ASSIGNED.value(), true);
+        attributes.put(CREATED.value(), formattedCreatedDate);
+        attributes.put(DUE_DATE.value(), formattedDueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, attributes);
 

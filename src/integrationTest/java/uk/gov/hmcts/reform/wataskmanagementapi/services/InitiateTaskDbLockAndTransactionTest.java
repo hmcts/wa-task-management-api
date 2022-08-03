@@ -56,7 +56,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
@@ -80,7 +80,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         TASK_NAME.value(), A_TASK_NAME,
         TASK_ASSIGNEE.value(), SOME_ASSIGNEE,
         TASK_CASE_ID.value(), SOME_CASE_ID,
-        TASK_DUE_DATE.value(), formattedDueDate
+        DUE_DATE.value(), formattedDueDate
     );
 
     private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -118,8 +118,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-    @MockBean
-    private TaskReconfigurationService taskReconfigurationService;
     @Autowired
     private TransactionHelper transactionHelper;
     @Captor
@@ -132,6 +130,9 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
+    @Mock
+    private List<TaskOperationService> taskOperationServices;
 
 
     @BeforeEach
@@ -151,7 +152,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService,
+            taskOperationServices,
             entityManager,
             allowedJurisdictionConfiguration
         );

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -18,7 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -31,13 +31,27 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 
 
 @Service
@@ -67,10 +81,10 @@ public class CFTTaskMapper {
         List<NoteResource> notes = extractWarningNotes(attributes);
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
         OffsetDateTime dueDate = readDate(attributes, DUE_DATE, null);
-        OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
-        OffsetDateTime priorityDate = readDate(attributes, TASK_PRIORITY_DATE, null);
+        OffsetDateTime createdDate = readDate(attributes, CREATED, ZonedDateTime.now().toOffsetDateTime());
+        OffsetDateTime priorityDate = readDate(attributes, PRIORITY_DATE, null);
 
-        Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
+        Objects.requireNonNull(dueDate, "DUE_DATE must not be null");
         if (priorityDate == null) {
             priorityDate = dueDate;
         }
@@ -78,40 +92,40 @@ public class CFTTaskMapper {
         WorkTypeResource workTypeResource = extractWorkType(attributes);
         return new TaskResource(
             taskId,
-            read(attributes, TASK_NAME, null),
-            read(attributes, TASK_TYPE, null),
+            read(attributes, CamundaVariableDefinition.TASK_NAME, null),
+            read(attributes, CamundaVariableDefinition.TASK_TYPE, null),
             dueDate,
             CFTTaskState.UNCONFIGURED,
-            read(attributes, TASK_SYSTEM, null),
-            read(attributes, TASK_SECURITY_CLASSIFICATION, null),
-            read(attributes, TASK_TITLE, null),
-            read(attributes, TASK_DESCRIPTION, null),
+            read(attributes, CamundaVariableDefinition.TASK_SYSTEM, null),
+            read(attributes, CamundaVariableDefinition.SECURITY_CLASSIFICATION, null),
+            read(attributes, CamundaVariableDefinition.TITLE, null),
+            read(attributes, CamundaVariableDefinition.DESCRIPTION, null),
             notes,
-            read(attributes, TASK_MAJOR_PRIORITY, 5000),
-            read(attributes, TASK_MINOR_PRIORITY, 500),
-            read(attributes, TASK_ASSIGNEE, null),
-            read(attributes, TASK_AUTO_ASSIGNED, false),
+            read(attributes, CamundaVariableDefinition.MAJOR_PRIORITY, 5000),
+            read(attributes, CamundaVariableDefinition.MINOR_PRIORITY, 500),
+            read(attributes, CamundaVariableDefinition.ASSIGNEE, null),
+            read(attributes, CamundaVariableDefinition.AUTO_ASSIGNED, false),
             executionTypeResource,
             workTypeResource,
-            read(attributes, TASK_ROLE_CATEGORY, null),
-            read(attributes, TASK_HAS_WARNINGS, false),
-            read(attributes, TASK_ASSIGNMENT_EXPIRY, null),
-            read(attributes, TASK_CASE_ID, null),
-            read(attributes, TASK_CASE_TYPE_ID, null),
-            read(attributes, TASK_CASE_NAME, null),
-            read(attributes, TASK_JURISDICTION, null),
-            read(attributes, TASK_REGION, null),
-            read(attributes, TASK_REGION_NAME, null),
-            read(attributes, TASK_LOCATION, null),
-            read(attributes, TASK_LOCATION_NAME, null),
-            read(attributes, TASK_BUSINESS_CONTEXT, null),
-            read(attributes, TASK_TERMINATION_REASON, null),
+            read(attributes, CamundaVariableDefinition.ROLE_CATEGORY, null),
+            read(attributes, CamundaVariableDefinition.HAS_WARNINGS, false),
+            read(attributes, CamundaVariableDefinition.ASSIGNMENT_EXPIRY, null),
+            read(attributes, CamundaVariableDefinition.CASE_ID, null),
+            read(attributes, CamundaVariableDefinition.CASE_TYPE_ID, null),
+            read(attributes, CamundaVariableDefinition.CASE_NAME, null),
+            read(attributes, CamundaVariableDefinition.JURISDICTION, null),
+            read(attributes, CamundaVariableDefinition.REGION, null),
+            read(attributes, CamundaVariableDefinition.REGION_NAME, null),
+            read(attributes, CamundaVariableDefinition.LOCATION, null),
+            read(attributes, CamundaVariableDefinition.LOCATION_NAME, null),
+            read(attributes, CamundaVariableDefinition.BUSINESS_CONTEXT, null),
+            read(attributes, CamundaVariableDefinition.TERMINATION_REASON, null),
             createdDate,
-            read(attributes, TASK_ROLES, null),
-            read(attributes, TASK_CASE_CATEGORY, null),
-            read(attributes, TASK_ADDITIONAL_PROPERTIES, null),
-            read(attributes, TASK_NEXT_HEARING_ID, null),
-            readDate(attributes, TASK_NEXT_HEARING_DATE, null),
+            read(attributes, CamundaVariableDefinition.TASK_ROLES, null),
+            read(attributes, CamundaVariableDefinition.CASE_CATEGORY, null),
+            read(attributes, CamundaVariableDefinition.ADDITIONAL_PROPERTIES, null),
+            read(attributes, CamundaVariableDefinition.NEXT_HEARING_ID, null),
+            readDate(attributes, CamundaVariableDefinition.NEXT_HEARING_DATE, null),
             priorityDate
         );
     }
@@ -128,6 +142,7 @@ public class CFTTaskMapper {
         return taskResource;
     }
 
+    @SuppressWarnings("PMD.NPathComplexity")
     public Task mapToTaskWithPermissions(TaskResource taskResource, Set<PermissionTypes> permissionsUnionForUser) {
         return new Task(
             taskResource.getTaskId(),
@@ -166,7 +181,9 @@ public class CFTTaskMapper {
             taskResource.getMajorPriority(),
             taskResource.getPriorityDate() == null ? null : taskResource.getPriorityDate().toZonedDateTime(),
             taskResource.getReconfigureRequestTime() == null ? null
-                : taskResource.getReconfigureRequestTime().toZonedDateTime()
+                : taskResource.getReconfigureRequestTime().toZonedDateTime(),
+            taskResource.getLastReconfigurationTime() == null ? null
+                : taskResource.getLastReconfigurationTime().toZonedDateTime()
         );
     }
 
@@ -261,8 +278,8 @@ public class CFTTaskMapper {
         return accumulator;
     }
 
-    private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
-        String workTypeId = read(attributes, TASK_WORK_TYPE, null);
+    private WorkTypeResource extractWorkType(Map<CamundaVariableDefinition, Object> attributes) {
+        String workTypeId = read(attributes, WORK_TYPE, null);
         return workTypeId == null ? null : new WorkTypeResource(workTypeId);
     }
 
@@ -444,7 +461,8 @@ public class CFTTaskMapper {
                     break;
                 case PRIORITY_DATE:
                     if (value != null && Strings.isNotBlank((String) value)) {
-                        taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
+                        var priorityDate = OffsetDateTime.parse((String) value);
+                        taskResource.setPriorityDate(priorityDate);
                     }
                     break;
                 default:
@@ -465,8 +483,8 @@ public class CFTTaskMapper {
         return null;
     }
 
-    private ExecutionTypeResource extractExecutionType(Map<TaskAttributeDefinition, Object> attributes) {
-        String executionTypeName = read(attributes, TASK_EXECUTION_TYPE_NAME, null);
+    private ExecutionTypeResource extractExecutionType(Map<CamundaVariableDefinition, Object> attributes) {
+        String executionTypeName = read(attributes, EXECUTION_TYPE, null);
 
         if (executionTypeName != null) {
             Optional<ExecutionType> value = ExecutionType.from(executionTypeName);
@@ -487,7 +505,7 @@ public class CFTTaskMapper {
 
     private List<NoteResource> extractWarningNotes(Map<CamundaVariableDefinition, Object> attributes) {
         List<NoteResource> notes = null;
-        WarningValues warningList = read(attributes, TASK_WARNINGS, null);
+        WarningValues warningList = read(attributes, WARNING_LIST, null);
         if (warningList != null) {
             List<Warning> warnings = warningList.getValues();
             if (!warnings.isEmpty()) {

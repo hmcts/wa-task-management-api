@@ -48,15 +48,15 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -215,13 +215,13 @@ public abstract class SpringBootFunctionalBaseTest {
         Map<String, Object> taskAttributes = new HashMap<>();
         taskAttributes.put(TASK_TYPE.value(), taskType);
         taskAttributes.put(TASK_NAME.value(), taskName);
-        taskAttributes.put(TASK_TITLE.value(), taskTitle);
-        taskAttributes.put(TASK_CASE_ID.value(), testVariables.getCaseId());
-        taskAttributes.put(TASK_CREATED.value(), formattedCreatedDate);
-        taskAttributes.put(TASK_DUE_DATE.value(), formattedDueDate);
-        taskAttributes.put(TASK_ADDITIONAL_PROPERTIES.value(), additionalProperties);
-        taskAttributes.put(TASK_SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
-        taskAttributes.put(TASK_WARNINGS.value(), warningValues);
+        taskAttributes.put(TITLE.value(), taskTitle);
+        taskAttributes.put(CASE_ID.value(), testVariables.getCaseId());
+        taskAttributes.put(CREATED.value(), formattedCreatedDate);
+        taskAttributes.put(DUE_DATE.value(), formattedDueDate);
+        taskAttributes.put(ADDITIONAL_PROPERTIES.value(), additionalProperties);
+        taskAttributes.put(SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
+        taskAttributes.put(WARNING_LIST.value(), warningValues);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
 
@@ -252,13 +252,14 @@ public abstract class SpringBootFunctionalBaseTest {
         Map<String, Object> taskAttributes = new HashMap<>();
         taskAttributes.put(TASK_TYPE.value(), taskType);
         taskAttributes.put(TASK_NAME.value(), taskName);
-        taskAttributes.put(TASK_TITLE.value(), taskTitle);
-        taskAttributes.put(TASK_CASE_ID.value(), testVariables.getCaseId());
-        taskAttributes.put(TASK_CREATED.value(), formattedCreatedDate);
-        taskAttributes.put(TASK_DUE_DATE.value(), formattedDueDate);
+        taskAttributes.put(TITLE.value(), taskTitle);
+        taskAttributes.put(CASE_ID.value(), testVariables.getCaseId());
+        taskAttributes.put(CREATED.value(), formattedCreatedDate);
+        taskAttributes.put(DUE_DATE.value(), formattedDueDate);
 
         if (additionalProperties != null) {
-            taskAttributes.put(TASK_ADDITIONAL_PROPERTIES.value(), additionalProperties);
+            taskAttributes.put(ADDITIONAL_PROPERTIES.value(), additionalProperties);
+            taskAttributes.put("roleAssignmentId", additionalProperties.get("roleAssignmentId"));
         }
 
         InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);

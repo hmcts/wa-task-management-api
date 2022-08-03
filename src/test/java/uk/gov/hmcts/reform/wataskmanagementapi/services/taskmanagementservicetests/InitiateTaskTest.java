@@ -22,9 +22,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.MarkTaskReconfigurationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskReconfigurationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
@@ -32,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.persistence.EntityManager;
@@ -53,11 +55,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASS
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
@@ -85,7 +87,7 @@ class InitiateTaskTest extends CamundaHelpers {
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
-    private TaskReconfigurationService taskReconfigurationService;
+    private MarkTaskReconfigurationService taskReconfigurationService;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
@@ -97,6 +99,9 @@ class InitiateTaskTest extends CamundaHelpers {
 
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
+    @Mock
+    private List<TaskOperationService> taskOperationServices;
 
 
     @BeforeEach
@@ -115,7 +120,7 @@ class InitiateTaskTest extends CamundaHelpers {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService,
+            taskOperationServices,
             entityManager,
             allowedJurisdictionConfiguration
         );
@@ -141,7 +146,7 @@ class InitiateTaskTest extends CamundaHelpers {
     void given_initiateTask_then_task_is_saved() {
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().put(TASK_DUE_DATE.value(), formattedDueDate);
+        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
         mockInitiateTaskDependencies();
 
         TaskResource unassignedTaskResource = new TaskResource(
@@ -183,7 +188,7 @@ class InitiateTaskTest extends CamundaHelpers {
     void should_succeed_and_filter_out_nulls() {
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().put(TASK_DUE_DATE.value(), formattedDueDate);
+        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
         mockInitiateTaskDependencies();
 
         TaskResource unassignedTaskResource = new TaskResource(
@@ -228,7 +233,7 @@ class InitiateTaskTest extends CamundaHelpers {
     void given_initiateTask_with_previous_valid_assignee_should_keep_assignee() {
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().put(TASK_DUE_DATE.value(), formattedDueDate);
+        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
         mockInitiateTaskDependencies();
 
         TaskResource taskWithAssignee = new TaskResource(
@@ -272,7 +277,7 @@ class InitiateTaskTest extends CamundaHelpers {
     void given_initiateTask_with_previous_invalid_assignee_should_reassign() {
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().put(TASK_DUE_DATE.value(), formattedDueDate);
+        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
         mockInitiateTaskDependencies();
 
         TaskResource taskWithAssignee = new TaskResource(
@@ -341,7 +346,7 @@ class InitiateTaskTest extends CamundaHelpers {
             .when(cftTaskDatabaseService).insertAndLock(anyString(), any());
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().put(TASK_DUE_DATE.value(), formattedDueDate);
+        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
 
         assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)
         )

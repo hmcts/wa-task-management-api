@@ -20,16 +20,15 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -88,11 +87,11 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_ASSIGNEE.value(), "follow Up Overdue Reasons For Appeal",
+            ASSIGNEE.value(), "follow Up Overdue Reasons For Appeal",
             TASK_NAME.value(), "aTaskName",
-            TASK_CREATED.value(), formattedCreatedDate,
-            TASK_CASE_ID.value(), taskVariables.getCaseId(),
-            TASK_DUE_DATE.value(), formattedDueDate
+            CREATED.value(), formattedCreatedDate,
+            CASE_ID.value(), taskVariables.getCaseId(),
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -139,10 +138,10 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TASK_TITLE.value(), "A test task",
-            TASK_CREATED.value(), formattedCreatedDate,
-            TASK_CASE_ID.value(), taskVariables.getCaseId(),
-            TASK_DUE_DATE.value(), formattedDueDate
+            TITLE.value(), "A test task",
+            CREATED.value(), formattedCreatedDate,
+            CASE_ID.value(), taskVariables.getCaseId(),
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -198,10 +197,10 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TASK_TITLE.value(), "A test task",
-            TASK_CREATED.value(), formattedCreatedDate,
-            TASK_CASE_ID.value(), taskVariables.getCaseId(),
-            TASK_DUE_DATE.value(), formattedDueDate
+            TITLE.value(), "A test task",
+            CREATED.value(), formattedCreatedDate,
+            CASE_ID.value(), taskVariables.getCaseId(),
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -257,11 +256,11 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TASK_HAS_WARNINGS.value(), true,
-            TASK_TITLE.value(), "A test task",
-            TASK_CREATED.value(), formattedCreatedDate,
-            TASK_CASE_ID.value(), taskVariables.getCaseId(),
-            TASK_DUE_DATE.value(), formattedDueDate
+            HAS_WARNINGS.value(), true,
+            TITLE.value(), "A test task",
+            CREATED.value(), formattedCreatedDate,
+            CASE_ID.value(), taskVariables.getCaseId(),
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -315,11 +314,11 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TASK_HAS_WARNINGS.value(), true,
-            TASK_TITLE.value(), "A test task",
-            TASK_CREATED.value(), formattedCreatedDate,
-            TASK_CASE_ID.value(), taskVariables.getCaseId(),
-            TASK_DUE_DATE.value(), formattedDueDate
+            HAS_WARNINGS.value(), true,
+            TITLE.value(), "A test task",
+            CREATED.value(), formattedCreatedDate,
+            CASE_ID.value(), taskVariables.getCaseId(),
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
@@ -371,11 +370,11 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TASK_HAS_WARNINGS.value(), true,
-            TASK_TITLE.value(), "A test task",
-            TASK_CREATED.value(), formattedCreatedDate,
-            TASK_CASE_ID.value(), taskVariables.getCaseId(),
-            TASK_DUE_DATE.value(), formattedDueDate
+            HAS_WARNINGS.value(), true,
+            TITLE.value(), "A test task",
+            CREATED.value(), formattedCreatedDate,
+            CASE_ID.value(), taskVariables.getCaseId(),
+            DUE_DATE.value(), formattedDueDate
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);

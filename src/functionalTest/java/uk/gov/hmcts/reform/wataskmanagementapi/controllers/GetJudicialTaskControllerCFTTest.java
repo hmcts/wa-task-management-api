@@ -20,13 +20,13 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 
 public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTest {
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
@@ -100,11 +100,11 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), taskType,
             TASK_NAME.value(), taskName,
-            TASK_TITLE.value(), "A test task",
-            TASK_CASE_ID.value(), taskVariables.getCaseId(),
-            TASK_CREATED.value(), formattedCreatedDate,
-            TASK_DUE_DATE.value(), formattedDueDate,
-            TASK_ROLE_CATEGORY.value(), "JUDICIAL"
+            TITLE.value(), "A test task",
+            CASE_ID.value(), taskVariables.getCaseId(),
+            CREATED.value(), formattedCreatedDate,
+            DUE_DATE.value(), formattedDueDate,
+            ROLE_CATEGORY.value(), "JUDICIAL"
         );
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);

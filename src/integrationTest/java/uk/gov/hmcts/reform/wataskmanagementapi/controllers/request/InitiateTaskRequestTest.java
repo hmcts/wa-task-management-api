@@ -8,10 +8,10 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 
 class InitiateTaskRequestTest extends SpringBootIntegrationBaseTest {
 
@@ -21,7 +21,7 @@ class InitiateTaskRequestTest extends SpringBootIntegrationBaseTest {
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "aTaskType",
             TASK_NAME.value(), "aTaskName",
-            TASK_CASE_ID.value(), "1634748573864804",
+            CASE_ID.value(), "1634748573864804",
             TASK_TITLE.value(), "A test task"
         );
 

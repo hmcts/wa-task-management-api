@@ -21,6 +21,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
@@ -94,7 +96,7 @@ public class TaskManagementService {
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final ConfigureTaskService configureTaskService;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
-    private final TaskReconfigurationService taskReconfigurationService;
+    private final List<TaskOperationService> taskOperationServices;
     private final RoleAssignmentVerificationService roleAssignmentVerification;
 
     @PersistenceContext
@@ -111,7 +113,7 @@ public class TaskManagementService {
                                  ConfigureTaskService configureTaskService,
                                  TaskAutoAssignmentService taskAutoAssignmentService,
                                  RoleAssignmentVerificationService roleAssignmentVerification,
-                                 TaskReconfigurationService taskReconfigurationService,
+                                 List<TaskOperationService> taskOperationServices,
                                  EntityManager entityManager,
                                  AllowedJurisdictionConfiguration allowedJurisdictionConfiguration) {
         this.camundaService = camundaService;
@@ -121,7 +123,7 @@ public class TaskManagementService {
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
-        this.taskReconfigurationService = taskReconfigurationService;
+        this.taskOperationServices = taskOperationServices;
         this.roleAssignmentVerification = roleAssignmentVerification;
         this.entityManager = entityManager;
         this.allowedJurisdictionConfiguration = allowedJurisdictionConfiguration;
@@ -764,11 +766,10 @@ public class TaskManagementService {
     }
 
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
-
-        if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.MARK_TO_RECONFIGURE)) {
-            return taskReconfigurationService.markTasksToReconfigure(taskOperationRequest.getTaskFilter());
-        }
-        return List.of();
+        return taskOperationServices.stream()
+            .flatMap(taskOperationService -> taskOperationService.performOperation(taskOperationRequest).stream())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -785,7 +786,7 @@ public class TaskManagementService {
         if (dueDate == null) {
             Violation violation = new Violation(
                 DUE_DATE.value(),
-                "Each task to initiate must contain task_due_date field present and populated."
+                "Each task to initiate must contain dueDate field present and populated."
             );
             throw new CustomConstraintViolationException(singletonList(violation));
         }

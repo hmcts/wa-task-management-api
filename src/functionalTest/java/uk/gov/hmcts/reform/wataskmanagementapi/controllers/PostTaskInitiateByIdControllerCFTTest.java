@@ -22,13 +22,13 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 
 public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
@@ -63,10 +63,10 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             Map.of(
                 TASK_TYPE.value(), "reviewHearingBundle",
                 TASK_NAME.value(), "review Hearing Bundle",
-                TASK_TITLE.value(), "review Hearing Bundle",
-                TASK_CREATED.value(), formattedCreatedDate,
-                TASK_CASE_ID.value(), taskVariables.getCaseId(),
-                TASK_DUE_DATE.value(), formattedDueDate
+                TITLE.value(), "review Hearing Bundle",
+                CREATED.value(), formattedCreatedDate,
+                CASE_ID.value(), taskVariables.getCaseId(),
+                DUE_DATE.value(), formattedDueDate
             )
         );
 
@@ -214,12 +214,12 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         InitiateTaskRequest req = new InitiateTaskRequest(
             INITIATION,
             Map.of(
-                TASK_TYPE.value(), "reviewHearingBundle",
-                TASK_NAME.value(), "review Hearing Bundle",
-                TASK_TITLE.value(), "review Hearing Bundle",
-                TASK_CREATED.value(), formattedCreatedDate,
-                TASK_CASE_ID.value(), taskVariables.getCaseId(),
-                TASK_DUE_DATE.value(), formattedDueDate
+                TASK_TYPE.value(), "allocateHearingJudge",
+                TASK_NAME.value(), "allocate Hearing Judge",
+                TITLE.value(), "allocate Hearing Judge",
+                CREATED.value(), formattedCreatedDate,
+                CASE_ID.value(), taskVariables.getCaseId(),
+                DUE_DATE.value(), formattedDueDate
             )
         );
 
@@ -337,10 +337,10 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             Map.of(
                 TASK_TYPE.value(), "arrangeOfflinePayment",
                 TASK_NAME.value(), "arrange Offline Payment",
-                TASK_TITLE.value(), "arrange Offline Payment",
-                TASK_CREATED.value(), formattedCreatedDate,
-                TASK_CASE_ID.value(), taskVariables.getCaseId(),
-                TASK_DUE_DATE.value(), formattedDueDate
+                TITLE.value(), "arrange Offline Payment",
+                CREATED.value(), formattedCreatedDate,
+                CASE_ID.value(), taskVariables.getCaseId(),
+                DUE_DATE.value(), formattedDueDate
             )
         );
 
@@ -425,10 +425,10 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             Map.of(
                 TASK_TYPE.value(), "aTaskType",
                 TASK_NAME.value(), "aTaskName",
-                TASK_TITLE.value(), "A test task",
-                TASK_CREATED.value(), formattedCreatedDate,
-                TASK_CASE_ID.value(), taskVariables.getCaseId(),
-                TASK_DUE_DATE.value(), formattedDueDate
+                TITLE.value(), "A test task",
+                CREATED.value(), formattedCreatedDate,
+                CASE_ID.value(), taskVariables.getCaseId(),
+                DUE_DATE.value(), formattedDueDate
             )
         );
 
@@ -512,11 +512,11 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
                 TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-                TASK_HAS_WARNINGS.value(), true,
-                TASK_TITLE.value(), "A test task",
-                TASK_CREATED.value(), formattedCreatedDate,
-                TASK_CASE_ID.value(), taskVariables.getCaseId(),
-                TASK_DUE_DATE.value(), formattedDueDate
+                HAS_WARNINGS.value(), true,
+                TITLE.value(), "A test task",
+                CREATED.value(), formattedCreatedDate,
+                CASE_ID.value(), taskVariables.getCaseId(),
+                DUE_DATE.value(), formattedDueDate
             )
         );
 
@@ -569,10 +569,10 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
                 TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-                TASK_HAS_WARNINGS.value(), true,
-                TASK_TITLE.value(), "A test task",
-                TASK_CREATED.value(), formattedCreatedDate,
-                TASK_CASE_ID.value(), taskVariables.getCaseId()
+                HAS_WARNINGS.value(), true,
+                TITLE.value(), "A test task",
+                CREATED.value(), formattedCreatedDate,
+                CASE_ID.value(), taskVariables.getCaseId()
             )
         );
         //First call
@@ -590,9 +590,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"))
             .body("title", equalTo("Constraint Violation"))
             .body("status", equalTo(400))
-            .body("violations[0].field", equalTo("task_due_date"))
+            .body("violations[0].field", equalTo("dueDate"))
             .body("violations[0].message",
-                equalTo("Each task to initiate must contain task_due_date field present and populated."));
+                equalTo("Each task to initiate must contain dueDate field present and populated."));
     }
 
     @Test
@@ -612,9 +612,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
                 TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-                TASK_TITLE.value(), "A test task",
-                TASK_CREATED.value(), formattedCreatedDate,
-                TASK_DUE_DATE.value(), formattedDueDate
+                TITLE.value(), "A test task",
+                CREATED.value(), formattedCreatedDate,
+                DUE_DATE.value(), formattedDueDate
             )
         );
 
@@ -647,10 +647,10 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
                 TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-                TASK_CASE_ID.value(), "someInvalidCaseID",
-                TASK_TITLE.value(), "A test task",
-                TASK_CREATED.value(), formattedCreatedDate,
-                TASK_DUE_DATE.value(), formattedDueDate
+                CASE_ID.value(), "someInvalidCaseID",
+                TITLE.value(), "A test task",
+                CREATED.value(), formattedCreatedDate,
+                DUE_DATE.value(), formattedDueDate
             )
         );
         Response result = restApiActions.post(
@@ -680,10 +680,10 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
                 TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-                TASK_CASE_ID.value(), taskVariables.getCaseId(),
-                TASK_TITLE.value(), "A test task",
-                TASK_CREATED.value(), formattedCreatedDate,
-                TASK_DUE_DATE.value(), formattedDueDate
+                CASE_ID.value(), taskVariables.getCaseId(),
+                TITLE.value(), "A test task",
+                CREATED.value(), formattedCreatedDate,
+                DUE_DATE.value(), formattedDueDate
             )
         );
         Response result = restApiActions.post(
