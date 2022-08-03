@@ -209,7 +209,7 @@ public class CFTTaskMapper {
     public <T> T readDate(Map<CamundaVariableDefinition, Object> attributesMap,
                           CamundaVariableDefinition extractor,
                           Object defaultValue) {
-        Optional<Object> maybeValue = Optional.ofNullable(attributesMap.get(extractor));
+        Optional<T> maybeValue = map(attributesMap, extractor);
         if (maybeValue.isPresent()) {
             return (T) OffsetDateTime.parse((String) maybeValue.get(), CAMUNDA_DATA_TIME_FORMATTER);
         } else {
