@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
@@ -165,6 +166,24 @@ public class CFTTaskMapper {
         //Update Task Resource with configuration variables
         taskConfigurationResults.getProcessVariables()
             .forEach((key, value) -> mapVariableToTaskResourceProperty(taskResource, key, value));
+
+        List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
+        taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
+        return taskResource;
+    }
+
+    public TaskResource reMapConfigurationAttributes(TaskResource taskResource,
+                                                   TaskConfigurationResults taskConfigurationResults) {
+
+        List<ConfigurationDmnEvaluationResponse> configurations = taskConfigurationResults
+            .getConfigurationDmnResponse();
+        configurations.forEach(response -> reMapVariableToTaskResourceProperty(
+            taskResource,
+            response.getName().getValue(),
+            response.getValue().getValue(),
+            response.getCanReconfigure() != null && response.getCanReconfigure().getValue()
+            )
+        );
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
         taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
@@ -493,6 +512,80 @@ public class CFTTaskMapper {
                         taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
                     } else {
                         taskResource.setPriorityDate((OffsetDateTime) value);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void reMapVariableToTaskResourceProperty(TaskResource taskResource,
+                                                     String key,
+                                                     Object value,
+                                                     boolean canReconfigure) {
+        Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
+        if (enumKey.isPresent() & canReconfigure) {
+            switch (enumKey.get()) {
+                case CASE_NAME:
+                    taskResource.setCaseName((String) value);
+                    break;
+                case REGION:
+                    taskResource.setRegion((String) value);
+                    break;
+                case LOCATION:
+                    taskResource.setLocation((String) value);
+                    break;
+                case LOCATION_NAME:
+                    taskResource.setLocationName((String) value);
+                    break;
+                case CASE_MANAGEMENT_CATEGORY:
+                    taskResource.setCaseCategory((String) value);
+                    break;
+                case WORK_TYPE:
+                    WorkTypeResource workTypeResource = new WorkTypeResource((String) value, StringUtils.EMPTY);
+                    taskResource.setWorkTypeResource(workTypeResource);
+                    break;
+                case ROLE_CATEGORY:
+                    taskResource.setRoleCategory((String) value);
+                    break;
+                case DESCRIPTION:
+                    taskResource.setDescription((String) value);
+                    break;
+                case ADDITIONAL_PROPERTIES:
+                    Map<String, String> additionalProperties = extractAdditionalProperties(value);
+                    taskResource.setAdditionalProperties(additionalProperties);
+                    break;
+                case PRIORITY_DATE:
+                    if (value instanceof String) {
+                        taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
+                    } else {
+                        taskResource.setPriorityDate((OffsetDateTime) value);
+                    }
+                    break;
+                case MINOR_PRIORITY:
+                    if (value instanceof String) {
+                        taskResource.setMinorPriority(Integer.parseInt((String) value));
+                    } else {
+                        taskResource.setMinorPriority((Integer) value);
+                    }
+
+                    break;
+                case MAJOR_PRIORITY:
+                    if (value instanceof String) {
+                        taskResource.setMajorPriority(Integer.parseInt((String) value));
+                    } else {
+                        taskResource.setMajorPriority((Integer) value);
+                    }
+                    break;
+                case NEXT_HEARING_ID:
+                    if (value != null && Strings.isNotBlank((String) value)) {
+                        taskResource.setNextHearingId((String) value);
+                    }
+                    break;
+                case NEXT_HEARING_DATE:
+                    if (value != null && Strings.isNotBlank((String) value)) {
+                        taskResource.setNextHearingDate(ZonedDateTime.parse((String) value).toOffsetDateTime());
                     }
                     break;
                 default:

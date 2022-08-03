@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.confi
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
@@ -21,11 +22,16 @@ class CaseRelatedVariablesConfiguratorTest {
 
     private CaseConfigurationProviderService caseConfigurationProviderService;
     private CaseRelatedVariablesConfigurator caseRelatedVariablesConfigurator;
+    private CFTTaskMapper cftTaskMapper;
 
     @BeforeEach
     void setUp() {
         caseConfigurationProviderService = mock(CaseConfigurationProviderService.class);
-        caseRelatedVariablesConfigurator = new CaseRelatedVariablesConfigurator(caseConfigurationProviderService);
+        cftTaskMapper = mock(CFTTaskMapper.class);
+        caseRelatedVariablesConfigurator = new CaseRelatedVariablesConfigurator(
+            caseConfigurationProviderService,
+            cftTaskMapper
+        );
     }
 
     @Test

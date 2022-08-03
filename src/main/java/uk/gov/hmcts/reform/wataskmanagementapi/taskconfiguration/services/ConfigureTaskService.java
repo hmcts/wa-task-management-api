@@ -113,6 +113,11 @@ public class ConfigureTaskService {
         return cftTaskMapper.mapConfigurationAttributes(skeletonMappedTask, configurationVariables);
     }
 
+    public TaskResource reconfigureCFTTask(TaskResource taskResource) {
+        TaskConfigurationResults configurationVariables = getConfigurationResults(taskResource);
+        return cftTaskMapper.reMapConfigurationAttributes(taskResource, configurationVariables);
+    }
+
     private Map<String, CamundaValue<String>> convertToCamundaFormat(Map<String, Object> configurationVariables) {
         return configurationVariables.entrySet().stream()
             .collect(toMap(
@@ -122,6 +127,17 @@ public class ConfigureTaskService {
     }
 
     private TaskConfigurationResults getConfigurationResults(TaskToConfigure task) {
+        TaskConfigurationResults configurationResults = new TaskConfigurationResults(new ConcurrentHashMap<>());
+
+        //loop through all task configurators in order and add results to configurationResults
+        taskConfigurators.stream()
+            .map(configurator -> configurator.getConfigurationVariables(task))
+            .forEach(result -> combineResults(result, configurationResults));
+
+        return configurationResults;
+    }
+
+    private TaskConfigurationResults getConfigurationResults(TaskResource task) {
         TaskConfigurationResults configurationResults = new TaskConfigurationResults(new ConcurrentHashMap<>());
 
         //loop through all task configurators in order and add results to configurationResults
