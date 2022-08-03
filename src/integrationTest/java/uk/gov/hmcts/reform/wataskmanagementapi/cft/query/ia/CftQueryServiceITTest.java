@@ -42,10 +42,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 
@@ -139,15 +141,17 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 scenario.expectedTaskDetails.toArray()
             );
 
-
         //then
         if (scenario.expectedDueDates != null) {
-            Assertions.assertThat(allTasks.getTasks())
-                .hasSize(scenario.expectedAmountOfTasksInResponse)
-                .flatExtracting(Task::getDueDate)
-                .containsExactly(
-                    scenario.expectedDueDates.toArray()
-                );
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy - HH:mm:ss");
+
+            List<String> expectedDates = scenario.expectedDueDates.stream().map(t -> t.format(formatter)).collect(
+                Collectors.toList());
+
+            List<String> actualDates = allTasks.getTasks().stream().map(t -> t.getDueDate().format(formatter)).collect(
+                Collectors.toList());
+
+            Assertions.assertThat(actualDates.toArray()).contains(expectedDates.toArray());
         }
     }
 
