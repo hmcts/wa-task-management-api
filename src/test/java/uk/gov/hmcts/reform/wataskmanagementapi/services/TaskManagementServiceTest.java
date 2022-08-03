@@ -9,7 +9,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -120,6 +122,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.REFER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
@@ -192,7 +195,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
     private Join<Object, Object> taskRoleResources;
     @Mock
     private TypedQuery<TaskResource> query;
-
+    @Captor
+    private ArgumentCaptor<TaskResource> taskResourceCaptor;
 
     @Test
     void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
@@ -1411,11 +1415,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
             verify(camundaServiceApi, never()).bpmnEscalation(any(), anyString(), anyMap());
             verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
 
-            taskResource.setState(CFTTaskState.TERMINATED);
-            verify(cftTaskDatabaseService)
-                .saveTask(
-                    eq(taskResource)
-                );
+            verify(cftTaskDatabaseService).saveTask(taskResourceCaptor.capture());
+
+            TaskResource expectedTaskResource = taskResource;
+            expectedTaskResource.setState(TERMINATED);
+            
+            TaskResource savedTaskResource = taskResourceCaptor.getValue();
+
+            assertEquals(expectedTaskResource, savedTaskResource);
         }
 
 
@@ -2817,7 +2824,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
                 taskManagementService.terminateTask(taskId, terminateInfo);
 
-                assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
+                assertEquals(TERMINATED, taskResource.getState());
                 assertEquals("completed", taskResource.getTerminationReason());
                 verify(camundaService, times(1)).deleteCftTaskState(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
@@ -2854,7 +2861,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
                 taskManagementService.terminateTask(taskId, terminateInfo);
 
-                assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
+                assertEquals(TERMINATED, taskResource.getState());
                 assertEquals("cancelled", taskResource.getTerminationReason());
                 verify(camundaService, times(1)).deleteCftTaskState(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
@@ -2891,7 +2898,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
                 taskManagementService.terminateTask(taskId, terminateInfo);
 
-                assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
+                assertEquals(TERMINATED, taskResource.getState());
                 assertEquals("deleted", taskResource.getTerminationReason());
                 verify(camundaService, times(1)).deleteCftTaskState(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);

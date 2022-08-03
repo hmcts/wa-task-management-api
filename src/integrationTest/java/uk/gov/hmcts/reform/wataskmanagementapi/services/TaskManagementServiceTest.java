@@ -6,6 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -64,7 +66,6 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
@@ -275,8 +276,17 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
         }
 
-        @Test
-        void should_set_task_state_terminated_when_camunda_api_throws_an_exception_and_cft_task_state_is_assigned() {
+        @ParameterizedTest(name = "{0}")
+        @CsvSource(value = {
+            "ASSIGNED",
+            "UNASSIGNED",
+            "COMPLETED",
+            "CANCELLED"
+        })
+        void should_set_task_state_terminated_when_camunda_api_throws_an_exception_and_cft_task_state_is_not_terminated(
+            String state) {
+
+            CFTTaskState cftTaskState = CFTTaskState.valueOf(state);
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
@@ -301,14 +311,14 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 taskId,
                 "taskName",
                 "taskType",
-                ASSIGNED,
+                cftTaskState,
                 OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
             ));
 
             when(cftQueryService.getTask(any(), any(), any()))
                 .thenReturn(taskResource);
 
-            createAndSaveTestTask(taskId, ASSIGNED);
+            createAndSaveTestTask(taskId, cftTaskState);
 
             transactionHelper.doInNewTransaction(
                 () -> taskManagementService.cancelTask(taskId, accessControlResponse)
