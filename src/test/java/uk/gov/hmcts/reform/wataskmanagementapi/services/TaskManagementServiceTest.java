@@ -351,7 +351,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     }
 
     private TaskOperationRequest taskOperationRequest() {
-        TaskOperation operation = new TaskOperation(TaskOperationName.MARK_TO_RECONFIGURE, "run_id1");
+        TaskOperation operation = new TaskOperation(TaskOperationName.MARK_TO_RECONFIGURE, "run_id1", 2,120);
         return new TaskOperationRequest(operation, taskFilters());
     }
 
