@@ -164,7 +164,7 @@ jacocoTestReport {
 }
 
 pitest {
-  junit5PluginVersion = '0.12'
+  junit5PluginVersion = '0.16'
   targetClasses = ['uk.gov.hmcts.reform.wataskmanagementapi.*']
   excludedClasses = [
     'uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.config.*',
@@ -256,13 +256,13 @@ repositories {
 }
 
 def versions = [
-  junit         : '5.7.2',
-  junitPlatform : '1.7.2',
+  junit         : '5.8.2',
+  junitPlatform : '1.8.2',
   reformLogging : '5.1.9',
   springDoc     : '1.6.6',
   serenity      : '3.1.20',
-  gradlePitest  : '1.5.1',
-  pitest        : '1.5.2',
+  gradlePitest  : '1.7.4',
+  pitest        : '1.9.3',
   sonarPitest   : '0.5',
   pactVersion   : '4.3.4',
   logbook       : '2.6.2',
@@ -307,14 +307,14 @@ dependencies {
   implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.6.5.Final'
   implementation group: 'org.hibernate', name: 'hibernate-validator', version: '7.0.4.Final'
 
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.1'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.17.2'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.18.0'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.18.0'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.64'
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.64'
 
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.2'
-  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.7.5'
+  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.8.5'
 
   implementation group: 'com.auth0', name: 'java-jwt', version: '3.11.0'
 
@@ -323,7 +323,7 @@ dependencies {
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.0'
   implementation group: 'org.postgresql', name: 'postgresql', version: '42.3.3'
   // required to convert postgres to hibernate types
-  implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.14.0'
+  implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.17.1'
 
   //cache
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.0.4'
@@ -345,7 +345,7 @@ dependencies {
   testImplementation group: 'com.github.hmcts', name: 'document-management-client', version: '7.0.1'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
-  testImplementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: '1.6.0'
+  testImplementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: versions.gradlePitest
   testImplementation group: 'org.codehaus.sonar-plugins', name: 'sonar-pitest-plugin', version: '0.5'
 
   testImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
@@ -356,7 +356,7 @@ dependencies {
 
   testImplementation group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
   testImplementation group: 'com.github.hmcts', name: 'fortify-client', version: '1.2.1'
-  testImplementation group: 'com.google.guava', name: 'guava-testlib', version: '30.1-jre'
+  testImplementation group: 'com.google.guava', name: 'guava-testlib', version: '31.1-jre'
   //Pact contract testing
   contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pactVersion
   contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit', version: versions.pactVersion

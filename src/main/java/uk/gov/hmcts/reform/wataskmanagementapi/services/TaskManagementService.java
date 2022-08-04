@@ -39,6 +39,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictExc
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
@@ -377,11 +378,41 @@ public class TaskManagementService {
         if (isRelease2EndpointsFeatureEnabled) {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
+            CFTTaskState previousTaskState = task.getState();
             task.setState(CFTTaskState.CANCELLED);
-            //Perform Camunda updates
-            camundaService.cancelTask(taskId);
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
+
+            boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
+
+            log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
+                taskId, previousTaskState, isCftTaskStateExist);
+
+            try {
+                //Perform Camunda updates
+                camundaService.cancelTask(taskId);
+                log.info("{} cancelled in camunda", taskId);
+                //Commit transaction
+                cftTaskDatabaseService.saveTask(task);
+                log.info("{} cancelled in CFT", taskId);
+            } catch (TaskCancelException ex) {
+                if (isCftTaskStateExist) {
+                    log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda.Exception: {}",
+                        taskId, ex.getMessage());
+                    throw ex;
+                }
+
+                if (!CFTTaskState.TERMINATED.equals(previousTaskState)) {
+                    task.setState(CFTTaskState.TERMINATED);
+                    cftTaskDatabaseService.saveTask(task);
+                    log.info("{} setting CFTTaskState to TERMINATED. previousTaskState : {} ",
+                        taskId, previousTaskState);
+                    return;
+                }
+
+                log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
+                         + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
+                throw ex;
+            }
+
         } else {
             camundaService.cancelTask(taskId);
         }
