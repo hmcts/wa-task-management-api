@@ -47,6 +47,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -692,7 +693,7 @@ public class TaskManagementService {
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
         lockTaskId(taskId, dueDate);
-        return initiateTaskProcess(taskId, initiateTaskRequest);
+        return initiateTaskProcess(taskId, initiateTaskRequest, dueDate);
     }
 
     @Transactional
@@ -791,10 +792,14 @@ public class TaskManagementService {
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")
-    private TaskResource initiateTaskProcess(String taskId, InitiateTaskRequest initiateTaskRequest) {
+    private TaskResource initiateTaskProcess(String taskId,
+                                             InitiateTaskRequest initiateTaskRequest,
+                                             OffsetDateTime dueDate) {
         try {
             TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
-            taskResource = configureTask(taskResource, initiateTaskRequest.getTaskAttributes());
+            Map<String, Object> taskAttributes = new HashMap<>(initiateTaskRequest.getTaskAttributes());
+            taskAttributes.put(DUE_DATE.value(), dueDate.toString());
+            taskResource = configureTask(taskResource, taskAttributes);
             boolean isOldAssigneeValid = false;
 
             if (taskResource.getAssignee() != null) {

@@ -87,7 +87,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            ASSIGNEE.value(), "follow Up Overdue Reasons For Appeal",
+            TITLE.value(), "follow Up Overdue Reasons For Appeal",
             TASK_NAME.value(), "aTaskName",
             CREATED.value(), formattedCreatedDate,
             CASE_ID.value(), taskVariables.getCaseId(),
