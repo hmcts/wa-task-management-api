@@ -26,8 +26,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Termi
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
@@ -37,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictExc
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
@@ -372,11 +373,44 @@ public class TaskManagementService {
         if (isRelease2EndpointsFeatureEnabled) {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
+            CFTTaskState previousTaskState = task.getState();
             task.setState(CFTTaskState.CANCELLED);
-            //Perform Camunda updates
-            camundaService.cancelTask(taskId);
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
+
+            boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
+
+            log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
+                     taskId, previousTaskState, isCftTaskStateExist
+            );
+
+            try {
+                //Perform Camunda updates
+                camundaService.cancelTask(taskId);
+                log.info("{} cancelled in camunda", taskId);
+                //Commit transaction
+                cftTaskDatabaseService.saveTask(task);
+                log.info("{} cancelled in CFT", taskId);
+            } catch (TaskCancelException ex) {
+                if (isCftTaskStateExist) {
+                    log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda.Exception: {}",
+                             taskId, ex.getMessage()
+                    );
+                    throw ex;
+                }
+
+                if (!CFTTaskState.TERMINATED.equals(previousTaskState)) {
+                    task.setState(CFTTaskState.TERMINATED);
+                    cftTaskDatabaseService.saveTask(task);
+                    log.info("{} setting CFTTaskState to TERMINATED. previousTaskState : {} ",
+                             taskId, previousTaskState
+                    );
+                    return;
+                }
+
+                log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
+                             + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
+                throw ex;
+            }
+
         } else {
             camundaService.cancelTask(taskId);
         }
@@ -778,8 +812,13 @@ public class TaskManagementService {
      * @return the due date
      */
     private OffsetDateTime extractDueDate(Map<String, Object> taskAttributes) {
-
-        Object dueDate = taskAttributes.get(DUE_DATE.value());
+        Map<CamundaVariableDefinition, Object> attributes = taskAttributes.entrySet().stream()
+            .filter(key -> CamundaVariableDefinition.from(key.getKey()).isPresent())
+            .collect(Collectors.toMap(
+                key -> CamundaVariableDefinition.from(key.getKey()).get(),
+                Map.Entry::getValue
+            ));
+        OffsetDateTime dueDate = cftTaskMapper.readDate(attributes, DUE_DATE, null);
 
         if (dueDate == null) {
             Violation violation = new Violation(
@@ -788,7 +827,7 @@ public class TaskManagementService {
             );
             throw new CustomConstraintViolationException(singletonList(violation));
         }
-        return OffsetDateTime.parse((String) dueDate, CamundaTime.CAMUNDA_DATA_TIME_FORMATTER);
+        return dueDate;
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")

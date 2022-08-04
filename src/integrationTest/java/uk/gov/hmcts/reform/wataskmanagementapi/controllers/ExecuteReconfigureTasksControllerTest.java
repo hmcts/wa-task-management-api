@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -58,9 +57,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @SuppressWarnings("checkstyle:LineLength")
 class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTest {
 
-    public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
-    public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
-    public static final String SOME_ASSIGNEE = "someAssignee";
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     OffsetDateTime createdDate = OffsetDateTime.now();
     OffsetDateTime dueDate = createdDate.plusDays(1);
@@ -109,21 +105,34 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     @Test
     void should_successfully_mark_to_configure_and_then_execute_reconfigure_on_task() throws Exception {
 
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, "caseId101");
+        String caseIdToday = "caseId" + OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday);
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters("caseId101"))))
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
 
-        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId101");
+        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
         taskResources.forEach(task -> {
             assertNotNull(task.getReconfigureRequestTime());
             assertTrue(LocalDate.now().equals(task.getReconfigureRequestTime().toLocalDate()));
         });
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(EXECUTE_RECONFIGURE,
+                                                           executeTaskFilters(OffsetDateTime.now().plusDays(1)))))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -135,7 +144,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             status().is(HttpStatus.NO_CONTENT.value())
         );
 
-        taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId101");
+        taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
         taskResources.forEach(task -> {
             assertNotNull(task.getLastReconfigurationTime());
             assertNull(task.getReconfigureRequestTime());
@@ -144,20 +154,24 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         });
     }
 
-    @Ignore
+    @Test
     void should_not_execute_reconfigure_for_past_reconfigure_request_time() throws Exception {
 
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, "caseId105");
+        String caseIdToday = "caseId" + OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday);
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters("caseId105"))))
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
 
-        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId105");
+        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
         taskResources.forEach(task -> {
             assertNotNull(task.getReconfigureRequestTime());
             assertTrue(LocalDate.now().equals(task.getReconfigureRequestTime().toLocalDate()));
@@ -173,7 +187,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             status().is(HttpStatus.NO_CONTENT.value())
         );
 
-        taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId105");
+        taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
         taskResources.forEach(task -> {
             assertNull(task.getLastReconfigurationTime());
             assertNotNull(task.getReconfigureRequestTime());
@@ -181,7 +196,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, List<TaskFilter<?>> taskFilters) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString());
+        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 2, 120);
         return new TaskOperationRequest(operation, taskFilters);
     }
 
@@ -192,7 +207,9 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     }
 
     private List<TaskFilter<?>> markTaskFilters(String caseId) {
-        TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter("case_id", List.of(caseId), TaskFilterOperator.IN);
+        TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter(
+            "case_id", List.of(caseId), TaskFilterOperator.IN
+        );
         return List.of(filter);
     }
 

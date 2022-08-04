@@ -208,12 +208,9 @@ public class CFTTaskMapper {
     public <T> T readDate(Map<CamundaVariableDefinition, Object> attributesMap,
                           CamundaVariableDefinition extractor,
                           Object defaultValue) {
-        Optional<T> maybeValue = map(attributesMap, extractor);
-        if (maybeValue.isPresent()) {
-            return (T) OffsetDateTime.parse((String) maybeValue.get(), CAMUNDA_DATA_TIME_FORMATTER);
-        } else {
-            return (T) defaultValue;
-        }
+        return this.<T>map(attributesMap, extractor)
+            .map(t -> (T) ZonedDateTime.parse((String) t, CAMUNDA_DATA_TIME_FORMATTER).toOffsetDateTime())
+            .orElseGet(() -> (T) defaultValue);
     }
 
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
