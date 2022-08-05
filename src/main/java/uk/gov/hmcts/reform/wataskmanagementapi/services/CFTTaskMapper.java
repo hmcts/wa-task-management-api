@@ -520,7 +520,7 @@ public class CFTTaskMapper {
         }
     }
 
-    private void reconfigureTaskAttribute(TaskResource taskResource,
+    protected void reconfigureTaskAttribute(TaskResource taskResource,
                                           String key,
                                           Object value,
                                           boolean canReconfigure) {
@@ -584,8 +584,10 @@ public class CFTTaskMapper {
                     }
                     break;
                 case NEXT_HEARING_DATE:
-                    if (value != null && Strings.isNotBlank((String) value)) {
-                        taskResource.setNextHearingDate(ZonedDateTime.parse((String) value).toOffsetDateTime());
+                    if (value instanceof String) {
+                        taskResource.setNextHearingDate(OffsetDateTime.parse((String) value));
+                    } else {
+                        taskResource.setNextHearingDate((OffsetDateTime) value);
                     }
                     break;
                 default:

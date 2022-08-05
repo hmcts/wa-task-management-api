@@ -1820,6 +1820,58 @@ class CFTTaskMapperTest {
         assertEquals(taskResource.getNextHearingDate(), reconfiguredTaskResource.getNextHearingDate());
     }
 
+    @Test
+    void can_not_reconfigure_a_task_with_data_from_configuration_DMN_when_canReconfigure_null() {
+
+        TaskResource taskResource = createTaskResource();
+
+        Boolean canReconfigure = null;
+        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
+            configurationDmnResponse(canReconfigure), permissionsResponse());
+
+        TaskResource reconfiguredTaskResource = cftTaskMapper
+            .reconfigureTaskResourceFromDmnResults(taskResource, results);
+        assertEquals(taskResource.getTitle(), reconfiguredTaskResource.getTitle());
+        assertEquals(taskResource.getDescription(), reconfiguredTaskResource.getDescription());
+        assertEquals(taskResource.getCaseName(), reconfiguredTaskResource.getCaseName());
+        assertEquals(taskResource.getRegion(), reconfiguredTaskResource.getRegion());
+        assertEquals(taskResource.getLocation(), reconfiguredTaskResource.getLocation());
+        assertEquals(taskResource.getLocationName(), reconfiguredTaskResource.getLocationName());
+        assertEquals(taskResource.getCaseCategory(), reconfiguredTaskResource.getCaseCategory());
+        assertEquals(taskResource.getWorkTypeResource().getId(),
+            reconfiguredTaskResource.getWorkTypeResource().getId());
+        assertEquals(taskResource.getRoleCategory(), reconfiguredTaskResource.getRoleCategory());
+        assertEquals(taskResource.getPriorityDate(), reconfiguredTaskResource.getPriorityDate());
+        assertEquals(taskResource.getMinorPriority(), reconfiguredTaskResource.getMinorPriority());
+        assertEquals(taskResource.getMajorPriority(), reconfiguredTaskResource.getMajorPriority());
+        assertEquals(taskResource.getNextHearingId(), reconfiguredTaskResource.getNextHearingId());
+        assertEquals(taskResource.getNextHearingDate(), reconfiguredTaskResource.getNextHearingDate());
+    }
+
+    @Test
+    void reconfigure_config_attributes_dmn_fields() {
+        TaskResource taskResource = createTaskResource();
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"additionalProperties",
+            writeValueAsString(Map.of("roleAssignmentId", "1234567890")), true);
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"priorityDate",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), true);
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingDate",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), true);
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"minorPriority",
+            1, true);
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"majorPriority",
+            1, true);
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
+            null, true);
+        assertEquals(taskResource.getPriorityDate(),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+        assertEquals(1, taskResource.getMinorPriority());
+        assertEquals(1, taskResource.getMajorPriority());
+        assertEquals("nextHearingId", taskResource.getNextHearingId());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            taskResource.getNextHearingDate());
+    }
+
     private TaskResource createTaskResource() {
         return new TaskResource(
             "taskId",
