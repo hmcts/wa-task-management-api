@@ -136,7 +136,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //then
         Assertions.assertThat(allTasks.getTasks())
             .hasSize(scenario.expectedAmountOfTasksInResponse)
-            .flatExtracting(Task::getId, Task::getCaseId, Task::getCaseName, Task::getLocationName)
+            .flatExtracting(Task::getId, Task::getCaseId, Task::getCaseName, Task::getLocationName,
+                            Task::getTaskTitle, Task::getCaseCategory)
             .containsExactly(
                 scenario.expectedTaskDetails.toArray()
             );
@@ -227,7 +228,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
             .expectedTaskDetails(newArrayList(
-                        "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House"
+                        "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                        "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -240,7 +242,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -253,7 +256,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -361,8 +365,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -375,10 +381,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(4)
             .expectedTotalRecords(4)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -391,12 +401,18 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(6)
             .expectedTotalRecords(6)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -503,10 +519,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(4)
             .expectedTotalRecords(4)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111026", "1623278362431026", "TestCase", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111026", "1623278362431026",
+                    "TestCase", "Taylor House", "title", null
                 )
             ).build();
 
@@ -519,12 +539,18 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(6)
             .expectedTotalRecords(6)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111026", "1623278362431026", "TestCase", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111026", "1623278362431026",
+                    "TestCase", "Taylor House", "title", null
                 )
             ).build();
 
@@ -537,14 +563,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111026", "1623278362431026", "TestCase", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111026", "1623278362431026",
+                    "TestCase", "Taylor House", "title", null
                 )
             ).build();
 
@@ -621,8 +655,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020", "TestCase4", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020",
+                    "TestCase4", "Taylor House", "title", null
                 )
             ).build();
 
@@ -635,10 +671,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(4)
             .expectedTotalRecords(4)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020", "TestCase4", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020",
+                    "TestCase4", "Taylor House", "title", null
                 )
             ).build();
 
@@ -651,14 +691,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020", "TestCase4", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020",
+                    "TestCase4", "Taylor House", "title", null
                 )
             ).build();
 
@@ -733,9 +781,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(3)
             .expectedTotalRecords(3)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111026", "1623278362431026", "TestCase", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111026", "1623278362431026",
+                    "TestCase", "Taylor House", "title", null
                 )
             ).build();
 
@@ -748,11 +799,16 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(5)
             .expectedTotalRecords(5)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021","TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000","TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020","TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111026", "1623278362431026","TestCase", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111026", "1623278362431026",
+                    "TestCase", "Taylor House", "title", null
                 )
             ).build();
 
@@ -765,14 +821,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020", "TestCase4", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020",
+                    "TestCase4", "Taylor House", "title", null
                 )
             ).build();
 
@@ -799,7 +863,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023","TestCase2", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -812,8 +877,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -826,9 +893,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(3)
             .expectedTotalRecords(3)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -903,25 +973,25 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(14)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3",
-                    "Taylor House",
+                    "Taylor House", "title", null,
                     "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3",
-                    "Taylor House",
+                    "Taylor House", "title", null,
                     "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004", "TestCase2",
-                    "Taylor House",
+                    "Taylor House", "title", null,
                     "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2",
-                    "Taylor House",
+                    "Taylor House", "title", null,
                     "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2",
-                    "Taylor House",
+                    "Taylor House", "title", null,
                     "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2",
-                    "Taylor House",
+                    "Taylor House", "title", null,
                     "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007", "TestCase4",
-                    "Taylor House",
+                    "Taylor House", "title", null,
                     "8d6cc5cf-c973-11eb-bdba-0242ac111008", "1623278362431008", "TestCase4",
-                    "Taylor House",
+                    "Taylor House", "title", null,
                     "8d6cc5cf-c973-11eb-bdba-0242ac111009", "1623278362431009", "TestCase4",
-                    "Taylor House",
+                    "Taylor House", "title", null,
                     "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006", "TestCase",
-                    "Taylor House"
+                    "Taylor House", "title", null
             ))
             .expectedDueDates(newArrayList(ZonedDateTime.parse("2022-10-09T20:15:45.345875+01:00"),
                                            ZonedDateTime.parse("2022-10-09T20:15:45.345875+01:00"),
@@ -956,14 +1026,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
+                    "TestCase3", "Taylor House", "title", null
                 )
             ).build();
 
@@ -985,14 +1063,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021", "TestCase", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021",
+                    "TestCase", "Taylor House", "title", null
                 )
             ).build();
 
@@ -1017,26 +1103,46 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(20)
             .expectedTotalRecords(22)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111010", "1623278362431010", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111011", "1623278362431011", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111012", "1623278362431012", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111013", "1623278362431013", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111014", "1623278362431014", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111030", "1623278362431030", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111031", "1623278362431031", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111032", "1623278362431032", "TestCase4", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111010", "1623278362431010",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111011", "1623278362431011",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111012", "1623278362431012",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111013", "1623278362431013",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111014", "1623278362431014",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111030", "1623278362431030",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111031", "1623278362431031",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111032", "1623278362431032",
+                    "TestCase4", "Taylor House", "title", null
 
                 )
             ).build();
@@ -1050,16 +1156,26 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(10)
             .expectedTotalRecords(22)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111010", "1623278362431010", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111011", "1623278362431011", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111012", "1623278362431012", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111013", "1623278362431013", "TestCase4", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111010", "1623278362431010",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111011", "1623278362431011",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111012", "1623278362431012",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111013", "1623278362431013",
+                    "TestCase4", "Taylor House", "title", null
                 )
             ).build();
 
@@ -1072,8 +1188,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(22)
             .expectedTaskDetails(newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House", "title", null
                 )
             ).build();
 
@@ -1086,16 +1202,26 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(10)
             .expectedTotalRecords(22)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111010", "1623278362431010", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111011", "1623278362431011", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111012", "1623278362431012", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111013", "1623278362431013", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111014", "1623278362431014", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111010", "1623278362431010",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111011", "1623278362431011",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111012", "1623278362431012",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111013", "1623278362431013",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111014", "1623278362431014",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111020", "1623278362431020",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111021", "1623278362431021",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111022", "1623278362431022",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -1108,11 +1234,16 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(5)
             .expectedTotalRecords(22)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002", "TestCase6", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2", "Taylor House",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004", "TestCase2", "Taylor House"
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                    "TestCase4", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                    "TestCase", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                    "TestCase6", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -1140,21 +1271,21 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                                  "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
-                                 "TestCase4", "Taylor House",
+                                 "TestCase4", "Taylor House", "title", "Protection",
                                  "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
-                                 "TestCase4", "Taylor House",
+                                 "TestCase4", "Taylor House", "title", "Protection",
                                  "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
-                                 "TestCase4", "Taylor House",
+                                 "TestCase4", "Taylor House", "title", "appealType",
                                  "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
-                                 "TestCase4", "Taylor House",
+                                 "TestCase4", "Taylor House", "title", "Protection",
                                  "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
-                                 "TestCase4", "Taylor House",
+                                 "TestCase4", "Taylor House", "aaa", "Protection",
                                  "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
-                                 "TestCase1", "Cardiff Crown Court",
+                                 "TestCase1", "Cardiff Crown Court", "title", "Protection",
                                  "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
-                                 "TestCase4", "Taylor House",
+                                 "TestCase4", "Taylor House", "title", "Protection",
                                  "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
-                                 "TestCase4", "Taylor House"
+                                 "TestCase4", "Taylor House", "title", "Protection"
                                  )
             ).build();
 
@@ -1179,13 +1310,21 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1", "Cardiff Crown Court",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000", "TestCase4", "Taylor House",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001", "TestCase4", "Taylor House",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002", "TestCase4", "Taylor House",
+                "title", "appealType",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003", "TestCase4", "Taylor House",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004", "TestCase4", "Taylor House",
+                "aaa", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House")
+                "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House",
+                "title", "Protection")
             ).build();
 
         return Stream.of(
@@ -1209,13 +1348,21 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1", "Cardiff Crown Court",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000", "TestCase4", "Taylor House",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001", "TestCase4", "Taylor House",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002", "TestCase4", "Taylor House",
+                "title", "appealType",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003", "TestCase4", "Taylor House",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004", "TestCase4", "Taylor House",
+                "aaa", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House"
+                "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House",
+                "title", "Protection"
             )).build();
 
         return Stream.of(
@@ -1239,13 +1386,21 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000", "TestCase4", "Taylor House",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001", "TestCase4", "Taylor House",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002", "TestCase4", "Taylor House",
+                "title", "appealType",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003", "TestCase4", "Taylor House",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004", "TestCase4", "Taylor House",
+                "aaa", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006", "TestCase4", "Taylor House",
+                "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1", "Cardiff Crown Court"
+                "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1", "Cardiff Crown Court",
+                "title", "Protection"
             )).build();
 
         return Stream.of(
@@ -1269,21 +1424,21 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4",
-                "Taylor House",
+                "Taylor House", "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000", "TestCase4",
-                "Taylor House",
+                "Taylor House", "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001", "TestCase4",
-                "Taylor House",
+                "Taylor House", "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002", "TestCase4",
-                "Taylor House",
+                "Taylor House", "title", "appealType",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003", "TestCase4",
-                "Taylor House",
+                "Taylor House", "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004", "TestCase4",
-                "Taylor House",
+                "Taylor House", "aaa", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1",
-                "Cardiff Crown Court",
+                "Cardiff Crown Court", "title", "Protection",
                 "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006", "TestCase4",
-                "Taylor House"
+                "Taylor House", "title", "Protection"
             ))
             .expectedDueDates(newArrayList(ZonedDateTime.parse("2022-05-08T20:15:45.345875+01:00"),
                               ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
@@ -1315,14 +1470,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1", "Cardiff Crown Court",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000", "TestCase4", "Taylor House"
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "TestCase1", "Cardiff Crown Court", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "TestCase4", "Taylor House", "aaa", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "TestCase4", "Taylor House", "title", "appealType",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "TestCase4", "Taylor House", "title", "Protection"
             )).build();
 
         return Stream.of(
@@ -1345,14 +1508,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1", "Cardiff Crown Court",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House"
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "TestCase4", "Taylor House", "aaa", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "TestCase4", "Taylor House", "title", "appealType",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "TestCase1", "Cardiff Crown Court", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "TestCase4", "Taylor House", "title", "Protection"
             )).build();
 
         return Stream.of(
@@ -1375,14 +1546,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1", "Cardiff Crown Court",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004", "TestCase4", "Taylor House"
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "TestCase4", "Taylor House", "title", "appealType",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "TestCase1", "Cardiff Crown Court", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "TestCase4", "Taylor House", "aaa", "Protection"
             )).build();
 
         return Stream.of(
@@ -1405,14 +1584,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1", "Cardiff Crown Court",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House"
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "TestCase4", "Taylor House", "title", "appealType",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "TestCase4", "Taylor House", "aaa", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "TestCase1", "Cardiff Crown Court", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "TestCase4", "Taylor House", "title", "Protection"
             )).build();
 
         return Stream.of(
@@ -1435,14 +1622,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1", "Cardiff Crown Court",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002", "TestCase4", "Taylor House"
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "TestCase4", "Taylor House", "aaa", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "TestCase1", "Cardiff Crown Court", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "TestCase4", "Taylor House", "title", "appealType"
 
             )).build();
 
@@ -1466,14 +1661,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007", "TestCase4", "Taylor House",
-                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005", "TestCase1", "Cardiff Crown Court")
+                "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                "TestCase4", "Taylor House", "title", "appealType",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                "TestCase4", "Taylor House", "aaa", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                "TestCase4", "Taylor House", "title", "Protection",
+                "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                "TestCase1", "Cardiff Crown Court", "title", "Protection")
             ).build();
 
         return Stream.of(
