@@ -1821,13 +1821,12 @@ class CFTTaskMapperTest {
     }
 
     @Test
-    void can_not_reconfigure_a_task_with_data_from_configuration_DMN_when_canReconfigure_null() {
+    void cannot_reconfigure_a_task_with_data_from_configuration_DMN_when_can_reconfigure_is_null() {
 
         TaskResource taskResource = createTaskResource();
 
-        Boolean canReconfigure = null;
         TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-            configurationDmnResponse(canReconfigure), permissionsResponse());
+            configurationDmnResponseWithNullReconfigure(), permissionsResponse());
 
         TaskResource reconfiguredTaskResource = cftTaskMapper
             .reconfigureTaskResourceFromDmnResults(taskResource, results);
@@ -1967,6 +1966,41 @@ class CFTTaskMapperTest {
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
                 stringValue("2021-05-09T20:15:45.345875+01:00"),
                 booleanValue(canReconfigure))
+        );
+    }
+
+    private List<ConfigurationDmnEvaluationResponse> configurationDmnResponseWithNullReconfigure() {
+        return asList(
+            new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
+                booleanValue(false)),
+            new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"),
+                stringValue("2021-05-09T20:15:45.345875+01:00"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
+                stringValue("2021-05-09T20:15:45.345875+01:00"),
+                null)
         );
     }
 
