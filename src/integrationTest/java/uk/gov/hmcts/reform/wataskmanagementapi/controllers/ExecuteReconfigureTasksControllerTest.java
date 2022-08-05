@@ -74,7 +74,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
     private String taskId;
-    private TaskResource testTaskResource;
 
     @BeforeEach
     void setUp() {
@@ -91,10 +90,17 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 )
         ));
 
-        testTaskResource = new TaskResource(taskId, "someTaskName", "someTaskType", CFTTaskState.ASSIGNED, "caseId101", dueDate);
+        TaskResource testTaskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            CFTTaskState.ASSIGNED,
+            "caseId101",
+            dueDate
+        );
         testTaskResource.setCreated(OffsetDateTime.now());
 
-        when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
+        when(configureTaskService.reconfigureCFTTask(any(TaskResource.class)))
             .thenReturn(testTaskResource);
 
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any(TaskResource.class)))
