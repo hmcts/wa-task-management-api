@@ -199,7 +199,8 @@ class ReconfigureTaskServiceTest {
                 booleanValue(canReconfigure)),
             new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
                 booleanValue(canReconfigure)),
-            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"), stringValue("2021-05-09T20:15:45.345875+01:00"),
+            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"),
+                stringValue("2021-05-09T20:15:45.345875+01:00"),
                 booleanValue(canReconfigure)),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
                 booleanValue(canReconfigure)),
@@ -207,7 +208,8 @@ class ReconfigureTaskServiceTest {
                 booleanValue(canReconfigure)),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
                 booleanValue(canReconfigure)),
-            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"), stringValue("2021-05-09T20:15:45.345875+01:00"),
+            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
+                stringValue("2021-05-09T20:15:45.345875+01:00"),
                 booleanValue(canReconfigure))
         );
     }
