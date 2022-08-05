@@ -1801,7 +1801,8 @@ class CFTTaskMapperTest {
         TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
             configurationDmnResponse(false), permissionsResponse());
 
-        TaskResource reconfiguredTaskResource = cftTaskMapper.reconfigureTaskResourceFromDmnResults(taskResource, results);
+        TaskResource reconfiguredTaskResource = cftTaskMapper
+            .reconfigureTaskResourceFromDmnResults(taskResource, results);
         assertEquals(taskResource.getTitle(), reconfiguredTaskResource.getTitle());
         assertEquals(taskResource.getDescription(), reconfiguredTaskResource.getDescription());
         assertEquals(taskResource.getCaseName(), reconfiguredTaskResource.getCaseName());
@@ -1902,7 +1903,8 @@ class CFTTaskMapperTest {
                 booleanValue(canReconfigure)),
             new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
                 booleanValue(canReconfigure)),
-            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"), stringValue("2021-05-09T20:15:45.345875+01:00"),
+            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"),
+                stringValue("2021-05-09T20:15:45.345875+01:00"),
                 booleanValue(canReconfigure)),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
                 booleanValue(canReconfigure)),
@@ -1910,7 +1912,8 @@ class CFTTaskMapperTest {
                 booleanValue(canReconfigure)),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
                 booleanValue(canReconfigure)),
-            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"), stringValue("2021-05-09T20:15:45.345875+01:00"),
+            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
+                stringValue("2021-05-09T20:15:45.345875+01:00"),
                 booleanValue(canReconfigure))
         );
     }
