@@ -124,7 +124,7 @@ public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest 
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.FORBIDDEN.value()));
     }
 }
