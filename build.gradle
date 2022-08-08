@@ -236,7 +236,7 @@ dependencyManagement {
   dependencies {
     dependency group: 'commons-io', name: 'commons-io', version: '2.8.0'
 
-    dependencySet(group: 'org.seleniumhq.selenium', version: '4.2.2') {
+    dependencySet(group: 'org.seleniumhq.selenium', version: '4.3.0') {
       entry 'selenium-java'
       entry 'selenium-remote-driver'
       entry 'selenium-firefox-driver'
