@@ -232,8 +232,10 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertEquals("caseCategory", task.getCaseCategory());
                 assertEquals("routine_work", task.getWorkTypeResource().getId());
                 assertEquals("JUDICIAL", task.getRoleCategory());
-                assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), task.getPriorityDate());
-                assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), task.getNextHearingDate());
+                assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDateTime(),
+                    task.getPriorityDate().toLocalDateTime());
+                assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDateTime(),
+                    task.getNextHearingDate().toLocalDateTime());
                 assertEquals("nextHearingId1", task.getNextHearingId());
             }
         );
