@@ -1877,7 +1877,7 @@ class CFTTaskMapperTest {
         assertEquals("nextHearingId", taskResource.getNextHearingId());
 
         cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
-            null, true);
+            "", true);
         assertEquals("nextHearingId", taskResource.getNextHearingId());
     }
 
