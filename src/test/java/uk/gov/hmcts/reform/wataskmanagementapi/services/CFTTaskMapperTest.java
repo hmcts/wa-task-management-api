@@ -1850,25 +1850,35 @@ class CFTTaskMapperTest {
     @Test
     void reconfigure_config_attributes_dmn_fields() {
         TaskResource taskResource = createTaskResource();
+
         cftTaskMapper.reconfigureTaskAttribute(taskResource,"additionalProperties",
             writeValueAsString(Map.of("roleAssignmentId", "1234567890")), true);
+        assertEquals(taskResource.getAdditionalProperties(), Map.of("roleAssignmentId", "1234567890"));
+
         cftTaskMapper.reconfigureTaskAttribute(taskResource,"priorityDate",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), true);
+        assertEquals(taskResource.getPriorityDate(),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+
         cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingDate",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), true);
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            taskResource.getNextHearingDate());
+
         cftTaskMapper.reconfigureTaskAttribute(taskResource,"minorPriority",
             1, true);
         cftTaskMapper.reconfigureTaskAttribute(taskResource,"majorPriority",
             1, true);
-        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
-            null, true);
-        assertEquals(taskResource.getPriorityDate(),
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
         assertEquals(1, taskResource.getMinorPriority());
         assertEquals(1, taskResource.getMajorPriority());
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
+            null, true);
         assertEquals("nextHearingId", taskResource.getNextHearingId());
-        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
-            taskResource.getNextHearingDate());
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
+            null, true);
+        assertEquals("nextHearingId", taskResource.getNextHearingId());
     }
 
     private TaskResource createTaskResource() {
