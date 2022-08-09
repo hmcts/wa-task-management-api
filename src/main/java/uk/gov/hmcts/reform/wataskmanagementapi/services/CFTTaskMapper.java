@@ -493,19 +493,10 @@ public class CFTTaskMapper {
                     }
                     break;
                 case MINOR_PRIORITY:
-                    if (value instanceof String) {
-                        taskResource.setMinorPriority(Integer.parseInt((String) value));
-                    } else {
-                        taskResource.setMinorPriority((Integer) value);
-                    }
-
+                    setMinorPriority(value, taskResource);
                     break;
                 case MAJOR_PRIORITY:
-                    if (value instanceof String) {
-                        taskResource.setMajorPriority(Integer.parseInt((String) value));
-                    } else {
-                        taskResource.setMajorPriority((Integer) value);
-                    }
+                    setMajorPriority(value, taskResource);
                     break;
                 case PRIORITY_DATE:
                     if (value instanceof String) {
@@ -517,6 +508,22 @@ public class CFTTaskMapper {
                 default:
                     break;
             }
+        }
+    }
+
+    void setMajorPriority(Object value, TaskResource taskResource) {
+        if (value instanceof String) {
+            taskResource.setMajorPriority(Integer.parseInt((String) value));
+        } else {
+            taskResource.setMajorPriority((Integer) value);
+        }
+    }
+
+    void setMinorPriority(Object value, TaskResource taskResource) {
+        if (value instanceof String) {
+            taskResource.setMinorPriority(Integer.parseInt((String) value));
+        } else {
+            taskResource.setMinorPriority((Integer) value);
         }
     }
 
@@ -564,19 +571,10 @@ public class CFTTaskMapper {
                     }
                     break;
                 case MINOR_PRIORITY:
-                    if (value instanceof String) {
-                        taskResource.setMinorPriority(Integer.parseInt((String) value));
-                    } else {
-                        taskResource.setMinorPriority((Integer) value);
-                    }
-
+                    setMinorPriority(value, taskResource);
                     break;
                 case MAJOR_PRIORITY:
-                    if (value instanceof String) {
-                        taskResource.setMajorPriority(Integer.parseInt((String) value));
-                    } else {
-                        taskResource.setMajorPriority((Integer) value);
-                    }
+                    setMajorPriority(value, taskResource);
                     break;
                 case NEXT_HEARING_ID:
                     if (value != null && Strings.isNotBlank((String) value)) {

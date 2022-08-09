@@ -1971,6 +1971,8 @@ class CFTTaskMapperTest {
                 booleanValue(canReconfigure)),
             new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
                 booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("autoAssigned"), stringValue("true"),
+                booleanValue(canReconfigure)),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
                 booleanValue(canReconfigure)),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
