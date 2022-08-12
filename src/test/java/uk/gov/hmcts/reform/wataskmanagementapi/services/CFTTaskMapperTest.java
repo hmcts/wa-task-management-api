@@ -1754,6 +1754,16 @@ class CFTTaskMapperTest {
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE_OWN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL_OWN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.CLAIM));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNCLAIM));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.ASSIGN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNCLAIM_ASSIGN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN_ASSIGN));
 
         assertTrue(taskRolePermissions.getAuthorisations().isEmpty());
     }
