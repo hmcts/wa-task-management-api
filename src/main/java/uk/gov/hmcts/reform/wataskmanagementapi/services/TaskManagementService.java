@@ -31,6 +31,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
@@ -191,6 +192,10 @@ public class TaskManagementService {
             );
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
+            if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
+                throw new ConflictException("Task '" + task.getTaskId()
+                    + "' is already claimed by someone else.", null);
+            }
             task.setState(CFTTaskState.ASSIGNED);
             task.setAssignee(userId);
 
