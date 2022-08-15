@@ -6,7 +6,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -65,10 +64,5 @@ public enum TaskAttributeDefinition {
 
     public TypeReference getTypeReference() {
         return typeReference;
-    }
-
-    public static TaskAttributeDefinition forValue(String input) {
-        return Arrays.stream(values()).filter(v -> v.value().equals(input))
-            .findFirst().orElseThrow(() -> new IllegalArgumentException("Inavlud attribute definition"));
     }
 }

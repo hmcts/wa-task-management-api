@@ -209,7 +209,7 @@ public class CFTTaskMapper {
                           CamundaVariableDefinition extractor,
                           Object defaultValue) {
         return this.<T>map(attributesMap, extractor)
-            .map(t -> (T) ZonedDateTime.parse((String) t, CAMUNDA_DATA_TIME_FORMATTER).toOffsetDateTime())
+            .map(t -> (T) OffsetDateTime.parse((String) t, CAMUNDA_DATA_TIME_FORMATTER))
             .orElseGet(() -> (T) defaultValue);
     }
 
