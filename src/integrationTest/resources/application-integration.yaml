@@ -48,5 +48,5 @@ logging:
     #      engine: debug
     uk.gov.hmcts.reform: debug
 config:
-  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil}
-  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil}
+  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil,PUBLICLAW}
+  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,CARE_SUPERVISION_EPO}

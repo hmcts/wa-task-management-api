@@ -39,5 +39,5 @@ java:
     POSTGRES_HOST: cft-task-postgres-db-{{ .Values.global.environment }}.postgres.database.azure.com
     POSTGRES_NAME: cft_task_db
     POSTGRES_CONNECTION_OPTIONS: "?sslmode=require"
-    ALLOWED_JURISDICTIONS: wa,ia,sscs,civil
-    ALLOWED_CASE_TYPES: asylum,wacasetype,sscs,civil
+    ALLOWED_JURISDICTIONS: wa,ia,sscs,civil,PUBLICLAW
+    ALLOWED_CASE_TYPES: asylum,wacasetype,sscs,civil,CARE_SUPERVISION_EPO
