@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
@@ -43,6 +44,7 @@ import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -1762,6 +1764,256 @@ class CFTTaskMapperTest {
         assertEquals("otherTaskName", taskResource.getTaskName());
         assertEquals("aDescription", taskResource.getDescription());
 
+    }
+
+    @Test
+    void can_reconfigure_a_task_with_data_from_configuration_DMN_when_canReconfigure_true() {
+
+        TaskResource taskResource = createTaskResource();
+
+        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
+            configurationDmnResponse(true), permissionsResponse());
+
+        TaskResource reconfiguredTaskResource = cftTaskMapper
+            .reconfigureTaskResourceFromDmnResults(taskResource, results);
+        assertEquals(taskResource.getTitle(), reconfiguredTaskResource.getTitle());
+        assertEquals(taskResource.getDescription(), reconfiguredTaskResource.getDescription());
+        assertEquals(taskResource.getCaseName(), reconfiguredTaskResource.getCaseName());
+        assertEquals(taskResource.getRegion(), reconfiguredTaskResource.getRegion());
+        assertEquals("512401", reconfiguredTaskResource.getLocation());
+        assertEquals("Manchester", reconfiguredTaskResource.getLocationName());
+        assertEquals(taskResource.getCaseCategory(), reconfiguredTaskResource.getCaseCategory());
+        assertEquals(taskResource.getWorkTypeResource().getId(),
+            reconfiguredTaskResource.getWorkTypeResource().getId());
+        assertEquals(taskResource.getRoleCategory(), reconfiguredTaskResource.getRoleCategory());
+        assertEquals(taskResource.getPriorityDate(), reconfiguredTaskResource.getPriorityDate());
+        assertEquals(1, reconfiguredTaskResource.getMinorPriority());
+        assertEquals(1, reconfiguredTaskResource.getMajorPriority());
+        assertEquals("nextHearingId1", reconfiguredTaskResource.getNextHearingId());
+        assertEquals(taskResource.getNextHearingDate(), reconfiguredTaskResource.getNextHearingDate());
+    }
+
+    @Test
+    void can_not_reconfigure_a_task_with_data_from_configuration_DMN_when_canReconfigure_false() {
+
+        TaskResource taskResource = createTaskResource();
+
+        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
+            configurationDmnResponse(false), permissionsResponse());
+
+        TaskResource reconfiguredTaskResource = cftTaskMapper
+            .reconfigureTaskResourceFromDmnResults(taskResource, results);
+        assertEquals(taskResource.getTitle(), reconfiguredTaskResource.getTitle());
+        assertEquals(taskResource.getDescription(), reconfiguredTaskResource.getDescription());
+        assertEquals(taskResource.getCaseName(), reconfiguredTaskResource.getCaseName());
+        assertEquals(taskResource.getRegion(), reconfiguredTaskResource.getRegion());
+        assertEquals(taskResource.getLocation(), reconfiguredTaskResource.getLocation());
+        assertEquals(taskResource.getLocationName(), reconfiguredTaskResource.getLocationName());
+        assertEquals(taskResource.getCaseCategory(), reconfiguredTaskResource.getCaseCategory());
+        assertEquals(taskResource.getWorkTypeResource().getId(),
+            reconfiguredTaskResource.getWorkTypeResource().getId());
+        assertEquals(taskResource.getRoleCategory(), reconfiguredTaskResource.getRoleCategory());
+        assertEquals(taskResource.getPriorityDate(), reconfiguredTaskResource.getPriorityDate());
+        assertEquals(taskResource.getMinorPriority(), reconfiguredTaskResource.getMinorPriority());
+        assertEquals(taskResource.getMajorPriority(), reconfiguredTaskResource.getMajorPriority());
+        assertEquals(taskResource.getNextHearingId(), reconfiguredTaskResource.getNextHearingId());
+        assertEquals(taskResource.getNextHearingDate(), reconfiguredTaskResource.getNextHearingDate());
+    }
+
+    @Test
+    void cannot_reconfigure_a_task_with_data_from_configuration_DMN_when_can_reconfigure_is_null() {
+
+        TaskResource taskResource = createTaskResource();
+
+        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
+            configurationDmnResponseWithNullReconfigure(), permissionsResponse());
+
+        TaskResource reconfiguredTaskResource = cftTaskMapper
+            .reconfigureTaskResourceFromDmnResults(taskResource, results);
+        assertEquals(taskResource.getTitle(), reconfiguredTaskResource.getTitle());
+        assertEquals(taskResource.getDescription(), reconfiguredTaskResource.getDescription());
+        assertEquals(taskResource.getCaseName(), reconfiguredTaskResource.getCaseName());
+        assertEquals(taskResource.getRegion(), reconfiguredTaskResource.getRegion());
+        assertEquals(taskResource.getLocation(), reconfiguredTaskResource.getLocation());
+        assertEquals(taskResource.getLocationName(), reconfiguredTaskResource.getLocationName());
+        assertEquals(taskResource.getCaseCategory(), reconfiguredTaskResource.getCaseCategory());
+        assertEquals(taskResource.getWorkTypeResource().getId(),
+            reconfiguredTaskResource.getWorkTypeResource().getId());
+        assertEquals(taskResource.getRoleCategory(), reconfiguredTaskResource.getRoleCategory());
+        assertEquals(taskResource.getPriorityDate(), reconfiguredTaskResource.getPriorityDate());
+        assertEquals(taskResource.getMinorPriority(), reconfiguredTaskResource.getMinorPriority());
+        assertEquals(taskResource.getMajorPriority(), reconfiguredTaskResource.getMajorPriority());
+        assertEquals(taskResource.getNextHearingId(), reconfiguredTaskResource.getNextHearingId());
+        assertEquals(taskResource.getNextHearingDate(), reconfiguredTaskResource.getNextHearingDate());
+    }
+
+    @Test
+    void reconfigure_config_attributes_dmn_fields() {
+        TaskResource taskResource = createTaskResource();
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"additionalProperties",
+            writeValueAsString(Map.of("roleAssignmentId", "1234567890")), true);
+        assertEquals(taskResource.getAdditionalProperties(), Map.of("roleAssignmentId", "1234567890"));
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"priorityDate",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), true);
+        assertEquals(taskResource.getPriorityDate(),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingDate",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), true);
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            taskResource.getNextHearingDate());
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"minorPriority",
+            1, true);
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"majorPriority",
+            1, true);
+        assertEquals(1, taskResource.getMinorPriority());
+        assertEquals(1, taskResource.getMajorPriority());
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
+            null, true);
+        assertEquals("nextHearingId", taskResource.getNextHearingId());
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
+            "", true);
+        assertEquals("nextHearingId", taskResource.getNextHearingId());
+    }
+
+    private TaskResource createTaskResource() {
+        return new TaskResource(
+            "taskId",
+            "aTaskName",
+            "startAppeal",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            COMPLETED,
+            TaskSystem.SELF,
+            SecurityClassification.PUBLIC,
+            "title",
+            "a description",
+            null,
+            0,
+            0,
+            "someAssignee",
+            false,
+            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
+            new WorkTypeResource("routine_work", "Routine work"),
+            "JUDICIAL",
+            false,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            "1623278362430412",
+            "Asylum",
+            "TestCase",
+            "IA",
+            "1",
+            "TestRegion",
+            "765324",
+            "Taylor House",
+            BusinessContext.CFT_TASK,
+            null,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            emptySet(),
+            "caseCategory",
+            null,
+            "nextHearingId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+        );
+    }
+
+    private List<PermissionsDmnEvaluationResponse> permissionsResponse() {
+        return asList(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("tribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryA,categoryC")
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("seniorTribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryB,categoryD")
+            ));
+    }
+
+    private List<ConfigurationDmnEvaluationResponse> configurationDmnResponse(boolean canReconfigure) {
+        return asList(
+            new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
+                booleanValue(false)),
+            new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"),
+                stringValue("2021-05-09T20:15:45.345875+01:00"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("autoAssigned"), stringValue("true"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
+                stringValue("2021-05-09T20:15:45.345875+01:00"),
+                booleanValue(canReconfigure))
+        );
+    }
+
+    private List<ConfigurationDmnEvaluationResponse> configurationDmnResponseWithNullReconfigure() {
+        return asList(
+            new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
+                booleanValue(false)),
+            new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"),
+                stringValue("2021-05-09T20:15:45.345875+01:00"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
+                null),
+            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
+                stringValue("2021-05-09T20:15:45.345875+01:00"),
+                null)
+        );
     }
 
     private TaskResource createTaskResourceWithRoleResource(TaskRoleResource roleResource) {
