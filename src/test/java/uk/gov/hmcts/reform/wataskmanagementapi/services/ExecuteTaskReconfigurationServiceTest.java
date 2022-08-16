@@ -57,7 +57,7 @@ class ExecuteTaskReconfigurationServiceTest {
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(Optional.of(taskResources.get(0)))
             .thenReturn(Optional.of(taskResources.get(1)));
-        when(configureTaskService.configureCFTTask(any(), any()))
+        when(configureTaskService.reconfigureCFTTask(any()))
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
@@ -75,7 +75,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
 
-        verify(configureTaskService, times(2)).configureCFTTask(any(), any());
+        verify(configureTaskService, times(2)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(2)).reAutoAssignCFTTask(any());
 
         taskResourcesReconfigured.forEach(taskResource -> {
@@ -121,7 +121,7 @@ class ExecuteTaskReconfigurationServiceTest {
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(1).getTaskId()))
             .thenReturn(Optional.of(taskResources.get(1)));
 
-        when(configureTaskService.configureCFTTask(any(), any()))
+        when(configureTaskService.reconfigureCFTTask(any()))
             .thenReturn(taskResources.get(1));
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
             .thenReturn(taskResources.get(1));
@@ -134,7 +134,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
 
-        verify(configureTaskService, times(1)).configureCFTTask(any(), any());
+        verify(configureTaskService, times(1)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
 
         assertEquals(1, taskResourcesReconfigured.size());
