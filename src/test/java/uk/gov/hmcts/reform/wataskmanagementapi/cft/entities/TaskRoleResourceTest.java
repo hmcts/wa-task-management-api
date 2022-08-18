@@ -21,11 +21,5 @@ class TaskRoleResourceTest {
         assertPojoMethodsFor(classUnderTest, FieldPredicate.exclude("taskResource", "authorizations"))
             .testing(Method.TO_STRING)
             .areWellImplemented();
-
-        assertPojoMethodsFor(classUnderTest, FieldPredicate.include("roleName", "taskId"))
-            .testing(Method.EQUALS)
-            .testing(Method.HASH_CODE)
-            .areWellImplemented();
-
     }
 }
