@@ -56,7 +56,6 @@ public class TaskRoleResource implements Serializable {
     private Boolean cancel;
     @Column(columnDefinition = "boolean default false")
     private Boolean refer;
-
     @Column(columnDefinition = "boolean default false")
     private Boolean complete;
     @Column(name = "complete_own", columnDefinition = "boolean default false")
@@ -117,18 +116,18 @@ public class TaskRoleResource implements Serializable {
                             Integer assignmentPriority,
                             Boolean autoAssignable) {
         this(roleName,
-             read,
-             own,
-             execute,
-             manage,
-             cancel,
-             refer,
-             authorizations,
-             assignmentPriority,
-             autoAssignable,
-             null,
-             null,
-             null);
+            read,
+            own,
+            execute,
+            manage,
+            cancel,
+            refer,
+            authorizations,
+            assignmentPriority,
+            autoAssignable,
+            null,
+            null,
+            null);
     }
 
     public TaskRoleResource(String roleName,
@@ -143,18 +142,18 @@ public class TaskRoleResource implements Serializable {
                             Boolean autoAssignable,
                             String roleCategory) {
         this(roleName,
-             read,
-             own,
-             execute,
-             manage,
-             cancel,
-             refer,
-             authorizations,
-             assignmentPriority,
-             autoAssignable,
-             roleCategory,
-             null,
-             null);
+            read,
+            own,
+            execute,
+            manage,
+            cancel,
+            refer,
+            authorizations,
+            assignmentPriority,
+            autoAssignable,
+            roleCategory,
+            null,
+            null);
     }
 
     @SuppressWarnings("squid:S00107")
@@ -245,6 +244,53 @@ public class TaskRoleResource implements Serializable {
         this.unclaimAssign = unclaimAssign;
         this.unassignClaim = unassignClaim;
         this.unassignAssign = unassignAssign;
+    }
+
+    @SuppressWarnings("squid:S00107")
+    public TaskRoleResource(String roleName,
+                            Boolean read,
+                            Boolean own,
+                            Boolean execute,
+                            Boolean manage,
+                            Boolean cancel,
+                            Boolean refer,
+                            Boolean claim,
+                            Boolean assign,
+                            Boolean unassign,
+                            Boolean unassignAssign,
+                            Boolean complete,
+                            Boolean completeOwn,
+                            Boolean cancelOwn,
+                            Boolean unassignClaim,
+                            Boolean unclaim,
+                            String[] authorizations,
+                            Integer assignmentPriority,
+                            Boolean autoAssignable,
+                            String roleCategory,
+                            String taskId,
+                            OffsetDateTime created) {
+        this.roleName = roleName;
+        this.read = read;
+        this.own = own;
+        this.execute = execute;
+        this.manage = manage;
+        this.cancel = cancel;
+        this.refer = refer;
+        this.claim = claim;
+        this.assign = assign;
+        this.unassign = unassign;
+        this.unassignAssign = unassignAssign;
+        this.complete = complete;
+        this.completeOwn = completeOwn;
+        this.cancelOwn = cancelOwn;
+        this.unassignClaim = unassignClaim;
+        this.unclaim = unclaim;
+        this.authorizations = authorizations == null ? new String[]{} : authorizations.clone();
+        this.assignmentPriority = assignmentPriority;
+        this.autoAssignable = autoAssignable;
+        this.roleCategory = roleCategory;
+        this.taskId = taskId;
+        this.created = created;
     }
 
     public void setTaskRoleId(UUID taskRoleId) {

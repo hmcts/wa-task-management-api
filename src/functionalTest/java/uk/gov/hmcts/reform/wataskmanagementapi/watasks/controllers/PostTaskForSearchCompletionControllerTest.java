@@ -53,7 +53,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
             TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
             initiateTask(caseworkerCredentials.getHeaders(), testVariables,
-                         "processApplication", "process application", "process task"
+                "processApplication", "process application", "process task"
             );
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
@@ -95,11 +95,11 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                 .body("tasks.warnings", everyItem(equalTo(false)))
                 .body("tasks.case_management_category", everyItem(equalTo("Protection")))
                 .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-                .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Refer", "Execute"))))
+                .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Refer", "Own"))))
                 .body(
                     "tasks.description",
                     everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                          + "trigger/decideAnApplication)"))
+                                      + "trigger/decideAnApplication)"))
                 )
                 .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
                 .body("tasks.additional_properties", everyItem(equalToObject(Map.of(
@@ -136,12 +136,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "reviewSpecificAccessRequestLegalOps", "task name", "task title",
-                     additionalProperties
+            "reviewSpecificAccessRequestLegalOps", "task name", "task title",
+            additionalProperties
         );
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(),
-                                                 taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
 
         CompletableTaskScenario scenario = new CompletableTaskScenario(

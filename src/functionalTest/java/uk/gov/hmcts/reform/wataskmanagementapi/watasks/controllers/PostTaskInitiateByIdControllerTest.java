@@ -110,7 +110,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                          + "trigger/decideAnApplication)"))
-            .body("task_role_resources.size()", equalTo(10))
+            .body("task_role_resources.size()", equalTo(11))
             .body("additional_properties", equalToObject(Map.of(
                 "key1", "value1",
                 "key2", "value2",
@@ -125,10 +125,14 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             Map.ofEntries(
                 entry("read", true),
                 entry("refer", true),
-                entry("own", false),
                 entry("manage", true),
-                entry("execute", false),
                 entry("cancel", true),
+                entry("assign", true),
+                entry("unassign", true),
+                entry("unassign_assign", true),
+                entry("complete", true),
+                entry("own", false),
+                entry("execute", false),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
                 entry("auto_assignable", false)
@@ -144,6 +148,31 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("own", false),
                 entry("manage", false),
                 entry("execute", true),
+                entry("complete", true),
+                entry("unassign_claim", true),
+                entry("claim", true),
+                entry("unclaim", true),
+                entry("cancel", true),
+                entry("unassign_assign", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("role_category", "LEGAL_OPERATIONS"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 2)
+            )
+        );
+        
+        assertPermissions(
+            getTaskResource(result, "tribunal-caseworker"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", true),
+                entry("complete_own", true),
+                entry("cancel_own", true),
+                entry("claim", true),
+                entry("manage", false),
+                entry("execute", false),
                 entry("cancel", false),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
@@ -152,20 +181,23 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("assignment_priority", 2)
             )
         );
+
         assertPermissions(
-            getTaskResource(result, "tribunal-caseworker"),
+            getTaskResource(result, "ctsc"),
             Map.ofEntries(
                 entry("read", true),
                 entry("refer", true),
+                entry("manage", true),
+                entry("cancel", true),
+                entry("assign", true),
+                entry("unassign", true),
+                entry("unassign_assign", true),
+                entry("complete", true),
                 entry("own", false),
-                entry("manage", false),
-                entry("execute", true),
-                entry("cancel", false),
+                entry("execute", false),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
-                entry("role_category", "LEGAL_OPERATIONS"),
-                entry("auto_assignable", false),
-                entry("assignment_priority", 2)
+                entry("auto_assignable", false)
             )
         );
 
@@ -343,14 +375,14 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
+                        + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                             + "trigger/decideAnApplication)"))
-            .body("task_role_resources.size()", equalTo(10))
+                                         + "trigger/decideAnApplication)"))
+            .body("task_role_resources.size()", equalTo(11))
             .body("additional_properties", equalToObject(Map.of(
                 "key1", "value1",
                 "key2", "value2",
