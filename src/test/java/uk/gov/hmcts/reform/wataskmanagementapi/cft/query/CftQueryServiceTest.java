@@ -13,6 +13,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
@@ -71,6 +73,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
@@ -505,8 +508,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         @Test
         void shouldGetTask() {
             List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
-            List<PermissionTypes> permissionsRequired = new ArrayList<>();
-            permissionsRequired.add(PermissionTypes.READ);
+            PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(READ);
 
             String taskId = "taskId";
             TaskResource expectedTask = new TaskResource(
@@ -528,8 +530,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
         @Test
         void shouldReturnEmptyTaskResourceWhenTaskIdIsEmpty() {
-            List<PermissionTypes> permissionsRequired = new ArrayList<>();
-            permissionsRequired.add(PermissionTypes.READ);
+            PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(READ);
 
             Optional<TaskResource> returnedTask =
                 cftQueryService.getTask("", roleAssignmentWithAllGrantTypes(), permissionsRequired);
