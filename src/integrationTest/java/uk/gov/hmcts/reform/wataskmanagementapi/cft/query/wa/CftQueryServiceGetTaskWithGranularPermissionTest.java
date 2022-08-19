@@ -47,7 +47,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @Import(AllowedJurisdictionConfiguration.class)
 @Testcontainers
 @Sql("/scripts/wa/get_task_granular_permission_data.sql")
-public class CftQueryServiceGetTaskWithGranularPermission extends RoleAssignmentHelper {
+public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssignmentHelper {
 
     @MockBean
     private CamundaService camundaService;

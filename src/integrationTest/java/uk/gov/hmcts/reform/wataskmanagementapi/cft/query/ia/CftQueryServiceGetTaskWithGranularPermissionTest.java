@@ -54,7 +54,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/ia/get_task_granular_permission_data.sql")
-public class CftQueryServiceGetTaskWithGranularPermission extends RoleAssignmentHelper {
+public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssignmentHelper {
 
     @MockBean
     private CamundaService camundaService;
