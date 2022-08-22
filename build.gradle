@@ -21,7 +21,7 @@ plugins {
   id 'io.freefair.lombok' version '6.5.0.2'
   // If Pact version is changed, make sure serenity report works.
   id 'au.com.dius.pact' version '4.1.8'
-  id 'org.flywaydb.flyway' version '6.5.7'
+  id 'org.flywaydb.flyway' version '9.1.6'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
