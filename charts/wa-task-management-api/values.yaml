@@ -40,4 +40,4 @@ java:
     POSTGRES_NAME: cft_task_db
     POSTGRES_CONNECTION_OPTIONS: "?sslmode=require"
     ALLOWED_JURISDICTIONS: wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW
-    ALLOWED_CASE_TYPES: asylum,wacasetype,sscs,civil,CARE_SUPERVISION_EPO,PRLAPPS
+    ALLOWED_CASE_TYPES: asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS
