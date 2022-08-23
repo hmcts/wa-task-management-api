@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
@@ -75,6 +76,34 @@ public class ExclusiveTaskActionsController extends BaseController {
             .body(savedTask);
     }
 
+    @Operation(description = "Exclusive access only: Initiate a Task identified by an id.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Task has been initiated", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = TaskResource.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
+    })
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping(path = "/{task-id}/new")
+    public ResponseEntity<TaskResource> initiate(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+                                                 @PathVariable(TASK_ID) String taskId,
+                                                 @RequestBody InitiateTaskRequestNew initiateTaskRequest) {
+        log.debug("Initiate task(id={}) with attributes: {} ", taskId, initiateTaskRequest.getTaskAttributes());
+        boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
+        if (!hasAccess) {
+            throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+        }
+
+        TaskResource savedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .cacheControl(CacheControl.noCache())
+            .body(savedTask);
+    }
 
     @Operation(description = "Exclusive access only: Terminate a Task identified by an id.")
     @ApiResponses({

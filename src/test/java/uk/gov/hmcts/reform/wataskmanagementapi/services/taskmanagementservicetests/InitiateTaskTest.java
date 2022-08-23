@@ -14,6 +14,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
@@ -93,7 +95,7 @@ class InitiateTaskTest extends CamundaHelpers {
     TaskManagementService taskManagementService;
     String taskId;
     TaskResource taskResource;
-    private InitiateTaskRequest initiateTaskRequest;
+    private InitiateTaskRequestNew initiateTaskRequest;
     @Mock
     private EntityManager entityManager;
 
@@ -139,7 +141,7 @@ class InitiateTaskTest extends CamundaHelpers {
         Map<String, Object> taskAttributes = new HashMap<>();
         taskAttributes.put(TASK_TYPE.value(), A_TASK_TYPE);
         taskAttributes.put(TASK_NAME.value(), A_TASK_NAME);
-        initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
+        initiateTaskRequest = new InitiateTaskRequestNew(INITIATION, taskAttributes);
     }
 
     @Test
@@ -158,7 +160,7 @@ class InitiateTaskTest extends CamundaHelpers {
         );
 
         when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
-        lenient().when(cftTaskMapper.readDate(any(), any(), any())).thenCallRealMethod();
+        lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
         taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
@@ -200,7 +202,7 @@ class InitiateTaskTest extends CamundaHelpers {
         );
 
         when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
-        lenient().when(cftTaskMapper.readDate(any(), any(), any())).thenCallRealMethod();
+        lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
         initiateTaskRequest.getTaskAttributes().put(TASK_LOCATION.value(), null);
 
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
@@ -248,7 +250,7 @@ class InitiateTaskTest extends CamundaHelpers {
         when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
         when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(true);
 
-        lenient().when(cftTaskMapper.readDate(any(), any(), any())).thenCallRealMethod();
+        lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
 
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
@@ -304,7 +306,7 @@ class InitiateTaskTest extends CamundaHelpers {
 
         when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(taskReassigned);
 
-        lenient().when(cftTaskMapper.readDate(any(), any(), any())).thenCallRealMethod();
+        lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
 
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 

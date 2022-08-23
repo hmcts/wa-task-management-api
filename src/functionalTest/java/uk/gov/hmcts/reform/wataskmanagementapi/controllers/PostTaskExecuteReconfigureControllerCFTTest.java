@@ -60,7 +60,8 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
                                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
-                     "processApplication", "process application", "process task");
+                     "processApplication", "process application", "process task"
+        );
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
                                                  WA_JURISDICTION, WA_CASE_TYPE);

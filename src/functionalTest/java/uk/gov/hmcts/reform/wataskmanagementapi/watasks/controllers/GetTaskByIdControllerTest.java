@@ -78,7 +78,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.work_type_id", equalTo("hearing_work"))
             .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")))
             .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                  + "trigger/decideAnApplication)"))
+                                              + "trigger/decideAnApplication)"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task.additional_properties", equalToObject(Map.of(
                 "key1", "value1",
@@ -207,7 +207,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.work_type_id", equalTo("hearing_work"))
             .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")))
             .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                  + "trigger/decideAnApplication)"))
+                                              + "trigger/decideAnApplication)"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task.additional_properties", equalToObject(Map.of(
                 "key1", "value1",
@@ -226,8 +226,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         //add excluded grantType
         common.setupExcludedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                            WA_JURISDICTION, WA_CASE_TYPE
-        );
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -252,8 +251,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
         String roleAssignmentId = UUID.randomUUID().toString();
         common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(),
-                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
-        );
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId,
@@ -268,9 +266,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "reviewSpecificAccessRequestJudiciary", "task name", "task title",
-                     additionalProperties
-        );
+            "reviewSpecificAccessRequestJudiciary", "task name", "task title",
+            additionalProperties);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,

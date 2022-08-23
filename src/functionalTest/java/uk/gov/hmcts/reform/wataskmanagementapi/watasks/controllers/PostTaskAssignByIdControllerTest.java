@@ -56,7 +56,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         common.setupLeadJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
@@ -88,7 +89,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
@@ -105,7 +107,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         common.setupFtpaJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
@@ -122,7 +125,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         //first assign
         common.setupFtpaJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -147,7 +151,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         assignTaskAndValidate(taskVariables, getAssigneeId(assignerCredentials.getHeaders()));
 
@@ -166,7 +171,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         common.setupFtpaJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
@@ -187,7 +193,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         //first assign
         common.setupFtpaJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -212,7 +219,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         common.setupFtpaJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assignerCredentials.getHeaders()));
@@ -232,7 +240,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
@@ -252,7 +261,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         //first assign
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -277,7 +287,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
@@ -297,7 +308,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         //first assign
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -322,7 +334,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         common.setupLeadJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
@@ -342,7 +355,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         //first assign
         common.setupLeadJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
@@ -367,7 +381,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
@@ -388,7 +403,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         //first assign
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -411,7 +427,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         common.setupChallengedAccessLegalOps(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         common.setupChallengedAccessJudiciary(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
@@ -446,7 +463,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         common.setupChallengedAccessLegalOps(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
@@ -481,7 +499,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         common.setupChallengedAccessAdmin(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
@@ -502,7 +521,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         common.setupChallengedAccessJudiciary(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
@@ -522,7 +542,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         common.setupChallengedAccessJudiciary(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         common.setupExcludedAccessJudiciary(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);

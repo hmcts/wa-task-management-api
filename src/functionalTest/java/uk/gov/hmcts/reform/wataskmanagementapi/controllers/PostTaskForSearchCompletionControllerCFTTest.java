@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
@@ -21,29 +22,29 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 
 @Slf4j
 public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -75,8 +76,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                     CamundaVariableDefinition.TASK_ID, scenario.taskId
                 ),
                 "IA",
-                "Asylum"
-            );
+                "Asylum");
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
                 testVariables.getCaseId(),
@@ -146,11 +146,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            variablesOverride,
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
             "IA",
-            "Asylum"
-        );
+            "Asylum");
         final String taskId = taskVariables.getTaskId();
 
 
@@ -164,8 +162,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             taskVariables.getCaseId(),
             "requestRespondentEvidence",
             "IA",
-            "Asylum"
-        );
+            "Asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -237,11 +234,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum",
             CamundaVariableDefinition.DESCRIPTION, "aDescription"
         );
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            variablesOverride,
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
             "IA",
-            "Asylum"
-        );
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
@@ -544,11 +539,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            variablesOverride,
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
             "IA",
-            "Asylum"
-        );
+            "Asylum");
         final String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -584,8 +577,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "requestRespondentEvidence", "jurisdiction",
-            "Asylum"
-        );
+            "Asylum");
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -677,22 +669,21 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
     private void insertTaskInCftTaskDbWithWarnings(String caseId, String taskId, String taskType) {
         String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+                          + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
-        Map<String, Object> taskAttributes = new HashMap<>();
-        taskAttributes.put(TASK_TYPE.value(), taskType);
-        taskAttributes.put(TASK_NAME.value(), "aTaskName");
-        taskAttributes.put(HAS_WARNINGS.value(), true);
-        taskAttributes.put(WARNING_LIST.value(), warnings);
-        taskAttributes.put(AUTO_ASSIGNED.value(), false);
-        taskAttributes.put(TITLE.value(), "A test task");
-        taskAttributes.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
-        taskAttributes.put(CASE_CATEGORY.value(), "Protection");
-        taskAttributes.put(CREATED.value(), CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()));
-        taskAttributes.put(CASE_ID.value(), caseId);
-        taskAttributes.put(DUE_DATE.value(), CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10)));
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, taskType),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, caseId),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
+            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
+            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
+            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_WARNINGS, warnings),
+            new TaskAttribute(TASK_AUTO_ASSIGNED, false)
+        ));
 
         Response result = restApiActions.post(
             TASK_INITIATION_END_POINT,
@@ -706,19 +697,17 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
     }
 
     private void insertTaskInCftTaskDb(String caseId, String taskId, String taskType) {
-
-        Map<String, Object> taskAttributes = new HashMap<>();
-        taskAttributes.put(TASK_TYPE.value(), taskType);
-        taskAttributes.put(TASK_NAME.value(), "aTaskName");
-        taskAttributes.put(AUTO_ASSIGNED.value(), false);
-        taskAttributes.put(TITLE.value(), "A test task");
-        taskAttributes.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
-        taskAttributes.put(CASE_CATEGORY.value(), "Protection");
-        taskAttributes.put(CREATED.value(), CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()));
-        taskAttributes.put(CASE_ID.value(), caseId);
-        taskAttributes.put(DUE_DATE.value(), CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10)));
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, taskType),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, caseId),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
+            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
+            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
+            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
+            new TaskAttribute(TASK_AUTO_ASSIGNED, false)
+        ));
 
         restApiActions.post(
             TASK_INITIATION_END_POINT,

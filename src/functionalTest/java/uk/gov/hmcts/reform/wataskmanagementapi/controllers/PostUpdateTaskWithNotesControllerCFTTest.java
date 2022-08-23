@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
@@ -23,20 +24,21 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 
 @Slf4j
 public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -361,32 +363,25 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         InitiateTaskRequest req;
         if (hasWarnings) {
-            req = new InitiateTaskRequest(
-                INITIATION,
-                Map.of(
-                    TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-                    TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-                    HAS_WARNINGS.value(), true,
-                    WARNING_LIST.value(), warnings,
-                    TITLE.value(), "A test task",
-                    CREATED.value(), formattedCreatedDate,
-                    CASE_ID.value(), testVariables.getCaseId(),
-                    DUE_DATE.value(), formattedDueDate
-                )
-            );
+            req = new InitiateTaskRequest(INITIATION, asList(
+                new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+                new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+                new TaskAttribute(TASK_TITLE, "A test task"),
+                new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
+                new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+                new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
+                new TaskAttribute(TASK_HAS_WARNINGS, true),
+                new TaskAttribute(TASK_WARNINGS, warnings)
+            ));
         } else {
-
-            req = new InitiateTaskRequest(
-                INITIATION,
-                Map.of(
-                    TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-                    TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-                    TITLE.value(), "A test task",
-                    CREATED.value(), formattedCreatedDate,
-                    CASE_ID.value(), testVariables.getCaseId(),
-                    DUE_DATE.value(), formattedDueDate
-                )
-            );
+            req = new InitiateTaskRequest(INITIATION, asList(
+                new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+                new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+                new TaskAttribute(TASK_TITLE, "A test task"),
+                new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
+                new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+                new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+            ));
         }
 
         Response result = restApiActions.post(

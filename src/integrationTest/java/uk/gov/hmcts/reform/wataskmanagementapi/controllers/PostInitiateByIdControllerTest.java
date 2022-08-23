@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
@@ -34,7 +35,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -65,6 +65,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
@@ -72,9 +73,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
@@ -138,13 +136,12 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            DUE_DATE.value(), formattedDueDate
-        );
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        ));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -161,7 +158,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Forbidden: The action could not be completed because the client/user "
-                    + "had insufficient rights to a resource.")
+                + "had insufficient rights to a resource.")
         );
     }
 
@@ -220,16 +217,13 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ZonedDateTime dueDate = createdDate.plusDays(1);
                 String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-                Map<String, Object> taskAttributes = Map.of(
-                    TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-                    TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-                    TITLE.value(), "A test task",
-                    CASE_ID.value(), "someCaseId",
-                    DUE_DATE.value(), formattedDueDate
-                );
+                InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+                    new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+                    new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+                    new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+                    new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
 
-                InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
-
+                ));
                 mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -250,23 +244,20 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        InitiateTaskRequest someOtherReq = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "markCaseAsPaid"),
+            new TaskAttribute(TASK_NAME, "soe other task name"),
+            new TaskAttribute(TASK_CASE_ID, "some other task case id"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "markCaseAsPaid",
-            TASK_NAME.value(), "soe other task name",
-            TITLE.value(), "A test task",
-            CASE_ID.value(), "some other task case id",
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest someOtherReq = new InitiateTaskRequest(INITIATION, taskAttributes);
+        ));
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(someOtherReq)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(someOtherReq)))
             .andExpectAll(
                 status().isServiceUnavailable(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
@@ -293,22 +284,19 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TITLE.value(), "A test task",
-            CASE_ID.value(), "someCaseId",
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(print())
             .andExpectAll(status().isInternalServerError());
 
@@ -367,22 +355,19 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TITLE.value(), "A test task",
-            CASE_ID.value(), "someCaseId",
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
@@ -407,7 +392,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"),
+                    + "(Typically this will be in CCD.)"),
                 jsonPath("$.task_role_resources.[0].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[0].role_name")
                     .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
@@ -496,15 +481,12 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "aTaskName",
-            TITLE.value(), "A test task",
-            CASE_ID.value(), "someCaseId",
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
@@ -593,36 +575,33 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(
                 singletonList(RoleAssignment.builder()
-                                  .id("someId")
-                                  .actorIdType(ActorIdType.IDAM)
-                                  .actorId(IDAM_USER_ID)
-                                  .roleName("case-manager")
-                                  .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                                  .grantType(GrantType.SPECIFIC)
-                                  .roleType(RoleType.CASE)
-                                  .classification(Classification.PUBLIC)
-                                  .authorisations(List.of("IA"))
-                                  .build())));
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId(IDAM_USER_ID)
+                    .roleName("case-manager")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.CASE)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(List.of("IA"))
+                    .build())));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "aTaskName",
-            TITLE.value(), "A test task",
-            TASK_CASE_ID.value(), "someCaseId",
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -650,7 +629,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                    + "(Typically this will be in CCD.)")
             );
     }
 
@@ -703,38 +682,35 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(
                 List.of(RoleAssignment.builder()
-                            .id("someId")
-                            .actorIdType(ActorIdType.IDAM)
-                            .actorId("someAssignee")
-                            .roleName("tribunal-caseworker")
-                            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                            .grantType(GrantType.SPECIFIC)
-                            .roleType(RoleType.ORGANISATION)
-                            .classification(Classification.PUBLIC)
-                            .authorisations(List.of("IA"))
-                            .build())));
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId("someAssignee")
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(List.of("IA"))
+                    .build())));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_ASSIGNEE.value(), "someAssignee",
-            TASK_STATE.value(), "UNCONFIGURED",
-            TASK_NAME.value(), "aTaskName",
-            TITLE.value(), "A test task",
-            CASE_ID.value(), "someCaseId",
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -761,7 +737,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"),
+                    + "(Typically this will be in CCD.)"),
                 jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT")
             );
     }
@@ -819,38 +795,35 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(
                 singletonList(RoleAssignment.builder()
-                                  .id("someId")
-                                  .actorIdType(ActorIdType.IDAM)
-                                  .actorId("anotherAssignee")
-                                  .roleName("tribunal-caseworker")
-                                  .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                                  .grantType(GrantType.SPECIFIC)
-                                  .roleType(RoleType.ORGANISATION)
-                                  .classification(Classification.PUBLIC)
-                                  .authorisations(List.of("IA"))
-                                  .build())));
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId("anotherAssignee")
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(List.of("IA"))
+                    .build())));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_ASSIGNEE.value(), "someAssignee",
-            TASK_STATE.value(), "UNCONFIGURED",
-            TASK_NAME.value(), "aTaskName",
-            TITLE.value(), "A test task",
-            CASE_ID.value(), "someCaseId",
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -877,7 +850,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                    + "(Typically this will be in CCD.)")
             );
     }
 
@@ -947,17 +920,13 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_ASSIGNEE.value(), "someAssignee",
-            TASK_STATE.value(), "UNCONFIGURED",
-            TASK_NAME.value(), "aTaskName",
-            TITLE.value(), "A test task",
-            CASE_ID.value(), "someCaseId",
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
@@ -1069,24 +1038,21 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_ASSIGNEE.value(), "someAssignee",
-            TASK_STATE.value(), "UNCONFIGURED",
-            TASK_NAME.value(), "aTaskName",
-            TITLE.value(), "A test task",
-            CASE_ID.value(), "someCaseId",
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1114,7 +1080,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"),
+                    + "(Typically this will be in CCD.)"),
                 jsonPath("$.task_role_resources.[0].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[0].role_name")
                     .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
@@ -72,6 +77,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
@@ -727,6 +734,25 @@ public class TaskManagementService {
     @Transactional(rollbackFor = Exception.class)
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
         //Get DueDatetime or throw exception
+        List<TaskAttribute> taskAttributes = initiateTaskRequest.getTaskAttributes();
+
+        OffsetDateTime dueDate = extractDueDate(taskAttributes);
+
+        lockTaskId(taskId, dueDate);
+        return initiateTaskProcess(taskId, initiateTaskRequest);
+    }
+
+    /**
+     * Exclusive client access only.
+     * This method initiates a task and orchestrates the logic between CFT Task db, camunda and role assignment.
+     *
+     * @param taskId              the task id.
+     * @param initiateTaskRequest Additional data to define how a task should be initiated.
+     * @return The updated entity {@link TaskResource}
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public TaskResource initiateTask(String taskId, InitiateTaskRequestNew initiateTaskRequest) {
+        //Get DueDatetime or throw exception
         Map<String, Object> taskAttributes = initiateTaskRequest.getTaskAttributes();
 
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
@@ -816,6 +842,30 @@ public class TaskManagementService {
      * @param taskAttributes the task attributes
      * @return the due date
      */
+    private OffsetDateTime extractDueDate(List<TaskAttribute> taskAttributes) {
+        Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
+            .filter(attribute -> attribute != null && attribute.getValue() != null)
+            .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
+
+        OffsetDateTime dueDate = cftTaskMapper.readDate(attributes, TASK_DUE_DATE, null);
+
+        if (dueDate == null) {
+            Violation violation = new Violation(
+                TASK_DUE_DATE.value(),
+                "Each task to initiate must contain task_due_date field present and populated."
+            );
+            throw new CustomConstraintViolationException(singletonList(violation));
+        }
+        return dueDate;
+    }
+
+    /**
+     * Helper method to extract the due date form the attributes this method.
+     * Also includes validation that may throw a CustomConstraintViolationException.
+     *
+     * @param taskAttributes the task attributes
+     * @return the due date
+     */
     private OffsetDateTime extractDueDate(Map<String, Object> taskAttributes) {
         Map<CamundaVariableDefinition, Object> attributes = taskAttributes.entrySet().stream()
             .filter(key -> CamundaVariableDefinition.from(key.getKey()).isPresent())
@@ -835,14 +885,53 @@ public class TaskManagementService {
         return dueDate;
     }
 
+
     @SuppressWarnings("PMD.PreserveStackTrace")
     private TaskResource initiateTaskProcess(String taskId,
-                                             InitiateTaskRequest initiateTaskRequest,
+                                             InitiateTaskRequest initiateTaskRequest) {
+        try {
+            TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
+            taskResource = configureTask(taskResource);
+            boolean isOldAssigneeValid = false;
+
+            if (taskResource.getAssignee() != null) {
+                log.info("Task '{}' had previous assignee, checking validity.", taskId);
+                //Task had previous assignee
+                isOldAssigneeValid =
+                    taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, taskResource.getAssignee());
+            }
+
+            if (isOldAssigneeValid) {
+                log.info("Task '{}' had previous assignee, and was valid, keeping assignee.", taskId);
+                //Keep old assignee from skeleton task and change state
+                taskResource.setState(CFTTaskState.ASSIGNED);
+            } else {
+                log.info("Task '{}' has an invalid assignee, unassign it before auto-assigning.", taskId);
+                if (taskResource.getAssignee() != null) {
+                    taskResource.setAssignee(null);
+                    taskResource.setState(CFTTaskState.UNASSIGNED);
+                }
+                log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
+                //Otherwise attempt auto-assignment
+                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+            }
+
+            updateCftTaskState(taskResource.getTaskId(), taskResource);
+            return cftTaskDatabaseService.saveTask(taskResource);
+        } catch (Exception e) {
+            log.error("Error when initiating task(id={})", taskId, e);
+            throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);
+        }
+    }
+
+    @SuppressWarnings("PMD.PreserveStackTrace")
+    private TaskResource initiateTaskProcess(String taskId,
+                                             InitiateTaskRequestNew initiateTaskRequest,
                                              OffsetDateTime dueDate) {
         try {
             TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
             Map<String, Object> taskAttributes = new HashMap<>(initiateTaskRequest.getTaskAttributes());
-            taskAttributes.put(DUE_DATE.value(), dueDate.toString());
+            taskAttributes.put(DUE_DATE.value(), dueDate);
             taskResource = configureTask(taskResource, taskAttributes);
             boolean isOldAssigneeValid = false;
 
@@ -894,6 +983,21 @@ public class TaskManagementService {
         }
     }
 
+    private TaskResource configureTask(TaskResource taskSkeleton) {
+        TaskToConfigure taskToConfigure = new TaskToConfigure(
+            taskSkeleton.getTaskId(),
+            taskSkeleton.getTaskType(),
+            taskSkeleton.getCaseId(),
+            taskSkeleton.getTaskName(),
+            cftTaskMapper.getTaskAttributes(taskSkeleton)
+        );
+
+        return configureTaskService.configureCFTTask(
+            taskSkeleton,
+            taskToConfigure
+        );
+    }
+
     private TaskResource configureTask(TaskResource taskSkeleton, Map<String, Object> taskAttributes) {
         TaskToConfigure taskToConfigure = new TaskToConfigure(
             taskSkeleton.getTaskId(),
@@ -910,6 +1014,14 @@ public class TaskManagementService {
     }
 
     private TaskResource createTaskSkeleton(String taskId, InitiateTaskRequest initiateTaskRequest) {
+        return cftTaskMapper.mapToTaskResource(
+            taskId,
+            initiateTaskRequest.getTaskAttributes()
+        );
+    }
+
+
+    private TaskResource createTaskSkeleton(String taskId, InitiateTaskRequestNew initiateTaskRequest) {
         return cftTaskMapper.mapToTaskResource(
             taskId,
             initiateTaskRequest.getTaskAttributes()

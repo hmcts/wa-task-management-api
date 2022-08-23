@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
@@ -15,20 +16,21 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -85,16 +87,14 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TITLE.value(), "follow Up Overdue Reasons For Appeal",
-            TASK_NAME.value(), "aTaskName",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
@@ -135,16 +135,14 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TITLE.value(), "A test task",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
@@ -194,16 +192,14 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TITLE.value(), "A test task",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
@@ -253,18 +249,15 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            HAS_WARNINGS.value(), true,
-            TITLE.value(), "A test task",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
-
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskId,
@@ -311,18 +304,15 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            HAS_WARNINGS.value(), true,
-            TITLE.value(), "A test task",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
-
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskId,
@@ -367,18 +357,15 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            HAS_WARNINGS.value(), true,
-            TITLE.value(), "A test task",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, taskAttributes);
-
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskId,

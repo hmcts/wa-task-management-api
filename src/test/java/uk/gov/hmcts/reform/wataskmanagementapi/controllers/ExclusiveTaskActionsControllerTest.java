@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
@@ -56,7 +57,7 @@ class ExclusiveTaskActionsControllerTest {
     @Test
     void should_succeed_when_initiating_a_task_and_return_201() {
 
-        InitiateTaskRequest req = new InitiateTaskRequest(
+        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
@@ -83,7 +84,7 @@ class ExclusiveTaskActionsControllerTest {
     @Test
     void should_fail_when_initiating_a_task_and_client_not_whitelisted_and_return_403() {
 
-        InitiateTaskRequest req = new InitiateTaskRequest(
+        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
             INITIATION,
             Map.of(
                 TASK_TITLE.value(), "aTaskTitle",

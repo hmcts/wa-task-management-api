@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
@@ -39,16 +40,18 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
@@ -116,8 +119,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 new SearchParameterList(
                     CASE_ID,
                     SearchOperator.IN,
-                    asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId())
-                )
+                    asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
             ),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
@@ -145,8 +147,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 new SearchParameterList(
                     CASE_ID,
                     SearchOperator.IN,
-                    asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId())
-                )
+                    asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
             ),
             singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
         );
@@ -156,8 +157,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .post(
                 ENDPOINT_BEING_TESTED,
                 searchTaskRequest,
-                caseworkerCredentials.getHeaders()
-            );
+                caseworkerCredentials.getHeaders());
 
         // Then expect task2,task1 order
         actualCaseIdList = result.then().assertThat()
@@ -414,11 +414,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             CamundaVariableDefinition.LOCATION, "765324"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            variablesOverride,
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
             "IA",
-            "Asylum"
-        );
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -451,11 +449,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             CamundaVariableDefinition.LOCATION, "17595"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            variablesOverride,
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
             "IA",
-            "Asylum"
-        );
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -487,11 +483,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             CamundaVariableDefinition.TASK_STATE, "unassigned"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            variablesOverride,
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
             "IA",
-            "Asylum"
-        );
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -525,11 +519,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             CamundaVariableDefinition.TASK_STATE, "unassigned"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            variablesOverride,
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
             "IA",
-            "Asylum"
-        );
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -700,18 +692,15 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(
-            INITIATION,
-            Map.of(
-                TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-                TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-                HAS_WARNINGS.value(), true,
-                TITLE.value(), "A test task",
-                CREATED.value(), formattedCreatedDate,
-                CASE_ID.value(), taskVariables.getCaseId(),
-                DUE_DATE.value(), formattedDueDate
-            )
-        );
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
 
         Response result = restApiActions.post(
             "task/{task-id}",
@@ -731,11 +720,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 CamundaVariableDefinition.TASK_STATE, state
             );
 
-            TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-                variablesOverride,
+            TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
                 "IA",
-                "Asylum"
-            );
+                "Asylum");
             tasksCreated.add(taskVariables);
         }
 

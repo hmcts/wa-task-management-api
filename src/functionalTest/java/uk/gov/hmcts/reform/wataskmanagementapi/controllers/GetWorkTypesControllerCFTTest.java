@@ -112,7 +112,7 @@ public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest 
     }
 
     @Test
-    public void should_return_a_500_when_the_user_did_not_have_any_roles() {
+    public void should_return_a_403_when_the_user_did_not_have_any_roles() {
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED + "/?filter-by-user=true",
@@ -120,11 +120,11 @@ public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest 
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.FORBIDDEN.value()));
     }
 }

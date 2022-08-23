@@ -2,35 +2,25 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Value;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation;
 
-import java.util.Map;
+import java.util.List;
 
 @Schema(
     name = "InitiateTaskRequest",
     description = "Allows specifying certain operations to initiate a task"
 )
-@EqualsAndHashCode
-@ToString
-public class InitiateTaskRequest {
-
-    private final InitiateTaskOperation operation;
-    private final Map<String, Object> taskAttributes;
+@Value
+public class InitiateTaskRequest implements InitiateTask<List<TaskAttribute>> {
+    List<TaskAttribute> taskAttributes;
+    InitiateTaskOperation operation;
 
     @JsonCreator
     public InitiateTaskRequest(InitiateTaskOperation operation,
-                               Map<String, Object> taskAttributes) {
+                               List<TaskAttribute> taskAttributes) {
         this.operation = operation;
         this.taskAttributes = taskAttributes;
-    }
-
-    public InitiateTaskOperation getOperation() {
-        return operation;
-    }
-
-    public Map<String, Object> getTaskAttributes() {
-        return taskAttributes;
     }
 }

@@ -54,7 +54,8 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
             WA_JURISDICTION, WA_CASE_TYPE);
@@ -97,7 +98,8 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
             WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(assigneeCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

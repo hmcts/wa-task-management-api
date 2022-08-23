@@ -44,7 +44,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -74,7 +75,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -99,7 +101,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -124,7 +127,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -149,7 +153,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -172,7 +177,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         common.setupChallengedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -202,7 +208,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -227,7 +234,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -252,7 +260,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -277,7 +286,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestAdmin",
             "review specific access request admin",
-            "review specific access request admin");
+            "review specific access request admin"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

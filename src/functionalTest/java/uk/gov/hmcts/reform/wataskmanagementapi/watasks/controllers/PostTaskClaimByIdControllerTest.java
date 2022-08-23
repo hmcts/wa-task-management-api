@@ -49,7 +49,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -78,7 +79,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -101,7 +103,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupFtpaJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -124,7 +127,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -154,7 +158,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -184,7 +189,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -209,7 +215,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -234,7 +241,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -264,7 +272,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -289,7 +298,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -312,7 +322,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupCaseManagerForSpecificAccess(currentCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(currentCaseworkerCredentials.getHeaders(), taskVariables,
-                     "processApplication", "process application", "process task");
+                     "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -346,7 +357,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupChallengedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -376,7 +388,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -399,7 +412,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -427,7 +441,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -452,7 +467,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -483,7 +499,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -513,7 +530,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps",
             "review specific access request legal ops",
-            "review specific access request legal ops");
+            "review specific access request legal ops"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -538,7 +556,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestAdmin",
             "review specific access request admin",
-            "review specific access request admin");
+            "review specific access request admin"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -564,7 +583,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
-            "review specific access request judiciary");
+            "review specific access request judiciary"
+        );
         String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.post(
@@ -594,7 +614,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupExcludedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "processApplication", "process application", "process task"
+        );
 
         String taskId = taskVariables.getTaskId();
         Response result = restApiActions.post(
