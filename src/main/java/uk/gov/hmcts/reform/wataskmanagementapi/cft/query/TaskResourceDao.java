@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -135,7 +136,7 @@ public class TaskResourceDao {
 
     public Optional<TaskResource> getTask(String taskId,
                                           List<RoleAssignment> roleAssignments,
-                                          List<PermissionTypes> permissionsRequired
+                                          PermissionRequirements permissionsRequired
     ) {
         SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
 
@@ -147,7 +148,6 @@ public class TaskResourceDao {
             selectQueryBuilder.root
         );
 
-        selectQueryBuilder.where(selectPredicate).build().getResultList();
         return selectQueryBuilder
             .where(selectPredicate)
             .build()

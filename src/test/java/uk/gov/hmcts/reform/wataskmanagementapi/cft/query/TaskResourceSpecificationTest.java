@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -271,11 +272,9 @@ public class TaskResourceSpecificationTest {
 
     @Test
     void should_build_single_task_query() {
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
         final Predicate predicate = TaskSearchQueryBuilder.buildSingleTaskQuery(
-            "someTaskId", roleAssignmentWithSpecificGrantType(PUBLIC), permissionsRequired,
+            "someTaskId", roleAssignmentWithSpecificGrantType(PUBLIC),
+            PermissionRequirementBuilder.builder().buildSingleType(PermissionTypes.READ),
             criteriaBuilder, root
         );
 

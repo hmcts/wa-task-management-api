@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -39,14 +40,14 @@ public class RoleAssignmentVerificationService {
 
     public TaskResource verifyRoleAssignments(String taskId,
                                               List<RoleAssignment> roleAssignments,
-                                              List<PermissionTypes> permissionsRequired) {
+                                              PermissionRequirements permissionsRequired) {
 
         return verifyRoleAssignments(taskId, roleAssignments, permissionsRequired, null);
     }
 
     public TaskResource verifyRoleAssignments(String taskId,
                                               List<RoleAssignment> roleAssignments,
-                                              List<PermissionTypes> permissionsRequired,
+                                              PermissionRequirements permissionsRequired,
                                               ErrorMessages customErrorMessage) {
         Optional<TaskResource> optionalTaskResource = cftQueryService.getTask(
             taskId, roleAssignments, permissionsRequired

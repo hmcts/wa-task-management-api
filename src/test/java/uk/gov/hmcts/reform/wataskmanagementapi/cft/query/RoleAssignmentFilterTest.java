@@ -5,10 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -21,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
@@ -30,12 +35,17 @@ import javax.persistence.criteria.Root;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.inActiveRoles;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithAllGrantTypes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithChallengedGrantType;
@@ -446,5 +456,53 @@ public class RoleAssignmentFilterTest {
         verify(builder, times(1)).or(any());
         verify(builder, never()).equal(any(), any());
         verify(builder, never()).and(any(), any());
+    }
+
+    @Test
+    void should_build_query_for_permission_requirement_collection() {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .roleType(RoleType.ORGANISATION)
+            .classification(Classification.PUBLIC)
+            .grantType(GrantType.SPECIFIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignments
+        );
+
+        lenient().when(taskRoleResources.get("roleName")).thenReturn(pathObject);
+        lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
+        lenient().when(builder.and(new Predicate[]{permissionsPredicate, permissionsPredicate}))
+            .thenReturn(permissionsPredicate);
+        lenient().when(builder.or(permissionsPredicate, permissionsPredicate)).thenReturn(permissionsPredicate);
+
+        PermissionRequirements requirements = new PermissionRequirementBuilder()
+            .initPermissionRequirement(List.of(CLAIM, OWN), PermissionJoin.AND)
+            .joinPermissionRequirement(PermissionJoin.OR)
+            .nextPermissionRequirement(List.of(CLAIM, EXECUTE), PermissionJoin.AND)
+            .joinPermissionRequirement(PermissionJoin.OR)
+            .nextPermissionRequirement(List.of(ASSIGN, OWN), PermissionJoin.AND)
+            .build();
+        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            requirements, accessControlResponse.getRoleAssignments(), builder, root);
+        assertNotNull(predicate);
+
+        InOrder inOrder = inOrder(taskRoleResources);
+        inOrder.verify(taskRoleResources).get(CLAIM.value().toLowerCase(Locale.ROOT));
+        inOrder.verify(taskRoleResources).get(OWN.value().toLowerCase(Locale.ROOT));
+        inOrder.verify(taskRoleResources).get(CLAIM.value().toLowerCase(Locale.ROOT));
+        inOrder.verify(taskRoleResources).get(EXECUTE.value().toLowerCase(Locale.ROOT));
+        inOrder.verify(taskRoleResources).get(ASSIGN.value().toLowerCase(Locale.ROOT));
+        inOrder.verify(taskRoleResources).get(OWN.value().toLowerCase(Locale.ROOT));
+        verify(builder, times(6)).isTrue(any());
+        verify(builder, times(3)).and(new Predicate[]{permissionsPredicate,
+            permissionsPredicate});
+        verify(builder, times(2)).or(permissionsPredicate, permissionsPredicate);
     }
 }
