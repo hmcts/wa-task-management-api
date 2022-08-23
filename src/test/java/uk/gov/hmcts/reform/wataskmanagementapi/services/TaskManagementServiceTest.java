@@ -21,6 +21,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -36,8 +38,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
@@ -71,6 +75,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -126,6 +131,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
@@ -483,7 +489,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(accessControlResponse.getRoleAssignments())
                 .thenReturn(singletonList(RoleAssignmentCreator.aRoleAssignment().build()));
             TaskResource taskResource = spy(TaskResource.class);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(READ)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(READ);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -510,7 +517,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(READ)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(READ);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.empty());
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -532,8 +540,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Test
         void getTask_should_throw_role_assignment_verification_exception_when_query_returns_empty_task() {
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(READ);
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(READ)))
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.empty());
             TaskResource taskResource = spy(TaskResource.class);
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
@@ -632,7 +641,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
 
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                      RELEASE_2_ENDPOINTS_FEATURE,
@@ -658,7 +669,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
@@ -691,8 +704,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(taskResource.getAssignee()).thenReturn("OTHER_USER_ID");
             when(taskResource.getTaskId()).thenReturn("TASK_ID");
 
-
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                      RELEASE_2_ENDPOINTS_FEATURE,
@@ -724,8 +738,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
             when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
 
-
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                      RELEASE_2_ENDPOINTS_FEATURE,
@@ -822,7 +837,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             TaskResource taskResource = spy(TaskResource.class);
 
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(MANAGE)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
 
             when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
@@ -854,7 +870,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(MANAGE)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
 
@@ -1043,12 +1060,15 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             TaskResource taskResource = spy(TaskResource.class);
 
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
             when(cftQueryService.getTask(
-                taskId, assignerAccessControlResponse.getRoleAssignments(), singletonList(MANAGE))
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
             ).thenReturn(Optional.of(taskResource));
 
+            PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
             when(cftQueryService.getTask(
-                taskId, assigneeAccessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE))
+                taskId, assigneeAccessControlResponse.getRoleAssignments(), otherRequirements)
             ).thenReturn(Optional.of(taskResource));
 
             when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
@@ -1092,11 +1112,16 @@ class TaskManagementServiceTest extends CamundaHelpers {
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleType(MANAGE);
             when(cftQueryService.getTask(
-                taskId, assignerAccessControlResponse.getRoleAssignments(), singletonList(MANAGE))
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
             ).thenReturn(Optional.of(taskResource));
+
+            PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
             when(cftQueryService.getTask(
-                taskId, assigneeAccessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE))
+                taskId, assigneeAccessControlResponse.getRoleAssignments(), otherRequirements)
             ).thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -1137,10 +1162,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             TaskResource taskResource = spy(TaskResource.class);
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
             when(cftQueryService.getTask(
                 taskId,
                 assignerAccessControlResponse.getRoleAssignments(),
-                singletonList(MANAGE)
+                requirements
             )).thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -1207,7 +1233,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
 
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
@@ -1338,7 +1365,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -1387,7 +1415,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -1431,7 +1460,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.empty());
 
             when(cftTaskDatabaseService.findByIdOnly(taskId))
@@ -1467,7 +1497,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -1509,7 +1540,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -1543,7 +1575,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             TaskResource taskResource = spy(TaskResource.class);
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
 
             when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
@@ -1698,7 +1732,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
 
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
             when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
@@ -1735,7 +1771,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
@@ -1758,7 +1796,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(taskResource.getAssignee()).thenReturn(null);
 
@@ -1856,7 +1896,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
-                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getState())
                     .thenReturn(CFTTaskState.COMPLETED);
@@ -1986,7 +2028,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
-                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
@@ -2164,7 +2208,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
                 TaskResource taskResource = spy(TaskResource.class);
                 when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
-                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
@@ -2237,8 +2283,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
                      )
                 ).thenReturn(true);
                 TaskResource taskResource = spy(TaskResource.class);
-
-                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.empty());
                 when(cftTaskDatabaseService.findByIdOnly(taskId))
                     .thenReturn(Optional.of(taskResource));
@@ -2268,8 +2315,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 ).thenReturn(true);
 
                 TaskResource taskResource = spy(TaskResource.class);
-
-                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.empty());
                 when(cftTaskDatabaseService.findByIdOnly(taskId))
                     .thenReturn(Optional.empty());
@@ -2300,7 +2348,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
                 TaskResource taskResource = spy(TaskResource.class);
                 when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
-                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
                 when(taskResource.getState()).thenReturn(CFTTaskState.CANCELLED);
@@ -2342,9 +2392,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 List<RoleAssignment> roleAssignments = List.of(roleAssignment);
                 when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
                 TaskResource taskResource = spy(TaskResource.class);
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
 
                 when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
-                when(cftQueryService.getTask(taskId, roleAssignments, asList(OWN, EXECUTE)))
+                when(cftQueryService.getTask(taskId, roleAssignments, requirements))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
                 when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
@@ -2426,7 +2478,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 ).thenReturn(true);
                 TaskResource taskResource = spy(TaskResource.class);
 
-                when(cftQueryService.getTask(taskId, roleAssignments, asList(OWN, EXECUTE)))
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+
+                when(cftQueryService.getTask(taskId, roleAssignments, requirements))
                     .thenReturn(Optional.empty());
                 when(cftTaskDatabaseService.findByIdOnly(taskId))
                     .thenReturn(Optional.of(taskResource));
@@ -2454,7 +2509,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 List<RoleAssignment> roleAssignments = List.of(roleAssignment);
                 when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
                 TaskResource taskResource = spy(TaskResource.class);
-                when(cftQueryService.getTask(taskId, roleAssignments, asList(OWN, EXECUTE)))
+
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                when(cftQueryService.getTask(taskId, roleAssignments, requirements))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getAssignee()).thenReturn(null);
 
@@ -2488,8 +2546,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+
                 TaskResource taskResource = spy(TaskResource.class);
-                when(cftQueryService.getTask(taskId, roleAssignments, asList(OWN, EXECUTE)))
+                when(cftQueryService.getTask(taskId, roleAssignments, requirements))
                     .thenReturn(Optional.empty());
                 when(cftTaskDatabaseService.findByIdOnly(taskId))
                     .thenReturn(Optional.empty());
@@ -2800,6 +2861,113 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Nested
     @DisplayName("initiateTask()")
     class InitiateTask {
+        ZonedDateTime dueDate = ZonedDateTime.now();
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
+            INITIATION,
+            asList(
+                new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, A_TASK_TYPE),
+                new TaskAttribute(TaskAttributeDefinition.TASK_NAME, A_TASK_NAME),
+                new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+            )
+        );
+        @Mock
+        private TaskResource taskResource;
+
+        @Test
+        void given_some_error_other_than_DataAccessException_when_requiring_lock_then_throw_500_error()
+            throws SQLException {
+            doThrow(new RuntimeException("some unexpected error"))
+                .when(cftTaskDatabaseService).insertAndLock(anyString(), any());
+
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(RuntimeException.class);
+        }
+
+        @Test
+        void given_some_error_when_initiateTaskProcess_then_throw_500_error() {
+            when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
+            doThrow(new RuntimeException("some unexpected error"))
+                .when(cftTaskMapper).mapToTaskResource(anyString(), anyList());
+
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(GenericServerErrorException.class)
+                .hasMessage("Generic Server Error: The action could not be completed "
+                                + "because there was a problem when initiating the task.");
+        }
+
+        @Test
+        void given_DataAccessException_when_initiate_task_then_throw_503_error() throws SQLException {
+            String msg = "duplicate key value violates unique constraint \"tasks_pkey\"";
+            doThrow(new DataIntegrityViolationException(msg))
+                .when(cftTaskDatabaseService).insertAndLock(anyString(), any());
+
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(DatabaseConflictException.class)
+                .hasMessage("Database Conflict Error: "
+                                + "The action could not be completed because there was a conflict in the database.");
+        }
+
+        @Test
+        void given_initiateTask_task_is_initiated() {
+            mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED);
+
+            taskManagementService.initiateTask(taskId, initiateTaskRequest);
+
+            verifyExpectations(CFTTaskState.UNASSIGNED);
+        }
+
+        private void verifyExpectations(CFTTaskState cftTaskState) {
+            verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+
+            verify(configureTaskService).configureCFTTask(
+                eq(taskResource),
+                ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
+                    taskId,
+                    A_TASK_TYPE,
+                    "aCaseId",
+                    A_TASK_NAME
+                )))
+            );
+
+            verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+
+            if (cftTaskState.equals(CFTTaskState.ASSIGNED) || cftTaskState.equals(CFTTaskState.UNASSIGNED)) {
+                verify(camundaService).updateCftTaskState(
+                    taskId,
+                    cftTaskState.equals(CFTTaskState.ASSIGNED) ? TaskState.ASSIGNED : TaskState.UNASSIGNED
+                );
+            } else {
+                verifyNoInteractions(camundaService);
+            }
+
+            verify(cftTaskDatabaseService).saveTask(taskResource);
+        }
+
+        private void mockInitiateTaskDependencies(CFTTaskState cftTaskState) {
+            when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
+            when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
+                .thenReturn(taskResource);
+
+            when(taskResource.getTaskType()).thenReturn(A_TASK_TYPE);
+            when(taskResource.getTaskId()).thenReturn(taskId);
+            when(taskResource.getCaseId()).thenReturn("aCaseId");
+            when(taskResource.getTaskName()).thenReturn(A_TASK_NAME);
+            when(taskResource.getState()).thenReturn(cftTaskState);
+
+            lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
+                .thenReturn(taskResource);
+
+            when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(taskResource);
+
+            when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(taskResource);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("newInitiateTask()")
+    class NewInitiateTask {
         OffsetDateTime dueDate = OffsetDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         private final InitiateTaskRequestNew initiateTaskRequest = new InitiateTaskRequestNew(

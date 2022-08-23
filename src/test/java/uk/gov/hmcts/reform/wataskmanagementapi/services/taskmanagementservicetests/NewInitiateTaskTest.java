@@ -13,9 +13,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
@@ -34,8 +33,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.sql.SQLException;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 
@@ -56,15 +56,15 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASS
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
-class InitiateTaskTest extends CamundaHelpers {
+class NewInitiateTaskTest extends CamundaHelpers {
 
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
@@ -94,7 +94,7 @@ class InitiateTaskTest extends CamundaHelpers {
     TaskManagementService taskManagementService;
     String taskId;
     TaskResource taskResource;
-    private InitiateTaskRequest initiateTaskRequest;
+    private InitiateTaskRequestNew initiateTaskRequest;
     @Mock
     private EntityManager entityManager;
 
@@ -137,17 +137,17 @@ class InitiateTaskTest extends CamundaHelpers {
             CASE_ID
         );
 
-        List<TaskAttribute> taskAttributeList = new ArrayList<>();
-        taskAttributeList.add(new TaskAttribute(TASK_TYPE, A_TASK_TYPE));
-        taskAttributeList.add(new TaskAttribute(TASK_NAME, A_TASK_NAME));
-        initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributeList);
+        Map<String, Object> taskAttributes = new HashMap<>();
+        taskAttributes.put(TASK_TYPE.value(), A_TASK_TYPE);
+        taskAttributes.put(TASK_NAME.value(), A_TASK_NAME);
+        initiateTaskRequest = new InitiateTaskRequestNew(INITIATION, taskAttributes);
     }
 
     @Test
     void given_initiateTask_then_task_is_saved() {
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
+        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
         mockInitiateTaskDependencies();
 
         TaskResource unassignedTaskResource = new TaskResource(
@@ -159,7 +159,7 @@ class InitiateTaskTest extends CamundaHelpers {
         );
 
         when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
-        when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
+        lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
         taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
@@ -169,7 +169,8 @@ class InitiateTaskTest extends CamundaHelpers {
                 taskId,
                 A_TASK_TYPE,
                 CASE_ID,
-                A_TASK_NAME
+                A_TASK_NAME,
+                initiateTaskRequest.getTaskAttributes()
             )))
         );
 
@@ -188,7 +189,7 @@ class InitiateTaskTest extends CamundaHelpers {
     void should_succeed_and_filter_out_nulls() {
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
+        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
         mockInitiateTaskDependencies();
 
         TaskResource unassignedTaskResource = new TaskResource(
@@ -200,8 +201,8 @@ class InitiateTaskTest extends CamundaHelpers {
         );
 
         when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
-        when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
-        initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_LOCATION, null));
+        lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
+        initiateTaskRequest.getTaskAttributes().put(TASK_LOCATION.value(), null);
 
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
@@ -213,7 +214,8 @@ class InitiateTaskTest extends CamundaHelpers {
                 taskId,
                 A_TASK_TYPE,
                 CASE_ID,
-                A_TASK_NAME
+                A_TASK_NAME,
+                initiateTaskRequest.getTaskAttributes()
             )))
         );
 
@@ -232,7 +234,7 @@ class InitiateTaskTest extends CamundaHelpers {
     void given_initiateTask_with_previous_valid_assignee_should_keep_assignee() {
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
+        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
         mockInitiateTaskDependencies();
 
         TaskResource taskWithAssignee = new TaskResource(
@@ -247,7 +249,7 @@ class InitiateTaskTest extends CamundaHelpers {
         when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
         when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(true);
 
-        when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
+        lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
 
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
@@ -259,7 +261,8 @@ class InitiateTaskTest extends CamundaHelpers {
                 taskId,
                 A_TASK_TYPE,
                 CASE_ID,
-                A_TASK_NAME
+                A_TASK_NAME,
+                initiateTaskRequest.getTaskAttributes()
             )))
         );
 
@@ -275,7 +278,7 @@ class InitiateTaskTest extends CamundaHelpers {
     void given_initiateTask_with_previous_invalid_assignee_should_reassign() {
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
+        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
         mockInitiateTaskDependencies();
 
         TaskResource taskWithAssignee = new TaskResource(
@@ -302,7 +305,7 @@ class InitiateTaskTest extends CamundaHelpers {
 
         when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(taskReassigned);
 
-        when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
+        lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
 
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
@@ -313,7 +316,8 @@ class InitiateTaskTest extends CamundaHelpers {
                 taskId,
                 A_TASK_TYPE,
                 CASE_ID,
-                A_TASK_NAME
+                A_TASK_NAME,
+                initiateTaskRequest.getTaskAttributes()
             )))
         );
 
@@ -343,7 +347,7 @@ class InitiateTaskTest extends CamundaHelpers {
             .when(cftTaskDatabaseService).insertAndLock(anyString(), any());
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
+        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
 
         assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)
         )
@@ -356,17 +360,11 @@ class InitiateTaskTest extends CamundaHelpers {
     @Test
     void should_set_task_attributes_when_initiate_task_request_initiated() {
 
-        List<TaskAttribute> taskAttributes = initiateTaskRequest.getTaskAttributes();
+        Map<String, Object> taskAttributes = initiateTaskRequest.getTaskAttributes();
 
         assertNotNull(taskAttributes);
-        assertNotNull(taskAttributes.get(0));
-        assertEquals(TASK_TYPE, taskAttributes.get(0).getName());
-        assertEquals(A_TASK_TYPE, taskAttributes.get(0).getValue());
-
-        assertNotNull(taskAttributes.get(1));
-        assertEquals(TASK_NAME, taskAttributes.get(1).getName());
-        assertEquals(A_TASK_NAME, taskAttributes.get(1).getValue());
-
+        assertEquals(A_TASK_TYPE, taskAttributes.get(TASK_TYPE.value()));
+        assertEquals(A_TASK_NAME, taskAttributes.get(TASK_NAME.value()));
     }
 
     private void mockInitiateTaskDependencies() {

@@ -13,7 +13,7 @@ management:
 
 config:
   privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
-  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler}
+  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler,wa_workflow_api}
   allowedJurisdictions: ${ALLOWED_JURISDICTIONS:ia,wa,sscs,civil}
   allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil}
   search:

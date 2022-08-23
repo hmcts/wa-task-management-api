@@ -188,6 +188,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(otherUser.getHeaders());
     }
 
     @Ignore("Release 1 tests")

@@ -2,8 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.Value;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation;
 

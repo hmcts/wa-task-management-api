@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers.newInitiate;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers.newinitiate;
 
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
@@ -8,8 +8,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;

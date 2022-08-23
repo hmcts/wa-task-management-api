@@ -55,6 +55,7 @@ class ConfigureTaskServiceTest {
     private ConfigureTaskService configureTaskService;
     private TaskConfigurator taskVariableExtractor;
     private TaskAutoAssignmentService autoAssignmentService;
+    private CaseConfigurationProviderService caseConfigurationProviderService;
     private CFTTaskMapper cftTaskMapper;
 
     @BeforeEach
@@ -62,11 +63,13 @@ class ConfigureTaskServiceTest {
         camundaService = mock(TaskConfigurationCamundaService.class);
         taskVariableExtractor = mock(TaskConfigurator.class);
         autoAssignmentService = mock(TaskAutoAssignmentService.class);
+        caseConfigurationProviderService = mock(CaseConfigurationProviderService.class);
         cftTaskMapper = mock(CFTTaskMapper.class);
         configureTaskService = new ConfigureTaskService(
             camundaService,
             Collections.singletonList(taskVariableExtractor),
             autoAssignmentService,
+            caseConfigurationProviderService,
             cftTaskMapper
         );
 

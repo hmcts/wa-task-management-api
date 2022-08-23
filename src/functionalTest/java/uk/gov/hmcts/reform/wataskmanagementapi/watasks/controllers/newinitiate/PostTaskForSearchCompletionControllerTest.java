@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers.newInitiate;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers.newinitiate;
 
 import io.restassured.response.Response;
 import lombok.AllArgsConstructor;

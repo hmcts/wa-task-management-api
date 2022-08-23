@@ -29,15 +29,18 @@ public class ConfigureTaskService {
     private final TaskConfigurationCamundaService taskConfigurationCamundaService;
     private final List<TaskConfigurator> taskConfigurators;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
+    private final CaseConfigurationProviderService caseConfigurationProviderService;
     private final CFTTaskMapper cftTaskMapper;
 
     public ConfigureTaskService(TaskConfigurationCamundaService taskConfigurationCamundaService,
                                 List<TaskConfigurator> taskConfigurators,
                                 TaskAutoAssignmentService taskAutoAssignmentService,
+                                CaseConfigurationProviderService caseConfigurationProviderService,
                                 CFTTaskMapper cftTaskMapper) {
         this.taskConfigurationCamundaService = taskConfigurationCamundaService;
         this.taskConfigurators = taskConfigurators;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
+        this.caseConfigurationProviderService = caseConfigurationProviderService;
         this.cftTaskMapper = cftTaskMapper;
     }
 
@@ -95,6 +98,15 @@ public class ConfigureTaskService {
     public TaskResource configureCFTTask(TaskResource skeletonMappedTask, TaskToConfigure taskToConfigure) {
         TaskConfigurationResults configurationVariables = getConfigurationResults(taskToConfigure);
         return cftTaskMapper.mapConfigurationAttributes(skeletonMappedTask, configurationVariables);
+    }
+
+    public TaskResource reconfigureCFTTask(TaskResource taskResource) {
+        Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
+
+        TaskConfigurationResults configurationVariables = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(taskResource.getCaseId(), taskAttributes);
+
+        return cftTaskMapper.reconfigureTaskResourceFromDmnResults(taskResource, configurationVariables);
     }
 
     private Map<String, CamundaValue<String>> convertToCamundaFormat(Map<String, Object> configurationVariables) {

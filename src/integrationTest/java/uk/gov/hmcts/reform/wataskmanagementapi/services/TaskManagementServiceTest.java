@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -315,7 +316,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
             ));
 
-            when(cftQueryService.getTask(any(), any(), any()))
+            when(cftQueryService.getTask(any(), any(), any(PermissionRequirements.class)))
                 .thenReturn(taskResource);
 
             createAndSaveTestTask(taskId, cftTaskState);
@@ -363,7 +364,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 UNASSIGNED,
                 OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
             ));
-            when(cftQueryService.getTask(any(), any(), any()))
+            when(cftQueryService.getTask(any(), any(), any(PermissionRequirements.class)))
                 .thenReturn(taskResource);
 
             createAndSaveTestTask(taskId, UNASSIGNED);
