@@ -307,6 +307,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
 
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(otherUser.getHeaders());
     }
 
     @Ignore("Release 1 tests")
