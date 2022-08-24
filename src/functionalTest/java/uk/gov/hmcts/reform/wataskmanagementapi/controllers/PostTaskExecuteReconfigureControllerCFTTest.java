@@ -52,6 +52,7 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
         authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
     }
 
+
     @Test
     public void should_return_a_204_after_tasks_are_marked_and_executed_for_reconfigure() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
