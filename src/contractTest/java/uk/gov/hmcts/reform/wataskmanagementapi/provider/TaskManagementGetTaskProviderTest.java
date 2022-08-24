@@ -203,11 +203,12 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
                 PermissionTypes.READ,
-                PermissionTypes.OWN,
-                PermissionTypes.EXECUTE,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.CLAIM,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.UNASSIGN_CLAIM,
                 PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE,
-                PermissionTypes.REFER
+                PermissionTypes.EXECUTE
             )
         );
 
