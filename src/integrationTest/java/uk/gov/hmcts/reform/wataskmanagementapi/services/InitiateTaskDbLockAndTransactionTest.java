@@ -34,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -126,6 +127,9 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private ArgumentCaptor<TaskResource> taskResourceCaptor;
     private TaskResource testTaskResource;
     private TaskResource assignedTask;
+
+    @Mock
+    private Map<String, Object> taskAttributes;
     private RoleAssignmentVerificationService roleAssignmentVerification;
     @Mock
     private EntityManager entityManager;
@@ -172,6 +176,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         assignedTask = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED, SOME_CASE_ID, dueDate);
         assignedTask.setCreated(OffsetDateTime.now());
 
+        when(cftTaskMapper.getTaskAttributes(testTaskResource)).thenReturn(taskAttributes);
         when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
             .thenReturn(assignedTask);
 
@@ -200,7 +205,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
         inOrder.verify(configureTaskService).configureCFTTask(
             taskResourceCaptor.capture(),
-            eq(new TaskToConfigure(taskId, A_TASK_TYPE, SOME_CASE_ID, A_TASK_NAME))
+            eq(new TaskToConfigure(taskId, A_TASK_TYPE, SOME_CASE_ID, A_TASK_NAME, taskAttributes))
         );
         inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class));
         inOrder.verify(camundaService).updateCftTaskState(any(), any());
