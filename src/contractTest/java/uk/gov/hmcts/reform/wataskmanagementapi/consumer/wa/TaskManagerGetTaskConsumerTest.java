@@ -250,11 +250,12 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                             value
                                 .unorderedArray("values", (p) -> p
                                     .stringValue(PermissionTypes.READ.value())
-                                    .stringValue(PermissionTypes.OWN.value())
-                                    .stringValue(PermissionTypes.EXECUTE.value())
+                                    .stringValue(PermissionTypes.COMPLETE.value())
+                                    .stringValue(PermissionTypes.CLAIM.value())
+                                    .stringValue(PermissionTypes.UNCLAIM.value())
+                                    .stringValue(PermissionTypes.UNASSIGN_CLAIM.value())
                                     .stringValue(PermissionTypes.CANCEL.value())
-                                    .stringValue(PermissionTypes.MANAGE.value())
-                                    .stringValue(PermissionTypes.REFER.value()));
+                                    .stringValue(PermissionTypes.EXECUTE.value()));
                         })
                 )).build();
 
