@@ -307,6 +307,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(otherUser.getHeaders());
 
     }
 
@@ -340,6 +341,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(otherUser.getHeaders());
 
     }
 

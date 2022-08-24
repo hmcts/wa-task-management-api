@@ -342,6 +342,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         common.cleanUpTask(taskId1);
         common.cleanUpTask(taskId2);
+        common.clearAllRoleAssignments(assignerHeaders.getHeaders());
     }
 
     @Test
@@ -418,6 +419,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         common.cleanUpTask(taskId1);
         common.cleanUpTask(taskId2);
+        common.clearAllRoleAssignments(assignerHeaders.getHeaders());
     }
 
     @Test
