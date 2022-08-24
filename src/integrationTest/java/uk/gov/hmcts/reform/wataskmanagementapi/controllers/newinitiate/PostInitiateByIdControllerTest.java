@@ -64,23 +64,23 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
-    private static final String ENDPOINT_PATH = "/task/%s";
+    private static final String ENDPOINT_PATH = "/task/%s/new";
     private static String ENDPOINT_BEING_TESTED;
     @MockBean
     private ClientAccessControlService clientAccessControlService;
@@ -611,7 +611,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
             TASK_NAME.value(), "aTaskName",
             TITLE.value(), "A test task",
-            TASK_CASE_ID.value(), "someCaseId",
+            CASE_ID.value(), "someCaseId",
             DUE_DATE.value(), formattedDueDate
         );
 
@@ -719,7 +719,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_ASSIGNEE.value(), "someAssignee",
+            ASSIGNEE.value(), "someAssignee",
             TASK_STATE.value(), "UNCONFIGURED",
             TASK_NAME.value(), "aTaskName",
             TITLE.value(), "A test task",

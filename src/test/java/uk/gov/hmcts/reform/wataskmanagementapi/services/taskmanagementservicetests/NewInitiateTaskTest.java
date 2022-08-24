@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.taskmanagementservicetests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +44,6 @@ import javax.persistence.EntityManager;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -56,7 +57,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASS
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
@@ -163,6 +163,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
         taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+
         verify(configureTaskService).configureCFTTask(
             eq(taskResource),
             ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
@@ -170,52 +171,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
                 A_TASK_TYPE,
                 CASE_ID,
                 A_TASK_NAME,
-                initiateTaskRequest.getTaskAttributes()
-            )))
-        );
-
-
-        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
-
-        verify(camundaService).updateCftTaskState(
-            taskId,
-            TaskState.UNASSIGNED
-        );
-
-        verify(cftTaskDatabaseService).saveTask(taskResource);
-    }
-
-    @Test
-    void should_succeed_and_filter_out_nulls() {
-        ZonedDateTime dueDate = ZonedDateTime.now();
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
-        mockInitiateTaskDependencies();
-
-        TaskResource unassignedTaskResource = new TaskResource(
-            taskId,
-            A_TASK_NAME,
-            A_TASK_TYPE,
-            UNASSIGNED,
-            CASE_ID
-        );
-
-        when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
-        lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
-        initiateTaskRequest.getTaskAttributes().put(TASK_LOCATION.value(), null);
-
-        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
-
-        assertNull(taskResource.getLocation());
-        verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
-        verify(configureTaskService).configureCFTTask(
-            eq(taskResource),
-            ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
-                taskId,
-                A_TASK_TYPE,
-                CASE_ID,
-                A_TASK_NAME,
-                initiateTaskRequest.getTaskAttributes()
+                getTaskAttributesWithDueDateUpdate(formattedDueDate)
             )))
         );
 
@@ -262,7 +218,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
                 A_TASK_TYPE,
                 CASE_ID,
                 A_TASK_NAME,
-                initiateTaskRequest.getTaskAttributes()
+                getTaskAttributesWithDueDateUpdate(formattedDueDate)
             )))
         );
 
@@ -272,6 +228,13 @@ class NewInitiateTaskTest extends CamundaHelpers {
         );
 
         verify(cftTaskDatabaseService).saveTask(taskResource);
+    }
+
+    @NotNull
+    private Map<String, Object> getTaskAttributesWithDueDateUpdate(String formattedDueDate) {
+        Map<String, Object> taskAttributes = new HashMap<>(initiateTaskRequest.getTaskAttributes());
+        taskAttributes.put(DUE_DATE.value(), OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER));
+        return taskAttributes;
     }
 
     @Test
@@ -310,6 +273,8 @@ class NewInitiateTaskTest extends CamundaHelpers {
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+
+        Map<String, Object> taskAttributes = getTaskAttributesWithDueDateUpdate(formattedDueDate);
         verify(configureTaskService).configureCFTTask(
             eq(taskResource),
             ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
@@ -317,7 +282,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
                 A_TASK_TYPE,
                 CASE_ID,
                 A_TASK_NAME,
-                initiateTaskRequest.getTaskAttributes()
+                taskAttributes
             )))
         );
 

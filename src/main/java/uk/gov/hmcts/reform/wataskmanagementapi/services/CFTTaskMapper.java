@@ -94,7 +94,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
         "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411",
-        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity"})
+        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity", "PMD.AvoidDuplicateLiterals"
+    })
 @Slf4j
 public class CFTTaskMapper {
 
@@ -179,7 +180,7 @@ public class CFTTaskMapper {
         ExecutionTypeResource executionTypeResource = extractExecutionTypeNew(attributes);
         OffsetDateTime dueDate = readDate(attributes, DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, CREATED, ZonedDateTime.now().toOffsetDateTime());
-        OffsetDateTime priorityDate = readNonCamundaDate(attributes, PRIORITY_DATE, null);
+        OffsetDateTime priorityDate = readDate(attributes, PRIORITY_DATE, null);
 
         Objects.requireNonNull(dueDate, "DUE_DATE must not be null");
         if (priorityDate == null) {

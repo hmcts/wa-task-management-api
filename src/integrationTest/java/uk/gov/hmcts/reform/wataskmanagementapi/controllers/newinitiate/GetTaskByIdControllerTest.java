@@ -306,7 +306,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         //first initiate call
         mockMvc
-            .perform(post("/task/" + taskId)
+            .perform(post("/task/" + taskId + "/new")
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(APPLICATION_JSON_VALUE)
@@ -325,7 +325,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         //second initiate call
         mockMvc
-            .perform(post("/task/" + taskId)
+            .perform(post("/task/" + taskId + "/new")
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(APPLICATION_JSON_VALUE)

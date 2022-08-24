@@ -36,6 +36,7 @@ import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 
@@ -80,7 +81,13 @@ class InitiateTaskTest extends CamundaHelpers {
     @Mock
     CftQueryService cftQueryService;
     @Spy
-    CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+    CFTTaskMapper cftTaskMapper;
+
+    {
+        ObjectMapper objectMapper = new ObjectMapper();
+        cftTaskMapper = new CFTTaskMapper(objectMapper);
+    }
+
     @Mock
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
@@ -89,6 +96,8 @@ class InitiateTaskTest extends CamundaHelpers {
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
     private MarkTaskReconfigurationService taskReconfigurationService;
+    @Mock
+    private Map<String, Object> taskAttributes;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
@@ -160,16 +169,20 @@ class InitiateTaskTest extends CamundaHelpers {
 
         when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
+        when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
+
         taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+        verify(cftTaskMapper, atLeastOnce()).getTaskAttributes(taskResource);
         verify(configureTaskService).configureCFTTask(
             eq(taskResource),
             ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
                 taskId,
                 A_TASK_TYPE,
                 CASE_ID,
-                A_TASK_NAME
+                A_TASK_NAME,
+                taskAttributes
             )))
         );
 
@@ -202,18 +215,21 @@ class InitiateTaskTest extends CamundaHelpers {
         when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
         initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_LOCATION, null));
+        when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
 
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         assertNull(taskResource.getLocation());
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+        verify(cftTaskMapper).getTaskAttributes(taskResource);
         verify(configureTaskService).configureCFTTask(
             eq(taskResource),
             ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
                 taskId,
                 A_TASK_TYPE,
                 CASE_ID,
-                A_TASK_NAME
+                A_TASK_NAME,
+                taskAttributes
             )))
         );
 
@@ -248,6 +264,7 @@ class InitiateTaskTest extends CamundaHelpers {
         when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(true);
 
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
+        when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
 
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
@@ -259,7 +276,8 @@ class InitiateTaskTest extends CamundaHelpers {
                 taskId,
                 A_TASK_TYPE,
                 CASE_ID,
-                A_TASK_NAME
+                A_TASK_NAME,
+                taskAttributes
             )))
         );
 
@@ -304,6 +322,8 @@ class InitiateTaskTest extends CamundaHelpers {
 
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
 
+        when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
+
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
@@ -313,7 +333,8 @@ class InitiateTaskTest extends CamundaHelpers {
                 taskId,
                 A_TASK_TYPE,
                 CASE_ID,
-                A_TASK_NAME
+                A_TASK_NAME,
+                taskAttributes
             )))
         );
 

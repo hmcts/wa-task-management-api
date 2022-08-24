@@ -78,6 +78,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -2859,8 +2860,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
     }
 
     @Nested
-    @DisplayName("initiateTask()")
-    class InitiateTask {
+    @DisplayName("OldInitiateTask()")
+    class OldInitiateTask {
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
@@ -2873,6 +2874,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
         );
         @Mock
         private TaskResource taskResource;
+
+        @Mock
+        private Map<String, Object> taskAttributes;
 
         @Test
         void given_some_error_other_than_DataAccessException_when_requiring_lock_then_throw_500_error()
@@ -2919,6 +2923,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
         private void verifyExpectations(CFTTaskState cftTaskState) {
             verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+            verify(cftTaskMapper, atLeastOnce()).getTaskAttributes(taskResource);
 
             verify(configureTaskService).configureCFTTask(
                 eq(taskResource),
@@ -2926,7 +2931,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     taskId,
                     A_TASK_TYPE,
                     "aCaseId",
-                    A_TASK_NAME
+                    A_TASK_NAME,
+                    taskAttributes
                 )))
             );
 
@@ -2948,6 +2954,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
             when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
                 .thenReturn(taskResource);
+
+            when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
 
             when(taskResource.getTaskType()).thenReturn(A_TASK_TYPE);
             when(taskResource.getTaskId()).thenReturn(taskId);
@@ -3027,13 +3035,18 @@ class TaskManagementServiceTest extends CamundaHelpers {
         private void verifyExpectations(CFTTaskState cftTaskState) {
             verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
+            Map<String, Object> taskAttributes = new HashMap<>(initiateTaskRequest.getTaskAttributes());
+            OffsetDateTime offsetDueDate = OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER);
+            taskAttributes.put(DUE_DATE.value(), offsetDueDate);
+
             verify(configureTaskService).configureCFTTask(
                 eq(taskResource),
                 ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
                     taskId,
                     A_TASK_TYPE,
                     "aCaseId",
-                    A_TASK_NAME
+                    A_TASK_NAME,
+                    taskAttributes
                 )))
             );
 

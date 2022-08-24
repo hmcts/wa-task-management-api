@@ -54,13 +54,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -91,7 +91,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
     "PMD.DataflowAnomalyAnalysis",
     "PMD.ExcessiveImports",
     "PMD.LawOfDemeter",
-    "PMD.ExcessiveParameterList"})
+    "PMD.ExcessiveParameterList",
+    "PMD.ExcessiveClassLength"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
 
@@ -941,7 +942,7 @@ public class TaskManagementService {
                 initiateTaskRequest.getTaskAttributes()
             );
 
-            Map<String, Object> taskAttributes = new HashMap<>(initiateTaskRequest.getTaskAttributes());
+            Map<String, Object> taskAttributes = new ConcurrentHashMap<>(initiateTaskRequest.getTaskAttributes());
             taskAttributes.put(DUE_DATE.value(), dueDate);
             taskResource = configureTask(taskResource, taskAttributes);
             boolean isOldAssigneeValid = false;
