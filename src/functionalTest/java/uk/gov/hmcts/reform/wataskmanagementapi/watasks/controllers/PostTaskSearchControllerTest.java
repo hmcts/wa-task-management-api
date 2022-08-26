@@ -36,6 +36,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
@@ -116,7 +117,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.warnings", everyItem(equalTo(false)))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
             .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Refer", "Own"))))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of(
+                "Read", "Refer", "Own","Claim", "CompleteOwn", "CancelOwn"))))
             .body("tasks.description", everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                          + "trigger/decideAnApplication)")))
             .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
@@ -297,4 +299,79 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
+
+    @Test
+    public void should_return_a_200_with_role_category_ctsc() {
+        common.setupCFTCtscRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        List<TestVariables> tasksCreated = new ArrayList<>();
+
+        TestVariables taskVariables =
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json");
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "reviewAppealSkeletonArgument",
+            "review appeal skeleton argument",
+            "review appeal skeleton argument");
+
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("CTSC")),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("tasks.id", everyItem(notNullValue()))
+            .body("tasks.id", hasItem(is(in(taskIds))))
+            .body("tasks.name", everyItem(equalTo("review appeal skeleton argument")))
+            .body("tasks.type", everyItem(equalTo("reviewAppealSkeletonArgument")))
+            .body("tasks.task_state", everyItem(equalTo("unassigned")))
+            .body("tasks.task_system", everyItem(equalTo("SELF")))
+            .body("tasks.security_classification", everyItem(equalTo("PUBLIC")))
+            .body("tasks.task_title", everyItem(equalTo("review appeal skeleton argument")))
+            .body("tasks.created_date", everyItem(notNullValue()))
+            .body("tasks.due_date", everyItem(notNullValue()))
+            .body("tasks.location_name", everyItem(equalTo("Taylor House")))
+            .body("tasks.location", everyItem(equalTo("765324")))
+            .body("tasks.execution_type", everyItem(equalTo("Case Management Task")))
+            .body("tasks.jurisdiction", everyItem(equalTo("WA")))
+            .body("tasks.region", everyItem(equalTo("1")))
+            .body("tasks.case_type_id", everyItem(equalTo("WaCaseType")))
+            .body("tasks.case_id", hasItem(is(in(caseIds))))
+            .body("tasks.case_category", everyItem(equalTo("Protection")))
+            .body("tasks.case_name", everyItem(equalTo("Bob Smith")))
+            .body("tasks.auto_assigned", everyItem(equalTo(false)))
+            .body("tasks.warnings", everyItem(equalTo(false)))
+            .body("tasks.case_management_category", everyItem(equalTo("Protection")))
+            .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of(
+                "Read", "Refer", "Manage", "Cancel", "Assign", "Unassign", "UnassignAssign", "Complete"
+            ))))
+            .body("tasks.description", everyItem(equalTo("[Request respondent review](/case/WA/WaCaseType"
+                                                         + "/${[CASE_REFERENCE]}/trigger/requestRespondentReview)<br />"
+                                                         + "[Request case edit](/case/WA/WaCaseType/${[CASE_REFERENCE]}"
+                                                         + "/trigger/requestCaseEdit)")))
+            .body("tasks.role_category", everyItem(equalTo("CTSC")))
+            .body("tasks.next_hearing_id", everyItem(equalTo("next-hearing-id")))
+            .body("tasks.next_hearing_date", everyItem(notNullValue()))
+            .body("tasks.priority_date", everyItem(notNullValue()))
+            .body("tasks.minor_priority", everyItem(equalTo(500)))
+            .body("tasks.major_priority", everyItem(equalTo(1000)))
+            .body("total_records", equalTo(1));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+    }
+
 }

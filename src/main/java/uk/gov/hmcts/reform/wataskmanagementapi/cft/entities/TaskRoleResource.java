@@ -263,6 +263,7 @@ public class TaskRoleResource implements Serializable {
                             Boolean cancelOwn,
                             Boolean unassignClaim,
                             Boolean unclaim,
+                            Boolean unclaimAssign,
                             String[] authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable,
@@ -285,6 +286,7 @@ public class TaskRoleResource implements Serializable {
         this.cancelOwn = cancelOwn;
         this.unassignClaim = unassignClaim;
         this.unclaim = unclaim;
+        this.unclaimAssign = unclaimAssign;
         this.authorizations = authorizations == null ? new String[]{} : authorizations.clone();
         this.assignmentPriority = assignmentPriority;
         this.autoAssignable = autoAssignable;

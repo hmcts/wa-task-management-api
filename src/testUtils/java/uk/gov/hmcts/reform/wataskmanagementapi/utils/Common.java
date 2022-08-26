@@ -168,8 +168,8 @@ public class Common {
     public TestVariables setupWATaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value, String resourceFileName) {
         String caseId = given.iCreateWACcdCase(resourceFileName);
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-                                                                                         "WA",
-                                                                                         "Asylum"
+            "WA",
+            "Asylum"
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -438,6 +438,38 @@ public class Common {
             R2_ROLE_ASSIGNMENT_REQUEST,
             GrantType.STANDARD.name(),
             RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    private void createCtscCaseworker(UserInfo userInfo, Headers headers,
+                                      String jurisdiction, String caseType) {
+        log.info("Creating CTSC caseworker organizational Role");
+
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "ctsc",
+            toJsonString(Map.of(
+                "primaryLocation", "765324",
+                "caseType", caseType,
+                "jurisdiction", jurisdiction
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.ADMIN.name(),
             toJsonString(List.of()),
             RoleType.ORGANISATION.name(),
             Classification.PUBLIC.name(),
@@ -998,6 +1030,13 @@ public class Common {
             null,
             userInfo.getUid()
         );
+    }
+
+    public void setupCFTCtscRoleAssignmentForWA(Headers headers) {
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        createCaseAllocator(userInfo, headers, "WA");
+        createCtscCaseworker(userInfo, headers, "WA", "WaCaseType");
     }
 
     private void createSupervisor(UserInfo userInfo, Headers headers, String jurisdiction) {
