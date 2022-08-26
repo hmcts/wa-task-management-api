@@ -110,7 +110,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                          + "trigger/decideAnApplication)"))
-            .body("task_role_resources.size()", equalTo(11))
+            .body("task_role_resources.size()", equalTo(10))
             .body("additional_properties", equalToObject(Map.of(
                 "key1", "value1",
                 "key2", "value2",
@@ -179,25 +179,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("role_category", "LEGAL_OPERATIONS"),
                 entry("auto_assignable", false),
                 entry("assignment_priority", 2)
-            )
-        );
-
-        assertPermissions(
-            getTaskResource(result, "ctsc"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("manage", true),
-                entry("cancel", true),
-                entry("assign", true),
-                entry("unassign", true),
-                entry("unassign_assign", true),
-                entry("complete", true),
-                entry("own", false),
-                entry("execute", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of()),
-                entry("auto_assignable", false)
             )
         );
 
@@ -315,7 +296,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_priorty_date_when_initiating_a_task_without_hearing_date() {
+    public void should_return_priority_date_when_initiating_a_task_without_hearing_date() {
         TestVariables taskVariables
             = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json");
         String taskId = taskVariables.getTaskId();
@@ -382,7 +363,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                          + "trigger/decideAnApplication)"))
-            .body("task_role_resources.size()", equalTo(11))
+            .body("task_role_resources.size()", equalTo(10))
             .body("additional_properties", equalToObject(Map.of(
                 "key1", "value1",
                 "key2", "value2",
@@ -390,6 +371,123 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "key4", "value4"
             ))).body("minor_priority", equalTo(500))
             .body("major_priority", equalTo(5000));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_201_when_initiating_a_review_appeal_skeleton_argument_task_by_id() {
+        TestVariables taskVariables =
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json");
+        String taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "reviewAppealSkeletonArgument"),
+            new TaskAttribute(TASK_NAME, "Review Appeal Skeleton Argument"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "Review Appeal Skeleton Argument"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            req,
+            caseworkerCredentials.getHeaders()
+        );
+
+        //Note: this is the TaskResource.class
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value())
+            .and()
+            .body("task_id", equalTo(taskId))
+            .body("task_name", equalTo("Review Appeal Skeleton Argument"))
+            .body("task_type", equalTo("reviewAppealSkeletonArgument"))
+            .body("state", equalTo("UNASSIGNED"))
+            .body("task_system", equalTo("SELF"))
+            .body("security_classification", equalTo("PUBLIC"))
+            .body("title", equalTo("Review Appeal Skeleton Argument"))
+            .body("created", notNullValue())
+            .body("due_date_time", notNullValue())
+            .body("auto_assigned", equalTo(false))
+            .body("has_warnings", equalTo(false))
+            .body("case_id", equalTo(taskVariables.getCaseId()))
+            .body("case_type_id", equalTo("WaCaseType"))
+            .body("jurisdiction", equalTo("WA"))
+            .body("region", equalTo("1"))
+            .body("location", equalTo("765324"))
+            .body("location_name", equalTo("Taylor House"))
+            .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
+            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
+            .body(
+                "execution_type_code.description",
+                equalTo("The task requires a case management event to be executed by the user. "
+                        + "(Typically this will be in CCD.)")
+            )
+            .body("work_type_resource.id", equalTo("hearing_work"))
+            .body("work_type_resource.label", equalTo("Hearing work"))
+            .body("role_category", equalTo("CTSC"))
+            .body("description", equalTo("[Request respondent review](/case/WA/WaCaseType"
+                                         + "/${[CASE_REFERENCE]}/trigger/requestRespondentReview)<br />"
+                                         + "[Request case edit](/case/WA/WaCaseType/${[CASE_REFERENCE]}"
+                                         + "/trigger/requestCaseEdit)"))
+            .body("task_role_resources.size()", equalTo(2))
+            .body("minor_priority", equalTo(500))
+            .body("major_priority", equalTo(1000))
+            .body("priority_date", equalTo("2022-12-07T14:00:00+01:00"));
+
+        assertPermissions(
+            getTaskResource(result, "task-supervisor"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("manage", true),
+                entry("cancel", true),
+                entry("assign", true),
+                entry("unassign", true),
+                entry("unassign_assign", true),
+                entry("complete", true),
+                entry("own", false),
+                entry("execute", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("auto_assignable", false)
+            )
+        );
+
+        assertPermissions(
+            getTaskResource(result, "ctsc"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("manage", true),
+                entry("cancel", true),
+                entry("assign", true),
+                entry("unassign", true),
+                entry("unassign_assign", true),
+                entry("complete", true),
+                entry("own", false),
+                entry("execute", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("auto_assignable", false)
+            )
+        );
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
 
         common.cleanUpTask(taskId);
     }
