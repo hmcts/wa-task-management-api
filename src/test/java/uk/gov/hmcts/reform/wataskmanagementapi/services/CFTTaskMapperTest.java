@@ -494,6 +494,16 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(0).getManage());
         assertEquals(true, roleResourcesList.get(0).getCancel());
         assertEquals(true, roleResourcesList.get(0).getRefer());
+        assertEquals(false, roleResourcesList.get(0).getClaim());
+        assertEquals(false, roleResourcesList.get(0).getAssign());
+        assertEquals(false, roleResourcesList.get(0).getUnassign());
+        assertEquals(false, roleResourcesList.get(0).getUnassignAssign());
+        assertEquals(false, roleResourcesList.get(0).getComplete());
+        assertEquals(false, roleResourcesList.get(0).getCompleteOwn());
+        assertEquals(false, roleResourcesList.get(0).getCancelOwn());
+        assertEquals(false, roleResourcesList.get(0).getUnassignClaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaimAssign());
         assertArrayEquals(new String[]{}, roleResourcesList.get(0).getAuthorizations());
         assertEquals("tribunal-caseworker", roleResourcesList.get(1).getRoleName());
         assertEquals(true, roleResourcesList.get(1).getRead());
@@ -502,6 +512,16 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(1).getManage());
         assertEquals(true, roleResourcesList.get(1).getCancel());
         assertEquals(true, roleResourcesList.get(1).getRefer());
+        assertEquals(false, roleResourcesList.get(0).getClaim());
+        assertEquals(false, roleResourcesList.get(0).getAssign());
+        assertEquals(false, roleResourcesList.get(0).getUnassign());
+        assertEquals(false, roleResourcesList.get(0).getUnassignAssign());
+        assertEquals(false, roleResourcesList.get(0).getComplete());
+        assertEquals(false, roleResourcesList.get(0).getCompleteOwn());
+        assertEquals(false, roleResourcesList.get(0).getCancelOwn());
+        assertEquals(false, roleResourcesList.get(0).getUnassignClaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaimAssign());
         assertArrayEquals(new String[]{"IA", "WA"}, roleResourcesList.get(1).getAuthorizations());
         assertNull(taskResource.getNextHearingId());
         assertNull(taskResource.getNextHearingDate());
@@ -775,7 +795,17 @@ class CFTTaskMapperTest {
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.REFER,
+                PermissionTypes.CLAIM,
+                PermissionTypes.ASSIGN,
+                PermissionTypes.UNASSIGN,
+                PermissionTypes.UNASSIGN_ASSIGN,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.COMPLETE_OWN,
+                PermissionTypes.CANCEL_OWN,
+                PermissionTypes.UNASSIGN_CLAIM,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.UNCLAIM_ASSIGN
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -1954,6 +1984,62 @@ class CFTTaskMapperTest {
         cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
             "", true);
         assertEquals("nextHearingId", taskResource.getNextHearingId());
+    }
+
+    @Test
+    void should_map_task_role_permissions_for_granular_permissions() {
+        TaskRoleResource roleResource = new TaskRoleResource(
+            "ctsc",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            new String[]{"SPECIFIC", "STANDARD"},
+            0,
+            false,
+            "CTSC",
+            "taskId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+        );
+
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
+
+        assertEquals("ctsc", taskRolePermissions.getRoleName());
+        assertEquals("CTSC", taskRolePermissions.getRoleCategory());
+        assertNotNull(taskRolePermissions.getPermissions());
+        assertFalse(taskRolePermissions.getPermissions().isEmpty());
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.READ));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.OWN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.MANAGE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CLAIM));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.ASSIGN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN_ASSIGN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE_OWN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL_OWN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.UNCLAIM));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.UNCLAIM_ASSIGN));
+
+        assertFalse(taskRolePermissions.getAuthorisations().isEmpty());
+        assertTrue(taskRolePermissions.getAuthorisations().contains("SPECIFIC"));
+        assertTrue(taskRolePermissions.getAuthorisations().contains("STANDARD"));
     }
 
     private TaskResource createTaskResource() {
