@@ -197,7 +197,7 @@ public class TaskManagementService {
             TaskResource task = findByIdAndObtainLock(taskId);
             if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
                 throw new ConflictException("Task '" + task.getTaskId()
-                    + "' is already claimed by someone else.", null);
+                                            + "' is already claimed by someone else.", null);
             }
             task.setState(CFTTaskState.ASSIGNED);
             task.setAssignee(userId);

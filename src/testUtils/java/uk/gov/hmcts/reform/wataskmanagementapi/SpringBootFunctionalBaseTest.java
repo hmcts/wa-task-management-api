@@ -4,6 +4,7 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
@@ -34,11 +37,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -51,9 +54,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -70,6 +74,7 @@ public abstract class SpringBootFunctionalBaseTest {
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}";
+    private static final String TASK_GET_ENDPOINT = "task/{task-id}";
     protected static final String WA_JURISDICTION = "WA";
     protected static final String WA_CASE_TYPE = "WaCaseType";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
@@ -108,6 +113,11 @@ public abstract class SpringBootFunctionalBaseTest {
     private String testUrl;
     @Value("${launch_darkly.url}")
     private String launchDarklyUrl;
+    @Value("${environment}")
+    private String environment;
+
+    private TestAuthenticationCredentials iaCaseworkerCredentials;
+    private TestAuthenticationCredentials waCaseworkerCredentials;
 
     @Before
     public void setUpGivens() throws IOException {
@@ -134,6 +144,19 @@ public abstract class SpringBootFunctionalBaseTest {
             idamService,
             roleAssignmentServiceApi
         );
+
+        iaCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        common.setupCFTOrganisationalRoleAssignment(iaCaseworkerCredentials.getHeaders(), "IA", "Asylum");
+        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        common.setupCFTOrganisationalRoleAssignmentForWA(waCaseworkerCredentials.getHeaders());
+    }
+
+    @After
+    public void cleanUp() {
+        common.clearAllRoleAssignments(iaCaseworkerCredentials.getHeaders());
+        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(iaCaseworkerCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
     }
 
     public AtomicReference<String> getTaskId(Object taskName, String filter) {
@@ -183,54 +206,109 @@ public abstract class SpringBootFunctionalBaseTest {
 
     }
 
-    protected void initiateTask(Headers authenticationHeaders, TestVariables testVariables,
-                                String taskType, String taskName, String taskTitle) {
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, taskType),
-            new TaskAttribute(TASK_NAME, taskName),
-            new TaskAttribute(TASK_TITLE, taskTitle),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT,
-            testVariables.getTaskId(),
-            req,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value())
-            .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("task_id", equalTo(testVariables.getTaskId()))
-            .body("case_id", equalTo(testVariables.getCaseId()));
+    protected void initiateTask(TestVariables testVariables,
+                                Jurisdiction jurisdiction) {
+        Headers headers = getAuthHeadersForJurisdiction(jurisdiction);
+        initiateTask(testVariables, headers, null, defaultInitiationAssert(testVariables));
     }
 
-    protected void initiateTask(Headers authenticationHeaders, TestVariables testVariables,
-                                String taskType, String taskName, String taskTitle,
-                                Map<String, String> additionalProperties) {
+    protected void initiateTask(TestVariables testVariables,
+                                Headers headers) {
+        initiateTask(testVariables, headers, null, defaultInitiationAssert(testVariables));
+    }
 
+    protected void initiateTask(TestVariables testVariables,
+                                Jurisdiction jurisdiction,
+                                Consumer<Response> assertConsumer) {
+        Headers headers = getAuthHeadersForJurisdiction(jurisdiction);
+        initiateTask(testVariables, headers, null, assertConsumer);
+    }
+
+    protected void initiateTask(TestVariables testVariables,
+                                Headers headers,
+                                Consumer<Response> assertConsumer) {
+        initiateTask(testVariables, headers, null, assertConsumer);
+    }
+
+    protected void initiateTask(TestVariables testVariables,
+                                Jurisdiction jurisdiction,
+                                Map<String, String> additionalProperties) {
+        Headers headers = getAuthHeadersForJurisdiction(jurisdiction);
+        initiateTask(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
+    }
+
+    protected void initiateTask(TestVariables testVariables,
+                                Headers headers,
+                                Map<String, String> additionalProperties) {
+        initiateTask(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
+    }
+
+    private void initiateTask(TestVariables testVariables,
+                              Headers headers,
+                              Map<String, String> additionalProperties,
+                              Consumer<Response> assertConsumer) {
+
+        if (isInitiateCronJobRunning()) {
+            await()
+                .pollInterval(2, SECONDS)
+                .atMost(60, SECONDS)
+                .until(
+                    () -> {
+                        Response response = restApiActions.get(
+                            TASK_GET_ENDPOINT,
+                            testVariables.getTaskId(),
+                            headers
+                        );
+
+                        return HttpStatus.OK.value() == response.getStatusCode();
+                    }
+                );
+        } else {
+            sendInitiateRequest(testVariables, additionalProperties);
+        }
+
+        Response response = restApiActions.get(
+            TASK_GET_ENDPOINT,
+            testVariables.getTaskId(),
+            headers
+        );
+        assertConsumer.accept(response);
+    }
+
+    private Consumer<Response> defaultInitiationAssert(TestVariables testVariables) {
+        return (result) -> {
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .contentType(APPLICATION_JSON_VALUE)
+                .body("task.id", equalTo(testVariables.getTaskId()))
+                .body("task.case_id", equalTo(testVariables.getCaseId()));
+        };
+    }
+
+    private Headers getAuthHeadersForJurisdiction(Jurisdiction jurisdiction) {
+        switch (jurisdiction) {
+            case IA: return iaCaseworkerCredentials.getHeaders();
+            case WA: return waCaseworkerCredentials.getHeaders();
+            default: return null;
+        }
+    }
+
+    private void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties) {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        boolean hasWarnings = !testVariables.getWarnings().getValues().isEmpty();
 
         List<TaskAttribute> taskAttributes = new ArrayList<>();
-        taskAttributes.add(new TaskAttribute(TASK_TYPE, taskType));
-        taskAttributes.add(new TaskAttribute(TASK_NAME, taskName));
-        taskAttributes.add(new TaskAttribute(TASK_TITLE, taskTitle));
+        taskAttributes.add(new TaskAttribute(TASK_TYPE, testVariables.getTaskType()));
+        taskAttributes.add(new TaskAttribute(TASK_NAME, testVariables.getTaskName()));
         taskAttributes.add(new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()));
         taskAttributes.add(new TaskAttribute(TASK_CREATED, formattedCreatedDate));
         taskAttributes.add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
+        taskAttributes.add(new TaskAttribute(TASK_HAS_WARNINGS, hasWarnings));
+        taskAttributes.add(new TaskAttribute(TASK_WARNINGS, testVariables.getWarnings()));
 
         if (additionalProperties != null) {
             taskAttributes.add(new TaskAttribute(TASK_ADDITIONAL_PROPERTIES, additionalProperties));
@@ -238,23 +316,24 @@ public abstract class SpringBootFunctionalBaseTest {
 
         InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
 
-        Response result = restApiActions.post(
+        Response response = restApiActions.post(
             TASK_INITIATION_ENDPOINT,
             testVariables.getTaskId(),
             initiateTaskRequest,
-            authenticationHeaders
+            authorizationProvider.getServiceAuthorizationHeadersOnly()
         );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value())
-            .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("task_id", equalTo(testVariables.getTaskId()))
-            .body("case_id", equalTo(testVariables.getCaseId()));
+        response.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value());
     }
 
     protected String getAssigneeId(Headers headers) {
         return authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
+    }
+
+    private boolean isInitiateCronJobRunning() {
+        log.info("Task initiation in {} environment", environment);
+        return List.of("aat", "prod").contains(environment);
     }
 
 }

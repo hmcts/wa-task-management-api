@@ -12,6 +12,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.List;
 import java.util.Map;
@@ -51,10 +53,10 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Stream<CompletableTaskScenario> scenarios = tasksToCompleteScenarios();
         scenarios.forEach(scenario -> {
 
-            TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
-            initiateTask(caseworkerCredentials.getHeaders(), testVariables,
-                         "processApplication", "process application", "process task"
-            );
+            TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                           "processApplication",
+                                                                           "process application");
+            initiateTask(testVariables, Jurisdiction.WA);
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
                 testVariables.getCaseId(),
@@ -134,11 +136,11 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             "key8", "value8"
         );
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "reviewSpecificAccessRequestLegalOps", "task name", "task title",
-                     additionalProperties
-        );
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(CamundaVariableDefinition.ADDITIONAL_PROPERTIES,
+                                                                       additionalProperties.toString(),
+                                                                       "requests/ccd/wa_case_data.json",
+                                                                       "reviewSpecificAccessRequestLegalOps");
+        initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(),
                                                  taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE

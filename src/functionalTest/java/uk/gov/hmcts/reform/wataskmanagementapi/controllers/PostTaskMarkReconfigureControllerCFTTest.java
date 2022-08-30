@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.List;
 import java.util.UUID;
@@ -48,13 +49,13 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned_for_WA() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
 
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(assignerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
             WA_JURISDICTION, WA_CASE_TYPE);
@@ -92,11 +93,12 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
 
-        common.setupCFTOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(assigneeCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+        common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
+            WA_JURISDICTION, WA_CASE_TYPE);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         taskId = taskVariables.getTaskId();
 
