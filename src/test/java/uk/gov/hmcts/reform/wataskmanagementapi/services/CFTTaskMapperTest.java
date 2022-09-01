@@ -494,6 +494,16 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(0).getManage());
         assertEquals(true, roleResourcesList.get(0).getCancel());
         assertEquals(true, roleResourcesList.get(0).getRefer());
+        assertEquals(false, roleResourcesList.get(0).getClaim());
+        assertEquals(false, roleResourcesList.get(0).getAssign());
+        assertEquals(false, roleResourcesList.get(0).getUnassign());
+        assertEquals(false, roleResourcesList.get(0).getUnassignAssign());
+        assertEquals(false, roleResourcesList.get(0).getComplete());
+        assertEquals(false, roleResourcesList.get(0).getCompleteOwn());
+        assertEquals(false, roleResourcesList.get(0).getCancelOwn());
+        assertEquals(false, roleResourcesList.get(0).getUnassignClaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaimAssign());
         assertArrayEquals(new String[]{}, roleResourcesList.get(0).getAuthorizations());
         assertEquals("tribunal-caseworker", roleResourcesList.get(1).getRoleName());
         assertEquals(true, roleResourcesList.get(1).getRead());
@@ -502,6 +512,16 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(1).getManage());
         assertEquals(true, roleResourcesList.get(1).getCancel());
         assertEquals(true, roleResourcesList.get(1).getRefer());
+        assertEquals(false, roleResourcesList.get(0).getClaim());
+        assertEquals(false, roleResourcesList.get(0).getAssign());
+        assertEquals(false, roleResourcesList.get(0).getUnassign());
+        assertEquals(false, roleResourcesList.get(0).getUnassignAssign());
+        assertEquals(false, roleResourcesList.get(0).getComplete());
+        assertEquals(false, roleResourcesList.get(0).getCompleteOwn());
+        assertEquals(false, roleResourcesList.get(0).getCancelOwn());
+        assertEquals(false, roleResourcesList.get(0).getUnassignClaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaimAssign());
         assertArrayEquals(new String[]{"IA", "WA"}, roleResourcesList.get(1).getAuthorizations());
         assertNull(taskResource.getNextHearingId());
         assertNull(taskResource.getNextHearingDate());
@@ -775,7 +795,17 @@ class CFTTaskMapperTest {
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.REFER,
+                PermissionTypes.CLAIM,
+                PermissionTypes.ASSIGN,
+                PermissionTypes.UNASSIGN,
+                PermissionTypes.UNASSIGN_ASSIGN,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.COMPLETE_OWN,
+                PermissionTypes.CANCEL_OWN,
+                PermissionTypes.UNASSIGN_CLAIM,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.UNCLAIM_ASSIGN
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
