@@ -125,14 +125,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             Map.ofEntries(
                 entry("read", true),
                 entry("refer", true),
-                entry("manage", true),
-                entry("cancel", true),
-                entry("assign", true),
-                entry("unassign", true),
-                entry("unassign_assign", true),
-                entry("complete", true),
                 entry("own", false),
+                entry("manage", true),
                 entry("execute", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
                 entry("auto_assignable", false)
@@ -148,12 +144,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("own", false),
                 entry("manage", false),
                 entry("execute", true),
-                entry("complete", true),
-                entry("unassign_claim", true),
-                entry("claim", true),
-                entry("unclaim", true),
-                entry("cancel", true),
-                entry("unassign_assign", false),
+                entry("cancel", false),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
                 entry("role_category", "LEGAL_OPERATIONS"),
@@ -161,18 +152,15 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("assignment_priority", 2)
             )
         );
-        
+
         assertPermissions(
             getTaskResource(result, "tribunal-caseworker"),
             Map.ofEntries(
                 entry("read", true),
                 entry("refer", true),
-                entry("own", true),
-                entry("complete_own", true),
-                entry("cancel_own", true),
-                entry("claim", true),
+                entry("own", false),
                 entry("manage", false),
-                entry("execute", false),
+                entry("execute", true),
                 entry("cancel", false),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),

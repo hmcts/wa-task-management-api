@@ -178,10 +178,10 @@ public class CFTTaskMapper {
         List<ConfigurationDmnEvaluationResponse> configurationDmnResponse = taskConfigurationResults
             .getConfigurationDmnResponse();
         configurationDmnResponse.forEach(response -> reconfigureTaskAttribute(
-                taskResource,
-                response.getName().getValue(),
-                response.getValue().getValue(),
-                response.getCanReconfigure() != null && response.getCanReconfigure().getValue()
+            taskResource,
+            response.getName().getValue(),
+            response.getValue().getValue(),
+            response.getCanReconfigure() != null && response.getCanReconfigure().getValue()
             )
         );
 
@@ -323,36 +323,6 @@ public class CFTTaskMapper {
         if (taskRoleResource.getRefer()) {
             accumulator.add(PermissionTypes.REFER);
         }
-        if (taskRoleResource.getClaim()) {
-            accumulator.add(PermissionTypes.CLAIM);
-        }
-        if (taskRoleResource.getAssign()) {
-            accumulator.add(PermissionTypes.ASSIGN);
-        }
-        if (taskRoleResource.getUnassign()) {
-            accumulator.add(PermissionTypes.UNASSIGN);
-        }
-        if (taskRoleResource.getUnassignAssign()) {
-            accumulator.add(PermissionTypes.UNASSIGN_ASSIGN);
-        }
-        if (taskRoleResource.getComplete()) {
-            accumulator.add(PermissionTypes.COMPLETE);
-        }
-        if (taskRoleResource.getCompleteOwn()) {
-            accumulator.add(PermissionTypes.COMPLETE_OWN);
-        }
-        if (taskRoleResource.getCancelOwn()) {
-            accumulator.add(PermissionTypes.CANCEL_OWN);
-        }
-        if (taskRoleResource.getUnassignClaim()) {
-            accumulator.add(PermissionTypes.UNASSIGN_CLAIM);
-        }
-        if (taskRoleResource.getUnclaim()) {
-            accumulator.add(PermissionTypes.UNCLAIM);
-        }
-        if (taskRoleResource.getUnclaimAssign()) {
-            accumulator.add(PermissionTypes.UNCLAIM_ASSIGN);
-        }
         return accumulator;
     }
 
@@ -419,16 +389,6 @@ public class CFTTaskMapper {
                     permissionsFound.contains(PermissionTypes.MANAGE),
                     permissionsFound.contains(PermissionTypes.CANCEL),
                     permissionsFound.contains(PermissionTypes.REFER),
-                    permissionsFound.contains(PermissionTypes.CLAIM),
-                    permissionsFound.contains(PermissionTypes.ASSIGN),
-                    permissionsFound.contains(PermissionTypes.UNASSIGN),
-                    permissionsFound.contains(PermissionTypes.UNASSIGN_ASSIGN),
-                    permissionsFound.contains(PermissionTypes.COMPLETE),
-                    permissionsFound.contains(PermissionTypes.COMPLETE_OWN),
-                    permissionsFound.contains(PermissionTypes.CANCEL_OWN),
-                    permissionsFound.contains(PermissionTypes.UNASSIGN_CLAIM),
-                    permissionsFound.contains(PermissionTypes.UNCLAIM),
-                    permissionsFound.contains(PermissionTypes.UNCLAIM_ASSIGN),
                     authorisations.toArray(new String[0]),
                     assignmentPriority,
                     autoAssignable,
@@ -570,9 +530,9 @@ public class CFTTaskMapper {
     }
 
     protected void reconfigureTaskAttribute(TaskResource taskResource,
-                                            String key,
-                                            Object value,
-                                            boolean canReconfigure) {
+                                          String key,
+                                          Object value,
+                                          boolean canReconfigure) {
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
         if (enumKey.isPresent() & canReconfigure) {
             switch (enumKey.get()) {

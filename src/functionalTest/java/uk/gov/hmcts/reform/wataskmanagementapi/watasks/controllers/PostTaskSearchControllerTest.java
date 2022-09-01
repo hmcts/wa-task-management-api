@@ -117,8 +117,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.warnings", everyItem(equalTo(false)))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
             .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of(
-                "Read", "Refer", "Own","Claim", "CompleteOwn", "CancelOwn"))))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Refer", "Execute"))))
             .body("tasks.description", everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                          + "trigger/decideAnApplication)")))
             .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
@@ -208,12 +207,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         tasksCreated.add(taskVariables);
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestLegalOps", "task name", "task title");
+                     "reviewSpecificAccessRequestLegalOps", "task name", "task title");
 
         taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         tasksCreated.add(taskVariables);
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestLegalOps", "task name", "task title");
+                     "reviewSpecificAccessRequestLegalOps", "task name", "task title");
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -229,7 +228,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         tasksCreated.forEach(testVariable ->
-            common.insertTaskInCftTaskDb(testVariable, "processApplication", caseworkerCredentials.getHeaders()));
+                                 common.insertTaskInCftTaskDb(testVariable, "processApplication", caseworkerCredentials.getHeaders()));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
@@ -258,12 +257,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         tasksCreated.add(taskVariables);
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestLegalOps", "task name", "task title");
+                     "reviewSpecificAccessRequestLegalOps", "task name", "task title");
 
         taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         tasksCreated.add(taskVariables);
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestLegalOps", "task name", "task title");
+                     "reviewSpecificAccessRequestLegalOps", "task name", "task title");
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -279,7 +278,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         tasksCreated.forEach(testVariable ->
-            common.insertTaskInCftTaskDb(testVariable, "processApplication", caseworkerCredentials.getHeaders()));
+                                 common.insertTaskInCftTaskDb(testVariable, "processApplication", caseworkerCredentials.getHeaders()));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
@@ -355,9 +354,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.warnings", everyItem(equalTo(false)))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
             .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of(
-                "Read", "Refer", "Manage", "Cancel", "Assign", "Unassign", "UnassignAssign", "Complete"
-            ))))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "Cancel"))))
             .body("tasks.description", everyItem(equalTo("[Request respondent review](/case/WA/WaCaseType"
                                                          + "/${[CASE_REFERENCE]}/trigger/requestRespondentReview)<br />"
                                                          + "[Request case edit](/case/WA/WaCaseType/${[CASE_REFERENCE]}"
