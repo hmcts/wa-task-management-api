@@ -606,7 +606,9 @@ public class CFTTaskMapper {
                     break;
                 case PRIORITY_DATE:
                     if (value instanceof String) {
-                        taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
+                        if (Strings.isNotBlank((String) value)) {
+                            taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
+                        }
                     } else {
                         taskResource.setPriorityDate((OffsetDateTime) value);
                     }
@@ -671,7 +673,9 @@ public class CFTTaskMapper {
                     break;
                 case PRIORITY_DATE:
                     if (value instanceof String) {
-                        taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
+                        if (Strings.isNotBlank((String) value)) {
+                            taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
+                        }
                     } else {
                         taskResource.setPriorityDate((OffsetDateTime) value);
                     }
@@ -689,7 +693,9 @@ public class CFTTaskMapper {
                     break;
                 case NEXT_HEARING_DATE:
                     if (value instanceof String) {
-                        taskResource.setNextHearingDate(OffsetDateTime.parse((String) value));
+                        if (Strings.isNotBlank((String) value)) {
+                            taskResource.setNextHearingDate(OffsetDateTime.parse((String) value));
+                        }
                     } else {
                         taskResource.setNextHearingDate((OffsetDateTime) value);
                     }
