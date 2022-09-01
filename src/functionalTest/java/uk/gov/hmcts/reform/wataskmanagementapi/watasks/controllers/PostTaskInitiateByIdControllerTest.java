@@ -142,7 +142,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("own", false),
                 entry("manage", false),
                 entry("execute", true),
-                entry("cancel", true),
+                entry("cancel", false),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
                 entry("role_category", "LEGAL_OPERATIONS"),
