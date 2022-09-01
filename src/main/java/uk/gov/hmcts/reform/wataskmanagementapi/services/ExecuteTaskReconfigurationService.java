@@ -129,6 +129,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
                             successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
                         }
                     } catch (Exception e) {
+                        log.error("Error configuring task (id={}) ", taskId, e);
                         failedTaskIds.add(taskId);
                     }
                 });

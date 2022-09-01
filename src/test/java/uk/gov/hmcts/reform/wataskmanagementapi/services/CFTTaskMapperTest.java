@@ -1078,7 +1078,17 @@ class CFTTaskMapperTest {
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.REFER,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.COMPLETE_OWN,
+                PermissionTypes.CANCEL_OWN,
+                PermissionTypes.CLAIM,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.ASSIGN,
+                PermissionTypes.UNASSIGN,
+                PermissionTypes.UNCLAIM_ASSIGN,
+                PermissionTypes.UNASSIGN_CLAIM,
+                PermissionTypes.UNASSIGN_ASSIGN
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -1115,6 +1125,16 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.EXECUTE));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.REFER));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.COMPLETE));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.COMPLETE_OWN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL_OWN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CLAIM));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNCLAIM));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.ASSIGN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNCLAIM_ASSIGN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN_ASSIGN));
         assertNull(task.getReconfigureRequestTime());
         assertNull(task.getLastReconfigurationTime());
     }
@@ -1701,6 +1721,61 @@ class CFTTaskMapperTest {
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE_OWN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL_OWN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.CLAIM));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNCLAIM));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.ASSIGN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNCLAIM_ASSIGN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN_ASSIGN));
+
+        assertTrue(taskRolePermissions.getAuthorisations().isEmpty());
+    }
+
+    @Test
+    void should_map_task_role_permissions_when_authorisations_are_null() {
+        TaskRoleResource roleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null,
+            0,
+            false,
+            "JUDICIAL",
+            "taskId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            false, false, false, false, false, false, false, false, false, false
+            );
+
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
+
+        assertEquals("tribunal-caseworker", taskRolePermissions.getRoleName());
+        assertEquals("JUDICIAL", taskRolePermissions.getRoleCategory());
+        assertNotNull(taskRolePermissions.getPermissions());
+        assertFalse(taskRolePermissions.getPermissions().isEmpty());
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.READ));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.OWN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.MANAGE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE_OWN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL_OWN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.CLAIM));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNCLAIM));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.ASSIGN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNCLAIM_ASSIGN));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN_ASSIGN));
 
         assertTrue(taskRolePermissions.getAuthorisations().isEmpty());
     }
