@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.not;
@@ -76,7 +78,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.warnings", equalTo(false))
             .body("task.case_management_category", equalTo("Protection"))
             .body("task.work_type_id", equalTo("hearing_work"))
-            .body("task.permissions.values", equalToObject(List.of("Read", "Own", "Claim", "CompleteOwn", "CancelOwn")))
+            .body("task.permissions.values", containsInAnyOrder(List.of("Read", "Own", "Claim", "CompleteOwn", "CancelOwn").toArray()))
             .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                               + "trigger/decideAnApplication)"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"))

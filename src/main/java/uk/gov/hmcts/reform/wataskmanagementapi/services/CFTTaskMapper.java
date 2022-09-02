@@ -425,16 +425,16 @@ public class CFTTaskMapper {
                     roleCategory,
                     taskResource.getTaskId(),
                     ZonedDateTime.now().toOffsetDateTime(),
-                    permissionsFound.contains(PermissionTypes.CLAIM),
-                    permissionsFound.contains(PermissionTypes.ASSIGN),
-                    permissionsFound.contains(PermissionTypes.UNASSIGN),
-                    permissionsFound.contains(PermissionTypes.UNASSIGN_ASSIGN),
                     permissionsFound.contains(PermissionTypes.COMPLETE),
                     permissionsFound.contains(PermissionTypes.COMPLETE_OWN),
                     permissionsFound.contains(PermissionTypes.CANCEL_OWN),
-                    permissionsFound.contains(PermissionTypes.UNASSIGN_CLAIM),
+                    permissionsFound.contains(PermissionTypes.CLAIM),
                     permissionsFound.contains(PermissionTypes.UNCLAIM),
-                    permissionsFound.contains(PermissionTypes.UNCLAIM_ASSIGN)
+                    permissionsFound.contains(PermissionTypes.ASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNCLAIM_ASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN_CLAIM),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN_ASSIGN)
                 );
             }).collect(Collectors.toSet());
     }
