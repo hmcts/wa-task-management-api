@@ -707,7 +707,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_have_consistent_unassigned_state_in_camunda_and_cft_db() {
+    public void should_have_consistent_unconfigured_state_in_camunda_and_unassigned_state_cft_db() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -740,7 +740,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         camundaTask.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("taskState.value", is("unassigned"))
+            .body("taskState.value", is("unconfigured"))
             .body("cftTaskState.value", is("unassigned"));
 
         common.cleanUpTask(taskId);
