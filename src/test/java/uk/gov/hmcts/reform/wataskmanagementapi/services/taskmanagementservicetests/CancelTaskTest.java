@@ -8,6 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -22,9 +24,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.MarkTaskReconfigurationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskReconfigurationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
@@ -70,7 +73,7 @@ class CancelTaskTest extends CamundaHelpers {
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
-    private TaskReconfigurationService taskReconfigurationService;
+    private MarkTaskReconfigurationService taskReconfigurationService;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
@@ -80,6 +83,9 @@ class CancelTaskTest extends CamundaHelpers {
 
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
+    @Mock
+    private List<TaskOperationService> taskOperationServices;
 
 
     @Test
@@ -93,7 +99,9 @@ class CancelTaskTest extends CamundaHelpers {
 
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
             .thenReturn(Optional.of(taskResource));
-        when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)))
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+            .buildSingleType(CANCEL);
+        when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
@@ -222,7 +230,7 @@ class CancelTaskTest extends CamundaHelpers {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService,
+            taskOperationServices,
             entityManager,
             allowedJurisdictionConfiguration
         );

@@ -13,7 +13,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields",
-    "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming","PMD.ExcessiveImports"})
+    "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming"})
 @Schema(allowableValues = "Task")
 public class Task {
     public static final String SAMPLE_ISO_DATE_TIME = "2020-09-05T14:47:01.250542+01:00";
@@ -178,6 +178,14 @@ public class Task {
     )
     private ZonedDateTime reconfigureRequestTime;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @JsonFormat(pattern = DATE_TIME_FORMAT)
+    @Schema(
+        example = SAMPLE_ISO_DATE_TIME,
+        description = "Optional last reconfiguration request time"
+    )
+    private ZonedDateTime lastReconfigurationTime;
+
     public Task(String id,
                 String name,
                 String type,
@@ -284,7 +292,8 @@ public class Task {
                 Integer minorPriority,
                 Integer majorPriority,
                 ZonedDateTime priorityDate,
-                ZonedDateTime reconfigureRequestTime) {
+                ZonedDateTime reconfigureRequestTime,
+                ZonedDateTime lastReconfigurationTime) {
         this(id,
             name,
             type,
@@ -313,14 +322,15 @@ public class Task {
             taskPermissions,
             roleCategory,
             description,
-             additionalProperties,
-             nextHearingId,
-             nextHearingDate,
-             minorPriority,
-             majorPriority,
-             priorityDate
+            additionalProperties,
+            nextHearingId,
+            nextHearingDate,
+            minorPriority,
+            majorPriority,
+            priorityDate
         );
         this.reconfigureRequestTime = reconfigureRequestTime;
+        this.lastReconfigurationTime = lastReconfigurationTime;
     }
 
     public String getId() {
@@ -461,6 +471,10 @@ public class Task {
 
     public ZonedDateTime getReconfigureRequestTime() {
         return reconfigureRequestTime;
+    }
+
+    public ZonedDateTime getLastReconfigurationTime() {
+        return lastReconfigurationTime;
     }
 
 }

@@ -8,6 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -27,7 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskReconfigurationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
@@ -75,8 +77,6 @@ class CompleteTaskTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    private TaskReconfigurationService taskReconfigurationService;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
 
@@ -88,6 +88,9 @@ class CompleteTaskTest extends CamundaHelpers {
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
+    @Mock
+    private List<TaskOperationService> taskOperationServices;
+
 
     @Test
     void completeTask_should_succeed_and_feature_flag_is_on() {
@@ -98,7 +101,9 @@ class CompleteTaskTest extends CamundaHelpers {
         TaskResource taskResource = spy(TaskResource.class);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
             .thenReturn(Optional.of(taskResource));
-        when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
@@ -264,7 +269,7 @@ class CompleteTaskTest extends CamundaHelpers {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService,
+            taskOperationServices,
             entityManager,
             allowedJurisdictionConfiguration
         );

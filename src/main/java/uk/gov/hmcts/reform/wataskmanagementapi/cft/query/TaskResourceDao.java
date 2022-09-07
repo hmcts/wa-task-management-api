@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -31,6 +32,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sor
 @Service
 @SuppressWarnings({"PMD.UnnecessaryFullyQualifiedName"})
 public class TaskResourceDao {
+    static final String MAJOR_PRIORITY = "majorPriority";
+    static final String PRIORITY_DATE = "priorityDate";
+    static final String MINOR_PRIORITY = "minorPriority";
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -78,9 +82,10 @@ public class TaskResourceDao {
 
         List<SortingParameter> sortingParameters = searchTaskRequest.getSortingParameters();
         if (sortingParameters == null || sortingParameters.isEmpty()) {
-            selections.addAll(List.of(root.get("priorityDate"), root.get("majorPriority"), root.get("minorPriority")));
+            selections.addAll(List.of(root.get(MAJOR_PRIORITY), root.get(PRIORITY_DATE), root.get(MINOR_PRIORITY)));
         } else {
             sortingParameters.forEach(p -> selections.add(root.get(p.getSortBy().getCftVariableName())));
+            selections.addAll(List.of(root.get(MAJOR_PRIORITY), root.get(PRIORITY_DATE), root.get(MINOR_PRIORITY)));
         }
         return selections;
     }
@@ -131,7 +136,7 @@ public class TaskResourceDao {
 
     public Optional<TaskResource> getTask(String taskId,
                                           List<RoleAssignment> roleAssignments,
-                                          List<PermissionTypes> permissionsRequired
+                                          PermissionRequirements permissionsRequired
     ) {
         SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
 
@@ -143,7 +148,6 @@ public class TaskResourceDao {
             selectQueryBuilder.root
         );
 
-        selectQueryBuilder.where(selectPredicate).build().getResultList();
         return selectQueryBuilder
             .where(selectPredicate)
             .build()
@@ -178,13 +182,13 @@ public class TaskResourceDao {
         final List<SortingParameter> sortingParameters = searchTaskRequest.getSortingParameters();
 
         List<Order> orders = new ArrayList<>();
-        if (sortingParameters == null || sortingParameters.isEmpty()) {
-            Stream.of("majorPriority", "priorityDate", "minorPriority")
-                .map(s -> builder.asc(root.get(s)))
-                .collect(Collectors.toCollection(() -> orders));
-        } else {
+
+        if (sortingParameters != null && !sortingParameters.isEmpty()) {
             orders.addAll(generateOrders(sortingParameters, builder, root));
         }
+        Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+            .map(s -> builder.asc(root.get(s)))
+            .collect(Collectors.toCollection(() -> orders));
 
         return orders;
     }

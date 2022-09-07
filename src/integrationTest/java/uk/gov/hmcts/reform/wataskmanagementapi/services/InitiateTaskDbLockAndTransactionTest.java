@@ -120,8 +120,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-    @MockBean
-    private TaskReconfigurationService taskReconfigurationService;
     @Autowired
     private TransactionHelper transactionHelper;
     @Captor
@@ -134,6 +132,9 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
+    @Mock
+    private List<TaskOperationService> taskOperationServices;
 
 
     @BeforeEach
@@ -153,7 +154,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService,
+            taskOperationServices,
             entityManager,
             allowedJurisdictionConfiguration
         );

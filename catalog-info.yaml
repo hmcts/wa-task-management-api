@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: "wa-task-management-api"
+  annotations:
+    # This must match folder-name/job-name in Jenkins.
+    jenkins.io/job-full-name: cft:HMCTS_j_to_z/wa-task-management-api
+    github.com/project-slug: hmcts/wa-task-management-api
+  tags:
+    - java
+  links:
+    - url: https://hmcts-reform.slack.com/app_redirect?channel=wa-tech
+      title: "#wa-tech on Slack"
+      icon: chat
+spec:
+  type: service
+  lifecycle: production
+  owner: dcd_group_wa_v2

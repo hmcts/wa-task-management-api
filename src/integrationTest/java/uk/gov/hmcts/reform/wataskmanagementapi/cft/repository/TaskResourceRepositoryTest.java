@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -190,7 +191,19 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals("tribunal-caseofficer", taskRoleResource.getRoleName()),
             () -> assertArrayEquals(expectedAuthorizations, taskRoleResource.getAuthorizations())
         );
+
+        assertFalse(taskRoleResource.getComplete());
+        assertFalse(taskRoleResource.getCompleteOwn());
+        assertFalse(taskRoleResource.getCancelOwn());
+        assertFalse(taskRoleResource.getClaim());
+        assertFalse(taskRoleResource.getUnclaim());
+        assertFalse(taskRoleResource.getAssign());
+        assertFalse(taskRoleResource.getUnassign());
+        assertFalse(taskRoleResource.getUnclaimAssign());
+        assertFalse(taskRoleResource.getUnassignClaim());
+        assertFalse(taskRoleResource.getUnassignAssign());
     }
+
 
     private void checkTaskWasSaved(String taskId) {
         assertTrue(taskResourceRepository.getByTaskId(taskId).isPresent());
@@ -248,7 +261,17 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 false,
                 "JUDICIAL",
                 taskId,
-                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
             )),
             "caseCategory",
             ADDITIONAL_PROPERTIES,
