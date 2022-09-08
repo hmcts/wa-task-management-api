@@ -72,6 +72,11 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         setInitMockForSearchTaskWithWarningsOnly();
     }
 
+    @State({"appropriate tasks are returned by criteria with role category"})
+    public void getTasksBySearchCriteriaWithRoleCategory() {
+        setInitMockForSearchTaskWithRoleCategory();
+    }
+
     public Task createTaskWithNoWarnings() {
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
@@ -168,7 +173,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
             getAdditionalProperties(),
-                "nextHearingId",
+            "nextHearingId",
             ZonedDateTime.now(),
             500,
             5000,
@@ -213,6 +218,56 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             "Hearing work",
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
+            "aDescription",
+            getAdditionalProperties(),
+            "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now()
+        );
+    }
+
+    public Task createTaskForRoleCategorySearch() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
+
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "review appeal skeleton argument",
+            "reviewAppealSkeletonArgument",
+            "unassigned",
+            "SELF",
+            "PUBLIC",
+            "review appeal skeleton argument",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "Protection",
+            "Bob Smith",
+            false,
+            new WarningValues(Collections.emptyList()),
+            "Case Management Category",
+            "hearing_work",
+            "Hearing work",
+            permissions,
+            RoleCategory.CTSC.name(),
             "aDescription",
             getAdditionalProperties(),
             "nextHearingId",
@@ -323,4 +378,20 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             .thenReturn(singletonList(createTaskWithNoWarnings()));
     }
 
+    private void setInitMockForSearchTaskWithRoleCategory() {
+        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
+        UserInfo userInfo = mock(UserInfo.class);
+        when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getAccessControlResponse(anyString()))
+            .thenReturn(accessControlResponse);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                accessControlResponse.get().getUserInfo().getEmail()
+            )
+        ).thenReturn(false);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(singletonList(createTaskForRoleCategorySearch()));
+    }
 }
