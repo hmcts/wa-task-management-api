@@ -23,7 +23,6 @@ import static org.hamcrest.Matchers.hasItems;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
-    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
     private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
@@ -75,9 +74,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.work_type_label", equalTo("Hearing work"))
                 .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
                 .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                      + "trigger/decideAnApplication)"))
-                .body("task.permissions.values.size()", equalTo(5))
-                .body("task.permissions.values", hasItems("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"))
+                                                  + "trigger/decideAnApplication)"))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Own"))
                 .body("task.additional_properties", equalToObject(Map.of(
                     "key1", "value1",
                     "key2", "value2",
@@ -212,9 +211,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.work_type_label", equalTo("Hearing work"))
                 .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
                 .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                      + "trigger/decideAnApplication)"))
-                .body("task.permissions.values.size()", equalTo(5))
-                .body("task.permissions.values", hasItems("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"))
+                                                  + "trigger/decideAnApplication)"))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Own"))
                 .body("task.additional_properties", equalToObject(Map.of(
                     "key1", "value1",
                     "key2", "value2",
