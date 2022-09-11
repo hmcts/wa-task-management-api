@@ -740,7 +740,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         camundaTask.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("taskState.value", is("unconfigured"))
+            .body("taskState.value", is("unassigned"))
             .body("cftTaskState.value", is("unassigned"));
 
         common.cleanUpTask(taskId);
