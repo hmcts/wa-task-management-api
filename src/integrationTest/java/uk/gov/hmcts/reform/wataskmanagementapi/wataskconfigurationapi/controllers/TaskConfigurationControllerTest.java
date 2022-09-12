@@ -45,14 +45,17 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.jsonValue;
@@ -203,22 +206,22 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         configure3rdPartyResponses();
 
         String expectedResponse = "{\n"
-            + "  \"task_id\": \"" + testTaskId + "\",\n"
-            + "  \"case_id\": \"" + testCaseId + "\",\n"
-            + "  \"assignee\": \"" + testUserId + "\",\n"
-            + "  \"configuration_variables\": {\n"
-            + "    \"taskType\": \"reviewTheAppeal\",\n"
-            + "    \"jurisdiction\": \"IA\",\n"
-            + "    \"caseTypeId\": \"Asylum\",\n"
-            + "    \"taskState\": \"assigned\",\n"
-            + "    \"executionType\": \"Case Management Task\",\n"
-            + "    \"caseId\": \"" + testCaseId + "\",\n"
-            + "    \"securityClassification\": \"PUBLIC\",\n"
-            + "    \"autoAssigned\": true,\n"
-            + "    \"taskSystem\": \"SELF\",\n"
-            + "    \"title\": \"taskName\""
-            + "  }\n"
-            + "}";
+                                  + "  \"task_id\": \"" + testTaskId + "\",\n"
+                                  + "  \"case_id\": \"" + testCaseId + "\",\n"
+                                  + "  \"assignee\": \"" + testUserId + "\",\n"
+                                  + "  \"configuration_variables\": {\n"
+                                  + "    \"taskType\": \"reviewTheAppeal\",\n"
+                                  + "    \"jurisdiction\": \"IA\",\n"
+                                  + "    \"caseTypeId\": \"Asylum\",\n"
+                                  + "    \"taskState\": \"assigned\",\n"
+                                  + "    \"executionType\": \"Case Management Task\",\n"
+                                  + "    \"caseId\": \"" + testCaseId + "\",\n"
+                                  + "    \"securityClassification\": \"PUBLIC\",\n"
+                                  + "    \"autoAssigned\": true,\n"
+                                  + "    \"taskSystem\": \"SELF\",\n"
+                                  + "    \"title\": \"taskName\""
+                                  + "  }\n"
+                                  + "}";
 
 
         Map<String, Object> requiredProcessVariables = Map.of(
@@ -246,21 +249,21 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         configure3rdPartyResponses();
 
         String expectedResponse = "{\n"
-            + "  \"task_id\": \"" + testTaskId + "\",\n"
-            + "  \"case_id\": \"" + testCaseId + "\",\n"
-            + "  \"configuration_variables\": {\n"
-            + "    \"taskType\": \"reviewTheAppeal\",\n"
-            + "    \"jurisdiction\": \"IA\",\n"
-            + "    \"caseTypeId\": \"Asylum\",\n"
-            + "    \"taskState\": \"unassigned\",\n"
-            + "    \"executionType\": \"Case Management Task\",\n"
-            + "    \"caseId\": \"" + testCaseId + "\",\n"
-            + "    \"securityClassification\": \"PUBLIC\",\n"
-            + "    \"autoAssigned\": false,\n"
-            + "    \"taskSystem\": \"SELF\",\n"
-            + "    \"title\": \"taskName\""
-            + "  }\n"
-            + "}";
+                                  + "  \"task_id\": \"" + testTaskId + "\",\n"
+                                  + "  \"case_id\": \"" + testCaseId + "\",\n"
+                                  + "  \"configuration_variables\": {\n"
+                                  + "    \"taskType\": \"reviewTheAppeal\",\n"
+                                  + "    \"jurisdiction\": \"IA\",\n"
+                                  + "    \"caseTypeId\": \"Asylum\",\n"
+                                  + "    \"taskState\": \"unassigned\",\n"
+                                  + "    \"executionType\": \"Case Management Task\",\n"
+                                  + "    \"caseId\": \"" + testCaseId + "\",\n"
+                                  + "    \"securityClassification\": \"PUBLIC\",\n"
+                                  + "    \"autoAssigned\": false,\n"
+                                  + "    \"taskSystem\": \"SELF\",\n"
+                                  + "    \"title\": \"taskName\""
+                                  + "  }\n"
+                                  + "}";
 
         Map<String, Object> requiredProcessVariables = Map.of(
             TASK_ID.value(), "reviewTheAppeal",
@@ -286,22 +289,22 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         configure3rdPartyResponses();
 
         String expectedResponse = "{\n"
-            + "  \"task_id\": \"" + testTaskId + "\",\n"
-            + "  \"case_id\": \"" + testCaseId + "\",\n"
-            + "  \"assignee\": \"" + testUserId + "\",\n"
-            + "  \"configuration_variables\": {\n"
-            + "    \"taskType\": \"reviewTheAppeal\",\n"
-            + "    \"jurisdiction\": \"IA\",\n"
-            + "    \"caseTypeId\": \"Asylum\",\n"
-            + "    \"taskState\": \"assigned\",\n"
-            + "    \"executionType\": \"Case Management Task\",\n"
-            + "    \"caseId\": \"" + testCaseId + "\",\n"
-            + "    \"securityClassification\": \"PUBLIC\",\n"
-            + "    \"autoAssigned\": true,\n"
-            + "    \"taskSystem\": \"SELF\",\n"
-            + "    \"title\": \"taskName\""
-            + "  }\n"
-            + "}";
+                                  + "  \"task_id\": \"" + testTaskId + "\",\n"
+                                  + "  \"case_id\": \"" + testCaseId + "\",\n"
+                                  + "  \"assignee\": \"" + testUserId + "\",\n"
+                                  + "  \"configuration_variables\": {\n"
+                                  + "    \"taskType\": \"reviewTheAppeal\",\n"
+                                  + "    \"jurisdiction\": \"IA\",\n"
+                                  + "    \"caseTypeId\": \"Asylum\",\n"
+                                  + "    \"taskState\": \"assigned\",\n"
+                                  + "    \"executionType\": \"Case Management Task\",\n"
+                                  + "    \"caseId\": \"" + testCaseId + "\",\n"
+                                  + "    \"securityClassification\": \"PUBLIC\",\n"
+                                  + "    \"autoAssigned\": true,\n"
+                                  + "    \"taskSystem\": \"SELF\",\n"
+                                  + "    \"title\": \"taskName\""
+                                  + "  }\n"
+                                  + "}";
 
 
         Map<String, Object> requiredProcessVariables = Map.of(
@@ -328,22 +331,22 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         configure3rdPartyResponses();
 
         String expectedResponse = "{\n"
-            + "  \"task_id\": \"" + testTaskId + "\",\n"
-            + "  \"case_id\": \"" + testCaseId + "\",\n"
-            + "  \"assignee\": \"" + testUserId + "\",\n"
-            + "  \"configuration_variables\": {\n"
-            + "    \"taskType\": \"reviewTheAppeal\",\n"
-            + "    \"jurisdiction\": \"IA\",\n"
-            + "    \"caseTypeId\": \"Asylum\",\n"
-            + "    \"taskState\": \"assigned\",\n"
-            + "    \"executionType\": \"Case Management Task\",\n"
-            + "    \"caseId\": \"" + testCaseId + "\",\n"
-            + "    \"securityClassification\": \"PUBLIC\",\n"
-            + "    \"autoAssigned\": true,\n"
-            + "    \"taskSystem\": \"SELF\",\n"
-            + "    \"title\": \"taskName\""
-            + "  }\n"
-            + "}";
+                                  + "  \"task_id\": \"" + testTaskId + "\",\n"
+                                  + "  \"case_id\": \"" + testCaseId + "\",\n"
+                                  + "  \"assignee\": \"" + testUserId + "\",\n"
+                                  + "  \"configuration_variables\": {\n"
+                                  + "    \"taskType\": \"reviewTheAppeal\",\n"
+                                  + "    \"jurisdiction\": \"IA\",\n"
+                                  + "    \"caseTypeId\": \"Asylum\",\n"
+                                  + "    \"taskState\": \"assigned\",\n"
+                                  + "    \"executionType\": \"Case Management Task\",\n"
+                                  + "    \"caseId\": \"" + testCaseId + "\",\n"
+                                  + "    \"securityClassification\": \"PUBLIC\",\n"
+                                  + "    \"autoAssigned\": true,\n"
+                                  + "    \"taskSystem\": \"SELF\",\n"
+                                  + "    \"title\": \"taskName\""
+                                  + "  }\n"
+                                  + "}";
 
 
         Map<String, Object> requiredProcessVariables = Map.of(
@@ -362,17 +365,45 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             .andReturn();
     }
 
+    @DisplayName("Should return 502 when ccd data store api is down")
+    @Test
+    void should_return_status_code_502_when_ccd_data_store_api_is_down() throws Exception {
+
+        setupRoleAssignmentResponse(true);
+        configure3rdPartyResponses();
+
+        doThrow(FeignException.BadRequest.class)
+            .when(ccdDataServiceApi)
+            .getCase(any(), any(), any());
+
+        mockMvc.perform(
+                post(TASK_CONFIGURATION_ENDPOINT + testTaskId)
+                    .contentType(APPLICATION_JSON_VALUE)
+            )
+            .andExpectAll(
+                status().is5xxServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value(
+                    "https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
+                jsonPath("$.title").value("Downstream Dependency Error"),
+                jsonPath("$.status").value(502),
+                jsonPath("$.detail").value(
+                    "Downstream dependency did not respond as expected "
+                    + "and the request could not be completed.")
+            );
+    }
+
     private List<RoleAssignment> createRoleAssignmentWithCustomRoleName(String roleName) {
 
         return List.of(RoleAssignment.builder()
-                           .id("someId")
-                           .actorIdType(ActorIdType.IDAM)
-                           .actorId(testUserId)
-                           .roleName(roleName)
-                           .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                           .roleType(RoleType.ORGANISATION)
-                           .classification(Classification.PUBLIC)
-                           .build());
+            .id("someId")
+            .actorIdType(ActorIdType.IDAM)
+            .actorId(testUserId)
+            .roleName(roleName)
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .roleType(RoleType.ORGANISATION)
+            .classification(Classification.PUBLIC)
+            .build());
 
     }
 
@@ -424,10 +455,10 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         when(serviceAuthTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         when(ccdDataServiceApi.getCase(
-                 BEARER_USER_TOKEN,
-                 BEARER_SERVICE_TOKEN,
-                 testCaseId
-             )
+                BEARER_USER_TOKEN,
+                BEARER_SERVICE_TOKEN,
+                testCaseId
+            )
         ).thenReturn(caseDetails);
 
         when(camundaServiceApi.evaluateConfigurationDmnTable(

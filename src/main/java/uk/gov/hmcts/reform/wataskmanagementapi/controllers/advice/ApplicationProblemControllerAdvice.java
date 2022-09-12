@@ -21,11 +21,13 @@ import org.zalando.problem.ThrowableProblem;
 import org.zalando.problem.spring.web.advice.validation.ValidationAdviceTrait;
 import org.zalando.problem.violations.ConstraintViolationProblem;
 import org.zalando.problem.violations.Violation;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAlreadyClaimedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
@@ -58,10 +60,16 @@ import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 })
 @RequestMapping(produces = APPLICATION_PROBLEM_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-    "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter"})
+    "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter", "PMD.CouplingBetweenObjects"})
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice implements ValidationAdviceTrait {
 
-    @ExceptionHandler(FeignException.ServiceUnavailable.class)
+    @ExceptionHandler({
+        FeignException.ServiceUnavailable.class,
+        FeignException.FeignServerException.class,
+        FeignException.GatewayTimeout.class,
+        FeignException.BadRequest.class,
+        ServerErrorException.class,
+    })
     public ResponseEntity<ThrowableProblem> handleFeignServiceUnavailableException(FeignException ex) {
         log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
 
@@ -193,7 +201,8 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         GenericServerErrorException.class,
         TaskNotFoundException.class,
         InvalidRequestException.class,
-        TaskReconfigurationException.class
+        TaskReconfigurationException.class,
+        TaskAlreadyClaimedException.class
     })
     protected ResponseEntity<Problem> handleApplicationProblemExceptions(
         AbstractThrowableProblem ex

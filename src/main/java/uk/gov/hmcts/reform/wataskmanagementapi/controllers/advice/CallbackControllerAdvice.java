@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.RequireDbLockException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
@@ -77,8 +76,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         return getErrorMessageResponseEntity(ex, HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler({NullPointerException.class, ServerErrorException.class,
-        RequireDbLockException.class})
+    @ExceptionHandler({NullPointerException.class, RequireDbLockException.class})
     protected ResponseEntity<ErrorMessage> handleGenericException(Exception ex) {
         return getErrorMessageResponseEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
     }

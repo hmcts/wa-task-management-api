@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
@@ -64,7 +65,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -118,6 +121,8 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     private Path<Object> path;
     @Mock(extraInterfaces = Serializable.class)
     private CriteriaBuilderImpl builder;
+    @Mock
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
     private ServiceMocks mockServices;
     private String taskId;
@@ -376,6 +381,56 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
     }
 
+    @DisplayName("Should return 502 when camunda service is down")
+    @Test
+    void should_return_status_code_502_when_camunda_service_is_down() throws Exception {
+
+        searchEventAndCase = new SearchEventAndCase(
+            "some-caseId",
+            "some-eventId",
+            "ia",
+            "asylum"
+        );
+        mockServices.mockServiceAPIs();
+
+        doThrow(FeignException.BadGateway.class)
+            .when(camundaServiceApi)
+            .evaluateDMN(any(), any(), any(), any());
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
+
+        when(allowedJurisdictionConfiguration.getAllowedJurisdictions())
+            .thenReturn(List.of("wa", "ia", "sscs", "civil"));
+
+        when(allowedJurisdictionConfiguration.getAllowedCaseTypes())
+            .thenReturn(List.of("asylum", "wacasetype", "sscs", "civil"));
+
+        when(authTokenGenerator.generate())
+            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
+
+        mockMvc.perform(
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpectAll(
+                status().is5xxServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value(
+                    "https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
+                jsonPath("$.title").value("Downstream Dependency Error"),
+                jsonPath("$.status").value(502),
+                jsonPath("$.detail").value(
+                    "Downstream dependency did not respond as expected "
+                    + "and the request could not be completed.")
+            );
+
+        verify(camundaServiceApi, times(1))
+            .evaluateDMN(any(), any(), any(), any());
+    }
+
     private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
                                                              String jurisdiction,
                                                              String taskId) {
@@ -465,7 +520,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             Collections.emptySet(),
             "caseCategory",
             ADDITIONAL_PROPERTIES,
-                "nextHearingId",
+            "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
