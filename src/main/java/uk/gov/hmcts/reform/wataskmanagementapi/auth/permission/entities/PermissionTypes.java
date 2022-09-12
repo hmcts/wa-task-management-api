@@ -8,28 +8,31 @@ import static java.util.Arrays.stream;
 
 public enum PermissionTypes {
 
-    READ("Read"),
-    REFER("Refer"),
-    OWN("Own"),
-    MANAGE("Manage"),
-    EXECUTE("Execute"),
-    CANCEL("Cancel"),
-    COMPLETE("Complete"),
-    COMPLETE_OWN("CompleteOwn"),
-    CANCEL_OWN("CancelOwn"),
-    CLAIM("Claim"),
-    UNCLAIM("Unclaim"),
-    ASSIGN("Assign"),
-    UNASSIGN("Unassign"),
-    UNCLAIM_ASSIGN("UnclaimAssign"),
-    UNASSIGN_CLAIM("UnassignClaim"),
-    UNASSIGN_ASSIGN("UnassignAssign");
+    READ("Read", "read"),
+    REFER("Refer", "refer"),
+    OWN("Own", "own"),
+    MANAGE("Manage", "manage"),
+    EXECUTE("Execute", "execute"),
+    CANCEL("Cancel", "cancel"),
+    COMPLETE("Complete", "complete"),
+    COMPLETE_OWN("CompleteOwn", "completeOwn"),
+    CANCEL_OWN("CancelOwn", "cancelOwn"),
+    CLAIM("Claim", "claim"),
+    UNCLAIM("Unclaim", "unclaim"),
+    ASSIGN("Assign", "assign"),
+    UNASSIGN("Unassign", "unassign"),
+    UNCLAIM_ASSIGN("UnclaimAssign", "unclaimAssign"),
+    UNASSIGN_CLAIM("UnassignClaim", "unassignClaim"),
+    UNASSIGN_ASSIGN("UnassignAssign","unassignAssign");
 
     @JsonValue
     private String value;
 
-    PermissionTypes(String value) {
+    private String mapperValue;
+
+    PermissionTypes(String value, String mapperValue) {
         this.value = value;
+        this.mapperValue = mapperValue;
     }
 
     public static Optional<PermissionTypes> from(String value) {
@@ -41,4 +44,9 @@ public enum PermissionTypes {
     public String value() {
         return value;
     }
+
+    public String getMapperValue() {
+        return mapperValue;
+    }
+
 }

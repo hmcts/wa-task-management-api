@@ -13,6 +13,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -28,6 +30,13 @@ import java.util.List;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 
+import static java.util.Arrays.asList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE_OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -36,7 +45,14 @@ import javax.persistence.EntityManager;
 @Sql("/scripts/wa/complete_task_data.sql")
 public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
 
-    private final List<PermissionTypes> permissionsRequired = List.of(PermissionTypes.OWN, PermissionTypes.EXECUTE);
+    private final List<PermissionTypes> permissionsRequired = List.of(OWN, EXECUTE);
+    PermissionRequirements granularPermissionsRequired = PermissionRequirementBuilder.builder()
+        .initPermissionRequirement(asList(OWN, EXECUTE), OR)
+        .joinPermissionRequirement(OR)
+        .nextPermissionRequirement(asList(COMPLETE), OR)
+        .build();
+    PermissionRequirements granularPermissionsRequiredAndAssignee = PermissionRequirementBuilder.builder()
+        .buildSingleType(COMPLETE_OWN);
 
     @MockBean
     private CamundaService camundaService;
@@ -267,4 +283,87 @@ public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
 
     }
 
+    @Test
+    void should_retrieve_a_task_when_grant_type_standard_and_execute_or_own_granular() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111005";
+        final String caseId = "1623278362431001";
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task =
+            cftQueryService.getTask(taskId, roleAssignments, granularPermissionsRequired);
+        Assertions.assertThat(task.isPresent()).isTrue();
+        Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+    }
+
+    @Test
+    void should_retrieve_a_task_when_grant_type_standard_and_complete_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111001";
+        final String caseId = "1623278362431001";
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TASK_SUPERVISOR)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task =
+            cftQueryService.getTask(taskId, roleAssignments, granularPermissionsRequired);
+        Assertions.assertThat(task.isPresent()).isTrue();
+        Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+    }
+
+    @Test
+    void should_retrieve_a_task_when_grant_type_standard_and_completeown_permission_and_assignee() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111005";
+        final String caseId = "1623278362431001";
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task =
+            cftQueryService.getTask(taskId, roleAssignments, granularPermissionsRequiredAndAssignee);
+        Assertions.assertThat(task.isPresent()).isTrue();
+        Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+    }
 }

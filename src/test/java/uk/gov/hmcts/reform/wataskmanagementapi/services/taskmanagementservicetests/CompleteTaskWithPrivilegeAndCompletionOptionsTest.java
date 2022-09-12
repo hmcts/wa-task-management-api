@@ -53,8 +53,11 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.GRANULAR_PERMISSION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 
 @ExtendWith(MockitoExtension.class)
@@ -276,7 +279,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
         class AssignAndCompleteIsFalse {
 
             @Test
-            void should_succeed_and_feature_flag_is_on() {
+            void should_succeed_and_gp_feature_flag_is_on() {
                 AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
 
                 final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
@@ -289,10 +292,19 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
                 when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
-                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                    .initPermissionRequirement(asList(OWN, EXECUTE), OR)
+                    .joinPermissionRequirement(OR)
+                    .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .build();
                 when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
 
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    GRANULAR_PERMISSION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
+                     )
+                ).thenReturn(true);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_ENDPOINTS_FEATURE,
                     IDAM_USER_ID,
@@ -313,31 +325,36 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
             }
 
             @Test
-            void should_succeed_and_feature_flag_is_off() {
+            void should_succeed_and_gp_feature_flag_is_off() {
                 AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
                 final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-                CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
-                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-                when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
-                when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
-                when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
-                    IDAM_USER_ID,
-                    IDAM_USER_ID,
-                    mockedVariables,
-                    roleAssignment,
-                    asList(OWN, EXECUTE)
-                )).thenReturn(true);
 
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+                when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    GRANULAR_PERMISSION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
+                     )
+                ).thenReturn(false);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_ENDPOINTS_FEATURE,
                     IDAM_USER_ID,
                     IDAM_USER_EMAIL
                     )
-                ).thenReturn(false);
+                ).thenReturn(true);
 
+                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
@@ -345,6 +362,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 );
                 boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value()
                     .equals(mockedVariables.get("taskState"));
+                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
                 verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
             }
 
@@ -367,6 +386,12 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     roleAssignment,
                     asList(OWN, EXECUTE)
                 )).thenReturn(false);
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    GRANULAR_PERMISSION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
+                     )
+                ).thenReturn(false);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_ENDPOINTS_FEATURE,
                     IDAM_USER_ID,
@@ -395,6 +420,12 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 CamundaTask mockedUnmappedTask = createMockedUnmappedTaskWithNoAssignee();
                 when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    GRANULAR_PERMISSION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
+                     )
+                ).thenReturn(false);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_ENDPOINTS_FEATURE,
                     IDAM_USER_ID,
@@ -434,6 +465,12 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 ).thenReturn(false);
                 TaskResource taskResource = spy(TaskResource.class);
 
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    GRANULAR_PERMISSION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
+                     )
+                ).thenReturn(false);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_ENDPOINTS_FEATURE,
                     IDAM_USER_ID,
