@@ -10,6 +10,7 @@ public enum CamundaVariableDefinition {
     ASSIGNEE("assignee"),
     CASE_ID("caseId"),
     CASE_NAME("caseName"),
+    DUE_DATE("dueDate"),
     CASE_TYPE_ID("caseTypeId"),
     EXECUTION_TYPE("executionType"),
     FORM_KEY("formKey"),

@@ -507,6 +507,17 @@ public class CFTTaskMapper {
                         taskResource.setPriorityDate((OffsetDateTime) value);
                     }
                     break;
+                case DUE_DATE:
+                    if (value instanceof String) {
+                        if (Strings.isNotBlank((String) value)) {
+                            taskResource.setDueDateTime(OffsetDateTime.parse((String) value));
+                        }
+                    } else {
+                        if (taskResource.getDueDateTime() == null) {
+                            taskResource.setDueDateTime((OffsetDateTime) value);
+                        }
+                    }
+                    break;
                 default:
                     break;
             }

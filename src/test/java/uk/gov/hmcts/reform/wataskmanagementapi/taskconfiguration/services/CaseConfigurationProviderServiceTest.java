@@ -58,8 +58,8 @@ class CaseConfigurationProviderServiceTest {
         caseConfigurationProviderService = new CaseConfigurationProviderService(
             ccdDataService,
             dmnEvaluationService,
-            objectMapper
-        );
+            objectMapper,
+                dueDateCalculator);
 
         lenient().when(caseDetails.getCaseType()).thenReturn("Asylum");
         lenient().when(caseDetails.getJurisdiction()).thenReturn("IA");

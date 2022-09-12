@@ -31,14 +31,17 @@ public class CaseConfigurationProviderService {
     private final CcdDataService ccdDataService;
     private final DmnEvaluationService dmnEvaluationService;
     private final ObjectMapper objectMapper;
+    private final DueDateCalculator dueDateCalculator;
 
     @Autowired
     public CaseConfigurationProviderService(CcdDataService ccdDataService,
                                             DmnEvaluationService dmnEvaluationService,
-                                            ObjectMapper objectMapper) {
+                                            ObjectMapper objectMapper,
+                                            DueDateCalculator dueDateCalculator) {
         this.ccdDataService = ccdDataService;
         this.dmnEvaluationService = dmnEvaluationService;
         this.objectMapper = objectMapper;
+        this.dueDateCalculator = dueDateCalculator;
     }
 
     /**
@@ -140,7 +143,8 @@ public class CaseConfigurationProviderService {
                 CamundaValue.stringValue(writeValueAsString(additionalProperties))
             ));
         }
-        return configResponses;
+
+        return dueDateCalculator.calculateDueDate(configResponses);
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(
