@@ -11,7 +11,7 @@ import static org.zalando.problem.Status.CONFLICT;
 @SuppressWarnings("java:S110")
 public class TaskAlreadyClaimedException extends AbstractThrowableProblem {
 
-    private static final long serialVersionUID = -7304118612753159016L;
+    private static final long serialVersionUID = -7314118612753159016L;
 
     private static final URI TYPE = URI.create("https://github.com/hmcts/wa-task-management-api/problem/task-already-claimed-error");
     private static final String TITLE = "Task Already Claimed Error";

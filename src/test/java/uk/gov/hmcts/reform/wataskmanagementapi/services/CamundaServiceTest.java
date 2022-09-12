@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -35,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAlreadyClaimedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
@@ -43,6 +46,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteExcepti
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaCftTaskStateUpdateException;
 
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -313,6 +317,34 @@ class CamundaServiceTest extends CamundaHelpers {
                 .hasMessage("Task Claim Error: "
                             + "Task claim partially succeeded. "
                             + "The Task state was updated to assigned, but the Task could not be claimed.");
+        }
+
+        @Test
+        void claimTask_should_throw_task_already_claimed_exception_when_camunda_throws_feign_exception() {
+
+            String camundaException = "{\n"
+                                      + "    \"type\": \"TaskAlreadyClaimedException\",\n"
+                                      + "    \"message\": \"Task Already Claimed Exception\"\n"
+                                      + "}";
+            Request request = Request.create(Request.HttpMethod.POST, "url",
+                new HashMap<>(), null, new RequestTemplate());
+
+            byte[] body = camundaException.getBytes(StandardCharsets.UTF_8);
+
+            doThrow(new FeignException.FeignServerException(
+                500,
+                camundaException,
+                request,
+                body,
+                null)).when(camundaServiceApi).claimTask(
+                eq(BEARER_SERVICE_TOKEN),
+                eq(taskId),
+                anyMap()
+            );
+
+            assertThatThrownBy(() -> camundaService.claimTask(taskId, IDAM_USER_ID))
+                .isInstanceOf(TaskAlreadyClaimedException.class)
+                .hasMessage("Task Already Claimed Error: Task Already Claimed Exception");
         }
     }
 
