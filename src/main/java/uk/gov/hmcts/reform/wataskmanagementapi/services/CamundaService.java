@@ -160,6 +160,35 @@ public class CamundaService {
 
     }
 
+    public boolean isTaskCompletedInCamunda(String taskId) {
+        Map<String, Object> body = Map.of(
+            "variableName", TASK_STATE.value(),
+            "taskIdIn", singleton(taskId)
+        );
+
+        AtomicBoolean isTaskStateCompleted = new AtomicBoolean(false);
+
+        //Check if the task has already been deleted or pending termination
+        List<HistoryVariableInstance> result = camundaServiceApi.searchHistory(authTokenGenerator.generate(), body);
+
+        if (result == null || result.isEmpty()) {
+            return isTaskStateCompleted.get();
+        }
+        
+        Optional<HistoryVariableInstance> historyVariableInstance = result.stream()
+            .filter(r -> r.getName().equals(TASK_STATE.value()))
+            .findFirst();
+
+        historyVariableInstance.ifPresent(variable -> {
+            if (variable.getValue().equalsIgnoreCase(TaskState.COMPLETED.value())) {
+                log.info("{} taskStateInCamundaHistory: {}", taskId, variable.getValue());
+                isTaskStateCompleted.set(true);
+            }
+        });
+
+        return isTaskStateCompleted.get();
+    }
+
     public void cancelTask(String taskId) {
 
         //Task has not been canceled by dmn, perform the delete action

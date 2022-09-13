@@ -76,6 +76,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
@@ -708,11 +709,11 @@ class CamundaServiceTest extends CamundaHelpers {
             );
 
             assertThatThrownBy(() ->
-                camundaService.assignAndCompleteTask(
-                    taskId,
-                    IDAM_USER_ID,
-                    taskHasUnassigned
-                ))
+                                   camundaService.assignAndCompleteTask(
+                                       taskId,
+                                       IDAM_USER_ID,
+                                       taskHasUnassigned
+                                   ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: "
@@ -733,11 +734,11 @@ class CamundaServiceTest extends CamundaHelpers {
             );
 
             assertThatThrownBy(() ->
-                camundaService.assignAndCompleteTask(
-                    taskId,
-                    IDAM_USER_ID,
-                    taskHasUnassigned
-                ))
+                                   camundaService.assignAndCompleteTask(
+                                       taskId,
+                                       IDAM_USER_ID,
+                                       taskHasUnassigned
+                                   ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: Unable to assign the Task to the current user.");
@@ -752,11 +753,11 @@ class CamundaServiceTest extends CamundaHelpers {
                 .when(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
 
             assertThatThrownBy(() ->
-                camundaService.assignAndCompleteTask(
-                    taskId,
-                    IDAM_USER_ID,
-                    taskHasUnassigned
-                ))
+                                   camundaService.assignAndCompleteTask(
+                                       taskId,
+                                       IDAM_USER_ID,
+                                       taskHasUnassigned
+                                   ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: "
@@ -858,7 +859,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
                     Map.of("processInstanceIdIn", singletonList("someProcessInstanceId"),
-                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                           "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                     )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
@@ -914,7 +915,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
                     Map.of("processInstanceIdIn", singletonList("someProcessInstanceId"),
-                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                           "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                     )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
@@ -963,7 +964,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
                     Map.of("processInstanceIdIn", singletonList("someProcessInstanceId"),
-                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                           "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                     )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
@@ -1008,7 +1009,7 @@ class CamundaServiceTest extends CamundaHelpers {
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
                 Map.of("processInstanceIdIn", asList("someProcessInstanceId", "someProcessInstanceId2"),
-                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                       "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                 )
             )).thenReturn(mockedVariablesResponseForMultipleProcessIds());
 
@@ -1054,7 +1055,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
                     Map.of("processInstanceIdIn", asList("someProcessInstanceId", "someProcessInstanceId2"),
-                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                           "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                     )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
@@ -1099,7 +1100,7 @@ class CamundaServiceTest extends CamundaHelpers {
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
                 Map.of("processInstanceIdIn", asList("someProcessInstanceId", "someProcessInstanceId2"),
-                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                       "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                 )
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId", "someTaskId"));
 
@@ -1136,7 +1137,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
                     Map.of("processInstanceIdIn", asList("someProcessInstanceId", "someProcessInstanceId2"),
-                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                           "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                     )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
@@ -1180,7 +1181,7 @@ class CamundaServiceTest extends CamundaHelpers {
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
                 Map.of("processInstanceIdIn", asList("someProcessInstanceId1", "someProcessInstanceId2"),
-                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                       "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                 )
             )).thenReturn(mockedVariablesResponseForMultipleProcessIds());
 
@@ -1208,7 +1209,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
                     Map.of("processInstanceIdIn", asList("someProcessInstanceId1", "someProcessInstanceId2"),
-                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                           "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                     )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
@@ -1241,7 +1242,7 @@ class CamundaServiceTest extends CamundaHelpers {
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
                 Map.of("processInstanceIdIn", singletonList("someProcessInstanceId"),
-                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                       "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                 )
             )).thenReturn(mockedVariablesResponseForMultipleProcessIds());
 
@@ -1278,7 +1279,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
                     Map.of("processInstanceIdIn", singletonList("someProcessInstanceId"),
-                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                           "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                     )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
@@ -1311,7 +1312,7 @@ class CamundaServiceTest extends CamundaHelpers {
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
                 Map.of("processInstanceIdIn", singletonList("someProcessInstanceId"),
-                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                       "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                 )
             )).thenReturn(mockedVariablesResponseForMultipleProcessIds());
 
@@ -1337,7 +1338,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
                     Map.of("processInstanceIdIn", singletonList("someProcessInstanceId"),
-                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                           "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                     )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
@@ -1367,8 +1368,8 @@ class CamundaServiceTest extends CamundaHelpers {
                 .when(camundaServiceApi).getAllVariables(eq(BEARER_SERVICE_TOKEN), any());
 
             assertThatThrownBy(() ->
-                camundaService.searchWithCriteria(
-                    camundaSearchQueryMock, 0, 1, accessControlResponse, permissionsRequired)
+                                   camundaService.searchWithCriteria(
+                                       camundaSearchQueryMock, 0, 1, accessControlResponse, permissionsRequired)
             )
                 .isInstanceOf(ServerErrorException.class)
                 .hasCauseInstanceOf(FeignException.class)
@@ -1431,7 +1432,7 @@ class CamundaServiceTest extends CamundaHelpers {
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
                 Map.of("processInstanceIdIn", singletonList("someProcessInstanceId"),
-                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                       "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                 )
             )).thenReturn(emptyList());
 
@@ -1451,7 +1452,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
                     Map.of("processInstanceIdIn", singletonList("someProcessInstanceId"),
-                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                           "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
                     )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
@@ -1471,13 +1472,13 @@ class CamundaServiceTest extends CamundaHelpers {
                 .thenThrow(FeignException.class);
 
             assertThatThrownBy(() ->
-                camundaService.searchWithCriteria(
-                    camundaSearchQueryMock,
-                    0,
-                    1,
-                    accessControlResponse,
-                    permissionsRequired
-                )
+                                   camundaService.searchWithCriteria(
+                                       camundaSearchQueryMock,
+                                       0,
+                                       1,
+                                       accessControlResponse,
+                                       permissionsRequired
+                                   )
             )
                 .isInstanceOf(ServerErrorException.class)
                 .hasMessage("There was a problem performing the search")
@@ -1546,7 +1547,8 @@ class CamundaServiceTest extends CamundaHelpers {
                 "someCaseId",
                 "someEventId",
                 jurisdiction,
-                caseType);
+                caseType
+            );
 
             List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
                 "taskType", new CamundaVariable("reviewTheAppeal", "String"),
@@ -1557,7 +1559,8 @@ class CamundaServiceTest extends CamundaHelpers {
                 eq(BEARER_SERVICE_TOKEN),
                 eq(dmn),
                 eq(jurisdiction),
-                anyMap()))
+                anyMap()
+            ))
                 .thenReturn(mockedResponse);
 
             List<Map<String, CamundaVariable>> response = camundaService.evaluateTaskCompletionDmn(searchEventAndCase);
@@ -1577,7 +1580,8 @@ class CamundaServiceTest extends CamundaHelpers {
                 "someCaseId",
                 "someEventId",
                 jurisdiction,
-                caseType);
+                caseType
+            );
 
 
             doThrow(FeignException.FeignServerException.class)
@@ -1585,7 +1589,8 @@ class CamundaServiceTest extends CamundaHelpers {
                     eq(BEARER_SERVICE_TOKEN),
                     eq(dmn),
                     eq(jurisdiction),
-                    anyMap());
+                    anyMap()
+                );
 
             assertThatThrownBy(() -> camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
                 .isInstanceOf(ServerErrorException.class)
@@ -1659,9 +1664,11 @@ class CamundaServiceTest extends CamundaHelpers {
                 eq(permissionsRequired)
             )).thenReturn(true);
 
-            List<Task> actualTask = camundaService.performSearchAction(camundaTasks,
+            List<Task> actualTask = camundaService.performSearchAction(
+                camundaTasks,
                 accessControlResponse,
-                permissionsRequired);
+                permissionsRequired
+            );
 
             assertEquals("java.util.ArrayList", actualTask.getClass().getCanonicalName());
             assertEquals(1, actualTask.size());
@@ -1681,9 +1688,11 @@ class CamundaServiceTest extends CamundaHelpers {
                 eq(permissionsRequired)
             )).thenReturn(true);
 
-            List<Task> actualTask = camundaService.performSearchAction(camundaTasks,
+            List<Task> actualTask = camundaService.performSearchAction(
+                camundaTasks,
                 accessControlResponse,
-                permissionsRequired);
+                permissionsRequired
+            );
 
             assertEquals(1, actualTask.size());
             assertEquals(taskId, actualTask.get(0).getId());
@@ -1705,9 +1714,11 @@ class CamundaServiceTest extends CamundaHelpers {
                 eq(permissionsRequired)
             )).thenReturn(false);
 
-            List<Task> actualTask = camundaService.performSearchAction(camundaTasks,
+            List<Task> actualTask = camundaService.performSearchAction(
+                camundaTasks,
                 accessControlResponse,
-                permissionsRequired);
+                permissionsRequired
+            );
 
             assertEquals(0, actualTask.size());
 
@@ -1724,9 +1735,11 @@ class CamundaServiceTest extends CamundaHelpers {
                 eq(permissionsRequired)
             )).thenReturn(true);
 
-            List<Task> actualTask = camundaService.performSearchAction(camundaTasks,
+            List<Task> actualTask = camundaService.performSearchAction(
+                camundaTasks,
                 accessControlResponse,
-                permissionsRequired);
+                permissionsRequired
+            );
 
             assertEquals(1, actualTask.size());
             assertEquals("someCamundaTaskId", actualTask.get(0).getId());
@@ -1912,6 +1925,101 @@ class CamundaServiceTest extends CamundaHelpers {
                     BEARER_SERVICE_TOKEN,
                     body
                 );
+
+        }
+
+
+    }
+
+    @Nested
+    @DisplayName("getTaskState()")
+    class GetTaskState {
+
+        @Test
+        void should_return_expected_task_state_has_completed_value() {
+
+            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                "someId",
+                TASK_STATE.value(),
+                "completed"
+            );
+
+            Map<String, Object> body = Map.of(
+                "variableName", TASK_STATE.value(),
+                "taskIdIn", singleton(taskId)
+            );
+
+            when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
+                .thenReturn(singletonList(historyVariableInstance));
+
+            boolean isTaskCompletedInCamunda = camundaService.isTaskCompletedInCamunda(taskId);
+
+            assertTrue(isTaskCompletedInCamunda);
+
+            verify(camundaServiceApi).searchHistory(BEARER_SERVICE_TOKEN, body);
+
+            verify(camundaServiceApi, times(1))
+                .searchHistory(
+                    BEARER_SERVICE_TOKEN,
+                    body
+                );
+
+        }
+
+        @Test
+        void should_return_false_when_task_state_variable_has_different_value_than_completed() {
+
+            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                "someId",
+                TASK_STATE.value(),
+                "someValue"
+            );
+
+            Map<String, Object> body = Map.of(
+                "variableName", TASK_STATE.value(),
+                "taskIdIn", singleton(taskId)
+            );
+
+            when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
+                .thenReturn(singletonList(historyVariableInstance));
+
+            boolean isTaskCompletedInCamunda = camundaService.isTaskCompletedInCamunda(taskId);
+
+            assertFalse(isTaskCompletedInCamunda);
+
+        }
+
+        @Test
+        void should_return_false_when_search_response_is_null() {
+
+            Map<String, Object> body = Map.of(
+                "variableName", TASK_STATE.value(),
+                "taskIdIn", singleton(taskId)
+            );
+
+            when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
+                .thenReturn(null);
+
+            boolean isTaskCompletedInCamunda = camundaService.isTaskCompletedInCamunda(taskId);
+
+            assertFalse(isTaskCompletedInCamunda);
+
+        }
+
+        @Test
+        void should_return_false_when_search_response_is_empty_list() {
+
+            Map<String, Object> body = Map.of(
+                "variableName", TASK_STATE.value(),
+                "taskIdIn", singleton(taskId)
+            );
+
+            when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
+                .thenReturn(emptyList());
+
+            boolean isTaskCompletedInCamunda = camundaService.isTaskCompletedInCamunda(taskId);
+
+            assertFalse(isTaskCompletedInCamunda);
 
         }
 

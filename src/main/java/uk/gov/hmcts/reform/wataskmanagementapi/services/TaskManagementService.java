@@ -388,7 +388,8 @@ public class TaskManagementService {
             boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
             log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
-                taskId, previousTaskState, isCftTaskStateExist);
+                     taskId, previousTaskState, isCftTaskStateExist
+            );
 
             try {
                 //Perform Camunda updates
@@ -400,7 +401,8 @@ public class TaskManagementService {
             } catch (TaskCancelException ex) {
                 if (isCftTaskStateExist) {
                     log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda.Exception: {}",
-                        taskId, ex.getMessage());
+                             taskId, ex.getMessage()
+                    );
                     throw ex;
                 }
 
@@ -408,7 +410,8 @@ public class TaskManagementService {
                     task.setState(CFTTaskState.TERMINATED);
                     cftTaskDatabaseService.saveTask(task);
                     log.info("{} setting CFTTaskState to TERMINATED. previousTaskState : {} ",
-                        taskId, previousTaskState);
+                             taskId, previousTaskState
+                    );
                     return;
                 }
 
@@ -487,14 +490,16 @@ public class TaskManagementService {
             TaskResource task = findByIdAndObtainLock(taskId);
             taskHasCompleted = task.getState() == CFTTaskState.COMPLETED;
 
-            // If task was not already completed complete it
-            if (taskHasCompleted) {
-                //Perform Camunda updates
-                camundaService.completeTask(taskId, taskHasCompleted);
-            } else {
+            if (!taskHasCompleted) {
+                //scenario, task not completed anywhere
                 task.setState(CFTTaskState.COMPLETED);
-                //Perform Camunda updates
-                camundaService.completeTask(taskId, taskHasCompleted);
+
+                //check the state, if not complete, complete
+                boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
+                if (!isTaskCompleted) {
+                    //Perform Camunda updates
+                    camundaService.completeTask(taskId, taskHasCompleted);
+                }
                 //Commit transaction
                 cftTaskDatabaseService.saveTask(task);
             }
