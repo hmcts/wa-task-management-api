@@ -250,8 +250,8 @@ public abstract class SpringBootFunctionalBaseTest {
         log.info("Task initiate with cron job {}", initiationJobRunning);
         if (initiationJobRunning) {
             await()
-                .pollInterval(2, SECONDS)
-                .atMost(60, SECONDS)
+                .pollInterval(10, SECONDS)
+                .atMost(240, SECONDS)
                 .until(
                     () -> {
                         Response response = restApiActions.get(

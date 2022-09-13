@@ -247,7 +247,6 @@ public class Common {
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
-        // return taskId
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
