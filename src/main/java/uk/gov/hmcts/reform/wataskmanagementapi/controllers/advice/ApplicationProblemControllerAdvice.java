@@ -70,7 +70,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         FeignException.BadRequest.class,
         ServerErrorException.class,
     })
-    public ResponseEntity<ThrowableProblem> handleFeignServiceUnavailableException(FeignException ex) {
+    public ResponseEntity<ThrowableProblem> handleFeignAndServerException(FeignException ex) {
         log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
 
         Status statusType = BAD_GATEWAY; //502
