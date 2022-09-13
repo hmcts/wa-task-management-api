@@ -31,8 +31,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
-import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -82,6 +82,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.DueDateCalculator.DUE_DATE_TIME_FORMATTER;
 
 
 @Service
@@ -508,15 +509,9 @@ public class CFTTaskMapper {
                     }
                     break;
                 case DUE_DATE:
-                    if (value instanceof String) {
-                        if (Strings.isNotBlank((String) value)) {
-                            taskResource.setDueDateTime(OffsetDateTime.parse((String) value));
-                        }
-                    } else {
-                        if (taskResource.getDueDateTime() == null) {
-                            taskResource.setDueDateTime((OffsetDateTime) value);
-                        }
-                    }
+                    ZoneOffset zoneOffset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
+                    LocalDateTime dateTime = LocalDateTime.parse((String) value, DUE_DATE_TIME_FORMATTER);
+                    taskResource.setDueDateTime(dateTime.atOffset(zoneOffset));
                     break;
                 default:
                     break;

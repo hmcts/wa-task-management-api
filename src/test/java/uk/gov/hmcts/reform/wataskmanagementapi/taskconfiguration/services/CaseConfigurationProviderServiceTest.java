@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
@@ -59,7 +60,8 @@ class CaseConfigurationProviderServiceTest {
             ccdDataService,
             dmnEvaluationService,
             objectMapper,
-                dueDateCalculator);
+            new DueDateCalculator()
+        );
 
         lenient().when(caseDetails.getCaseType()).thenReturn("Asylum");
         lenient().when(caseDetails.getJurisdiction()).thenReturn("IA");
@@ -471,14 +473,16 @@ class CaseConfigurationProviderServiceTest {
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
                     stringValue(writeValueAsString(additionalProperties))
-                ));
+                )
+            );
     }
 
     @Test
     void should_replace_with_sent_additional_properties() {
         String someCaseId = "someCaseId";
         String roleAssignmentId = UUID.randomUUID().toString();
-        Map<String, Object> taskAttributes = Map.of("taskAdditionalProperties",
+        Map<String, Object> taskAttributes = Map.of(
+            "taskAdditionalProperties",
             Map.of("roleAssignmentId", roleAssignmentId)
         );
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
@@ -497,13 +501,14 @@ class CaseConfigurationProviderServiceTest {
         lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
             .thenReturn(permissions);
 
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("additionalProperties_roleAssignmentId"),
+                stringValue(roleAssignmentId)
+            )
+        );
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
-            .thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_roleAssignmentId"),
-                    stringValue(roleAssignmentId)
-                )
-            ));
+            .thenReturn(evaluationResponses);
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
             .getCaseRelatedConfiguration(someCaseId, taskAttributes);
@@ -526,7 +531,8 @@ class CaseConfigurationProviderServiceTest {
     void should_replace_sent_additional_properties_when_configuration_dmn_contains() {
         String someCaseId = "someCaseId";
         String roleAssignmentId = UUID.randomUUID().toString();
-        Map<String, Object> taskAttributes = Map.of("taskAdditionalProperties",
+        Map<String, Object> taskAttributes = Map.of(
+            "taskAdditionalProperties",
             Map.of(
                 "roleAssignmentId", roleAssignmentId,
                 "key", "nonExistValue"

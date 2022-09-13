@@ -13,7 +13,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -89,7 +91,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("security_classification", equalTo("PUBLIC"))
             .body("title", equalTo("Process Application"))
             .body("created", notNullValue())
-            .body("due_date_time", notNullValue())
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))
@@ -118,7 +119,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "key4", "value4"
             ))).body("minor_priority", equalTo(500))
             .body("major_priority", equalTo(1000))
-            .body("priority_date", equalTo("2022-12-07T14:00:00+01:00"));
+            .body("priority_date", equalTo("2022-12-07T14:00:00+01:00"))
+            .body("due_date_time", notNullValue())
+            .body("due_date_time", equalTo(OffsetDateTime.now().plusDays(2).withHour(18)
+                                               .format(DateTimeFormatter.ofPattern("yyyy-MM-ddd'T'HH:mm"))));
 
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
