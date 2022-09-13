@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -799,6 +800,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Bug reported in https://tools.hmcts.net/jira/browse/RWA-1780")
     @Test
     public void should_return_a_403_when_assignee_id_does_not_match() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
@@ -811,7 +813,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         String taskId = taskVariables.getTaskId();
 
-        Response result = restApiActions.post(
+        restApiActions.post(
             CLAIM_ENDPOINT,
             taskId,
             caseworkerCredentials.getHeaders()
@@ -821,7 +823,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
         common.setupWAOrganisationalRoleAssignment(tribunalCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
-        result = restApiActions.post(
+        Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             tribunalCaseworkerCredentials.getHeaders()
