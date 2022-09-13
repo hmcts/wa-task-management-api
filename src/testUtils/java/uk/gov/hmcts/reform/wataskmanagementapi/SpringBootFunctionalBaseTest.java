@@ -113,8 +113,8 @@ public abstract class SpringBootFunctionalBaseTest {
     private String testUrl;
     @Value("${launch_darkly.url}")
     private String launchDarklyUrl;
-    @Value("${environment}")
-    private String environment;
+    @Value("${initiation_job_running}")
+    private Boolean initiationJobRunning;
 
     private TestAuthenticationCredentials iaCaseworkerCredentials;
     private TestAuthenticationCredentials waCaseworkerCredentials;
@@ -247,8 +247,8 @@ public abstract class SpringBootFunctionalBaseTest {
                               Headers headers,
                               Map<String, String> additionalProperties,
                               Consumer<Response> assertConsumer) {
-
-        if (isInitiateCronJobRunning()) {
+        log.info("Task initiate with cron job {}", initiationJobRunning);
+        if (initiationJobRunning) {
             await()
                 .pollInterval(2, SECONDS)
                 .atMost(60, SECONDS)
@@ -330,10 +330,4 @@ public abstract class SpringBootFunctionalBaseTest {
     protected String getAssigneeId(Headers headers) {
         return authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
-
-    private boolean isInitiateCronJobRunning() {
-        log.info("Task initiation in {} environment", environment);
-        return List.of("aat", "prod").contains(environment);
-    }
-
 }
