@@ -173,7 +173,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             //Assert.assertEquals(formattedDueDate, formattedPriorityDate);
 
             result.then().assertThat()
-                .statusCode(HttpStatus.CREATED.value())
+                .statusCode(HttpStatus.OK.value())
                 .and()
                 .body("task.id", equalTo(taskId))
                 .body("task.name", equalTo("process Application"))
