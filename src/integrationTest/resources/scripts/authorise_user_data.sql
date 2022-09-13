@@ -14,10 +14,12 @@ values ('8d6cc5cf-c973-11eb-bdba-0242ac111018', 'SELF', '2022-05-09T20:15:45.345
         '2022-05-09T20:15:45.345875+01:00');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer,
                                     authorizations,
-                                    assignment_priority, auto_assignable, role_category, task_id, created)
+                                    assignment_priority, auto_assignable, role_category, task_id, created, complete, complete_own,
+                                    cancel_own, claim, unclaim, assign, unassign, unclaim_assign, unassign_claim, unassign_assign)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac115020', 'tribunal-caseworker', true, true, true, false, false, false,
         '{"DIVORCE", "373"}',
-        8, true, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111018', '2021-05-09T20:15:45.345875+01:00');
+        8, true, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111018', '2021-05-09T20:15:45.345875+01:00', false, false,
+        false, false, false, false, false, false, false, false);
 
 
 insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assigned, business_context, case_id,
@@ -36,9 +38,11 @@ values ('8d6cc5cf-c973-11eb-bdba-0242ac111019', 'SELF', '2022-05-09T20:15:45.345
         '2022-05-09T20:15:45.345875+01:00');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer,
                                     authorizations,
-                                    assignment_priority, auto_assignable, role_category, task_id, created)
+                                    assignment_priority, auto_assignable, role_category, task_id, created, complete, complete_own,
+                                    cancel_own, claim, unclaim, assign, unassign, unclaim_assign, unassign_claim, unassign_assign)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac115021', 'tribunal-caseworker', true, true, true, false, false, false, '{}',
-        8, true, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111019', '2021-05-09T20:15:45.345875+01:00');
+        8, true, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111019', '2021-05-09T20:15:45.345875+01:00', false, false,
+        false, false, false, false, false, false, false, false);
 
 insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assigned, business_context, case_id,
                                case_name, case_type_id, created,

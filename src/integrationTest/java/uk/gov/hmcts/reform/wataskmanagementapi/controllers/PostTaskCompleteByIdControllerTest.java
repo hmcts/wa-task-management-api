@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
@@ -164,7 +165,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
             TaskResource task = spy(TaskResource.class);
-            when(cftQueryService.getTask(anyString(),any(),any())).thenReturn(Optional.of(task));
+            when(cftQueryService.getTask(anyString(),any(),any(PermissionRequirements.class))).thenReturn(Optional.of(task));
             when(task.getAssignee()).thenReturn("SomeId");
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(

@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
@@ -31,7 +30,6 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     private TestAuthenticationCredentials assignerCredentials;
     private TestAuthenticationCredentials assigneeCredentials;
-    private final GrantType testGrantType = GrantType.SPECIFIC;
     private String taskId;
 
     @Before
@@ -87,7 +85,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("assigned"))
             .body("task.reconfigure_request_time", notNullValue())
-            .body("task.last_reconfiguration_time", nullValue());;
+            .body("task.last_reconfiguration_time", nullValue());
 
         common.cleanUpTask(taskId);
     }
@@ -126,13 +124,13 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("unassigned"))
             .body("task.reconfigure_request_time", notNullValue())
-            .body("task.last_reconfiguration_time", nullValue());;
+            .body("task.last_reconfiguration_time", nullValue());
 
         common.cleanUpTask(taskId);
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString());
+        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 2, 120);
         return new TaskOperationRequest(operation, taskFilters(caseId));
     }
 

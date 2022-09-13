@@ -13,7 +13,17 @@ public enum PermissionTypes {
     OWN("Own"),
     MANAGE("Manage"),
     EXECUTE("Execute"),
-    CANCEL("Cancel");
+    CANCEL("Cancel"),
+    COMPLETE("Complete"),
+    COMPLETE_OWN("CompleteOwn"),
+    CANCEL_OWN("CancelOwn"),
+    CLAIM("Claim"),
+    UNCLAIM("Unclaim"),
+    ASSIGN("Assign"),
+    UNASSIGN("Unassign"),
+    UNCLAIM_ASSIGN("UnclaimAssign"),
+    UNASSIGN_CLAIM("UnassignClaim"),
+    UNASSIGN_ASSIGN("UnassignAssign");
 
     @JsonValue
     private String value;

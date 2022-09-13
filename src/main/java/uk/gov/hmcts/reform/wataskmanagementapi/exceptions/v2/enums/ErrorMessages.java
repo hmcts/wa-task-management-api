@@ -73,7 +73,10 @@ public enum ErrorMessages {
         "The task could not be found."),
 
     TASK_RECONFIGURATION_MARK_TASKS_TO_RECONFIGURE_FAILED(
-        "Task Reconfiguration process failed to mark some or all tasks for a caseId.");
+        "Task Reconfiguration process failed to mark some or all tasks for a caseId."),
+
+    TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED(
+        "Task Reconfiguration process failed to execute reconfiguration for the following tasks:");
 
     private final String detail;
 

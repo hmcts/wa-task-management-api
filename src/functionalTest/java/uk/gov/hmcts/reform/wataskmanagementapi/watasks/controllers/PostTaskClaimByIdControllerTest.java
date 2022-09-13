@@ -24,7 +24,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        currentCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
+        currentCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2");
     }
 
     @After
@@ -304,7 +304,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void user_should_claim_task_when_task_is_already_claimed() {
+    public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         String taskId = taskVariables.getTaskId();
@@ -332,7 +332,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.CONFLICT.value());
 
         common.cleanUpTask(taskId);
     }

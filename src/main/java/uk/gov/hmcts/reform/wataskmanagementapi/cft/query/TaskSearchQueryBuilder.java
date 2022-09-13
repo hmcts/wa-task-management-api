@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -99,14 +100,13 @@ public final class TaskSearchQueryBuilder {
 
     public static Predicate buildSingleTaskQuery(String taskId,
                                                  List<RoleAssignment> roleAssignments,
-                                                 List<PermissionTypes> permissionsRequired,
+                                                 PermissionRequirements permissionsRequired,
                                                  CriteriaBuilder builder,
                                                  Root<TaskResource> root
     ) {
         Predicate roleAssignmentConstraints = buildRoleAssignmentConstraints(
             permissionsRequired,
             roleAssignments,
-            false,
             builder,
             root
         );

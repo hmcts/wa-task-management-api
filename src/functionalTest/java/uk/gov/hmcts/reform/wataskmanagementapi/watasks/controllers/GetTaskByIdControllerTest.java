@@ -16,6 +16,7 @@ import java.util.UUID;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -151,6 +152,72 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             )))
             .body("task.next_hearing_id", nullValue())
             .body("task.next_hearing_date", nullValue());
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_200_with_task_when_next_hearing_date_is_empty() {
+
+        TestVariables taskVariables
+            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_empty_hearing_date.json");
+        String taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "processApplication", "process application", "process task");
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(taskId))
+            .body("task.name", equalTo("process application"))
+            .body("task.type", equalTo("processApplication"))
+            .body("task.task_state", equalTo("unassigned"))
+            .body("task.task_system", equalTo("SELF"))
+            .body("task.security_classification", equalTo("PUBLIC"))
+            .body("task.task_title", equalTo("process application"))
+            .body("task.created_date", notNullValue())
+            .body("task.due_date", notNullValue())
+            .body("task.location_name", equalTo("Taylor House"))
+            .body("task.location", equalTo("765324"))
+            .body("task.execution_type", equalTo("Case Management Task"))
+            .body("task.jurisdiction", equalTo("WA"))
+            .body("task.region", equalTo("1"))
+            .body("task.case_type_id", equalTo("WaCaseType"))
+            .body("task.case_id", equalTo(taskVariables.getCaseId()))
+            .body("task.case_category", equalTo("Protection"))
+            .body("task.case_name", equalTo("Bob Smith"))
+            .body("task.auto_assigned", equalTo(false))
+            .body("task.warnings", equalTo(false))
+            .body("task.case_management_category", equalTo("Protection"))
+            .body("task.work_type_id", equalTo("hearing_work"))
+            .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")))
+            .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                                  + "trigger/decideAnApplication)"))
+            .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("task.additional_properties", equalToObject(Map.of(
+                "key1", "value1",
+                "key2", "value2",
+                "key3", "value3",
+                "key4", "value4"
+            )))
+            .body("task.next_hearing_id", nullValue())
+            .body("task.next_hearing_date", nullValue())
+            .body("task.priority_date", not(""))
+            .body("task.priority_date", notNullValue());
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),

@@ -80,7 +80,7 @@ class TaskReconfigurationControllerTest {
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName) {
-        TaskOperation operation = new TaskOperation(operationName, "run_id1");
+        TaskOperation operation = new TaskOperation(operationName, "run_id1", 2, 120);
         return new TaskOperationRequest(operation, taskFilters());
     }
 

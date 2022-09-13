@@ -13,7 +13,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields",
-    "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming","PMD.ExcessiveImports"})
+    "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming"})
 @Schema(allowableValues = "Task")
 public class Task {
     public static final String SAMPLE_ISO_DATE_TIME = "2020-09-05T14:47:01.250542+01:00";

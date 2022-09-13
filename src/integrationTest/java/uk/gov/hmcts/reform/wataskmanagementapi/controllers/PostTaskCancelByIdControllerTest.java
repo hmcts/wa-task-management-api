@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
@@ -118,7 +119,8 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
         TaskResource task = spy(TaskResource.class);
-        when(cftQueryService.getTask(anyString(), any(), any())).thenReturn(Optional.of(task));
+        when(cftQueryService.getTask(anyString(), any(), any(PermissionRequirements.class)))
+            .thenReturn(Optional.of(task));
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
@@ -163,7 +165,8 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             )));
 
         TaskResource task = spy(TaskResource.class);
-        when(cftQueryService.getTask(anyString(), any(), any())).thenReturn(Optional.of(task));
+        when(cftQueryService.getTask(anyString(), any(), any(PermissionRequirements.class)))
+            .thenReturn(Optional.of(task));
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.RequireDbLockException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
@@ -71,7 +72,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         return getErrorMessageResponseEntity(ex, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(TaskStateIncorrectException.class)
+    @ExceptionHandler({TaskStateIncorrectException.class, NoRoleAssignmentsFoundException.class})
     protected ResponseEntity<ErrorMessage> handleTaskStateIncorrectExceptionException(Exception ex) {
         return getErrorMessageResponseEntity(ex, HttpStatus.FORBIDDEN);
     }

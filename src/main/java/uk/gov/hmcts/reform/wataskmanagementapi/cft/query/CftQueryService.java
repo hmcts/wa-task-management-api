@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -145,8 +147,24 @@ public class CftQueryService {
             || taskId.isBlank()) {
             return Optional.empty();
         }
+        PermissionRequirements permissionRequirements = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(permissionsRequired.toArray(new PermissionTypes[0]));
 
-        return taskResourceDao.getTask(taskId, roleAssignments, permissionsRequired);
+        return getTask(taskId, roleAssignments, permissionRequirements);
+    }
+
+    public Optional<TaskResource> getTask(String taskId,
+                                          List<RoleAssignment> roleAssignments,
+                                          PermissionRequirements permissionRequirements
+    ) {
+
+        if (permissionRequirements.isEmpty()
+            || taskId == null
+            || taskId.isBlank()) {
+            return Optional.empty();
+        }
+
+        return taskResourceDao.getTask(taskId, roleAssignments, permissionRequirements);
     }
 
     private List<Task> mapTasksWithPermissionsUnion(List<RoleAssignment> roleAssignments,

@@ -57,6 +57,27 @@ public class TaskRoleResource implements Serializable {
     @Column(columnDefinition = "boolean default false")
     private Boolean refer;
 
+    @Column(columnDefinition = "boolean default false")
+    private Boolean complete;
+    @Column(name = "complete_own", columnDefinition = "boolean default false")
+    private Boolean completeOwn;
+    @Column(name = "cancel_own", columnDefinition = "boolean default false")
+    private Boolean cancelOwn;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean claim;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean unclaim;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean assign;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean unassign;
+    @Column(name = "unclaim_assign", columnDefinition = "boolean default false")
+    private Boolean unclaimAssign;
+    @Column(name = "unassign_claim", columnDefinition = "boolean default false")
+    private Boolean unassignClaim;
+    @Column(name = "unassign_assign", columnDefinition = "boolean default false")
+    private Boolean unassignAssign;
+
     //This string array cannot be converted to List<String> without significant compatibility work
     @ToString.Exclude
     @Type(type = "string-array")
@@ -96,18 +117,18 @@ public class TaskRoleResource implements Serializable {
                             Integer assignmentPriority,
                             Boolean autoAssignable) {
         this(roleName,
-            read,
-            own,
-            execute,
-            manage,
-            cancel,
-            refer,
-            authorizations,
-            assignmentPriority,
-            autoAssignable,
-            null,
-            null,
-            null);
+             read,
+             own,
+             execute,
+             manage,
+             cancel,
+             refer,
+             authorizations,
+             assignmentPriority,
+             autoAssignable,
+             null,
+             null,
+             null);
     }
 
     public TaskRoleResource(String roleName,
@@ -122,18 +143,18 @@ public class TaskRoleResource implements Serializable {
                             Boolean autoAssignable,
                             String roleCategory) {
         this(roleName,
-            read,
-            own,
-            execute,
-            manage,
-            cancel,
-            refer,
-            authorizations,
-            assignmentPriority,
-            autoAssignable,
-            roleCategory,
-            null,
-            null);
+             read,
+             own,
+             execute,
+             manage,
+             cancel,
+             refer,
+             authorizations,
+             assignmentPriority,
+             autoAssignable,
+             roleCategory,
+             null,
+             null);
     }
 
     @SuppressWarnings("squid:S00107")
@@ -150,6 +171,57 @@ public class TaskRoleResource implements Serializable {
                             String roleCategory,
                             String taskId,
                             OffsetDateTime created) {
+        this(
+            roleName,
+            read,
+            own,
+            execute,
+            manage,
+            cancel,
+            refer,
+            authorizations,
+            assignmentPriority,
+            autoAssignable,
+            roleCategory,
+            taskId,
+            created,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        );
+    }
+
+    @SuppressWarnings("squid:S00107")
+    public TaskRoleResource(String roleName,
+                            Boolean read,
+                            Boolean own,
+                            Boolean execute,
+                            Boolean manage,
+                            Boolean cancel,
+                            Boolean refer,
+                            String[] authorizations,
+                            Integer assignmentPriority,
+                            Boolean autoAssignable,
+                            String roleCategory,
+                            String taskId,
+                            OffsetDateTime created,
+                            Boolean complete,
+                            Boolean completeOwn,
+                            Boolean cancelOwn,
+                            Boolean claim,
+                            Boolean unclaim,
+                            Boolean assign,
+                            Boolean unassign,
+                            Boolean unclaimAssign,
+                            Boolean unassignClaim,
+                            Boolean unassignAssign) {
         this.roleName = roleName;
         this.read = read;
         this.own = own;
@@ -163,6 +235,16 @@ public class TaskRoleResource implements Serializable {
         this.roleCategory = roleCategory;
         this.taskId = taskId;
         this.created = created;
+        this.complete = complete;
+        this.completeOwn = completeOwn;
+        this.cancelOwn = cancelOwn;
+        this.claim = claim;
+        this.unclaim = unclaim;
+        this.assign = assign;
+        this.unassign = unassign;
+        this.unclaimAssign = unclaimAssign;
+        this.unassignClaim = unassignClaim;
+        this.unassignAssign = unassignAssign;
     }
 
     public void setTaskRoleId(UUID taskRoleId) {
@@ -224,4 +306,45 @@ public class TaskRoleResource implements Serializable {
     public void setTaskResource(TaskResource taskResource) {
         this.taskResource = taskResource;
     }
+
+    public void setComplete(Boolean complete) {
+        this.complete = complete;
+    }
+
+    public void setCompleteOwn(Boolean completeOwn) {
+        this.completeOwn = completeOwn;
+    }
+
+    public void setCancelOwn(Boolean cancelOwn) {
+        this.cancelOwn = cancelOwn;
+    }
+
+    public void setClaim(Boolean claim) {
+        this.claim = claim;
+    }
+
+    public void setUnclaim(Boolean unclaim) {
+        this.unclaim = unclaim;
+    }
+
+    public void setAssign(Boolean assign) {
+        this.assign = assign;
+    }
+
+    public void setUnassign(Boolean unassign) {
+        this.unassign = unassign;
+    }
+
+    public void setUnclaimAssign(Boolean unclaimAssign) {
+        this.unclaimAssign = unclaimAssign;
+    }
+
+    public void setUnassignClaim(Boolean unassignClaim) {
+        this.unassignClaim = unassignClaim;
+    }
+
+    public void setUnassignAssign(Boolean unassignAssign) {
+        this.unassignAssign = unassignAssign;
+    }
 }
+
