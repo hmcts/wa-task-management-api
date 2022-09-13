@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -29,7 +28,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
@@ -238,114 +236,6 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
-    @Ignore("Release 1 tests")
-    @Test
-    public void should_return_a_403_when_unclaiming_a_task_by_id_with_different_tribunal_caseworker_credentials() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
-        String taskId = taskVariables.getTaskId();
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
-
-        TestAuthenticationCredentials otherUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
-        common.setupCFTOrganisationalRoleAssignment(otherUser.getHeaders(), "tribunal-caseworker");
-        given.iClaimATaskWithIdAndAuthorization(
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-        result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            otherUser.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
-            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
-            .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
-
-        common.cleanUpTask(taskId);
-    }
-
-    @Ignore
-    @Test
-    public void should_return_a_forbidden_when_unclaiming_a_task_by_id_with_different_tcw_credentials() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
-        String taskId = taskVariables.getTaskId();
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
-        TestAuthenticationCredentials otherUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2");
-
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
-        common.setupOrganisationalRoleAssignment(otherUser.getHeaders());
-
-        given.iClaimATaskWithIdAndAuthorization(
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            otherUser.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value());
-
-        common.cleanUpTask(taskId);
-    }
-
-
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
 
@@ -400,6 +290,184 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_forbidden_when_unclaiming_a_task_by_id_with_different_user_credentials_gp_flag_on() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "processApplication", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
+
+        String taskId = taskVariables.getTaskId();
+
+        TestAuthenticationCredentials unclaimUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
+        common.setupWAOrganisationalRoleAssignment(unclaimUser.getHeaders(), "senior-tribunal-caseworker");
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            unclaimUser.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_forbidden_when_unclaiming_a_task_by_id_without_permissions_gp_flag_on() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "processApplication", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
+
+        String taskId = taskVariables.getTaskId();
+
+        TestAuthenticationCredentials unclaimUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
+        common.setupWAOrganisationalRoleAssignment(unclaimUser.getHeaders(), "tribunal-caseworker");
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            unclaimUser.getHeaders()
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            unclaimUser.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_204_when_unclaiming_a_task_by_id_user_credentials_gp_flag_on() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "processApplication", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
+
+        String taskId = taskVariables.getTaskId();
+
+        TestAuthenticationCredentials unclaimUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
+        common.setupWAOrganisationalRoleAssignment(unclaimUser.getHeaders(), "senior-tribunal-caseworker");
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            unclaimUser.getHeaders()
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            unclaimUser.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions
+            .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", null, caseworkerCredentials.getHeaders());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_204_when_unassigning_a_task_by_id_with_different_user_credentials_gp_flag_on() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "processApplication", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
+
+        String taskId = taskVariables.getTaskId();
+
+        TestAuthenticationCredentials unassignUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
+        common.setupWAOrganisationalRoleAssignment(unassignUser.getHeaders(), "task-supervisor");
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            unassignUser.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions
+            .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", null, caseworkerCredentials.getHeaders());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_403_when_unassigning_a_task_by_id_with_different_user_without_permission_gp_flag_on() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
+                                                    "WA", "WaCaseType");
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+                     "processApplication", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
+
+        String taskId = taskVariables.getTaskId();
+
+        TestAuthenticationCredentials unassignUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
+        common.setupWAOrganisationalRoleAssignment(unassignUser.getHeaders(), "senior-tribunal-caseworker");
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            unassignUser.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value());
 
         common.cleanUpTask(taskId);
     }

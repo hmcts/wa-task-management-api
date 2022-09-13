@@ -74,6 +74,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
@@ -226,8 +228,22 @@ public class TaskManagementService {
      */
     @Transactional
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
+        final boolean granularPermissionFeatureEnabled = launchDarklyFeatureFlagProvider
+            .getBooleanValue(
+                FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail()
+            );
+
         String userId = accessControlResponse.getUserInfo().getUid();
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        PermissionRequirements permissionsRequired;
+        if (granularPermissionFeatureEnabled) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
+        } else {
+            permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        }
+
         boolean taskHasUnassigned;
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(
@@ -235,12 +251,21 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail()
             );
+
         if (isFeatureEnabled) {
             TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
                 taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
             );
             String taskState = taskResource.getState().getValue();
             taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
+
+            if (granularPermissionFeatureEnabled && !userId.equals(taskResource.getAssignee())) {
+                PermissionRequirements unassignPermissionsRequired
+                    = PermissionRequirementBuilder.builder().buildSingleType(UNASSIGN);
+                roleAssignmentVerification.verifyRoleAssignments(
+                    taskId, accessControlResponse.getRoleAssignments(), unassignPermissionsRequired
+                );
+            }
 
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);

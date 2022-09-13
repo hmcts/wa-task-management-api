@@ -125,7 +125,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.REFER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.GRANULAR_PERMISSION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
@@ -818,6 +821,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                GRANULAR_PERMISSION_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(false);
+
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_ENDPOINTS_FEATURE,
                     IDAM_USER_ID,
@@ -846,11 +857,60 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
+        void unclaimTask_should_succeed_gp_flag_on() {
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                GRANULAR_PERMISSION_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+                .thenReturn(Optional.of(taskResource));
+
+            when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+            when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            boolean taskHasUnassigned = taskResource
+                .getState().getValue()
+                .equals(CFTTaskState.UNASSIGNED.getValue());
+            taskManagementService.unclaimTask(taskId, accessControlResponse);
+
+            verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
+        }
+
+        @Test
         void unclaimTask_succeed_when_task_assignee_differs_from_user_and_role_is_senior_tribunal_caseworker() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                GRANULAR_PERMISSION_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(false);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_ENDPOINTS_FEATURE,
@@ -864,6 +924,51 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
             when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+
+            boolean taskHasUnassigned = taskResource.getState().getValue().equals(CFTTaskState.UNASSIGNED.getValue());
+            taskManagementService.unclaimTask(taskId, accessControlResponse);
+            verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
+        }
+
+        @Test
+        void unclaimTask_succeed_when_task_assignee_differs_from_user_and_has_unassign_gp_flag_on() {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                GRANULAR_PERMISSION_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+            PermissionRequirements requirements
+                = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM,UNASSIGN);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+                .thenReturn(Optional.of(taskResource));
+
+            when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+            when(taskResource.getAssignee()).thenReturn("wrongid");
+
+            PermissionRequirements unassignRequirements
+                = PermissionRequirementBuilder.builder().buildSingleType(UNASSIGN);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), unassignRequirements))
+                .thenReturn(Optional.of(taskResource));
 
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
