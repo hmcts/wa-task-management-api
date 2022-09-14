@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -121,6 +122,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
+    @Ignore("RWA-1447 will fix this test")
     public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
 
         String roleAssignmentId = UUID.randomUUID().toString();

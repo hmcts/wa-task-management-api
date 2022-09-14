@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -135,6 +136,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    @Ignore("RWA-1447 will fix this test")
     public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
         String roleAssignmentId = UUID.randomUUID().toString();

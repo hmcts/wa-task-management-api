@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -313,6 +314,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    @Ignore("RWA-1447 will fix this test")
     public void should_replace_additional_properties_in_configuration_dmn_and_return_task_with_sent_properties() {
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
