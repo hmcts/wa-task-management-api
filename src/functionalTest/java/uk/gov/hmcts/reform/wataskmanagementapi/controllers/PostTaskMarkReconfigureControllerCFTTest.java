@@ -98,7 +98,27 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         initiateTask(assigneeCredentials.getHeaders(), taskVariables,
             "processApplication", "process application", "process task");
 
-        Response result = restApiActions.post(
+        taskId = taskVariables.getTaskId();
+
+        //before mark to reconfigure
+        Response result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("unassigned"))
+            .body("task.reconfigure_request_time", nullValue())
+            .body("task.last_reconfiguration_time", nullValue());
+
+        //mark to reconfigure
+        result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
             assigneeCredentials.getHeaders()
@@ -107,8 +127,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        taskId = taskVariables.getTaskId();
-
+        //after mark to reconfigure
         result = restApiActions.get(
             "/task/{task-id}",
             taskId,
