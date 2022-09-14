@@ -32,8 +32,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
@@ -2864,7 +2864,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     class OldInitiateTask {
         ZonedDateTime dueDate = ZonedDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
+        private final InitiateTaskRequestAttributes initiateTaskRequest = new InitiateTaskRequestAttributes(
             INITIATION,
             asList(
                 new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, A_TASK_TYPE),
@@ -2978,7 +2978,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     class NewInitiateTask {
         OffsetDateTime dueDate = OffsetDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        private final InitiateTaskRequestNew initiateTaskRequest = new InitiateTaskRequestNew(
+        private final InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), A_TASK_TYPE,

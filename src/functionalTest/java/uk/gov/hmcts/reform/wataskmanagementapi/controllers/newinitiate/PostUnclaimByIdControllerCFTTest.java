@@ -7,7 +7,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
@@ -33,7 +33,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 
 public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}/new";
+    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}/initiation";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";
     private static final String CLAIM_ENDPOINT = "task/{task-id}/claim";
 
@@ -94,7 +94,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
@@ -144,7 +144,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
@@ -203,7 +203,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
@@ -263,7 +263,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
@@ -321,7 +321,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
@@ -377,7 +377,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,

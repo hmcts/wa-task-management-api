@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.newinitiate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 
 import java.util.Map;
 
@@ -26,13 +26,13 @@ class InitiateTaskRequestTest extends SpringBootIntegrationBaseTest {
             TASK_TITLE.value(), "A test task"
         );
 
-        InitiateTaskRequestNew initiateTaskRequest = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         String expectedInitiateBodyRequest = asJsonString(initiateTaskRequest);
 
-        InitiateTaskRequestNew actual = objectMapper.readValue(
+        InitiateTaskRequestMap actual = objectMapper.readValue(
             expectedInitiateBodyRequest,
-            InitiateTaskRequestNew.class
+            InitiateTaskRequestMap.class
         );
 
         assertThat(actual.getTaskAttributes()).isNotNull();

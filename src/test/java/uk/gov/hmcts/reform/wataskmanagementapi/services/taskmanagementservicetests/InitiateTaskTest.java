@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
@@ -103,7 +103,7 @@ class InitiateTaskTest extends CamundaHelpers {
     TaskManagementService taskManagementService;
     String taskId;
     TaskResource taskResource;
-    private InitiateTaskRequest initiateTaskRequest;
+    private InitiateTaskRequestAttributes initiateTaskRequest;
     @Mock
     private EntityManager entityManager;
 
@@ -149,7 +149,7 @@ class InitiateTaskTest extends CamundaHelpers {
         List<TaskAttribute> taskAttributeList = new ArrayList<>();
         taskAttributeList.add(new TaskAttribute(TASK_TYPE, A_TASK_TYPE));
         taskAttributeList.add(new TaskAttribute(TASK_NAME, A_TASK_NAME));
-        initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributeList);
+        initiateTaskRequest = new InitiateTaskRequestAttributes(INITIATION, taskAttributeList);
     }
 
     @Test

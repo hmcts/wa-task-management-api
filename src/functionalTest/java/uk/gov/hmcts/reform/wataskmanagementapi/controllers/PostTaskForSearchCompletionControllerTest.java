@@ -299,7 +299,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         Map<String, CamundaValue<?>> processVariables
-            = given.createDefaultTaskVariables(caseId, "IA", "Asylum");
+            = given.createDefaultTaskVariables(caseId, "IA", "Asylum", Map.of());
 
         variablesOverride.keySet()
             .forEach(key -> processVariables
@@ -319,8 +319,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariablesWithWarnings(caseId,
-            "IA",
-            "Asylum");
+            "IA", "Asylum", Map.of());
 
         variablesOverride.keySet()
             .forEach(key -> processVariables

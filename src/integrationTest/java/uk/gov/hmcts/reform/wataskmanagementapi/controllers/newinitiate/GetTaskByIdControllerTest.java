@@ -28,7 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
@@ -302,11 +302,11 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         //first initiate call
         mockMvc
-            .perform(post("/task/" + taskId + "/new")
+            .perform(post("/task/" + taskId + "/initiation")
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(APPLICATION_JSON_VALUE)
@@ -325,7 +325,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         //second initiate call
         mockMvc
-            .perform(post("/task/" + taskId + "/new")
+            .perform(post("/task/" + taskId + "/initiation")
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(APPLICATION_JSON_VALUE)

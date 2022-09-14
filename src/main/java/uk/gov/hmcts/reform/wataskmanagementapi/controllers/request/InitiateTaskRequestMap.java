@@ -12,12 +12,12 @@ import java.util.Map;
     description = "Allows specifying certain operations to initiate a task"
 )
 @Value
-public class InitiateTaskRequestNew implements InitiateTask<Map<String, Object>> {
+public class InitiateTaskRequestMap implements InitiateTask<Map<String, Object>> {
     Map<String, Object> taskAttributes;
     InitiateTaskOperation operation;
 
     @JsonCreator
-    public InitiateTaskRequestNew(InitiateTaskOperation operation,
+    public InitiateTaskRequestMap(InitiateTaskOperation operation,
                                   Map<String, Object> taskAttributes) {
         this.operation = operation;
         this.taskAttributes = taskAttributes;

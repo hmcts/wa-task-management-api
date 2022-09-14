@@ -13,13 +13,13 @@ import java.util.List;
     description = "Allows specifying certain operations to initiate a task"
 )
 @Value
-public class InitiateTaskRequest implements InitiateTask<List<TaskAttribute>> {
+public class InitiateTaskRequestAttributes implements InitiateTask<List<TaskAttribute>> {
     List<TaskAttribute> taskAttributes;
     InitiateTaskOperation operation;
 
     @JsonCreator
-    public InitiateTaskRequest(InitiateTaskOperation operation,
-                               List<TaskAttribute> taskAttributes) {
+    public InitiateTaskRequestAttributes(InitiateTaskOperation operation,
+                                         List<TaskAttribute> taskAttributes) {
         this.operation = operation;
         this.taskAttributes = taskAttributes;
     }

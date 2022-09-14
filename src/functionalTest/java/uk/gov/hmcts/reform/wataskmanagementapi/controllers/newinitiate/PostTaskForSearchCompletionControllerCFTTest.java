@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
@@ -49,7 +49,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
-    private static final String TASK_INITIATION_END_POINT = "task/{task-id}/new";
+    private static final String TASK_INITIATION_END_POINT = "task/{task-id}/initiation";
 
     private TestAuthenticationCredentials caseworkerCredentials;
 
@@ -646,7 +646,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         );
 
         Map<String, CamundaValue<?>> processVariables
-            = given.createDefaultTaskVariables(caseId, "IA", "Asylum");
+            = given.createDefaultTaskVariables(caseId, "IA", "Asylum", Map.of());
 
         variablesOverride.keySet()
             .forEach(key -> processVariables
@@ -666,7 +666,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         );
 
         Map<String, CamundaValue<?>> processVariables
-            = given.createDefaultTaskVariablesWithWarnings(caseId, "IA", "Asylum");
+            = given.createDefaultTaskVariablesWithWarnings(caseId, "IA", "Asylum", Map.of());
 
         variablesOverride.keySet()
             .forEach(key -> processVariables
@@ -692,7 +692,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         taskAttributes.put(CASE_ID.value(), caseId);
         taskAttributes.put(DUE_DATE.value(), CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10)));
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_END_POINT,
@@ -718,7 +718,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         taskAttributes.put(CASE_ID.value(), caseId);
         taskAttributes.put(DUE_DATE.value(), CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10)));
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         restApiActions.post(
             TASK_INITIATION_END_POINT,

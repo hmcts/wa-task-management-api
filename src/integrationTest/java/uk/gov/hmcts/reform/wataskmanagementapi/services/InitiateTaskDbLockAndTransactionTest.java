@@ -24,7 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
@@ -77,7 +77,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     OffsetDateTime dueDate = createdDate.plusDays(1);
     String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-    private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
+    private final InitiateTaskRequestAttributes initiateTaskRequest = new InitiateTaskRequestAttributes(
         InitiateTaskOperation.INITIATION,
         List.of(
             new TaskAttribute(TASK_TYPE, A_TASK_TYPE),

@@ -25,7 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
@@ -80,7 +80,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
-    private static final String ENDPOINT_PATH = "/task/%s/new";
+    private static final String ENDPOINT_PATH = "/task/%s/initiation";
     private static String ENDPOINT_BEING_TESTED;
     @MockBean
     private ClientAccessControlService clientAccessControlService;
@@ -144,7 +144,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -228,7 +228,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     DUE_DATE.value(), formattedDueDate
                 );
 
-                InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+                InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
                 mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
@@ -259,7 +259,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew someOtherReq = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap someOtherReq = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
@@ -301,7 +301,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
@@ -375,7 +375,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
@@ -504,7 +504,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
@@ -615,7 +615,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
@@ -727,7 +727,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
@@ -843,7 +843,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
@@ -957,7 +957,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
@@ -1079,7 +1079,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             DUE_DATE.value(), formattedDueDate
         );
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)

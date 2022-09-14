@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
@@ -59,9 +59,10 @@ public class ExclusiveTaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "/{task-id}")
+    @Deprecated(since = "23/09/2022")
     public ResponseEntity<TaskResource> initiate(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @PathVariable(TASK_ID) String taskId,
-                                                 @RequestBody InitiateTaskRequest initiateTaskRequest) {
+                                                 @RequestBody InitiateTaskRequestAttributes initiateTaskRequest) {
         log.debug("Initiate task(id={}) with attributes: {} ", taskId, initiateTaskRequest.getTaskAttributes());
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
@@ -87,10 +88,10 @@ public class ExclusiveTaskActionsController extends BaseController {
         @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(path = "/{task-id}/new")
+    @PostMapping(path = "/{task-id}/initiation")
     public ResponseEntity<TaskResource> initiate(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @PathVariable(TASK_ID) String taskId,
-                                                 @RequestBody InitiateTaskRequestNew initiateTaskRequest) {
+                                                 @RequestBody InitiateTaskRequestMap initiateTaskRequest) {
         log.debug("Initiate task(id={}) with attributes: {} ", taskId, initiateTaskRequest.getTaskAttributes());
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {

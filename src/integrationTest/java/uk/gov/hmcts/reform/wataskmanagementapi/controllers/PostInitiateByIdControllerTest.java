@@ -25,7 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
@@ -136,7 +136,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
@@ -217,7 +217,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ZonedDateTime dueDate = createdDate.plusDays(1);
                 String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-                InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+                InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
                     new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
                     new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
                     new TaskAttribute(TASK_CASE_ID, "someCaseId"),
@@ -244,7 +244,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        InitiateTaskRequest someOtherReq = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes someOtherReq = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "markCaseAsPaid"),
             new TaskAttribute(TASK_NAME, "soe other task name"),
             new TaskAttribute(TASK_CASE_ID, "some other task case id"),
@@ -284,7 +284,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId"),
@@ -355,7 +355,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId"),
@@ -481,7 +481,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId"),
@@ -589,7 +589,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId"),
@@ -696,7 +696,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
@@ -809,7 +809,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
@@ -920,7 +920,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
@@ -1038,7 +1038,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TASK_STATE, "UNCONFIGURED"),

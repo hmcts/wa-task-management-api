@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticatio
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -48,16 +49,19 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned_for_WA() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
 
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        );
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+                     "processApplication", "process application", "process task"
+        );
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
-            WA_JURISDICTION, WA_CASE_TYPE);
+                                                 WA_JURISDICTION, WA_CASE_TYPE
+        );
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
 
         Response result = restApiActions.post(
@@ -92,12 +96,14 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
-            WA_JURISDICTION, WA_CASE_TYPE);
+                                                 WA_JURISDICTION, WA_CASE_TYPE
+        );
         initiateTask(assigneeCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+                     "processApplication", "process application", "process task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -153,13 +159,16 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.setupCFTOrganisationalRoleAssignment(assignerCredentials.getHeaders(),
-            WA_JURISDICTION, WA_CASE_TYPE);
+                                                    WA_JURISDICTION, WA_CASE_TYPE
+        );
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned",
-            assignerCredentials.getHeaders());
+                                                 assignerCredentials.getHeaders()
+        );
         assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee",
-            assigneeId, assignerCredentials.getHeaders());
+                                                 assigneeId, assignerCredentials.getHeaders()
+        );
     }
 
 }

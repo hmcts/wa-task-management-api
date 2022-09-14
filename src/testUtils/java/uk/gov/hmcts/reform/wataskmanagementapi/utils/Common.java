@@ -20,8 +20,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
@@ -76,7 +76,7 @@ public class Common {
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
-    private static final String TASK_INITIATION_NEW_ENDPOINT_BEING_TESTED = "task/{task-id}/new";
+    private static final String TASK_INITIATION_NEW_ENDPOINT_BEING_TESTED = "task/{task-id}/initiation";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     public static final String R2_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/r2/set-organisational-role-assignment-request.json";
     public static final String R1_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/set-organisational-role-assignment-request.json";
@@ -109,7 +109,7 @@ public class Common {
     ) {
         String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables
-            = given.createDefaultTaskVariables(caseId, jurisdiction, caseType);
+            = given.createDefaultTaskVariables(caseId, jurisdiction, caseType, Map.of());
 
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables.put(
@@ -141,7 +141,8 @@ public class Common {
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
             task.getCaseId(),
             "IA",
-            "Asylum"
+            "Asylum",
+            Map.of()
         );
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables
@@ -163,7 +164,8 @@ public class Common {
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
             caseId,
             "IA",
-            "Asylum"
+            "Asylum",
+            Map.of()
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -184,7 +186,8 @@ public class Common {
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
             caseId,
             "WA",
-            "Asylum"
+            "Asylum",
+            Map.of()
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -208,7 +211,8 @@ public class Common {
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
             caseId,
             "IA",
-            "Asylum"
+            "Asylum",
+            Map.of()
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -229,7 +233,7 @@ public class Common {
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false, "IA", "Asylum")
+            .iCreateATaskWithCaseId(caseId, false, "IA", "Asylum", Map.of())
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -245,7 +249,7 @@ public class Common {
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, taskType)
+            .iCreateATaskWithCaseId(caseId, taskType, Map.of())
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -258,7 +262,7 @@ public class Common {
 
     public List<CamundaTask> setupTaskAndRetrieveIdsForGivenCaseId(String caseId, String taskType) {
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, taskType)
+            .iCreateATaskWithCaseId(caseId, taskType, Map.of())
             .and()
             .iRetrieveATasksWithProcessVariableFilter("caseId", caseId, taskType);
 
@@ -269,12 +273,12 @@ public class Common {
         return response;
     }
 
-    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName) {
+    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName, Map<String, String> additionalProperties) {
 
         String caseId = given.iCreateWACcdCase(resourceFileName);
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType")
+            .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType", additionalProperties)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -290,7 +294,7 @@ public class Common {
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, true, "IA", "Asylum")
+            .iCreateATaskWithCaseId(caseId, true, "IA", "Asylum", Map.of())
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -1261,7 +1265,7 @@ public class Common {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, taskType),
             new TaskAttribute(TaskAttributeDefinition.TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
@@ -1316,7 +1320,7 @@ public class Common {
         attributes.put(CREATED.value(), formattedCreatedDate);
         attributes.put(DUE_DATE.value(), formattedDueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, attributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, attributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_NEW_ENDPOINT_BEING_TESTED,
@@ -1357,7 +1361,7 @@ public class Common {
         attributes.put(CREATED.value(), formattedCreatedDate);
         attributes.put(DUE_DATE.value(), formattedDueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, attributes);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, attributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,

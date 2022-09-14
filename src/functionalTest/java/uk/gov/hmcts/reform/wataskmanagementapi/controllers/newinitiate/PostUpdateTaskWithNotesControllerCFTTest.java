@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
@@ -41,7 +41,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Slf4j
 public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunctionalBaseTest {
 
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}/new";
+    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}/initiation";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/notes";
     private static final String GET_TASK_ENDPOINT = "task/{task-id}";
 
@@ -359,9 +359,9 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         String warnings = "[{\"warningCode\":\"TA01\", \"warningText\":\"Description1\"}]";
 
-        InitiateTaskRequestNew req;
+        InitiateTaskRequestMap req;
         if (hasWarnings) {
-            req = new InitiateTaskRequestNew(
+            req = new InitiateTaskRequestMap(
                 INITIATION,
                 Map.of(
                     TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
@@ -376,7 +376,7 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
             );
         } else {
 
-            req = new InitiateTaskRequestNew(
+            req = new InitiateTaskRequestMap(
                 INITIATION,
                 Map.of(
                     TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",

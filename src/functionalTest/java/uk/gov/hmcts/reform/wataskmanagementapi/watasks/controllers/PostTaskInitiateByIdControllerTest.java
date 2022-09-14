@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
@@ -50,7 +50,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_201_when_initiating_a_process_application_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json");
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json", Map.of());
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -59,7 +59,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "processApplication"),
             new TaskAttribute(TASK_NAME, "Process Application"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
@@ -181,7 +181,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_201_when_initiating_a_specific_access_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json");
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json", Map.of());
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -190,7 +190,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "reviewSpecificAccessRequestJudiciary"),
             new TaskAttribute(TASK_NAME, "additionalProperties_roleAssignmentId"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
@@ -285,7 +285,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_priorty_date_when_initiating_a_task_without_hearing_date() {
         TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json");
+            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json", Map.of());
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -295,7 +295,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "processApplication"),
             new TaskAttribute(TASK_NAME, "process Application"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),

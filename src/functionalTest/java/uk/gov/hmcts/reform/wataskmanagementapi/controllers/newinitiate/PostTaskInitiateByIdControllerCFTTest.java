@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
@@ -32,7 +32,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
-    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/new";
+    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/initiation";
 
     private TestAuthenticationCredentials caseworkerCredentials;
 
@@ -58,7 +58,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "reviewHearingBundle",
@@ -211,7 +211,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "allocateHearingJudge",
@@ -332,7 +332,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "arrangeOfflinePayment",
@@ -420,7 +420,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "aTaskType",
@@ -507,7 +507,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
@@ -564,7 +564,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
@@ -607,7 +607,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
@@ -642,7 +642,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
@@ -675,7 +675,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",

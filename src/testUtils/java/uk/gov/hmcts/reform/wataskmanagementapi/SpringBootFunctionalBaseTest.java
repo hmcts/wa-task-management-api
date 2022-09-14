@@ -17,8 +17,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
@@ -82,7 +82,7 @@ public abstract class SpringBootFunctionalBaseTest {
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     protected static final String TASK_INITIATION_ENDPOINT = "task/{task-id}";
-    protected static final String TASK_INITIATION_ENDPOINT_NEW = "task/{task-id}/new";
+    protected static final String TASK_INITIATION_ENDPOINT_NEW = "task/{task-id}/initiation";
     protected static final String WA_JURISDICTION = "WA";
     protected static final String WA_CASE_TYPE = "WaCaseType";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
@@ -204,7 +204,7 @@ public abstract class SpringBootFunctionalBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, taskType),
             new TaskAttribute(TaskAttributeDefinition.TASK_NAME, taskName),
             new TaskAttribute(TASK_TITLE, taskTitle),
@@ -249,7 +249,7 @@ public abstract class SpringBootFunctionalBaseTest {
             taskAttributes.add(new TaskAttribute(TASK_ADDITIONAL_PROPERTIES, additionalProperties));
         }
 
-        InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
+        InitiateTaskRequestAttributes initiateTaskRequest = new InitiateTaskRequestAttributes(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT,
@@ -300,11 +300,11 @@ public abstract class SpringBootFunctionalBaseTest {
         taskAttributes.put(CASE_ID.value(), testVariables.getCaseId());
         taskAttributes.put(CREATED.value(), formattedCreatedDate);
         taskAttributes.put(DUE_DATE.value(), formattedDueDate);
-        taskAttributes.put(ADDITIONAL_PROPERTIES.value(), additionalProperties);
         taskAttributes.put(SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
         taskAttributes.put(WARNING_LIST.value(), warningValues);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        taskAttributes.putAll(additionalProperties);
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_NEW,
@@ -339,11 +339,10 @@ public abstract class SpringBootFunctionalBaseTest {
         taskAttributes.put(DUE_DATE.value(), formattedDueDate);
 
         if (additionalProperties != null) {
-            taskAttributes.put(ADDITIONAL_PROPERTIES.value(), additionalProperties);
-            taskAttributes.put("roleAssignmentId", additionalProperties.get("roleAssignmentId"));
+            taskAttributes.putAll(additionalProperties);
         }
 
-        InitiateTaskRequestNew initiateTaskRequest = new InitiateTaskRequestNew(INITIATION, taskAttributes);
+        InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_NEW,

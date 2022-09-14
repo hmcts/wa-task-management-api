@@ -19,8 +19,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
@@ -53,13 +53,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -736,7 +730,7 @@ public class TaskManagementService {
      * @return The updated entity {@link TaskResource}
      */
     @Transactional(rollbackFor = Exception.class)
-    public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
+    public TaskResource initiateTask(String taskId, InitiateTaskRequestAttributes initiateTaskRequest) {
         //Get DueDatetime or throw exception
         List<TaskAttribute> taskAttributes = initiateTaskRequest.getTaskAttributes();
 
@@ -755,14 +749,14 @@ public class TaskManagementService {
      * @return The updated entity {@link TaskResource}
      */
     @Transactional(rollbackFor = Exception.class)
-    public TaskResource initiateTask(String taskId, InitiateTaskRequestNew initiateTaskRequest) {
+    public TaskResource initiateTask(String taskId, InitiateTaskRequestMap initiateTaskRequest) {
         //Get DueDatetime or throw exception
-        Map<String, Object> taskAttributes = initiateTaskRequest.getTaskAttributes();
+        Map<String, Object> taskAttributes = new HashMap<>(initiateTaskRequest.getTaskAttributes());
 
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
         lockTaskId(taskId, dueDate);
-        return initiateTaskProcess(taskId, initiateTaskRequest, dueDate);
+        return initiateTaskProcess(taskId, taskAttributes);
     }
 
     @Transactional
@@ -892,7 +886,7 @@ public class TaskManagementService {
 
     @SuppressWarnings("PMD.PreserveStackTrace")
     private TaskResource initiateTaskProcess(String taskId,
-                                             InitiateTaskRequest initiateTaskRequest) {
+                                             InitiateTaskRequestAttributes initiateTaskRequest) {
         try {
             TaskResource taskResource = cftTaskMapper.mapToTaskResource(
                 taskId,
@@ -933,17 +927,15 @@ public class TaskManagementService {
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")
-    private TaskResource initiateTaskProcess(String taskId,
-                                             InitiateTaskRequestNew initiateTaskRequest,
-                                             OffsetDateTime dueDate) {
+    private TaskResource initiateTaskProcess(String taskId, Map<String, Object> taskAttributes) {
         try {
             TaskResource taskResource = cftTaskMapper.mapToTaskResource(
                 taskId,
-                initiateTaskRequest.getTaskAttributes()
+                taskAttributes
             );
 
-            Map<String, Object> taskAttributes = new ConcurrentHashMap<>(initiateTaskRequest.getTaskAttributes());
-            taskAttributes.put(DUE_DATE.value(), dueDate);
+            taskAttributes.put(DUE_DATE.value(), taskResource.getDueDateTime());
+
             taskResource = configureTask(taskResource, taskAttributes);
             boolean isOldAssigneeValid = false;
 

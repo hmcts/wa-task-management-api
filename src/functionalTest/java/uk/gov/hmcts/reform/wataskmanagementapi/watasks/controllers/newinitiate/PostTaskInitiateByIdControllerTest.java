@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
@@ -30,7 +30,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
-    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/new";
+    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/initiation";
 
     private TestAuthenticationCredentials caseworkerCredentials;
 
@@ -48,7 +48,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_201_when_initiating_a_process_application_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json");
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json", Map.of());
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -57,7 +57,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "processApplication",
@@ -182,7 +182,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_201_when_initiating_a_specific_access_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json");
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json", Map.of());
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -191,7 +191,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "reviewSpecificAccessRequestJudiciary",
@@ -289,7 +289,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_priorty_date_when_initiating_a_task_without_hearing_date() {
         TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json");
+            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json", Map.of());
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -298,7 +298,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), "processApplication",

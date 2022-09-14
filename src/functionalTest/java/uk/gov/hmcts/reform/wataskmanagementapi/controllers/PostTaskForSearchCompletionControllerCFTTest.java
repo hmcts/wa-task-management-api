@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
@@ -640,7 +640,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         );
 
         Map<String, CamundaValue<?>> processVariables
-            = given.createDefaultTaskVariables(caseId, "IA", "Asylum");
+            = given.createDefaultTaskVariables(caseId, "IA", "Asylum", Map.of());
 
         variablesOverride.keySet()
             .forEach(key -> processVariables
@@ -660,7 +660,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         );
 
         Map<String, CamundaValue<?>> processVariables
-            = given.createDefaultTaskVariablesWithWarnings(caseId, "IA", "Asylum");
+            = given.createDefaultTaskVariablesWithWarnings(caseId, "IA", "Asylum", Map.of());
 
         variablesOverride.keySet()
             .forEach(key -> processVariables
@@ -673,7 +673,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
                           + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, taskType),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, caseId),
@@ -699,7 +699,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
     }
 
     private void insertTaskInCftTaskDb(String caseId, String taskId, String taskType) {
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, taskType),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, caseId),

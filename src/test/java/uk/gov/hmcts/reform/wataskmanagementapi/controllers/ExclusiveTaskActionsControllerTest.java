@@ -10,8 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestNew;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
@@ -62,7 +62,7 @@ class ExclusiveTaskActionsControllerTest {
         @Test
         void should_succeed_when_initiating_a_task_and_return_201() {
 
-            InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+            InitiateTaskRequestMap req = new InitiateTaskRequestMap(
                 INITIATION,
                 Map.of(
                     TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
@@ -89,7 +89,7 @@ class ExclusiveTaskActionsControllerTest {
         @Test
         void should_fail_when_initiating_a_task_and_client_not_whitelisted_and_return_403() {
 
-            InitiateTaskRequestNew req = new InitiateTaskRequestNew(
+            InitiateTaskRequestMap req = new InitiateTaskRequestMap(
                 INITIATION,
                 Map.of(
                     TASK_TITLE.value(), "aTaskTitle",
@@ -116,7 +116,7 @@ class ExclusiveTaskActionsControllerTest {
         @Test
         void should_succeed_when_initiating_a_task_and_return_201() {
 
-            InitiateTaskRequest req = new InitiateTaskRequest(
+            InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(
                 INITIATION,
                 asList(
                     new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
@@ -143,7 +143,7 @@ class ExclusiveTaskActionsControllerTest {
         @Test
         void should_fail_when_initiating_a_task_and_client_not_whitelisted_and_return_403() {
 
-            InitiateTaskRequest req = new InitiateTaskRequest(
+            InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(
                 INITIATION,
                 asList(
                     new TaskAttribute(TASK_TITLE, "aTaskTitle"),

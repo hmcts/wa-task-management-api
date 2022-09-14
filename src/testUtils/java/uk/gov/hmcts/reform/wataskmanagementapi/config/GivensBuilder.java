@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
@@ -84,9 +85,10 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings, String jurisdiction, String caseType) {
+    public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings, String jurisdiction, String caseType,
+                                                Map<String, String> additionalProperties) {
         Map<String, CamundaValue<?>> processVariables
-            = initiateProcessVariables(caseId, warnings, jurisdiction, caseType);
+            = initiateProcessVariables(caseId, warnings, jurisdiction, caseType, additionalProperties);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -105,8 +107,13 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId, String taskType) {
-        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId, taskType);
+    public GivensBuilder iCreateATaskWithCaseId(String caseId, String taskType,
+                                                Map<String, String> additionalProperties) {
+        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(
+            caseId,
+            taskType,
+            additionalProperties
+        );
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -234,8 +241,9 @@ public class GivensBuilder {
     public Map<String, CamundaValue<?>> createDefaultTaskVariables(
         String caseId,
         String jurisdiction,
-        String caseTypeId) {
-        CamundaProcessVariables processVariables = processVariables()
+        String caseTypeId,
+        Map<String, String> additionalProperties) {
+        var processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
             .withProcessVariable("jurisdiction", jurisdiction)
             .withProcessVariable("caseTypeId", caseTypeId)
@@ -260,14 +268,16 @@ public class GivensBuilder {
             .withProcessVariableBoolean("hasWarnings", false)
             .withProcessVariable("warningList", (new WarningValues()).toString())
             .withProcessVariable("caseManagementCategory", "Protection")
-            .withProcessVariable("description", "aDescription")
-            .build();
+            .withProcessVariable("description", "aDescription");
 
-        return processVariables.getProcessVariablesMap();
+        additionalProperties.forEach(processVariables::withProcessVariable);
+
+        return processVariables.build().getProcessVariablesMap();
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId, String taskType) {
-        CamundaProcessVariables processVariables = processVariables()
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId, String taskType,
+                                                                   Map<String, String> additionalProperties) {
+        var processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
             .withProcessVariable("jurisdiction", "IA")
             .withProcessVariable("caseTypeId", "Asylum")
@@ -291,21 +301,23 @@ public class GivensBuilder {
             .withProcessVariableBoolean("hasWarnings", false)
             .withProcessVariable("warningList", (new WarningValues()).toString())
             .withProcessVariable("caseManagementCategory", "Protection")
-            .withProcessVariable("description", "aDescription")
-            .build();
+            .withProcessVariable("description", "aDescription");
 
-        return processVariables.getProcessVariablesMap();
+        additionalProperties.forEach(processVariables::withProcessVariable);
+
+        return processVariables.build().getProcessVariablesMap();
     }
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarnings(
         String caseId,
         String jurisdiction,
-        String caseTypeId
+        String caseTypeId,
+        Map<String, String> additionalProperties
     ) {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
             + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
-        CamundaProcessVariables processVariables = processVariables()
+        var processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
             .withProcessVariable("jurisdiction", jurisdiction)
             .withProcessVariable("caseTypeId", caseTypeId)
@@ -328,10 +340,11 @@ public class GivensBuilder {
             .withProcessVariableBoolean("hasWarnings", true)
             .withProcessVariable("warningList", values)
             .withProcessVariable("caseManagementCategory", "Protection")
-            .withProcessVariable("description", "aDescription")
-            .build();
+            .withProcessVariable("description", "aDescription");
 
-        return processVariables.getProcessVariablesMap();
+        additionalProperties.forEach(processVariables::withProcessVariable);
+
+        return processVariables.build().getProcessVariablesMap();
     }
 
     public String iCreateACcdCase() {
@@ -476,16 +489,18 @@ public class GivensBuilder {
         String caseId,
         boolean warnings,
         String jurisdiction,
-        String caseTypeId) {
+        String caseTypeId,
+        Map<String, String> additionalProperties) {
         if (warnings) {
-            return createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseTypeId);
+            return createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseTypeId, additionalProperties);
         } else {
-            return createDefaultTaskVariables(caseId, jurisdiction, caseTypeId);
+            return createDefaultTaskVariables(caseId, jurisdiction, caseTypeId, additionalProperties);
         }
     }
 
-    private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, String taskType) {
-        return createDefaultTaskVariables(caseId, taskType);
+    private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, String taskType,
+                                                                  Map<String, String> additionalProperties) {
+        return createDefaultTaskVariables(caseId, taskType, additionalProperties);
     }
 
     private class Modifications {

@@ -61,13 +61,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
         tasksCreated.add(taskVariables);
         initiateTaskWithGenericAttributes(caseworkerCredentials.getHeaders(), taskVariables,
                      "processApplication", "process application", "process task"
         );
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
         tasksCreated.add(taskVariables);
         initiateTaskWithGenericAttributes(caseworkerCredentials.getHeaders(), taskVariables,
                      "processApplication", "process application", "process task"
@@ -156,17 +156,17 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", additionalProperties);
         tasksCreated.add(taskVariables);
         initiateTaskWithGenericAttributes(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps", "task name", "task title",
-            additionalProperties);
+                                          additionalProperties);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
         tasksCreated.add(taskVariables);
         initiateTaskWithGenericAttributes(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps", "task name", "task title",
-            additionalProperties);
+                                          additionalProperties);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -205,13 +205,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
         tasksCreated.add(taskVariables);
         initiateTaskWithGenericAttributes(caseworkerCredentials.getHeaders(), taskVariables,
                      "reviewSpecificAccessRequestLegalOps", "task name", "task title"
         );
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
         tasksCreated.add(taskVariables);
         initiateTaskWithGenericAttributes(caseworkerCredentials.getHeaders(), taskVariables,
                      "reviewSpecificAccessRequestLegalOps", "task name", "task title"
@@ -257,13 +257,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
         tasksCreated.add(taskVariables);
         initiateTaskWithGenericAttributes(caseworkerCredentials.getHeaders(), taskVariables,
                      "reviewSpecificAccessRequestLegalOps", "task name", "task title"
         );
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
         tasksCreated.add(taskVariables);
         initiateTaskWithGenericAttributes(caseworkerCredentials.getHeaders(), taskVariables,
                      "reviewSpecificAccessRequestLegalOps", "task name", "task title"

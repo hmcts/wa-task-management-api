@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
@@ -361,9 +361,9 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         String warnings = "[{\"warningCode\":\"TA01\", \"warningText\":\"Description1\"}]";
 
-        InitiateTaskRequest req;
+        InitiateTaskRequestAttributes req;
         if (hasWarnings) {
-            req = new InitiateTaskRequest(INITIATION, asList(
+            req = new InitiateTaskRequestAttributes(INITIATION, asList(
                 new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
                 new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
                 new TaskAttribute(TASK_TITLE, "A test task"),
@@ -374,7 +374,7 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
                 new TaskAttribute(TASK_WARNINGS, warnings)
             ));
         } else {
-            req = new InitiateTaskRequest(INITIATION, asList(
+            req = new InitiateTaskRequestAttributes(INITIATION, asList(
                 new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
                 new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
                 new TaskAttribute(TASK_TITLE, "A test task"),
