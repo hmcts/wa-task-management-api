@@ -130,7 +130,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_ID, "UnknownEvent",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum",
             CamundaVariableDefinition.TASK_TYPE, "UnknownEvent"
@@ -605,7 +605,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_ID, taskType,
             CamundaVariableDefinition.TASK_TYPE, taskType,
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
@@ -620,7 +620,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_ID, taskType,
             CamundaVariableDefinition.TASK_TYPE, taskType,
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"

@@ -95,10 +95,19 @@ public class Common {
     public TestVariables setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String caseId, String jurisdiction, String caseType, WarningValues warningValues, int taskIndex
     ) {
+
+        String warningString = "WarningValues(values=[])";
+        try {
+            warningString = warningValues.getValuesAsJson();
+        } catch (JsonProcessingException e) {
+            fail("Fail to create warning list: " + caseId);
+        }
+
+
         Map<String, CamundaValue<?>> processVariables
             = warningValues.getValues().isEmpty()
             ? given.createDefaultTaskVariables(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME)
-            : given.createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, warningValues.getValues().toString());
+            : given.createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, warningString);
 
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables.put(
@@ -304,9 +313,15 @@ public class Common {
                 new Warning("Code2", "Text2")
             ));
 
+        String warningString = "WarningValues(values=[])";
+        try {
+            warningString = warnings.getValuesAsJson();
+        } catch (JsonProcessingException e) {
+            fail("Fail to create warning list: " + caseId);
+        }
 
         List<CamundaTask> response = given
-            .iCreateATaskWithWarnings(caseId, "IA", "Asylum", taskType, DEFAULT_TASK_NAME, warnings.toString())
+            .iCreateATaskWithWarnings(caseId, "IA", "Asylum", taskType, DEFAULT_TASK_NAME, warningString)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 

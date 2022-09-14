@@ -50,6 +50,7 @@ public class GivensBuilder {
     private final DocumentManagementFiles documentManagementFiles;
 
     private final CoreCaseDataApi coreCaseDataApi;
+    private Map<String, CamundaValue<?>> taskVariables;
 
     public GivensBuilder(RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
@@ -232,7 +233,7 @@ public class GivensBuilder {
                                    "Taylor House",
                                    "PUBLIC",
                                    taskName,
-                                   taskName,
+                                   taskType,
                                    taskType,
                                    "Case Progression",
                                    "unconfigured",
