@@ -381,7 +381,7 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
                     .contentType(APPLICATION_JSON_VALUE)
             )
             .andExpectAll(
-                status().is5xxServerError(),
+                status().isBadGateway(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type").value(
                     "https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
