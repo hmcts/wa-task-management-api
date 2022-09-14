@@ -94,15 +94,14 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
 
-        common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(assignerCredentials.getHeaders(), taskVariables,
+        common.setupCFTOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+        initiateTask(assigneeCredentials.getHeaders(), taskVariables,
             "processApplication", "process application", "process task");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
-            assignerCredentials.getHeaders()
+            assigneeCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -113,7 +112,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         result = restApiActions.get(
             "/task/{task-id}",
             taskId,
-            assignerCredentials.getHeaders()
+            assigneeCredentials.getHeaders()
         );
 
         result.prettyPrint();
