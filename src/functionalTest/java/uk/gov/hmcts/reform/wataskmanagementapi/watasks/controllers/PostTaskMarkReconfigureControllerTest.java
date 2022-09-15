@@ -96,8 +96,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                                        "processApplication");
 
-        common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
-            WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupCFTOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(taskVariables, Jurisdiction.WA);
 
         taskId = taskVariables.getTaskId();
