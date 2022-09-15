@@ -130,6 +130,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFla
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_ASSIGNMENT_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
@@ -140,6 +141,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
+    public static final String SOME_ROLE_ASSIGNMENT_ID = "someRoleAssignmentId";
 
     @Mock
     CamundaService camundaService;
@@ -2858,7 +2860,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             asList(
                 new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
                 new TaskAttribute(TASK_NAME, A_TASK_NAME),
-                new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+                new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
+                new TaskAttribute(TASK_ROLE_ASSIGNMENT_ID, SOME_ROLE_ASSIGNMENT_ID)
             )
         );
         @Mock
@@ -2917,7 +2920,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     A_TASK_TYPE,
                     "aCaseId",
                     A_TASK_NAME
-                )))
+                ))),
+                eq("someRoleAssignmentId")
             );
 
             verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
@@ -2945,8 +2949,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(taskResource.getTaskName()).thenReturn(A_TASK_NAME);
             when(taskResource.getState()).thenReturn(cftTaskState);
 
-            when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
-                .thenReturn(taskResource);
+            when(configureTaskService.configureCFTTask(
+                any(TaskResource.class),
+                any(TaskToConfigure.class),
+                eq(SOME_ROLE_ASSIGNMENT_ID)
+            )).thenReturn(taskResource);
 
             when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(taskResource);
 

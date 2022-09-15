@@ -122,7 +122,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    @Ignore("RWA-1447 will fix this test")
+//    @Ignore("RWA-1447 will fix this test")
     public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
 
         String roleAssignmentId = UUID.randomUUID().toString();
@@ -139,7 +139,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(CamundaVariableDefinition.ADDITIONAL_PROPERTIES,
-                                                                       additionalProperties.toString(),
+                                                                       additionalProperties,
                                                                        "requests/ccd/wa_case_data.json",
                                                                        "reviewSpecificAccessRequestLegalOps");
         initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
