@@ -84,12 +84,12 @@ public class Common {
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String jurisdiction, String caseType
     ) {
         String caseId = given.iCreateACcdCase();
-        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride,  caseId, jurisdiction, caseType, DEFAULT_WARNINGS, 1);
+        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride, caseId, jurisdiction, caseType, DEFAULT_WARNINGS, 1);
     }
 
     public TestVariables setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String caseId, String jurisdiction, String caseType, int taskIndex) {
-        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride,  caseId, jurisdiction, caseType, DEFAULT_WARNINGS, taskIndex);
+        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride, caseId, jurisdiction, caseType, DEFAULT_WARNINGS, taskIndex);
     }
 
     public TestVariables setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(
@@ -165,8 +165,8 @@ public class Common {
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
             "IA",
             "Asylum",
-             DEFAULT_TASK_TYPE,
-                                                                                         DEFAULT_TASK_NAME
+            DEFAULT_TASK_TYPE,
+            DEFAULT_TASK_NAME
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -185,10 +185,10 @@ public class Common {
     public TestVariables setupWATaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value, String resourceFileName) {
         String caseId = given.iCreateWACcdCase(resourceFileName);
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-                                                                                         "WA",
-                                                                                         "Asylum",
-                                                                                         DEFAULT_TASK_TYPE,
-                                                                                         DEFAULT_TASK_NAME
+            "WA",
+            "Asylum",
+            DEFAULT_TASK_TYPE,
+            DEFAULT_TASK_NAME
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -212,8 +212,8 @@ public class Common {
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
             "IA",
             "Asylum",
-                                                                                         DEFAULT_TASK_TYPE,
-                                                                                         DEFAULT_TASK_NAME
+            DEFAULT_TASK_TYPE,
+            DEFAULT_TASK_NAME
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -1276,6 +1276,45 @@ public class Common {
         createSupervisor(userInfo, headers, "WA");
         createStandardTribunalCaseworker(userInfo, headers, "WA", "WaCaseType");
         createSpecificTribunalCaseWorker(caseId, headers, userInfo, "WA", "WaCaseType");
+    }
+
+    public void setupCFTCtscRoleAssignmentForWA(Headers headers) {
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        createCaseAllocator(userInfo, headers, "WA");
+        createCtscCaseworker(userInfo, headers, "WA", "WaCaseType");
+    }
+
+    private void createCtscCaseworker(UserInfo userInfo, Headers headers,
+                                      String jurisdiction, String caseType) {
+        log.info("Creating CTSC caseworker organizational Role");
+
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "ctsc",
+            toJsonString(Map.of(
+                "primaryLocation", "765324",
+                "caseType", caseType,
+                "jurisdiction", jurisdiction
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.ADMIN.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
     }
 
     private String toJsonString(Map<String, String> attributes) {
