@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -41,9 +40,11 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_task_and_correct_properties() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication",
-                                                                       "process application");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "processApplication",
+            "process application"
+        );
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -82,7 +83,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.work_type_id", equalTo("hearing_work"))
             .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")))
             .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                              + "trigger/decideAnApplication)"))
+                                                  + "trigger/decideAnApplication)"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task.additional_properties", equalToObject(Map.of(
                 "key1", "value1",
@@ -107,7 +108,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         TestVariables taskVariables
             = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
-                                               "processApplication", "process application");
+                                               "processApplication", "process application"
+        );
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -171,7 +173,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_empty_hearing_date.json",
-                                               "processApplication", "process application");
+                                             "processApplication", "process application"
+            );
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -235,9 +238,11 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_403_when_user_grant_type_standard_and_excluded() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication",
-                                                                       "process application");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "processApplication",
+            "process application"
+        );
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -276,7 +281,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.work_type_id", equalTo("hearing_work"))
             .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")))
             .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                              + "trigger/decideAnApplication)"))
+                                                  + "trigger/decideAnApplication)"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task.additional_properties", equalToObject(Map.of(
                 "key1", "value1",
@@ -295,7 +300,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         //add excluded grantType
         common.setupExcludedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-            WA_JURISDICTION, WA_CASE_TYPE);
+                                            WA_JURISDICTION, WA_CASE_TYPE
+        );
 
         result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -314,7 +320,6 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-//    @Ignore("RWA-1447 will fix this test")
     public void should_replace_additional_properties_in_configuration_dmn_and_return_task_with_sent_properties() {
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
@@ -329,14 +334,17 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "key8", "value8"
         );
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(CamundaVariableDefinition.ADDITIONAL_PROPERTIES,
-                                                                       additionalProperties,
-                                                                       "requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestJudiciary");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            CamundaVariableDefinition.ADDITIONAL_PROPERTIES,
+            additionalProperties,
+            "requests/ccd/wa_case_data.json",
+            "reviewSpecificAccessRequestJudiciary"
+        );
         String taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(),
-            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        );
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), additionalProperties);
 
