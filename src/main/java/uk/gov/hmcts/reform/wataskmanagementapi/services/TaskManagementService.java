@@ -465,6 +465,10 @@ public class TaskManagementService {
                 throw new TaskStateIncorrectException(
                     String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
                 );
+            } else if (!userId.equals(taskResource.getAssignee())) {
+                throw new TaskStateIncorrectException(
+                    String.format("Could not complete task with id: %s as task was assigned to other user %s", taskId, taskResource.getAssignee())
+                );
             }
         } else {
             CamundaTask camundaTask = camundaService.getUnmappedCamundaTask(taskId);

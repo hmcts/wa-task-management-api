@@ -166,7 +166,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
             TaskResource task = spy(TaskResource.class);
             when(cftQueryService.getTask(anyString(),any(),any(PermissionRequirements.class))).thenReturn(Optional.of(task));
-            when(task.getAssignee()).thenReturn("SomeId");
+            when(task.getAssignee()).thenReturn("IDAM_USER_ID");
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
