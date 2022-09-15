@@ -106,9 +106,7 @@ public class Common {
 
         Map<String, CamundaValue<?>> processVariables
             = warningValues.getValues().isEmpty()
-            ? given.createDefaultTaskVariables(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME,
-                                               Map.of()
-        )
+            ? given.createDefaultTaskVariables(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, Map.of())
             : given.createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, warningString);
 
         variablesToUseAsOverride.keySet()
@@ -165,12 +163,13 @@ public class Common {
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            caseId,
             "IA",
             "Asylum",
-             DEFAULT_TASK_TYPE,
-                                                                                         DEFAULT_TASK_NAME,
-                                                                                         Map.of()
+            DEFAULT_TASK_TYPE,
+            DEFAULT_TASK_NAME,
+            Map.of()
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -188,12 +187,13 @@ public class Common {
 
     public TestVariables setupWATaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value, String resourceFileName) {
         String caseId = given.iCreateWACcdCase(resourceFileName);
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-                                                                                         "WA",
-                                                                                         "Asylum",
-                                                                                         DEFAULT_TASK_TYPE,
-                                                                                         DEFAULT_TASK_NAME,
-                                                                                         Map.of()
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            caseId,
+            "WA",
+            "Asylum",
+            DEFAULT_TASK_TYPE,
+            DEFAULT_TASK_NAME,
+            Map.of()
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -214,12 +214,13 @@ public class Common {
         CamundaVariableDefinition key, String value
     ) {
         final String caseId = UUID.randomUUID().toString();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            caseId,
             "IA",
             "Asylum",
-                                                                                         DEFAULT_TASK_TYPE,
-                                                                                         DEFAULT_TASK_NAME,
-                                                                                         Map.of()
+            DEFAULT_TASK_TYPE,
+            DEFAULT_TASK_NAME,
+            Map.of()
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
