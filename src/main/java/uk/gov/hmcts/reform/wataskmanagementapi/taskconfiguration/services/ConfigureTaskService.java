@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.config
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.stream.Collectors.toMap;
@@ -101,14 +102,17 @@ public class ConfigureTaskService {
         );
     }
 
-    public TaskResource configureCFTTask(TaskResource skeletonMappedTask, TaskToConfigure taskToConfigure) {
+    public TaskResource configureCFTTask(TaskResource skeletonMappedTask, TaskToConfigure taskToConfigure,
+                                         String roleAssignmentId) {
         TaskToConfigure.TaskToConfigureBuilder taskToConfigureBuilder = taskToConfigure.toBuilder();
         if (featureFlagProvider.getBooleanValue(
             RELEASE_2_ENDPOINTS_FEATURE,
             StringUtils.EMPTY,
             StringUtils.EMPTY
         )) {
-            Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(skeletonMappedTask);
+            Map<String, Object> taskAttributes
+                = new ConcurrentHashMap<>(cftTaskMapper.getTaskAttributes(skeletonMappedTask));
+            Optional.ofNullable(roleAssignmentId).ifPresent(id -> taskAttributes.put("roleAssignmentId", id));
             taskToConfigureBuilder.taskAttributes(taskAttributes);
         }
 

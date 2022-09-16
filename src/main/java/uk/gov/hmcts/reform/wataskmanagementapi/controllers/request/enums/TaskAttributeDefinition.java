@@ -46,7 +46,8 @@ public enum TaskAttributeDefinition {
     TASK_ADDITIONAL_PROPERTIES("task_additional_properties", new TypeReference<Map<String, String>>() {}),
     TASK_NEXT_HEARING_ID("task_next_hearing_id", new TypeReference<String>() {}),
     TASK_NEXT_HEARING_DATE("task_next_hearing_date", new TypeReference<String>() {}),
-    TASK_PRIORITY_DATE("task_priority_date", new TypeReference<String>() {});
+    TASK_PRIORITY_DATE("task_priority_date", new TypeReference<String>() {}),
+    TASK_ROLE_ASSIGNMENT_ID("task_role_assignment_id", new TypeReference<String>() {});
 
 
 

@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -74,7 +73,8 @@ public class GivensBuilder {
     public GivensBuilder iCreateATaskWithCaseId(String caseId, String jurisdiction, String caseType,
                                                 String taskType, String taskName) {
         Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(caseId, jurisdiction, caseType,
-                                                                                   taskType, taskName);
+                                                                                   taskType, taskName, Map.of()
+        );
         createTask(processVariables);
         return this;
     }
@@ -192,7 +192,8 @@ public class GivensBuilder {
         String jurisdiction,
         String caseTypeId,
         String taskType,
-        String taskName) {
+        String taskName,
+        Map<String, String> additionalProperties) {
 
         return createTaskVariables(caseId,
                                    jurisdiction,
@@ -213,7 +214,9 @@ public class GivensBuilder {
                                    false,
                                    (new WarningValues()).toString(),
                                    "Protection",
-                                   "aDescription");
+                                   "aDescription",
+                                   additionalProperties
+        );
     }
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarnings(
@@ -243,7 +246,9 @@ public class GivensBuilder {
                                    true,
                                    warnings,
                                    "Protection",
-                                   "aDescription");
+                                   "aDescription",
+                                   Map.of()
+        );
     }
 
     private Map<String, CamundaValue<?>> createTaskVariables(
@@ -266,9 +271,9 @@ public class GivensBuilder {
         Boolean hasWarnings,
         String warningList,
         String caseManagementCategory,
-        String description
-    ) {
-        CamundaProcessVariables processVariables = processVariables()
+        String description,
+        Map<String, String> additionalProperties) {
+        var processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
             .withProcessVariable("jurisdiction", jurisdiction)
             .withProcessVariable("caseTypeId", caseTypeId)
@@ -291,10 +296,11 @@ public class GivensBuilder {
             .withProcessVariableBoolean("hasWarnings", hasWarnings)
             .withProcessVariable("warningList", warningList)
             .withProcessVariable("caseManagementCategory", caseManagementCategory)
-            .withProcessVariable("description", description)
-            .build();
+            .withProcessVariable("description", description);
 
-        return processVariables.getProcessVariablesMap();
+        additionalProperties.forEach(processVariables::withProcessVariable);
+
+        return processVariables.build().getProcessVariablesMap();
     }
 
     public String iCreateACcdCase() {
