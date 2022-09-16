@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers.newinitiate;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.initiation;
 
 
 import io.restassured.response.Response;
@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootTasksMapTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 
 import java.time.ZonedDateTime;
@@ -22,7 +23,7 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
-public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class GetWorkTypesControllerCFTTest extends SpringBootTasksMapTest {
 
     private static final String ENDPOINT_BEING_TESTED = "work-types";
 

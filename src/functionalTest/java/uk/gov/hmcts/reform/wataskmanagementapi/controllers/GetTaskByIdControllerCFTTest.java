@@ -73,7 +73,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -98,7 +98,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
         Response result;
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -134,7 +134,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
         Response result;
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -171,7 +171,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -213,7 +213,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -268,7 +268,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
 
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -302,7 +302,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
 
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -335,7 +335,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -369,7 +369,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTask(taskVariables1, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,

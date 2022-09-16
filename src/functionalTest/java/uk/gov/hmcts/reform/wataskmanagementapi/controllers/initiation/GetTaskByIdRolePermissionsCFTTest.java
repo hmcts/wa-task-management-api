@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers.newinitiate;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.initiation;
 
 import io.restassured.response.Response;
 import org.junit.After;
@@ -6,22 +6,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootTasksMapTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
-public class GetTaskByIdRolePermissionsCFTTest extends SpringBootFunctionalBaseTest {
+public class GetTaskByIdRolePermissionsCFTTest extends SpringBootTasksMapTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/roles";
     private TestAuthenticationCredentials caseworkerCredentials;
@@ -39,13 +37,9 @@ public class GetTaskByIdRolePermissionsCFTTest extends SpringBootFunctionalBaseT
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.insertTaskInCftTaskDb(
-            taskVariables,
-            "followUpOverdueReasonsForAppeal",
-            caseworkerCredentials.getHeaders()
-        );
+        initiateTaskMap(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -94,11 +88,7 @@ public class GetTaskByIdRolePermissionsCFTTest extends SpringBootFunctionalBaseT
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(
-            taskVariables,
-            "followUpOverdueReasonsForAppeal",
-            caseworkerCredentials.getHeaders()
-        );
+        initiateTaskMap(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,

@@ -55,7 +55,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
             WA_JURISDICTION, WA_CASE_TYPE);
@@ -97,7 +97,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
                                                                        "processApplication");
 
         common.setupCFTOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
 
         taskId = taskVariables.getTaskId();
 

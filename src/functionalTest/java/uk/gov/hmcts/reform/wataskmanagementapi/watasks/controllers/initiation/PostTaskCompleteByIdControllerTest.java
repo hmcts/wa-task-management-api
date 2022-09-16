@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers.newinitiate;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers.initiation;
 
 import io.restassured.response.Response;
 import org.junit.After;
@@ -6,10 +6,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootTasksMapTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,22 +26,37 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
-public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
+@SuppressWarnings("checkstyle:LineLength")
+public class PostTaskCompleteByIdControllerTest extends SpringBootTasksMapTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/complete";
     private static final String CLAIM_ENDPOINT = "task/{task-id}/claim";
+    private static final String ASSIGN_ENDPOINT = "task/{task-id}/assign";
 
     private TestAuthenticationCredentials caseworkerCredentials;
+    private TestAuthenticationCredentials caseworkerForReadCredentials;
+    private String assigneeId;
+    private String taskId;
+    private GrantType testGrantType = GrantType.SPECIFIC;
 
     @Before
     public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
+        caseworkerForReadCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
+        assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        if (testGrantType == GrantType.CHALLENGED) {
+            common.clearAllRoleAssignmentsForChallenged(caseworkerCredentials.getHeaders());
+        } else {
+            common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        }
+        common.clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
+
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(caseworkerForReadCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -45,7 +64,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -57,7 +76,8 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
+            .body("type",
+                equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
             .body("title", equalTo("Task Not Found Error"))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("detail", equalTo("Task Not Found Error: The task could not be found."));
@@ -67,14 +87,12 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_204_when_completing_a_task_by_id() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.post(
             CLAIM_ENDPOINT,
@@ -104,13 +122,10 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_403_if_task_was_not_previously_assigned() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
-
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -123,7 +138,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(String.format(
@@ -136,16 +151,15 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_204_when_completing_a_task_by_id_with_restricted_role_assignment() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
 
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
+        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -166,11 +180,9 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -182,7 +194,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -193,22 +205,21 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
-                "jurisdiction", "IA"
+                "jurisdiction", "WA"
             )
         );
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
         );
 
         Response result = restApiActions.post(
@@ -226,17 +237,18 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIdsWithCustomVariable(REGION, "1", "requests/ccd/wa_case_data.json");
+        taskId = taskVariables.getTaskId();
+
+        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), caseworkerForReadCredentials.getHeaders());
+        initiateTaskMap(taskVariables, caseworkerForReadCredentials.getHeaders());
         //Create temporary role-assignment to assign task
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.FORBIDDEN
         );
 
         //Delete role-assignment and re-create
@@ -244,7 +256,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
-                "jurisdiction", "IA",
+                "jurisdiction", "WA",
                 "region", "2"
             )
         );
@@ -270,23 +282,21 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_succeed_and_return_204_when_a_task_that_was_already_claimed_and_privileged_auto_complete() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
-
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
         );
 
         //S2S service name is wa_task_management_api
         TestAuthenticationCredentials otherUser =
             authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignment(otherUser.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignmentForWA(otherUser.getHeaders());
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(true));
         Response result = restApiActions.post(
@@ -303,28 +313,27 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(otherUser.getHeaders());
 
     }
 
     @Test
     public void should_complete_when_a_task_was_already_claimed_and_privileged_auto_complete_is_false() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
-
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
         );
 
         //S2S service name is wa_task_management_api
         TestAuthenticationCredentials otherUser =
             authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignment(otherUser.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignmentForWA(otherUser.getHeaders());
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
         Response result = restApiActions.post(
@@ -338,6 +347,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(otherUser.getHeaders());
 
     }
 
@@ -345,7 +355,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     public void should_return_a_404_if_task_does_not_exist_with_completion_options_assign_and_complete_true() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -358,7 +368,8 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
+            .body("type",
+                equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
             .body("title", equalTo("Task Not Found Error"))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("detail", equalTo("Task Not Found Error: The task could not be found."));
@@ -367,16 +378,14 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_when_completing_a_task_with_completion_options_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
-
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -397,13 +406,10 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_if_task_was_not_previously_assigned_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
-
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -424,16 +430,14 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_when_completing_a_task_with_restricted_role_assignment_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
-
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
+        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -454,12 +458,9 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
-
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -471,7 +472,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -482,23 +483,21 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_and_retrieve_task_role_assignment_attributes_match_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
-
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
-                "jurisdiction", "IA"
+                "jurisdiction", "WA"
             )
         );
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
         );
 
         Response result = restApiActions.post(
@@ -518,18 +517,18 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_403_when_permission_region_did_not_match_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
-        String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIdsWithCustomVariable(REGION, "1", "requests/ccd/wa_case_data.json");
+        taskId = taskVariables.getTaskId();
 
+        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), caseworkerForReadCredentials.getHeaders());
+        initiateTaskMap(taskVariables, caseworkerForReadCredentials.getHeaders());
         //Create temporary role-assignment to assign task
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.FORBIDDEN
         );
 
         //Delete role-assignment and re-create
@@ -537,7 +536,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
-                "jurisdiction", "IA",
+                "jurisdiction", "WA",
                 "region", "2"
             )
         );
@@ -561,6 +560,115 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         common.cleanUpTask(taskId);
 
     }
+
+    @Test
+    public void user_should_complete_task() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
+
+        assignTask(taskVariables);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+
+        common.cleanUpTask(taskId);
+
+    }
+
+    @Test
+    public void user_should_not_complete_task_when_grant_type_specific_and_permission_read() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
+
+        assignTask(taskVariables);
+
+        common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+
+        common.cleanUpTask(taskId);
+
+    }
+
+    @Test
+    public void user_should_not_complete_task_when_grant_type_challenged_and_permission_read() {
+        testGrantType = GrantType.CHALLENGED;
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+
+        initiateTaskMap(taskVariables, Jurisdiction.WA);
+
+        assignTask(taskVariables);
+
+        common.setupChallengedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+
+        common.cleanUpTask(taskId);
+
+    }
+
+    private void assignTask(TestVariables taskVariables) {
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        Response result = restApiActions.post(
+            ASSIGN_ENDPOINT,
+            taskVariables.getTaskId(),
+            new AssignTaskRequest(assigneeId),
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+        assertions.taskStateWasUpdatedInDatabase(
+            taskVariables.getTaskId(), "assigned", caseworkerCredentials.getHeaders()
+        );
+        assertions.taskFieldWasUpdatedInDatabase(
+            taskVariables.getTaskId(), "assignee", assigneeId, caseworkerCredentials.getHeaders()
+        );
+
+    }
+
 
 }
 

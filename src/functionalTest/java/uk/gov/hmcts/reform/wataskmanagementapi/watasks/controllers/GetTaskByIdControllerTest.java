@@ -47,7 +47,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -111,7 +111,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -175,7 +175,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -241,7 +241,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -338,7 +338,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(),
             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(taskVariables, caseworkerCredentials.getHeaders(), additionalProperties);
+        initiateTaskAttributes(taskVariables, caseworkerCredentials.getHeaders(), additionalProperties);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,

@@ -19,9 +19,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
@@ -34,6 +37,7 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -51,6 +55,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.*;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.*;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -67,7 +74,7 @@ public abstract class SpringBootFunctionalBaseTest {
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}";
-    private static final String TASK_GET_ENDPOINT = "task/{task-id}";
+    protected static final String TASK_GET_ENDPOINT = "task/{task-id}";
     protected static final String WA_JURISDICTION = "WA";
     protected static final String WA_CASE_TYPE = "WaCaseType";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
@@ -109,8 +116,8 @@ public abstract class SpringBootFunctionalBaseTest {
     @Value("${initiation_job_running}")
     private Boolean initiationJobRunning;
 
-    private TestAuthenticationCredentials iaCaseworkerCredentials;
-    private TestAuthenticationCredentials waCaseworkerCredentials;
+    protected TestAuthenticationCredentials iaCaseworkerCredentials;
+    protected TestAuthenticationCredentials waCaseworkerCredentials;
 
     @Before
     public void setUpGivens() throws IOException {
@@ -199,47 +206,48 @@ public abstract class SpringBootFunctionalBaseTest {
 
     }
 
-    protected void initiateTask(TestVariables testVariables,
-                                Jurisdiction jurisdiction) {
+    protected void initiateTaskAttributes(TestVariables testVariables,
+                                          Jurisdiction jurisdiction) {
         Headers headers = getAuthHeadersForJurisdiction(jurisdiction);
-        initiateTask(testVariables, headers, null, defaultInitiationAssert(testVariables));
+        initiateTaskAttributes(testVariables, headers, null, defaultInitiationAssert(testVariables));
     }
 
-    protected void initiateTask(TestVariables testVariables,
-                                Headers headers) {
-        initiateTask(testVariables, headers, null, defaultInitiationAssert(testVariables));
+
+    protected void initiateTaskAttributes(TestVariables testVariables,
+                                          Headers headers) {
+        initiateTaskAttributes(testVariables, headers, null, defaultInitiationAssert(testVariables));
     }
 
-    protected void initiateTask(TestVariables testVariables,
-                                Jurisdiction jurisdiction,
-                                Consumer<Response> assertConsumer) {
+    protected void initiateTaskAttributes(TestVariables testVariables,
+                                          Jurisdiction jurisdiction,
+                                          Consumer<Response> assertConsumer) {
         Headers headers = getAuthHeadersForJurisdiction(jurisdiction);
-        initiateTask(testVariables, headers, null, assertConsumer);
+        initiateTaskAttributes(testVariables, headers, null, assertConsumer);
     }
 
-    protected void initiateTask(TestVariables testVariables,
-                                Headers headers,
-                                Consumer<Response> assertConsumer) {
-        initiateTask(testVariables, headers, null, assertConsumer);
+    protected void initiateTaskAttributes(TestVariables testVariables,
+                                          Headers headers,
+                                          Consumer<Response> assertConsumer) {
+        initiateTaskAttributes(testVariables, headers, null, assertConsumer);
     }
 
-    protected void initiateTask(TestVariables testVariables,
-                                Jurisdiction jurisdiction,
-                                Map<String, String> additionalProperties) {
+    protected void initiateTaskAttributes(TestVariables testVariables,
+                                          Jurisdiction jurisdiction,
+                                          Map<String, String> additionalProperties) {
         Headers headers = getAuthHeadersForJurisdiction(jurisdiction);
-        initiateTask(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
+        initiateTaskAttributes(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
     }
 
-    protected void initiateTask(TestVariables testVariables,
-                                Headers headers,
-                                Map<String, String> additionalProperties) {
-        initiateTask(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
+    protected void initiateTaskAttributes(TestVariables testVariables,
+                                          Headers headers,
+                                          Map<String, String> additionalProperties) {
+        initiateTaskAttributes(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
     }
 
-    private void initiateTask(TestVariables testVariables,
-                              Headers headers,
-                              Map<String, String> additionalProperties,
-                              Consumer<Response> assertConsumer) {
+    private void initiateTaskAttributes(TestVariables testVariables,
+                                        Headers headers,
+                                        Map<String, String> additionalProperties,
+                                        Consumer<Response> assertConsumer) {
         log.info("Task initiate with cron job {}", initiationJobRunning);
         if (initiationJobRunning) {
             await()
@@ -257,7 +265,39 @@ public abstract class SpringBootFunctionalBaseTest {
                     }
                 );
         } else {
-            sendInitiateRequest(testVariables, additionalProperties);
+            sendInitiateRequestAttributes(testVariables, additionalProperties);
+        }
+
+        Response response = restApiActions.get(
+            TASK_GET_ENDPOINT,
+            testVariables.getTaskId(),
+            headers
+        );
+        assertConsumer.accept(response);
+    }
+
+    private void initiateTaskMap(TestVariables testVariables,
+                                 Headers headers,
+                                 Map<String, String> additionalProperties,
+                                 Consumer<Response> assertConsumer) {
+        log.info("Task initiate with cron job {}", initiationJobRunning);
+        if (initiationJobRunning) {
+            await()
+                .pollInterval(10, SECONDS)
+                .atMost(120, SECONDS)
+                .until(
+                    () -> {
+                        Response response = restApiActions.get(
+                            TASK_GET_ENDPOINT,
+                            testVariables.getTaskId(),
+                            headers
+                        );
+
+                        return HttpStatus.OK.value() == response.getStatusCode();
+                    }
+                );
+        } else {
+            sendInitiateRequestMap(testVariables, additionalProperties);
         }
 
         Response response = restApiActions.get(
@@ -290,7 +330,7 @@ public abstract class SpringBootFunctionalBaseTest {
         }
     }
 
-    private void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties) {
+    private void sendInitiateRequestAttributes(TestVariables testVariables, Map<String, String> additionalProperties) {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);
@@ -326,7 +366,47 @@ public abstract class SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.CREATED.value());
     }
 
+    private void sendInitiateRequestMap(TestVariables testVariables, Map<String, String> additionalProperties) {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        boolean hasWarnings = !testVariables.getWarnings().getValues().isEmpty();
+
+        Map<String, Object> taskAttributes = new HashMap<>();
+        taskAttributes.put(CamundaVariableDefinition.TASK_TYPE.value(), testVariables.getTaskType());
+        taskAttributes.put(CamundaVariableDefinition.TASK_NAME.value(), testVariables.getTaskName());
+        taskAttributes.put(CASE_ID.value(), testVariables.getCaseId());
+        taskAttributes.put(CREATED.value(), formattedCreatedDate);
+        taskAttributes.put(DUE_DATE.value(), formattedDueDate);
+        taskAttributes.put(SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
+        taskAttributes.put(HAS_WARNINGS.value(), hasWarnings);
+        taskAttributes.put(WARNING_LIST.value(), testVariables.getWarnings());
+
+        taskAttributes.putAll(additionalProperties);
+
+        InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(
+            INITIATION,
+            taskAttributes
+        );
+
+        Response response = restApiActions.post(
+            TASK_INITIATION_ENDPOINT,
+            testVariables.getTaskId(),
+            initiateTaskRequest,
+            authorizationProvider.getServiceAuthorizationHeadersOnly()
+        );
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value());
+    }
+
     protected String getAssigneeId(Headers headers) {
         return authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
+
+    protected Boolean isInitiationJobRunning() {
+        return this.initiationJobRunning;
+    }
+
 }

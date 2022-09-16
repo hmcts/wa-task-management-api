@@ -38,7 +38,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
     @Test
     public void should_succeed_when_terminate_reason_is_cancelled() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
 
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
@@ -65,7 +65,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
     @Test
     public void should_succeed_when_terminate_reason_is_completed() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 

@@ -57,7 +57,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                                            "processApplication",
                                                                            "process application");
-            initiateTask(testVariables, Jurisdiction.WA);
+            initiateTaskAttributes(testVariables, Jurisdiction.WA);
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
                 testVariables.getCaseId(),
@@ -142,7 +142,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                                                                        additionalProperties.toString(),
                                                                        "requests/ccd/wa_case_data.json",
                                                                        "reviewSpecificAccessRequestLegalOps");
-        initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
+        initiateTaskAttributes(taskVariables, Jurisdiction.WA, additionalProperties);
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(),
                                                  taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE

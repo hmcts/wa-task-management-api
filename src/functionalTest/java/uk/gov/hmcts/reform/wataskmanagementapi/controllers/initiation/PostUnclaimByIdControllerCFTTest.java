@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers.newinitiate;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.initiation;
 
 import io.restassured.response.Response;
 import org.junit.After;
@@ -7,9 +7,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootTasksMapTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,21 +20,12 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
-public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class PostUnclaimByIdControllerCFTTest extends SpringBootTasksMapTest {
 
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}/initiation";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";
     private static final String CLAIM_ENDPOINT = "task/{task-id}/claim";
 
@@ -77,36 +69,12 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TITLE.value(), "follow Up Overdue Reasons For Appeal",
-            TASK_NAME.value(), "aTaskName",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
+        initiateTaskMap(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
-
-        result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             caseworkerCredentials.getHeaders()
@@ -127,37 +95,12 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id() {
-        TestVariables taskVariables = setupScenario();
+        TestVariables taskVariables = setupScenario("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TITLE.value(), "A test task",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
+        initiateTaskMap(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
-
-
-        result = restApiActions.post(
             CLAIM_ENDPOINT,
             taskId,
             caseworkerCredentials.getHeaders()
@@ -186,35 +129,12 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id_with_restricted_role_assignment() {
-        TestVariables taskVariables = setupScenario();
+        TestVariables taskVariables = setupScenario("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            TITLE.value(), "A test task",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
+        initiateTaskMap(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
-        result = restApiActions.post(
             CLAIM_ENDPOINT,
             taskId,
             caseworkerCredentials.getHeaders()
@@ -246,44 +166,20 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_403_when_unclaiming_a_task_by_id_with_different_tribunal_caseworker_credentials() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
-        String taskId = taskVariables.getTaskId();
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            HAS_WARNINGS.value(), true,
-            TITLE.value(), "A test task",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
+        initiateTaskMap(taskVariables, Jurisdiction.IA);
 
         TestAuthenticationCredentials otherUser =
             authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         common.setupCFTOrganisationalRoleAssignment(otherUser.getHeaders(), "tribunal-caseworker");
+        String taskId = taskVariables.getTaskId();
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.FORBIDDEN
         );
-        result = restApiActions.post(
+        Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             otherUser.getHeaders()
@@ -304,46 +200,23 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_forbidden_when_unclaiming_a_task_by_id_with_different_tcw_credentials() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
-        String taskId = taskVariables.getTaskId();
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        initiateTaskMap(taskVariables, Jurisdiction.IA);
 
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            HAS_WARNINGS.value(), true,
-            TITLE.value(), "A test task",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
         TestAuthenticationCredentials otherUser =
             authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         common.setupOrganisationalRoleAssignment(otherUser.getHeaders());
+        String taskId = taskVariables.getTaskId();
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
         );
 
-        result = restApiActions.post(
+        Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             otherUser.getHeaders()
@@ -359,35 +232,9 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
 
-        TestVariables taskVariables = setupScenario();
-        String taskId = taskVariables.getTaskId();
+        TestVariables taskVariables = setupScenario("followUpOverdueReasonsForAppeal");
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
-            HAS_WARNINGS.value(), true,
-            TITLE.value(), "A test task",
-            CREATED.value(), formattedCreatedDate,
-            CASE_ID.value(), taskVariables.getCaseId(),
-            DUE_DATE.value(), formattedDueDate
-        );
-
-        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
+        initiateTaskMap(taskVariables, Jurisdiction.IA);
 
         common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(REGION, "1"));
 
@@ -400,7 +247,8 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
             )
         );
 
-        result = restApiActions.post(
+        String taskId = taskVariables.getTaskId();
+        Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             caseworkerCredentials.getHeaders()
@@ -417,7 +265,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
-    private TestVariables setupScenario() {
+    private TestVariables setupScenario(String taskType) {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         return taskVariables;

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.initiation;
 
 import io.restassured.response.Response;
 import org.junit.After;
@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootTasksMapTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
@@ -21,14 +22,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.*;
 
-public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class PostTaskInitiateByIdControllerCFTTest extends SpringBootTasksMapTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
@@ -82,7 +78,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.permissions.values", hasItems("Read", "Refer", "Manage", "Execute", "Cancel"));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA, assertConsumer);
+        initiateTaskMap(taskVariables, Jurisdiction.IA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -130,7 +126,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.permissions.values", hasItems("Read", "Refer", "Execute", "Manage", "Cancel"));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA, assertConsumer);
+        initiateTaskMap(taskVariables, Jurisdiction.IA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -179,7 +175,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.permissions.values", hasItems("Read", "Refer", "Execute", "Manage", "Cancel"));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA, assertConsumer);
+        initiateTaskMap(taskVariables, Jurisdiction.IA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -225,7 +221,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.permissions.values", hasItems("Read", "Refer", "Execute", "Manage", "Cancel"));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA, assertConsumer);
+        initiateTaskMap(taskVariables, Jurisdiction.IA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -247,7 +243,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .statusCode(HttpStatus.OK.value());
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA, assertConsumer);
+        initiateTaskMap(taskVariables, Jurisdiction.IA, assertConsumer);
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers.newinitiate;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.initiation;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
@@ -8,28 +8,15 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootTasksMapTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-
-import java.time.ZonedDateTime;
-import java.util.Map;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
+import static org.hamcrest.Matchers.*;
 
-public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest {
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}/initiation";
+public class GetAdminTaskControllerCFTTest extends SpringBootTasksMapTest {
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
     private TestAuthenticationCredentials caseworkerCredentials;
 
@@ -50,7 +37,7 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("allocateHearingJudge");
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskForAdmin(taskVariables);
+        initiateTaskMap(taskVariables, Jurisdiction.IA);
 
         Headers headers = caseworkerCredentials.getHeaders();
         common.setupCFTAdministrativeOrganisationalRoleAssignment(headers);
@@ -90,35 +77,5 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
             .body("task.role_category", equalTo("ADMIN"));
 
         common.cleanUpTask(taskId);
-    }
-
-    private void initiateTaskForAdmin(TestVariables taskVariables) {
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "allocateHearingJudge",
-            TASK_NAME.value(), "Allocate hearing judge",
-            TITLE.value(), "A test task",
-            CASE_ID.value(), taskVariables.getCaseId(),
-            CREATED.value(), formattedCreatedDate,
-            DUE_DATE.value(), formattedDueDate,
-            ROLE_CATEGORY.value(), "ADMIN"
-        );
-
-        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskVariables.getTaskId(),
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
     }
 }

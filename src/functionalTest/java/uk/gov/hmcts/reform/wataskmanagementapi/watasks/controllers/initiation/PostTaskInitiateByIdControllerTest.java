@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers.initiation;
 
 import io.restassured.response.Response;
 import org.junit.After;
@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootTasksMapTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
@@ -14,11 +15,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToObject;
-import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.*;
 
-public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
+public class PostTaskInitiateByIdControllerTest extends SpringBootTasksMapTest {
 
     private TestAuthenticationCredentials caseworkerCredentials;
 
@@ -83,7 +82,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA, assertConsumer);
+        initiateTaskMap(taskVariables, Jurisdiction.WA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -139,7 +138,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"));
         };
 
-        initiateTaskAttributes(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
+        initiateTaskMap(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -210,7 +209,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(5000));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA, assertConsumer);
+        initiateTaskMap(taskVariables, Jurisdiction.WA, assertConsumer);
 
         common.cleanUpTask(taskId);
     }
