@@ -1,38 +1,24 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
-import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
-import java.time.ZonedDateTime;
-import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
-import static java.util.Arrays.asList;
-import static java.util.Map.entry;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static org.hamcrest.Matchers.hasItems;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
-    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
     private TestAuthenticationCredentials caseworkerCredentials;
 
@@ -50,124 +36,54 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_201_when_initiating_a_process_application_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json");
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                             "processApplication", "Process Application");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "Process Application"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "Process Application"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
         //Note: this is the TaskResource.class
-        result.prettyPrint();
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value())
-            .and()
-            .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("Process Application"))
-            .body("task_type", equalTo("processApplication"))
-            .body("state", equalTo("UNASSIGNED"))
-            .body("task_system", equalTo("SELF"))
-            .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("Process Application"))
-            .body("created", notNullValue())
-            .body("due_date_time", notNullValue())
-            .body("auto_assigned", equalTo(false))
-            .body("has_warnings", equalTo(false))
-            .body("case_id", equalTo(taskVariables.getCaseId()))
-            .body("case_type_id", equalTo("WaCaseType"))
-            .body("jurisdiction", equalTo("WA"))
-            .body("region", equalTo("1"))
-            .body("location", equalTo("765324"))
-            .body("location_name", equalTo("Taylor House"))
-            .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
-            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
-            .body(
-                "execution_type_code.description",
-                equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
-            )
-            .body("work_type_resource.id", equalTo("hearing_work"))
-            .body("work_type_resource.label", equalTo("Hearing work"))
-            .body("role_category", equalTo("LEGAL_OPERATIONS"))
-            .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                         + "trigger/decideAnApplication)"))
-            .body("task_role_resources.size()", equalTo(10))
-            .body("additional_properties", equalToObject(Map.of(
-                "key1", "value1",
-                "key2", "value2",
-                "key3", "value3",
-                "key4", "value4"
-            ))).body("minor_priority", equalTo(500))
-            .body("major_priority", equalTo(1000))
-            .body("priority_date", equalTo("2022-12-07T14:00:00+01:00"));
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Process Application"))
+                .body("task.type", equalTo("processApplication"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Process Application"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.work_type_id", equalTo("hearing_work"))
+                .body("task.work_type_label", equalTo("Hearing work"))
+                .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+                .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                                 + "trigger/decideAnApplication)"))
+                .body("task.permissions.values.size()", equalTo(3))
+                .body("task.permissions.values", hasItems("Read", "Refer", "Execute"))
+                .body("task.additional_properties", equalToObject(Map.of(
+                    "key1", "value1",
+                    "key2", "value2",
+                    "key3", "value3",
+                    "key4", "value4"
+                ))).body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"));
+        };
 
-        assertPermissions(
-            getTaskResource(result, "task-supervisor"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", false),
-                entry("manage", true),
-                entry("execute", false),
-                entry("cancel", true),
-                entry("task_id", taskId),
-                entry("authorizations", List.of()),
-                entry("auto_assignable", false)
-            )
-        );
-
-
-        assertPermissions(
-            getTaskResource(result, "senior-tribunal-caseworker"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", false),
-                entry("manage", false),
-                entry("execute", true),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of()),
-                entry("role_category", "LEGAL_OPERATIONS"),
-                entry("auto_assignable", false),
-                entry("assignment_priority", 2)
-            )
-        );
-        assertPermissions(
-            getTaskResource(result, "tribunal-caseworker"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", false),
-                entry("manage", false),
-                entry("execute", true),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of()),
-                entry("role_category", "LEGAL_OPERATIONS"),
-                entry("auto_assignable", false),
-                entry("assignment_priority", 2)
-            )
-        );
+        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -181,97 +97,49 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_201_when_initiating_a_specific_access_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json");
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                             "reviewSpecificAccessRequestJudiciary",
+                                             "additionalProperties_roleAssignmentId");
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "reviewSpecificAccessRequestJudiciary"),
-            new TaskAttribute(TASK_NAME, "additionalProperties_roleAssignmentId"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "Specific Access Task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
+        common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
+                                                            taskVariables.getCaseId(),
+                                                            WA_JURISDICTION, WA_CASE_TYPE);
 
         //Note: this is the TaskResource.class
-        result.prettyPrint();
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value())
-            .and()
-            .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("additionalProperties_roleAssignmentId"))
-            .body("task_type", equalTo("reviewSpecificAccessRequestJudiciary"))
-            .body("state", equalTo("UNASSIGNED"))
-            .body("task_system", equalTo("SELF"))
-            .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("additionalProperties_roleAssignmentId"))
-            .body("created", notNullValue())
-            .body("due_date_time", notNullValue())
-            .body("auto_assigned", equalTo(false))
-            .body("has_warnings", equalTo(false))
-            .body("case_id", equalTo(taskVariables.getCaseId()))
-            .body("case_type_id", equalTo("WaCaseType"))
-            .body("jurisdiction", equalTo("WA"))
-            .body("region", equalTo("1"))
-            .body("location", equalTo("765324"))
-            .body("location_name", equalTo("Taylor House"))
-            .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
-            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
-            .body(
-                "execution_type_code.description",
-                equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
-            )
-            .body("task_role_resources.size()", equalTo(9))
-            .body("additional_properties", equalToObject(Map.of(
-                "roleAssignmentId", "roleAssignmentId")))
-            .body("minor_priority", equalTo(500))
-            .body("major_priority", equalTo(1000))
-            .body("priority_date", equalTo("2022-12-07T14:00:00+01:00"));
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("additionalProperties_roleAssignmentId"))
+                .body("task.type", equalTo("reviewSpecificAccessRequestJudiciary"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("additionalProperties_roleAssignmentId"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.permissions.values.size()", equalTo(3))
+                .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
+                .body("task.additional_properties", equalToObject(Map.of(
+                    "roleAssignmentId", "roleAssignmentId")))
+                .body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"));
+        };
 
-        assertPermissions(
-            getTaskResource(result, "judge"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", true),
-                entry("manage", false),
-                entry("execute", false),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of()),
-                entry("auto_assignable", true)
-            )
-        );
-
-        assertPermissions(
-            getTaskResource(result, "task-supervisor"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", false),
-                entry("manage", true),
-                entry("execute", false),
-                entry("cancel", true),
-                entry("task_id", taskId),
-                entry("authorizations", List.of()),
-                entry("auto_assignable", false)
-            )
-        );
+        initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -285,94 +153,65 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_priorty_date_when_initiating_a_task_without_hearing_date() {
         TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json");
+            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
+                                               "processApplication",
+                                               "process Application");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        Consumer<Response> assertConsumer = (result) -> {
+            //Note: this is the TaskResource.class
+            result.prettyPrint();
 
+            //TODO: uncomment this once priority_date format is fixed in RWA-1779 ticket
+            //ZonedDateTime dueDate = ZonedDateTime.parse(result.jsonPath().get("task.due_date"),
+            //                                            ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
+            //String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "process Application"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "process Application"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+            //OffsetDateTime priorityDate = OffsetDateTime.parse(result.jsonPath().get("task.priority_date"));
+            //String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
+            //Assert.assertEquals(formattedDueDate, formattedPriorityDate);
 
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("process Application"))
+                .body("task.type", equalTo("processApplication"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("process Application"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.case_category", equalTo("Protection"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.work_type_id", equalTo("hearing_work"))
+                .body("task.work_type_label", equalTo("Hearing work"))
+                .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+                .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                                 + "trigger/decideAnApplication)"))
+                .body("task.permissions.values.size()", equalTo(3))
+                .body("task.permissions.values", hasItems("Read", "Refer", "Execute"))
+                .body("task.additional_properties", equalToObject(Map.of(
+                    "key1", "value1",
+                    "key2", "value2",
+                    "key3", "value3",
+                    "key4", "value4"
+                ))).body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(5000));
+        };
 
-        //Note: this is the TaskResource.class
-        result.prettyPrint();
-
-        ZonedDateTime priorityDate = ZonedDateTime.parse(result.jsonPath().get("priority_date"));
-        String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
-        Assert.assertEquals(formattedDueDate, formattedPriorityDate);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value())
-            .and()
-            .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("process Application"))
-            .body("task_type", equalTo("processApplication"))
-            .body("state", equalTo("UNASSIGNED"))
-            .body("task_system", equalTo("SELF"))
-            .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("process Application"))
-            .body("created", notNullValue())
-            .body("due_date_time", notNullValue())
-            .body("auto_assigned", equalTo(false))
-            .body("has_warnings", equalTo(false))
-            .body("case_id", equalTo(taskVariables.getCaseId()))
-            .body("case_type_id", equalTo("WaCaseType"))
-            .body("jurisdiction", equalTo("WA"))
-            .body("region", equalTo("1"))
-            .body("location", equalTo("765324"))
-            .body("location_name", equalTo("Taylor House"))
-            .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
-            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
-            .body(
-                "execution_type_code.description",
-                equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
-            )
-            .body("work_type_resource.id", equalTo("hearing_work"))
-            .body("work_type_resource.label", equalTo("Hearing work"))
-            .body("role_category", equalTo("LEGAL_OPERATIONS"))
-            .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                             + "trigger/decideAnApplication)"))
-            .body("task_role_resources.size()", equalTo(10))
-            .body("additional_properties", equalToObject(Map.of(
-                "key1", "value1",
-                "key2", "value2",
-                "key3", "value3",
-                "key4", "value4"
-            ))).body("minor_priority", equalTo(500))
-            .body("major_priority", equalTo(5000));
+        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
 
         common.cleanUpTask(taskId);
-    }
-
-    private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
-        expectedPermissions.keySet().forEach(key ->
-            assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
-
-        assertThat(resource.get("task_role_id")).isNotNull();
-    }
-
-    private Map<String, Object> getTaskResource(Response result, String roleName) {
-        final List<Map<String, Object>> resources = new JsonPath(result.getBody().asString())
-            .param("roleName", roleName)
-            .get("task_role_resources.findAll { resource -> resource.role_name == roleName }");
-        return resources.size() > 0 ? resources.get(0) : null;
     }
 }
