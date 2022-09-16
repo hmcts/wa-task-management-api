@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,13 +40,9 @@ public class GetTaskByIdRolePermissionsCFTTest extends SpringBootFunctionalBaseT
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.insertTaskInCftTaskDb(
-            taskVariables,
-            "followUpOverdueReasonsForAppeal",
-            caseworkerCredentials.getHeaders()
-        );
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -94,11 +91,7 @@ public class GetTaskByIdRolePermissionsCFTTest extends SpringBootFunctionalBaseT
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(
-            taskVariables,
-            "followUpOverdueReasonsForAppeal",
-            caseworkerCredentials.getHeaders()
-        );
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,

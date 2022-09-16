@@ -17,11 +17,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -55,13 +55,12 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_and_executed_for_reconfigure() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
                                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(assignerCredentials.getHeaders(), taskVariables,
-                     "processApplication", "process application", "process task"
-        );
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
                                                  WA_JURISDICTION, WA_CASE_TYPE);

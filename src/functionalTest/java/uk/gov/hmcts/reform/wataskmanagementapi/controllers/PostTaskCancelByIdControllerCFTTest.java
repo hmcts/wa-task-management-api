@@ -6,32 +6,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/cancel";
 
     private TestAuthenticationCredentials caseworkerCredentials;
@@ -75,7 +64,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -101,7 +90,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
@@ -123,7 +112,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
 
@@ -138,38 +127,6 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
         common.cleanUpTask(taskId);
 
-    }
-
-    private void initiateTask(TestVariables testVariables) {
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            testVariables.getTaskId(),
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value())
-            .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("task_id", equalTo(testVariables.getTaskId()))
-            .body("case_id", equalTo(testVariables.getCaseId()));
     }
 
 }

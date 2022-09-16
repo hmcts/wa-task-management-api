@@ -8,29 +8,16 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
-import java.time.ZonedDateTime;
-
-import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
 public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTest {
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
     private TestAuthenticationCredentials caseworkerCredentials;
 
@@ -52,7 +39,7 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
         String taskId = taskVariables.getTaskId();
         Headers headers = caseworkerCredentials.getHeaders();
         common.setupCFTJudicialOrganisationalRoleAssignment(headers, taskVariables.getCaseId(), "IA", "Asylum");
-        initiateTaskForJudicial(taskVariables, "reviewHearingBundle", "Review Hearing Bundle");
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -89,33 +76,5 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
             .body("task.role_category", equalTo("JUDICIAL"));
 
         common.cleanUpTask(taskId);
-    }
-
-    private void initiateTaskForJudicial(TestVariables taskVariables, String taskType, String taskName) {
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, taskType),
-            new TaskAttribute(TASK_NAME, taskName),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "JUDICIAL")
-
-        ));
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskVariables.getTaskId(),
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
     }
 }

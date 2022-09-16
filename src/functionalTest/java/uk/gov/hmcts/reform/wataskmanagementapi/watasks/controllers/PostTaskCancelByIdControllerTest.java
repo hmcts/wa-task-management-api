@@ -9,8 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-
-import java.util.Map;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import static org.hamcrest.Matchers.equalTo;
 
@@ -20,11 +19,13 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/cancel";
 
     private TestAuthenticationCredentials caseworkerCredentials;
+    private TestAuthenticationCredentials caseworkerForReadCredentials;
     private GrantType testGrantType = GrantType.SPECIFIC;
 
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        caseworkerForReadCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2");
     }
 
     @After
@@ -34,20 +35,21 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         } else {
             common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         }
+        common.clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
+
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(caseworkerForReadCredentials.getAccount().getUsername());
     }
 
     @Test
     public void user_should_not_cancel_task_when_grant_type_specific_and_permission_read() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
         String taskId = taskVariables.getTaskId();
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task"
-        );
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -69,17 +71,15 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_cancel_task_when_grant_type_specific_and_permission_cancel() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
-        String taskId = taskVariables.getTaskId();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "reviewSpecificAccessRequestJudiciary");
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+        common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestJudiciary",
-            "review specific access request judiciary",
-            "review specific access request judiciary"
-        );
+        initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
+        String taskId = taskVariables.getTaskId();
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -95,16 +95,13 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_cancel_task_when_grant_type_specific_and_permissions_read_manage_cancel() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "reviewSpecificAccessRequestJudiciary");
         String taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestJudiciary",
-            "review specific access request judiciary",
-            "review specific access request judiciary"
-        );
+        initiateTask(taskVariables, caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -121,16 +118,13 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_cancel_task_when_grant_type_specific_and_permissions_read_manage_own_cancel() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "reviewSpecificAccessRequestLegalOps");
         String taskId = taskVariables.getTaskId();
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestLegalOps",
-            "review specific access request legal ops",
-            "review specific access request legal ops"
-        );
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -147,16 +141,13 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_cancel_task_when_grant_type_specific_and_permissions_read_manage_execute_cancel() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "reviewSpecificAccessRequestLegalOps");
         String taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestLegalOps",
-            "review specific access request legal ops",
-            "review specific access request legal ops"
-        );
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -173,14 +164,13 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_not_cancel_task_when_grant_type_challenged_and_permission_read() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task"
-        );
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -202,17 +192,15 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_cancel_task_when_grant_type_challenged_and_permission_cancel() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
-        String taskId = taskVariables.getTaskId();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "reviewSpecificAccessRequestJudiciary");
 
         common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestJudiciary",
-            "review specific access request judiciary",
-            "review specific access request judiciary"
-        );
+        initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
+        String taskId = taskVariables.getTaskId();
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -228,16 +216,13 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_cancel_task_when_grant_type_challenged_and_permissions_read_manage_cancel() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "reviewSpecificAccessRequestLegalOps");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestLegalOps",
-            "review specific access request legal ops",
-            "review specific access request legal ops"
-        );
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -254,16 +239,13 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_cancel_task_when_grant_type_challenged_and_permissions_read_manage_own_cancel() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "reviewSpecificAccessRequestLegalOps");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestLegalOps",
-            "review specific access request legal ops",
-            "review specific access request legal ops"
-        );
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -280,16 +262,13 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_cancel_task_when_grant_type_challenged_and_permissions_read_manage_execute_cancel() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", Map.of());
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "reviewSpecificAccessRequestAdmin");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "reviewSpecificAccessRequestAdmin",
-            "review specific access request admin",
-            "review specific access request admin"
-        );
+        initiateTask(taskVariables, caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

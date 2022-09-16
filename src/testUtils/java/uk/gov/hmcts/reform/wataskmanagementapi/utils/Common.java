@@ -20,14 +20,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
 import java.io.IOException;
@@ -42,37 +40,18 @@ import java.util.stream.Stream;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
 public class Common {
 
+    public static final String DEFAULT_TASK_TYPE = "reviewTheAppeal";
+    public static final String DEFAULT_TASK_NAME = "reviewTheAppeal";
+    public static final WarningValues DEFAULT_WARNINGS = new WarningValues();
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
@@ -108,8 +87,30 @@ public class Common {
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String jurisdiction, String caseType
     ) {
         String caseId = given.iCreateACcdCase();
+        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride,  caseId, jurisdiction, caseType, DEFAULT_WARNINGS, 1);
+    }
+
+    public TestVariables setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(
+        Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String caseId, String jurisdiction, String caseType, int taskIndex) {
+        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride,  caseId, jurisdiction, caseType, DEFAULT_WARNINGS, taskIndex);
+    }
+
+    public TestVariables setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(
+        Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String caseId, String jurisdiction, String caseType, WarningValues warningValues, int taskIndex
+    ) {
+
+        String warningString = "WarningValues(values=[])";
+        try {
+            warningString = warningValues.getValuesAsJson();
+        } catch (JsonProcessingException e) {
+            fail("Fail to create warning list: " + caseId);
+        }
+
+
         Map<String, CamundaValue<?>> processVariables
-            = given.createDefaultTaskVariables(caseId, jurisdiction, caseType, Map.of());
+            = warningValues.getValues().isEmpty()
+            ? given.createDefaultTaskVariables(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME)
+            : given.createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, warningString, Map.of());
 
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables.put(
@@ -120,17 +121,19 @@ public class Common {
         List<CamundaTask> response = given
             .iCreateATaskWithCustomVariables(processVariables)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, taskIndex);
 
         if (response.isEmpty()) {
             fail("Search did not yield any results for case id: " + caseId);
         }
 
-        if (response.size() > 1) {
+        if (response.size() > taskIndex) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+        String taskType = variablesToUseAsOverride.getOrDefault(CamundaVariableDefinition.TASK_TYPE, DEFAULT_TASK_TYPE);
+
+        return new TestVariables(caseId, response.get(taskIndex - 1).getId(), response.get(taskIndex - 1).getProcessInstanceId(), taskType, DEFAULT_TASK_NAME, warningValues);
 
     }
 
@@ -142,7 +145,8 @@ public class Common {
             task.getCaseId(),
             "IA",
             "Asylum",
-            Map.of()
+            DEFAULT_TASK_TYPE,
+            DEFAULT_TASK_NAME
         );
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables
@@ -161,11 +165,11 @@ public class Common {
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
-            caseId,
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
             "IA",
             "Asylum",
-            Map.of()
+             DEFAULT_TASK_TYPE,
+                                                                                         DEFAULT_TASK_NAME
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -178,16 +182,16 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
     }
 
     public TestVariables setupWATaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value, String resourceFileName) {
         String caseId = given.iCreateWACcdCase(resourceFileName);
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
-            caseId,
-            "WA",
-            "Asylum",
-            Map.of()
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
+                                                                                         "WA",
+                                                                                         "Asylum",
+                                                                                         DEFAULT_TASK_TYPE,
+                                                                                         DEFAULT_TASK_NAME
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -200,7 +204,7 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
     }
 
 
@@ -208,11 +212,11 @@ public class Common {
         CamundaVariableDefinition key, String value
     ) {
         final String caseId = UUID.randomUUID().toString();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
-            caseId,
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
             "IA",
             "Asylum",
-            Map.of()
+                                                                                         DEFAULT_TASK_TYPE,
+                                                                                         DEFAULT_TASK_NAME
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -225,60 +229,70 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
     }
 
     public TestVariables setupTaskAndRetrieveIds() {
-
-        String caseId = given.iCreateACcdCase();
-
-        List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false, "IA", "Asylum", Map.of())
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+        return setupTaskAndRetrieveIds(DEFAULT_TASK_TYPE);
     }
 
     public TestVariables setupTaskAndRetrieveIds(String taskType) {
-
         String caseId = given.iCreateACcdCase();
-
-        List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, taskType, Map.of())
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+        return setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType, DEFAULT_TASK_NAME);
     }
 
-    public List<CamundaTask> setupTaskAndRetrieveIdsForGivenCaseId(String caseId, String taskType) {
+    public TestVariables setupTaskAndRetrieveIds(String taskType, String taskName) {
+        String caseId = given.iCreateACcdCase();
+        return setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType, taskName);
+    }
+
+    public TestVariables setupTaskAndRetrieveIdsForGivenCaseId(String caseId, String taskType) {
+        return setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType, DEFAULT_TASK_NAME);
+    }
+
+    public TestVariables setupTaskAndRetrieveIdsForGivenCaseId(String caseId, String taskType, String taskName) {
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, taskType, Map.of())
+            .iCreateATaskWithCaseId(caseId, "IA", "Asylum", taskType, taskName)
             .and()
             .iRetrieveATasksWithProcessVariableFilter("caseId", caseId, taskType);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
-        // return taskId
-        return response;
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
-    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName, Map<String, String> additionalProperties) {
+    public TestVariables setupWATaskAndRetrieveIds(CamundaVariableDefinition key, String value, String resourceFileName, String taskType) {
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        Map<String, CamundaValue<?>> processVariables =
+            given.createDefaultTaskVariables(caseId, "WA", "WaCaseType", taskType, DEFAULT_TASK_NAME);
+
+        processVariables.put(key.value(), new CamundaValue<>(value, "String"));
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
+
+    }
+
+    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName, String taskType) {
+        return setupWATaskAndRetrieveIds(resourceFileName, taskType, DEFAULT_TASK_NAME);
+    }
+
+    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName, String taskType, String taskName) {
 
         String caseId = given.iCreateWACcdCase(resourceFileName);
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType", additionalProperties)
+            .iCreateATaskWithCaseId(caseId, "WA", "WaCaseType", taskType, taskName)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -286,15 +300,31 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
     public TestVariables setupTaskWithWarningsAndRetrieveIds() {
+        return setupTaskWithWarningsAndRetrieveIds(DEFAULT_TASK_TYPE);
+    }
+
+    public TestVariables setupTaskWithWarningsAndRetrieveIds(String taskType) {
 
         String caseId = given.iCreateACcdCase();
+        WarningValues warnings = new WarningValues(
+            asList(
+                new Warning("Code1", "Text1"),
+                new Warning("Code2", "Text2")
+            ));
+
+        String warningString = "WarningValues(values=[])";
+        try {
+            warningString = warnings.getValuesAsJson();
+        } catch (JsonProcessingException e) {
+            fail("Fail to create warning list: " + caseId);
+        }
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, true, "IA", "Asylum", Map.of())
+            .iCreateATaskWithWarnings(caseId, "IA", "Asylum", taskType, DEFAULT_TASK_NAME, warningString)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -302,23 +332,21 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, DEFAULT_TASK_NAME, warnings);
     }
 
     public void cleanUpTask(String... taskId) {
         Stream.of(taskId).forEach(task -> {
             log.info("Cleaning task {}", task);
             camundaApiActions.post(ENDPOINT_COMPLETE_TASK, task,
-                                   authorizationProvider.getServiceAuthorizationHeadersOnly()
-            );
+                authorizationProvider.getServiceAuthorizationHeadersOnly());
         });
     }
 
     public void cleanUpAndValidateCftTaskState(String taskId, String reason) {
         log.info("Cleaning task {}", taskId);
         Response response = camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-                                                   authorizationProvider.getServiceAuthorizationHeadersOnly()
-        );
+            authorizationProvider.getServiceAuthorizationHeadersOnly());
 
         response.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value())
@@ -327,8 +355,7 @@ public class Common {
 
     public Response getCamundaTask(String taskId) {
         return camundaApiActions.get("/task", taskId,
-                                     authorizationProvider.getServiceAuthorizationHeadersOnly()
-        );
+            authorizationProvider.getServiceAuthorizationHeadersOnly());
     }
 
     public void clearAllRoleAssignments(Headers headers) {
@@ -377,8 +404,7 @@ public class Common {
             null,
             "2020-01-01T00:00:00Z",
             null,
-            userInfo.getUid()
-        );
+            userInfo.getUid());
     }
 
     public void setupOrganisationalRoleAssignment(Headers headers) {
@@ -422,8 +448,7 @@ public class Common {
             null,
             "2020-01-01T00:00:00Z",
             null,
-            userInfo.getUid()
-        );
+            userInfo.getUid());
     }
 
     public void setupCFTOrganisationalRoleAssignment(Headers headers, String jurisdiction, String caseType) {
@@ -1256,131 +1281,6 @@ public class Common {
         createSpecificTribunalCaseWorker(caseId, headers, userInfo, "WA", "WaCaseType");
     }
 
-    public void insertTaskInCftTaskDb(TestVariables testVariables, String taskType, Headers authenticationHeaders) {
-        String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
-            new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, taskType),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_WARNINGS, warnings),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            testVariables.getTaskId(),
-            req,
-            authenticationHeaders
-        );
-        /*
-        This workaround adjusts for a race condition which usually occurs between xx:00 and xx:15 every hour
-        where another task has been created in the database with the same id
-         */
-        if (result.getStatusCode() != HttpStatus.CREATED.value()) {
-            final String errorType = "https://github.com/hmcts/wa-task-management-api/problem/database-conflict";
-            result.then().assertThat()
-                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .body("type", equalTo(errorType));
-        }
-
-    }
-
-    public void insertTaskInCftTaskDbWithGenericAttributes(TestVariables testVariables, String taskType, Headers authenticationHeaders) {
-        String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put(TASK_TYPE.value(), taskType);
-        attributes.put(TASK_NAME.value(), "aTaskName");
-        attributes.put(CASE_ID.value(), testVariables.getCaseId());
-        attributes.put(TITLE.value(), "A test task");
-        attributes.put(CASE_CATEGORY.value(), "Protection");
-        attributes.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
-        attributes.put(HAS_WARNINGS.value(), true);
-        attributes.put(WARNING_LIST.value(), warnings);
-        attributes.put(AUTO_ASSIGNED.value(), true);
-        attributes.put(CREATED.value(), formattedCreatedDate);
-        attributes.put(DUE_DATE.value(), formattedDueDate);
-
-        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, attributes);
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_NEW_ENDPOINT_BEING_TESTED,
-            testVariables.getTaskId(),
-            req,
-            authenticationHeaders
-        );
-        /*
-        This workaround adjusts for a race condition which usually occurs between xx:00 and xx:15 every hour
-        where another task has been created in the database with the same id
-         */
-        if (result.getStatusCode() != HttpStatus.CREATED.value()) {
-            final String errorType = "https://github.com/hmcts/wa-task-management-api/problem/database-conflict";
-            result.then().assertThat()
-                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .body("type", equalTo(errorType));
-        }
-
-    }
-
-    public void insertTaskInCftTaskDbWithoutWarnings(TestVariables testVariables, String taskType,
-                                                     Headers authenticationHeaders) {
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put(TASK_TYPE.value(), taskType);
-        attributes.put(TASK_NAME.value(), "aTaskName");
-        attributes.put(CASE_ID.value(), testVariables.getCaseId());
-        attributes.put(TITLE.value(), "A test task");
-        attributes.put(CASE_CATEGORY.value(), "Protection");
-        attributes.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
-        attributes.put(HAS_WARNINGS.value(), true);
-        attributes.put(AUTO_ASSIGNED.value(), true);
-        attributes.put(CREATED.value(), formattedCreatedDate);
-        attributes.put(DUE_DATE.value(), formattedDueDate);
-
-        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, attributes);
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            testVariables.getTaskId(),
-            req,
-            authenticationHeaders
-        );
-        /*
-        This workaround adjusts for a race condition which usually occurs between xx:00 and xx:15 every hour
-        where another task has been created in the database with the same id
-         */
-        if (result.getStatusCode() != HttpStatus.CREATED.value()) {
-            final String errorType = "https://github.com/hmcts/wa-task-management-api/problem/database-conflict";
-            result.then().assertThat()
-                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .body("type", equalTo(errorType));
-        }
-    }
-
     private String toJsonString(Map<String, String> attributes) {
         String json = null;
 
@@ -1427,9 +1327,8 @@ public class Common {
                                     String assignerId) {
 
         String body = getBody(caseId, actorId, roleName, resourceFilename, attributes, grantType, roleCategory,
-                              authorisations, roleType, classification, process, reference, replaceExisting,
-                              readOnly, notes, beginTime, endTime, assignerId
-        );
+            authorisations, roleType, classification, process, reference, replaceExisting,
+            readOnly, notes, beginTime, endTime, assignerId);
 
         roleAssignmentServiceApi.createRoleAssignment(
             body,
@@ -1477,19 +1376,11 @@ public class Common {
             }
 
             caseRoleAssignments.forEach(assignment ->
-                                            roleAssignmentServiceApi.deleteRoleAssignmentById(
-                                                assignment.getId(),
-                                                userToken,
-                                                serviceToken
-                                            )
+                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
             );
 
             organisationalRoleAssignments.forEach(assignment ->
-                                                      roleAssignmentServiceApi.deleteRoleAssignmentById(
-                                                          assignment.getId(),
-                                                          userToken,
-                                                          serviceToken
-                                                      )
+                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
             );
         }
     }
@@ -1523,19 +1414,11 @@ public class Common {
                 .collect(toList());
 
             caseRoleAssignments.forEach(assignment ->
-                                            roleAssignmentServiceApi.deleteRoleAssignmentById(
-                                                assignment.getId(),
-                                                userToken,
-                                                serviceToken
-                                            )
+                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
             );
 
             organisationalRoleAssignments.forEach(assignment ->
-                                                      roleAssignmentServiceApi.deleteRoleAssignmentById(
-                                                          assignment.getId(),
-                                                          userToken,
-                                                          serviceToken
-                                                      )
+                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
             );
         }
     }
