@@ -76,7 +76,8 @@ class ConfigureTaskServiceTest {
     public static Stream<Arguments> scenarioProvider() {
         return Stream.of(
             Arguments.of(true, TASK_TO_CONFIGURE.toBuilder()
-                .taskAttributes(Map.of("taskType", "taskTypeId")).build()),
+                .taskAttributes(Map.of("taskType", "taskTypeId", "roleAssignmentId", "someRoleAssignmentId"))
+                .build()),
             Arguments.of(false, TASK_TO_CONFIGURE)
         );
     }
@@ -269,7 +270,7 @@ class ConfigureTaskServiceTest {
 
         TaskResource skeletonMappedTask = mock(TaskResource.class);
 
-        configureTaskService.configureCFTTask(skeletonMappedTask, TASK_TO_CONFIGURE);
+        configureTaskService.configureCFTTask(skeletonMappedTask, TASK_TO_CONFIGURE, "someRoleAssignmentId");
 
         verify(taskVariableExtractor).getConfigurationVariables(eq(expectedTaskToConfigure));
     }
