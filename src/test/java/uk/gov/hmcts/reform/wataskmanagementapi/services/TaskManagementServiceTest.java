@@ -962,7 +962,17 @@ class TaskManagementServiceTest extends CamundaHelpers {
                  )
             ).thenReturn(true);
 
-            RoleAssignment roleAssignment = new RoleAssignment(
+            RoleAssignment roleAssignment1 = new RoleAssignment(
+                ActorIdType.IDAM,
+                IDAM_USER_ID,
+                RoleType.CASE,
+                "judge",
+                Classification.PUBLIC,
+                GrantType.SPECIFIC,
+                RoleCategory.JUDICIAL,
+                false,
+                Map.of("workTypes", "hearing_work"));
+            RoleAssignment roleAssignment2 = new RoleAssignment(
                 ActorIdType.IDAM,
                 IDAM_USER_ID,
                 RoleType.CASE,
@@ -972,7 +982,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 RoleCategory.JUDICIAL,
                 false,
                 Map.of("workTypes", "hearing_work"));
-            List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
+            List<RoleAssignment> roleAssignmentList = asList(roleAssignment1, roleAssignment2);
 
             TaskResource taskResource = spy(TaskResource.class);
             PermissionRequirements requirements
