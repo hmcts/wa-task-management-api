@@ -11,8 +11,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
@@ -259,12 +261,11 @@ public class TaskManagementService {
             String taskState = taskResource.getState().getValue();
             taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
 
-            if (granularPermissionFeatureEnabled && !userId.equals(taskResource.getAssignee())) {
-                PermissionRequirements unassignPermissionsRequired
-                    = PermissionRequirementBuilder.builder().buildSingleType(UNASSIGN);
-                roleAssignmentVerification.verifyRoleAssignments(
-                    taskId, accessControlResponse.getRoleAssignments(), unassignPermissionsRequired
-                );
+            if (granularPermissionFeatureEnabled
+                && taskResource.getAssignee() != null && !userId.equals(taskResource.getAssignee())
+                && !checkUserHasUnassignPermission(accessControlResponse.getRoleAssignments(),
+                                               taskResource.getTaskRoleResources())) {
+                throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
             }
 
             //Lock & update Task
@@ -290,6 +291,20 @@ public class TaskManagementService {
             taskHasUnassigned = TaskState.UNASSIGNED.value().equals(taskState);
             camundaService.unclaimTask(taskId, taskHasUnassigned);
         }
+    }
+
+
+    private boolean checkUserHasUnassignPermission(List<RoleAssignment> roleAssignments,
+                                                   Set<TaskRoleResource> taskRoleResources) {
+        for (RoleAssignment roleAssignment: roleAssignments) {
+            String roleName = roleAssignment.getRoleName();
+            for (TaskRoleResource taskRoleResource: taskRoleResources) {
+                if (roleName.equals(taskRoleResource.getRoleName()) && taskRoleResource.getUnassign()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

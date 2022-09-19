@@ -24,6 +24,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluat
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
@@ -75,6 +80,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -956,19 +962,57 @@ class TaskManagementServiceTest extends CamundaHelpers {
                  )
             ).thenReturn(true);
 
+            RoleAssignment roleAssignment = new RoleAssignment(
+                ActorIdType.IDAM,
+                IDAM_USER_ID,
+                RoleType.CASE,
+                "tribunal-caseworker",
+                Classification.PUBLIC,
+                GrantType.SPECIFIC,
+                RoleCategory.JUDICIAL,
+                false,
+                Map.of("workTypes", "hearing_work"));
+            List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
+
             TaskResource taskResource = spy(TaskResource.class);
             PermissionRequirements requirements
                 = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM,UNASSIGN);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+            when(cftQueryService.getTask(taskId, roleAssignmentList, requirements))
                 .thenReturn(Optional.of(taskResource));
 
             when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
             when(taskResource.getAssignee()).thenReturn("wrongid");
 
-            PermissionRequirements unassignRequirements
-                = PermissionRequirementBuilder.builder().buildSingleType(UNASSIGN);
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), unassignRequirements))
-                .thenReturn(Optional.of(taskResource));
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                "tribunal-caseworker",
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                new String[]{"SPECIFIC", "STANDARD"},
+                0,
+                false,
+                "JUDICIAL",
+                taskId,
+                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                true,
+                false,
+                false,
+                false
+            );
+            Set<TaskRoleResource> taskRoleResources = new HashSet<>();
+            taskRoleResources.add(taskRoleResource);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
 
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
