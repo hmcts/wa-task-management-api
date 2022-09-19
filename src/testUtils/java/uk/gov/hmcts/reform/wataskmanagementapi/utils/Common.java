@@ -1283,6 +1283,45 @@ public class Common {
         createSpecificTribunalCaseWorker(caseId, headers, userInfo, "WA", "WaCaseType");
     }
 
+    public void setupCFTCtscRoleAssignmentForWA(Headers headers) {
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        createCaseAllocator(userInfo, headers, "WA");
+        createCtscCaseworker(userInfo, headers, "WA", "WaCaseType");
+    }
+
+    private void createCtscCaseworker(UserInfo userInfo, Headers headers,
+                                      String jurisdiction, String caseType) {
+        log.info("Creating CTSC caseworker organizational Role");
+
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "ctsc",
+            toJsonString(Map.of(
+                "primaryLocation", "765324",
+                "caseType", caseType,
+                "jurisdiction", jurisdiction
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.ADMIN.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
     private String toJsonString(Map<String, String> attributes) {
         String json = null;
 
