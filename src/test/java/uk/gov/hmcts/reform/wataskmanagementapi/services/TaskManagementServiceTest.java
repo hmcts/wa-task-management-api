@@ -1024,6 +1024,91 @@ class TaskManagementServiceTest extends CamundaHelpers {
             verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
         }
 
+        @Test
+        void unclaimTask_throw_403_when_task_assignee_differs_from_user_and_no_unassign_gp_flag_on() {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                GRANULAR_PERMISSION_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            RoleAssignment roleAssignment = new RoleAssignment(
+                ActorIdType.IDAM,
+                IDAM_USER_ID,
+                RoleType.CASE,
+                "tribunal-caseworker",
+                Classification.PUBLIC,
+                GrantType.SPECIFIC,
+                RoleCategory.JUDICIAL,
+                false,
+                Map.of("workTypes", "hearing_work"));
+            List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
+
+            TaskResource taskResource = spy(TaskResource.class);
+            PermissionRequirements requirements
+                = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM,UNASSIGN);
+            when(cftQueryService.getTask(taskId, roleAssignmentList, requirements))
+                .thenReturn(Optional.of(taskResource));
+
+            when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+            when(taskResource.getAssignee()).thenReturn("wrongid");
+
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                "tribunal-caseworker",
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                new String[]{"SPECIFIC", "STANDARD"},
+                0,
+                false,
+                "JUDICIAL",
+                taskId,
+                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+            );
+            Set<TaskRoleResource> taskRoleResources = new HashSet<>();
+            taskRoleResources.add(taskRoleResource);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
+
+            assertThatThrownBy(() -> taskManagementService.unclaimTask(
+                taskId,
+                accessControlResponse
+            ))
+                .isInstanceOf(RoleAssignmentVerificationException.class)
+                .hasNoCause()
+                .hasMessage("Role Assignment Verification: "
+                                + "The request failed the Role Assignment checks performed.");
+
+            verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
+        }
+
     }
 
     @Nested
