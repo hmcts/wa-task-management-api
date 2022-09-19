@@ -905,6 +905,48 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
+        void unclaimTask_should_succeed_assignee_null_gp_flag_on() {
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                GRANULAR_PERMISSION_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+                .thenReturn(Optional.of(taskResource));
+
+            when(taskResource.getAssignee()).thenReturn(null);
+            when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            boolean taskHasUnassigned = taskResource
+                .getState().getValue()
+                .equals(CFTTaskState.UNASSIGNED.getValue());
+            taskManagementService.unclaimTask(taskId, accessControlResponse);
+
+            verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
+        }
+
+        @Test
         void unclaimTask_succeed_when_task_assignee_differs_from_user_and_role_is_senior_tribunal_caseworker() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
