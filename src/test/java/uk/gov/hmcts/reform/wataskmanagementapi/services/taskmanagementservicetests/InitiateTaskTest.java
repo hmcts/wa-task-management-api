@@ -169,7 +169,8 @@ class InitiateTaskTest extends CamundaHelpers {
                 A_TASK_TYPE,
                 CASE_ID,
                 A_TASK_NAME
-            )))
+            ))),
+            any()
         );
 
 
@@ -213,7 +214,8 @@ class InitiateTaskTest extends CamundaHelpers {
                 A_TASK_TYPE,
                 CASE_ID,
                 A_TASK_NAME
-            )))
+            ))),
+            any()
         );
 
 
@@ -243,7 +245,7 @@ class InitiateTaskTest extends CamundaHelpers {
             "someUserId"
         );
 
-        when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
+        when(configureTaskService.configureCFTTask(any(), any(), any())).thenReturn(taskWithAssignee);
         when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(true);
 
         when(cftTaskMapper.readDate(any(), any(), any())).thenCallRealMethod();
@@ -259,7 +261,8 @@ class InitiateTaskTest extends CamundaHelpers {
                 A_TASK_TYPE,
                 CASE_ID,
                 A_TASK_NAME
-            )))
+            ))),
+            any()
         );
 
         verify(camundaService).updateCftTaskState(
@@ -296,7 +299,7 @@ class InitiateTaskTest extends CamundaHelpers {
             "anotherUserId"
         );
 
-        when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
+        when(configureTaskService.configureCFTTask(any(), any(), any())).thenReturn(taskWithAssignee);
         when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(false);
 
         when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(taskReassigned);
@@ -313,7 +316,8 @@ class InitiateTaskTest extends CamundaHelpers {
                 A_TASK_TYPE,
                 CASE_ID,
                 A_TASK_NAME
-            )))
+            ))),
+            any()
         );
 
         verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
@@ -372,7 +376,8 @@ class InitiateTaskTest extends CamundaHelpers {
         when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
             .thenReturn(taskResource);
 
-        lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
+        lenient()
+            .when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class), any()))
             .thenReturn(taskResource);
 
         lenient().when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(taskResource);

@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -65,12 +66,10 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
 
     @Test
     public void should_return_a_204_when_assigning_a_task_by_id() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -93,12 +92,10 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
     @Test
     public void should_return_a_204_when_assigning_a_task_by_id_with_restricted_role_assignment() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -120,11 +117,9 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
-        );
+        initiateTask(taskVariables, Jurisdiction.IA);
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,

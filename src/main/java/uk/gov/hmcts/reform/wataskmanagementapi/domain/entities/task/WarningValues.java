@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -47,5 +48,10 @@ public class WarningValues {
 
     public List<Warning> getValues() {
         return values;
+    }
+
+    @JsonIgnore
+    public String getValuesAsJson() throws JsonProcessingException {
+        return new ObjectMapper().writeValueAsString(values);
     }
 }

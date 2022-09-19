@@ -61,7 +61,7 @@ public class ExclusiveTaskActionsController extends BaseController {
     public ResponseEntity<TaskResource> initiate(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @PathVariable(TASK_ID) String taskId,
                                                  @RequestBody InitiateTaskRequest initiateTaskRequest) {
-        log.debug("Initiate task(id={}) with attributes: {} ", taskId, initiateTaskRequest.getTaskAttributes());
+        log.info("Initiate task(id={}) with attributes: {} ", taskId, initiateTaskRequest.getTaskAttributes());
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
