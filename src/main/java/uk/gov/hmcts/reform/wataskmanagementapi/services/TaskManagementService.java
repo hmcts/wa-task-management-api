@@ -299,7 +299,8 @@ public class TaskManagementService {
         for (RoleAssignment roleAssignment: roleAssignments) {
             String roleName = roleAssignment.getRoleName();
             for (TaskRoleResource taskRoleResource: taskRoleResources) {
-                if (roleName.equals(taskRoleResource.getRoleName()) && Boolean.TRUE.equals(taskRoleResource.getUnassign())) {
+                if (roleName.equals(taskRoleResource.getRoleName())
+                    && Boolean.TRUE.equals(taskRoleResource.getUnassign())) {
                     return true;
                 }
             }
