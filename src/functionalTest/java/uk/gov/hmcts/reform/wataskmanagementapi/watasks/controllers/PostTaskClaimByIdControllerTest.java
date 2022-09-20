@@ -21,6 +21,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     private TestAuthenticationCredentials caseworkerCredentials;
     private TestAuthenticationCredentials currentCaseworkerCredentials;
     private TestAuthenticationCredentials caseworkerForReadCredentials;
+    private TestAuthenticationCredentials granularPermissionCaseworkerCredentials;
     private GrantType testGrantType = GrantType.SPECIFIC;
 
     @Before
@@ -28,6 +29,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         currentCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2");
         caseworkerForReadCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2");
+        granularPermissionCaseworkerCredentials = authorizationProvider
+            .getNewTribunalCaseworker("wa-granular-permission-");
     }
 
     @After
@@ -35,15 +38,18 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         if (testGrantType == GrantType.CHALLENGED) {
             common.clearAllRoleAssignmentsForChallenged(caseworkerCredentials.getHeaders());
             common.clearAllRoleAssignmentsForChallenged(currentCaseworkerCredentials.getHeaders());
+            common.clearAllRoleAssignmentsForChallenged(granularPermissionCaseworkerCredentials.getHeaders());
         } else {
             common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
             common.clearAllRoleAssignments(currentCaseworkerCredentials.getHeaders());
+            common.clearAllRoleAssignments(granularPermissionCaseworkerCredentials.getHeaders());
         }
         common.clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
 
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(currentCaseworkerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(caseworkerForReadCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(granularPermissionCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -614,6 +620,59 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void user_should_claim_task_when_granular_permission_satisfied() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
+        String taskId = taskVariables.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCaseworkerCredentials.getHeaders());
+
+        initiateTask(taskVariables, Jurisdiction.WA);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            granularPermissionCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.cleanUpTask(taskId);
+    }
+
+
+    @Test
+    public void user_should_not_claim_a_task_when_granular_permission_not_satisfied() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
+        String taskId = taskVariables.getTaskId();
+
+        common.setupStandardCaseManager(granularPermissionCaseworkerCredentials.getHeaders(),
+                                                 taskVariables.getCaseId(), "WA", "WaCaseType");
+
+        initiateTask(taskVariables, Jurisdiction.WA);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            granularPermissionCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .and()
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
     }
