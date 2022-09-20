@@ -140,15 +140,15 @@ class NewInitiateTaskTest extends CamundaHelpers {
         Map<String, Object> taskAttributes = new HashMap<>();
         taskAttributes.put(TASK_TYPE.value(), A_TASK_TYPE);
         taskAttributes.put(TASK_NAME.value(), A_TASK_NAME);
+
         initiateTaskRequest = new InitiateTaskRequestMap(INITIATION, taskAttributes);
     }
 
     @Test
     void given_initiateTask_then_task_is_saved() {
-        ZonedDateTime dueDate = ZonedDateTime.now();
+        OffsetDateTime dueDate = OffsetDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
-        mockInitiateTaskDependencies();
 
         TaskResource unassignedTaskResource = new TaskResource(
             taskId,
@@ -157,8 +157,11 @@ class NewInitiateTaskTest extends CamundaHelpers {
             UNASSIGNED,
             CASE_ID
         );
+        unassignedTaskResource.setDueDateTime(dueDate);
 
+        mockInitiateTaskDependencies(unassignedTaskResource);
         when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
+
         lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
         taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
@@ -171,7 +174,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
                 A_TASK_TYPE,
                 CASE_ID,
                 A_TASK_NAME,
-                getTaskAttributesWithDueDateUpdate(formattedDueDate)
+                getTaskAttributesWithDueDateUpdate(dueDate)
             )))
         );
 
@@ -188,10 +191,9 @@ class NewInitiateTaskTest extends CamundaHelpers {
 
     @Test
     void given_initiateTask_with_previous_valid_assignee_should_keep_assignee() {
-        ZonedDateTime dueDate = ZonedDateTime.now();
+        OffsetDateTime dueDate = OffsetDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
-        mockInitiateTaskDependencies();
 
         TaskResource taskWithAssignee = new TaskResource(
             taskId,
@@ -202,10 +204,16 @@ class NewInitiateTaskTest extends CamundaHelpers {
             "someUserId"
         );
 
+        taskWithAssignee.setDueDateTime(dueDate);
+        mockInitiateTaskDependencies(taskWithAssignee);
+
         when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
         when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(true);
 
-        lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
+        when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
+
+        when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
+            .thenReturn(taskWithAssignee);
 
         TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
@@ -218,7 +226,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
                 A_TASK_TYPE,
                 CASE_ID,
                 A_TASK_NAME,
-                getTaskAttributesWithDueDateUpdate(formattedDueDate)
+                getTaskAttributesWithDueDateUpdate(dueDate)
             )))
         );
 
@@ -231,18 +239,17 @@ class NewInitiateTaskTest extends CamundaHelpers {
     }
 
     @NotNull
-    private Map<String, Object> getTaskAttributesWithDueDateUpdate(String formattedDueDate) {
+    private Map<String, Object> getTaskAttributesWithDueDateUpdate(OffsetDateTime dueDate) {
         Map<String, Object> taskAttributes = new HashMap<>(initiateTaskRequest.getTaskAttributes());
-        taskAttributes.put(DUE_DATE.value(), OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER));
+        taskAttributes.put(DUE_DATE.value(), dueDate);
         return taskAttributes;
     }
 
     @Test
     void given_initiateTask_with_previous_invalid_assignee_should_reassign() {
-        ZonedDateTime dueDate = ZonedDateTime.now();
+        OffsetDateTime dueDate = OffsetDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
-        mockInitiateTaskDependencies();
 
         TaskResource taskWithAssignee = new TaskResource(
             taskId,
@@ -252,6 +259,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
             CASE_ID,
             "someUserId"
         );
+        mockInitiateTaskDependencies(taskWithAssignee);
 
 
         TaskResource taskReassigned = new TaskResource(
@@ -262,6 +270,8 @@ class NewInitiateTaskTest extends CamundaHelpers {
             CASE_ID,
             "anotherUserId"
         );
+        taskWithAssignee.setDueDateTime(dueDate);
+        taskReassigned.setDueDateTime(dueDate);
 
         when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
         when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(false);
@@ -274,7 +284,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
-        Map<String, Object> taskAttributes = getTaskAttributesWithDueDateUpdate(formattedDueDate);
+        Map<String, Object> taskAttributes = getTaskAttributesWithDueDateUpdate(dueDate);
         verify(configureTaskService).configureCFTTask(
             eq(taskResource),
             ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
@@ -332,16 +342,16 @@ class NewInitiateTaskTest extends CamundaHelpers {
         assertEquals(A_TASK_NAME, taskAttributes.get(TASK_NAME.value()));
     }
 
-    private void mockInitiateTaskDependencies() {
+    private void mockInitiateTaskDependencies(TaskResource expected) {
         when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
-            .thenReturn(taskResource);
+            .thenReturn(expected);
 
         lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
-            .thenReturn(taskResource);
+            .thenReturn(expected);
 
-        lenient().when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(taskResource);
+        lenient().when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(expected);
 
-        lenient().when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(taskResource);
+        lenient().when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(expected);
     }
 }
 

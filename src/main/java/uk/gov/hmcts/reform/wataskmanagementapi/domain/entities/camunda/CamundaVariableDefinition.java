@@ -52,7 +52,8 @@ public enum CamundaVariableDefinition {
     NEXT_HEARING_DATE("nextHearingDate", new TypeReference<String>() {}),
     MINOR_PRIORITY("minorPriority", new TypeReference<Integer>() {}),
     MAJOR_PRIORITY("majorPriority", new TypeReference<Integer>() {}),
-    PRIORITY_DATE("priorityDate", new TypeReference<String>() {});
+    PRIORITY_DATE("priorityDate", new TypeReference<String>() {}),
+    ROLE_ASSIGNMENT_ID("roleAssignmentId", new TypeReference<String>() {}),;
 
 
     private final String value;

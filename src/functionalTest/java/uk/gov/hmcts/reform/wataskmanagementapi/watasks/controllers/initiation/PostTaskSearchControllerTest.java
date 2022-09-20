@@ -6,12 +6,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootTasksMapTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
@@ -34,8 +32,12 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.*;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.*;
+import static org.hamcrest.Matchers.in;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskSearchControllerTest extends SpringBootTasksMapTest {
@@ -162,8 +164,7 @@ public class PostTaskSearchControllerTest extends SpringBootTasksMapTest {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            CamundaVariableDefinition.ADDITIONAL_PROPERTIES,
-            additionalProperties.toString(),
+                additionalProperties.toString(),
             "requests/ccd/wa_case_data.json",
             "reviewSpecificAccessRequestLegalOps"
         );
@@ -171,8 +172,7 @@ public class PostTaskSearchControllerTest extends SpringBootTasksMapTest {
         initiateTaskMap(taskVariables, Jurisdiction.WA, additionalProperties);
 
         taskVariables = common.setupWATaskAndRetrieveIds(
-            CamundaVariableDefinition.ADDITIONAL_PROPERTIES,
-            additionalProperties.toString(),
+                additionalProperties.toString(),
             "requests/ccd/wa_case_data.json",
             "reviewSpecificAccessRequestLegalOps"
         );

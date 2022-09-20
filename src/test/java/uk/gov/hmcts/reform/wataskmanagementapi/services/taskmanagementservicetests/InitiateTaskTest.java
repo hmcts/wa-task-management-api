@@ -81,13 +81,7 @@ class InitiateTaskTest extends CamundaHelpers {
     @Mock
     CftQueryService cftQueryService;
     @Spy
-    CFTTaskMapper cftTaskMapper;
-
-    {
-        ObjectMapper objectMapper = new ObjectMapper();
-        cftTaskMapper = new CFTTaskMapper(objectMapper);
-    }
-
+    CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
     @Mock
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
@@ -371,7 +365,7 @@ class InitiateTaskTest extends CamundaHelpers {
             .isInstanceOf(DatabaseConflictException.class)
             .hasNoCause()
             .hasMessage("Database Conflict Error: "
-                            + "The action could not be completed because there was a conflict in the database.");
+                        + "The action could not be completed because there was a conflict in the database.");
     }
 
     @Test

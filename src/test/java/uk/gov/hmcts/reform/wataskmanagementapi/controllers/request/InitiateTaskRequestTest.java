@@ -11,7 +11,8 @@ class InitiateTaskRequestTest {
 
     @Test
     void isWellImplemented() {
-        final List<Class<?>> classUnderTests = List.of(InitiateTaskRequestAttributes.class, InitiateTaskRequestMap.class);
+        final List<Class<?>> classUnderTests = List.of(InitiateTaskRequestAttributes.class,
+                                                       InitiateTaskRequestMap.class);
 
         classUnderTests
             .forEach(aClass -> assertPojoMethodsFor(aClass)

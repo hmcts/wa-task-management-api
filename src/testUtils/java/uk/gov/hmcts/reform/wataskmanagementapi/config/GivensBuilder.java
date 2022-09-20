@@ -73,7 +73,7 @@ public class GivensBuilder {
     public GivensBuilder iCreateATaskWithCaseId(String caseId, String jurisdiction, String caseType,
                                                 String taskType, String taskName) {
         Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(caseId, jurisdiction, caseType,
-                                                                                   taskType, taskName
+                                                                                   taskType, taskName, Map.of()
         );
         createTask(processVariables);
         return this;
@@ -200,30 +200,30 @@ public class GivensBuilder {
         String jurisdiction,
         String caseTypeId,
         String taskType,
-        String taskName) {
+        String taskName,
+        Map<String, String> additionalProperties) {
 
-        return createTaskVariables(
-            caseId,
-            jurisdiction,
-            caseTypeId,
-            "1",
-            "765324",
-            "Taylor House",
-            "Taylor House",
-            "PUBLIC",
-            taskName,
-            taskType,
-            taskType,
-            "Case Progression",
-            "unconfigured",
-            now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER),
-            now().format(CAMUNDA_DATA_TIME_FORMATTER),
-            "2",
-            false,
-            (new WarningValues()).toString(),
-            "Protection",
-            "aDescription",
-            Map.of()
+        return createTaskVariables(caseId,
+                                   jurisdiction,
+                                   caseTypeId,
+                                   "1",
+                                   "765324",
+                                   "Taylor House",
+                                   "Taylor House",
+                                   "PUBLIC",
+                                   taskName,
+                                   taskType,
+                                   taskType,
+                                   "Case Progression",
+                                   "unconfigured",
+                                   now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER),
+                                   now().format(CAMUNDA_DATA_TIME_FORMATTER),
+                                   "2",
+                                   false,
+                                   (new WarningValues()).toString(),
+                                   "Protection",
+                                   "aDescription",
+                                   additionalProperties
         );
     }
 
@@ -236,28 +236,27 @@ public class GivensBuilder {
         String warnings,
         Map<String, String> additionalProperties
     ) {
-        return createTaskVariables(
-            caseId,
-            jurisdiction,
-            caseTypeId,
-            "1",
-            "765324",
-            "Taylor House",
-            "Taylor House",
-            "PUBLIC",
-            taskName,
-            taskType,
-            taskType,
-            "Case Progression",
-            "unconfigured",
-            now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER),
-            now().format(CAMUNDA_DATA_TIME_FORMATTER),
-            "2",
-            true,
-            warnings,
-            "Protection",
-            "aDescription",
-            additionalProperties
+        return createTaskVariables(caseId,
+                                   jurisdiction,
+                                   caseTypeId,
+                                   "1",
+                                   "765324",
+                                   "Taylor House",
+                                   "Taylor House",
+                                   "PUBLIC",
+                                   taskName,
+                                   taskType,
+                                   taskType,
+                                   "Case Progression",
+                                   "unconfigured",
+                                   now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER),
+                                   now().format(CAMUNDA_DATA_TIME_FORMATTER),
+                                   "2",
+                                   true,
+                                   warnings,
+                                   "Protection",
+                                   "aDescription",
+                                   additionalProperties
         );
     }
 
@@ -282,8 +281,7 @@ public class GivensBuilder {
         String warningList,
         String caseManagementCategory,
         String description,
-        Map<String, String> additionalProperties
-    ) {
+        Map<String, String> additionalProperties) {
         var processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
             .withProcessVariable("jurisdiction", jurisdiction)

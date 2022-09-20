@@ -9,12 +9,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootTasksMapTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.List;
@@ -24,7 +22,10 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToObject;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
@@ -136,8 +137,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootTasksMa
             "key8", "value8"
         );
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(CamundaVariableDefinition.ADDITIONAL_PROPERTIES,
-                                                                       additionalProperties.toString(),
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(additionalProperties,
                                                                        "requests/ccd/wa_case_data.json",
                                                                        "reviewSpecificAccessRequestLegalOps");
         initiateTaskMap(taskVariables, Jurisdiction.WA, additionalProperties);

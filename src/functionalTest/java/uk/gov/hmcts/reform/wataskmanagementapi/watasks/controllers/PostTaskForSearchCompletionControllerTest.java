@@ -6,14 +6,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.List;
@@ -122,7 +120,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    @Ignore("RWA-1447 will fix this test")
     public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
 
         String roleAssignmentId = UUID.randomUUID().toString();
@@ -138,10 +135,11 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             "key8", "value8"
         );
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(CamundaVariableDefinition.ADDITIONAL_PROPERTIES,
-                                                                       additionalProperties.toString(),
-                                                                       "requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            additionalProperties,
+            "requests/ccd/wa_case_data.json",
+            "reviewSpecificAccessRequestLegalOps"
+        );
         initiateTaskAttributes(taskVariables, Jurisdiction.WA, additionalProperties);
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(),

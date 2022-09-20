@@ -133,10 +133,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TER
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_ASSIGNMENT_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_ASSIGNMENT_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 
 @ExtendWith(MockitoExtension.class)
@@ -145,6 +147,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
+    public static final String SOME_ROLE_ASSIGNMENT_ID = "someRoleAssignmentId";
 
     @Mock
     CamundaService camundaService;
@@ -2867,9 +2870,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
         private final InitiateTaskRequestAttributes initiateTaskRequest = new InitiateTaskRequestAttributes(
             INITIATION,
             asList(
-                new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, A_TASK_TYPE),
-                new TaskAttribute(TaskAttributeDefinition.TASK_NAME, A_TASK_NAME),
-                new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+                new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
+                new TaskAttribute(TASK_NAME, A_TASK_NAME),
+                new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
+                new TaskAttribute(TASK_ROLE_ASSIGNMENT_ID, SOME_ROLE_ASSIGNMENT_ID)
             )
         );
         @Mock
@@ -2914,16 +2918,36 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
         @Test
         void given_initiateTask_task_is_initiated() {
-            mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED);
+            mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED, initiateTaskRequest);
 
             taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
-            verifyExpectations(CFTTaskState.UNASSIGNED);
+            verifyExpectations(CFTTaskState.UNASSIGNED, initiateTaskRequest);
         }
 
-        private void verifyExpectations(CFTTaskState cftTaskState) {
-            verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
-            verify(cftTaskMapper, atLeastOnce()).getTaskAttributes(taskResource);
+        @Test
+        void given_initiateTask_without_role_assignment_then_task_is_initiated() {
+            InitiateTaskRequestAttributes initiateRequest = new InitiateTaskRequestAttributes(
+                INITIATION,
+                asList(
+                    new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
+                    new TaskAttribute(TASK_NAME, A_TASK_NAME),
+                    new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+                )
+            );
+            mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED, initiateRequest);
+            taskManagementService.initiateTask(taskId, initiateRequest);
+
+            verifyExpectations(CFTTaskState.UNASSIGNED, initiateRequest);
+        }
+
+        private void verifyExpectations(CFTTaskState cftTaskState, InitiateTaskRequestAttributes initiateRequest) {
+            verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateRequest.getTaskAttributes());
+            Map<String, Object> taskAttributes = new HashMap<>();
+
+            if (initiateRequest.getTaskAttributes().stream().anyMatch(t -> t.getName() == TASK_ROLE_ASSIGNMENT_ID)) {
+                taskAttributes.put("roleAssignmentId", SOME_ROLE_ASSIGNMENT_ID);
+            }
 
             verify(configureTaskService).configureCFTTask(
                 eq(taskResource),
@@ -2950,9 +2974,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
             verify(cftTaskDatabaseService).saveTask(taskResource);
         }
 
-        private void mockInitiateTaskDependencies(CFTTaskState cftTaskState) {
+        private void mockInitiateTaskDependencies(CFTTaskState cftTaskState,
+                                                  InitiateTaskRequestAttributes initiateRequest) {
             when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
-            when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
+
+            when(cftTaskMapper.mapToTaskResource(taskId, initiateRequest.getTaskAttributes()))
                 .thenReturn(taskResource);
 
             when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
@@ -2983,7 +3009,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             Map.of(
                 TASK_TYPE.value(), A_TASK_TYPE,
                 TASK_NAME.value(), A_TASK_NAME,
-                DUE_DATE.value(), formattedDueDate
+                DUE_DATE.value(), formattedDueDate,
+                ROLE_ASSIGNMENT_ID.value(), SOME_ROLE_ASSIGNMENT_ID
             )
         );
         @Mock
@@ -3068,12 +3095,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
             when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
                 .thenReturn(taskResource);
+            OffsetDateTime offsetDueDate = OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER);
 
             when(taskResource.getTaskType()).thenReturn(A_TASK_TYPE);
             when(taskResource.getTaskId()).thenReturn(taskId);
             when(taskResource.getCaseId()).thenReturn("aCaseId");
             when(taskResource.getTaskName()).thenReturn(A_TASK_NAME);
             when(taskResource.getState()).thenReturn(cftTaskState);
+            when(taskResource.getDueDateTime()).thenReturn(offsetDueDate);
 
             lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
                 .thenReturn(taskResource);
