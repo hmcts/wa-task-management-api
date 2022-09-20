@@ -146,7 +146,6 @@ public class PostTaskSearchControllerTest extends SpringBootTasksMapTest {
     }
 
     @Test
-    @Ignore("RWA-1447 will fix this test")
     public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
         String roleAssignmentId = UUID.randomUUID().toString();
@@ -164,7 +163,7 @@ public class PostTaskSearchControllerTest extends SpringBootTasksMapTest {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-                additionalProperties.toString(),
+                additionalProperties,
             "requests/ccd/wa_case_data.json",
             "reviewSpecificAccessRequestLegalOps"
         );
@@ -172,7 +171,7 @@ public class PostTaskSearchControllerTest extends SpringBootTasksMapTest {
         initiateTaskMap(taskVariables, Jurisdiction.WA, additionalProperties);
 
         taskVariables = common.setupWATaskAndRetrieveIds(
-                additionalProperties.toString(),
+                additionalProperties,
             "requests/ccd/wa_case_data.json",
             "reviewSpecificAccessRequestLegalOps"
         );

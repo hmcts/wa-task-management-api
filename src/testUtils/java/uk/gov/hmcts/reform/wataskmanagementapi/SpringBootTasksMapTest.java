@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdictio
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -150,7 +151,7 @@ public abstract class SpringBootTasksMapTest extends SpringBootFunctionalBaseTes
         taskAttributes.put(HAS_WARNINGS.value(), hasWarnings);
         taskAttributes.put(WARNING_LIST.value(), testVariables.getWarnings());
 
-        taskAttributes.putAll(additionalProperties);
+        Optional.ofNullable(additionalProperties).ifPresent(taskAttributes::putAll);
 
         InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(
             INITIATION,

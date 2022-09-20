@@ -121,7 +121,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootTasksMa
     }
 
     @Test
-    @Ignore("RWA-1447 will fix this test")
     public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
 
         String roleAssignmentId = UUID.randomUUID().toString();

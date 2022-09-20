@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -187,9 +188,9 @@ public abstract class SpringBootFunctionalBaseTest {
                         .body("[0].name", is(taskName));
 
                     response.set(camundaGetTaskResult
-                                     .then()
-                                     .extract()
-                                     .path("[0].id"));
+                        .then()
+                        .extract()
+                        .path("[0].id"));
                     return true;
                 });
         return response;
@@ -286,38 +287,6 @@ public abstract class SpringBootFunctionalBaseTest {
         assertConsumer.accept(response);
     }
 
-    private void initiateTaskMap(TestVariables testVariables,
-                                 Headers headers,
-                                 Map<String, String> additionalProperties,
-                                 Consumer<Response> assertConsumer) {
-        log.info("Task initiate with cron job {}", initiationJobRunning);
-        if (initiationJobRunning) {
-            await()
-                .pollInterval(10, SECONDS)
-                .atMost(120, SECONDS)
-                .until(
-                    () -> {
-                        Response response = restApiActions.get(
-                            TASK_GET_ENDPOINT,
-                            testVariables.getTaskId(),
-                            headers
-                        );
-
-                        return HttpStatus.OK.value() == response.getStatusCode();
-                    }
-                );
-        } else {
-            sendInitiateRequestMap(testVariables, additionalProperties);
-        }
-
-        Response response = restApiActions.get(
-            TASK_GET_ENDPOINT,
-            testVariables.getTaskId(),
-            headers
-        );
-        assertConsumer.accept(response);
-    }
-
     private Consumer<Response> defaultInitiationAssert(TestVariables testVariables) {
         return (result) -> {
             result.then().assertThat()
@@ -331,12 +300,9 @@ public abstract class SpringBootFunctionalBaseTest {
 
     private Headers getAuthHeadersForJurisdiction(Jurisdiction jurisdiction) {
         switch (jurisdiction) {
-            case IA:
-                return iaCaseworkerCredentials.getHeaders();
-            case WA:
-                return waCaseworkerCredentials.getHeaders();
-            default:
-                return null;
+            case IA: return iaCaseworkerCredentials.getHeaders();
+            case WA: return waCaseworkerCredentials.getHeaders();
+            default: return null;
         }
     }
 
@@ -360,45 +326,7 @@ public abstract class SpringBootFunctionalBaseTest {
             taskAttributes.add(new TaskAttribute(TASK_ADDITIONAL_PROPERTIES, additionalProperties));
         }
 
-        InitiateTaskRequestAttributes initiateTaskRequest = new InitiateTaskRequestAttributes(
-            INITIATION,
-            taskAttributes
-        );
-
-        Response response = restApiActions.post(
-            TASK_INITIATION_ENDPOINT,
-            testVariables.getTaskId(),
-            initiateTaskRequest,
-            authorizationProvider.getServiceAuthorizationHeadersOnly()
-        );
-
-        response.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
-    }
-
-    private void sendInitiateRequestMap(TestVariables testVariables, Map<String, String> additionalProperties) {
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        boolean hasWarnings = !testVariables.getWarnings().getValues().isEmpty();
-
-        Map<String, Object> taskAttributes = new HashMap<>();
-        taskAttributes.put(CamundaVariableDefinition.TASK_TYPE.value(), testVariables.getTaskType());
-        taskAttributes.put(CamundaVariableDefinition.TASK_NAME.value(), testVariables.getTaskName());
-        taskAttributes.put(CASE_ID.value(), testVariables.getCaseId());
-        taskAttributes.put(CREATED.value(), formattedCreatedDate);
-        taskAttributes.put(DUE_DATE.value(), formattedDueDate);
-        taskAttributes.put(SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
-        taskAttributes.put(HAS_WARNINGS.value(), hasWarnings);
-        taskAttributes.put(WARNING_LIST.value(), testVariables.getWarnings());
-
-        taskAttributes.putAll(additionalProperties);
-
-        InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(
-            INITIATION,
-            taskAttributes
-        );
+        InitiateTaskRequestAttributes initiateTaskRequest = new InitiateTaskRequestAttributes(INITIATION, taskAttributes);
 
         Response response = restApiActions.post(
             TASK_INITIATION_ENDPOINT,

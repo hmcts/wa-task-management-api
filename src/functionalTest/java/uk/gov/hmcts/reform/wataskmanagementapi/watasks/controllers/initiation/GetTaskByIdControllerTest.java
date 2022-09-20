@@ -313,7 +313,6 @@ public class GetTaskByIdControllerTest extends SpringBootTasksMapTest {
     }
 
     @Test
-    @Ignore("RWA-1447 will fix this test")
     public void should_replace_additional_properties_in_configuration_dmn_and_return_task_with_sent_properties() {
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
@@ -329,7 +328,7 @@ public class GetTaskByIdControllerTest extends SpringBootTasksMapTest {
         );
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-                additionalProperties.toString(),
+                additionalProperties,
                                                                        "requests/ccd/wa_case_data.json",
                                                                        "reviewSpecificAccessRequestJudiciary");
         String taskId = taskVariables.getTaskId();
