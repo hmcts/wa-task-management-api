@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -31,6 +32,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -41,6 +44,7 @@ public class ServiceMocks {
     public static final String SECONDARY_IDAM_USER_ID = "SECONDARY_IDAM_USER_ID";
     public static final String SECONDARY_IDAM_USER_EMAIL = "wa-ft-test@test.com";
     public static final String IDAM_AUTHORIZATION_TOKEN = "Bearer IDAM_AUTH_TOKEN";
+    public static final String IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION = "Bearer IDAM_AUTH_TOKEN_FOR_EXCEPTION";
     public static final String SERVICE_AUTHORIZATION_TOKEN = "Bearer SERVICE_AUTHORIZATION_TOKEN";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -106,6 +110,11 @@ public class ServiceMocks {
         UserInfo mockedUserInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(SECONDARY_IDAM_USER_EMAIL).build();
         when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
         return mockedUserInfo;
+    }
+
+    public void throwFeignExceptionForIdam() throws FeignException.FeignServerException {
+        lenient().when(idamWebApi.userInfo(eq(IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION)))
+            .thenThrow(FeignException.FeignServerException.class);
     }
 
     public void mockVariables() {
