@@ -263,7 +263,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(5000));
         };
 
-        initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
+        initiateTaskAttributes(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
