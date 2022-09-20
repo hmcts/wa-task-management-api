@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -10,9 +11,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticatio
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
@@ -80,7 +83,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "key4", "value4"
                 ))).body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"));
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
         };
 
         initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
@@ -136,7 +139,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "roleAssignmentId", "roleAssignmentId")))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"));
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
         };
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
@@ -153,7 +156,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_priorty_date_when_initiating_a_task_without_hearing_date() {
         TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
+                = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
                                                "processApplication",
                                                "process Application");
         String taskId = taskVariables.getTaskId();
@@ -164,13 +167,14 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             result.prettyPrint();
 
             //TODO: uncomment this once priority_date format is fixed in RWA-1779 ticket
-            //ZonedDateTime dueDate = ZonedDateTime.parse(result.jsonPath().get("task.due_date"),
-            //                                            ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
-            //String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+            ZonedDateTime dueDate = ZonedDateTime.parse(result.jsonPath().get("task.due_date"),
+                                                        ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
+            String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-            //OffsetDateTime priorityDate = OffsetDateTime.parse(result.jsonPath().get("task.priority_date"));
-            //String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
-            //Assert.assertEquals(formattedDueDate, formattedPriorityDate);
+            ZonedDateTime priorityDate = ZonedDateTime.parse(result.jsonPath().get("task.priority_date"),
+                                                              ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
+            String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
+            Assert.assertEquals(formattedDueDate, formattedPriorityDate);
 
             result.then().assertThat()
                 .statusCode(HttpStatus.OK.value())
