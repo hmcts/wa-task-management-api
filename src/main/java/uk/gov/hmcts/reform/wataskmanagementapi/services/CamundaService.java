@@ -23,9 +23,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteT
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAlreadyClaimedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
@@ -429,10 +429,11 @@ public class CamundaService {
         try {
             return camundaServiceApi.getVariables(authTokenGenerator.generate(), id);
         } catch (FeignException ex) {
+            log.error("There was a problem fetching the variables for task with id: {} \n{}", id, ex.getMessage());
             throw new ResourceNotFoundException(String.format(
                 "There was a problem fetching the variables for task with id: %s",
                 id
-            ), ex);
+            ));
         }
     }
 
@@ -487,7 +488,7 @@ public class CamundaService {
 
             switch (camundaException.getType()) {
                 case "TaskAlreadyClaimedException":
-                    throw new ConflictException(camundaException.getMessage(), ex);
+                    throw new TaskAlreadyClaimedException(camundaException.getMessage(), ex);
                 case "NullValueException":
                     throw new ResourceNotFoundException(camundaException.getMessage(), ex);
                 default:

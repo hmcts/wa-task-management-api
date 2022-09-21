@@ -91,7 +91,7 @@ class ApplicationProblemControllerAdviceTest {
             null);
 
         ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice
-            .handleFeignServiceUnavailableException(exception);
+            .handleFeignAndServerException(exception);
 
         assertEquals(HttpStatus.BAD_GATEWAY.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
