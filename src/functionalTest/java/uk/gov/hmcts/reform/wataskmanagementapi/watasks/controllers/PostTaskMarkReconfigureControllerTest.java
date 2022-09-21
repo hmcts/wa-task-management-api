@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import org.junit.After;
@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +26,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 
-public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     private TestAuthenticationCredentials assignerCredentials;
@@ -48,13 +49,13 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned_for_WA() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
 
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(assignerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
             WA_JURISDICTION, WA_CASE_TYPE);
@@ -92,14 +93,33 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
 
-        common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
-            WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(assigneeCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+        common.setupCFTOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
-        Response result = restApiActions.post(
+        taskId = taskVariables.getTaskId();
+
+        //before mark to reconfigure
+        Response result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("unassigned"))
+            .body("task.reconfigure_request_time", nullValue())
+            .body("task.last_reconfiguration_time", nullValue());
+
+        //mark to reconfigure
+        result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
             assigneeCredentials.getHeaders()
@@ -108,8 +128,7 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        taskId = taskVariables.getTaskId();
-
+        //after mark to reconfigure
         result = restApiActions.get(
             "/task/{task-id}",
             taskId,

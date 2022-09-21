@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import feign.FeignException;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -219,6 +220,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         );
     }
 
+    @DisplayName("Should return 502 when role assignment service is down")
     @Test
     void should_return_502_with_application_problem_response_when_role_assignment_is_down() throws Exception {
 
@@ -231,17 +233,16 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
-            .andExpect(
-                ResultMatcher.matchAll(
-                    status().is5xxServerError(),
-                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
-                    jsonPath("$.title").value("Downstream Dependency Error"),
-                    jsonPath("$.status").value(502),
-                    jsonPath("$.detail").value(
-                        "Downstream dependency did not respond as expected and the"
-                        + " request could not be completed.")
-                ));
+            .andExpectAll(
+                status().isBadGateway(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
+                jsonPath("$.title").value("Downstream Dependency Error"),
+                jsonPath("$.status").value(502),
+                jsonPath("$.detail").value(
+                    "Downstream dependency did not respond as expected and the"
+                    + " request could not be completed.")
+            );
     }
 
     @Test
