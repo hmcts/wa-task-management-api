@@ -71,7 +71,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -97,7 +97,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = setupScenario("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             CLAIM_ENDPOINT,
@@ -131,7 +131,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = setupScenario("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             CLAIM_ENDPOINT,
@@ -166,7 +166,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     public void should_return_a_403_when_unclaiming_a_task_by_id_with_different_tribunal_caseworker_credentials() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         TestAuthenticationCredentials otherUser =
             authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
@@ -200,7 +200,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     public void should_return_a_forbidden_when_unclaiming_a_task_by_id_with_different_tcw_credentials() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         TestAuthenticationCredentials otherUser =
             authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2");
@@ -233,7 +233,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         TestVariables taskVariables = setupScenario("followUpOverdueReasonsForAppeal");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(REGION, "1"));
 

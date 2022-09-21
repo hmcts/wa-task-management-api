@@ -83,7 +83,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA, assertConsumer);
+        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -139,7 +139,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"));
         };
 
-        initiateTaskAttributes(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
+        initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -210,7 +210,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(5000));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA, assertConsumer);
+        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
 
         common.cleanUpTask(taskId);
     }

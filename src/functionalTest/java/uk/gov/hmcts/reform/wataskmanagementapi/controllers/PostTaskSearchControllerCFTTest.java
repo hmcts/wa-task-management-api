@@ -122,8 +122,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariablesForTask1, Jurisdiction.IA);
-        initiateTaskAttributes(taskVariablesForTask2, Jurisdiction.IA);
+        initiateTask(taskVariablesForTask1, Jurisdiction.IA);
+        initiateTask(taskVariablesForTask2, Jurisdiction.IA);
 
         // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
@@ -186,7 +186,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -215,7 +215,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
-        tasksCreated.forEach(t -> initiateTaskAttributes(t, Jurisdiction.IA));
+        tasksCreated.forEach(t -> initiateTask(t, Jurisdiction.IA));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -302,7 +302,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
@@ -331,7 +331,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -379,7 +379,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
@@ -419,7 +419,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupOrganisationalRoleAssignmentWithOutEndDate(caseworkerCredentials.getHeaders());
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
@@ -451,7 +451,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             "Asylum");
         final String taskId = taskVariables.getTaskId();
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -495,7 +495,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -540,7 +540,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
@@ -579,7 +579,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             )
         );
 
-        tasksCreated.forEach(t -> initiateTaskAttributes(t, Jurisdiction.IA));
+        tasksCreated.forEach(t -> initiateTask(t, Jurisdiction.IA));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -623,7 +623,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             )
         );
 
-        tasksCreated.forEach(t -> initiateTaskAttributes(t, Jurisdiction.IA));
+        tasksCreated.forEach(t -> initiateTask(t, Jurisdiction.IA));
 
 
         Response result = restApiActions.post(
@@ -662,7 +662,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             )
         );
 
-        tasksCreated.forEach(t -> initiateTaskAttributes(t, Jurisdiction.IA));
+        tasksCreated.forEach(t -> initiateTask(t, Jurisdiction.IA));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
@@ -715,7 +715,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -754,7 +754,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -786,7 +786,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -820,7 +820,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
         // insert task in CftTaskDb
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         // verify cftTaskState exists in Camunda history table before termination
         cftTaskStateVariableShouldExistInCamundaHistoryTable(taskId);
@@ -856,7 +856,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
         // insert task in CftTaskDb
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         // verify cftTaskState exists in Camunda history table before termination
         cftTaskStateVariableShouldExistInCamundaHistoryTable(taskId);
@@ -889,7 +889,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN,
@@ -925,14 +925,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
 
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         //initiate second task
         taskType = "arrangeOfflinePayment";
         TestVariables taskVariables2 = common.setupTaskWithWarningsAndRetrieveIds(taskType);
         String taskId2 = taskVariables2.getTaskId();
 
-        initiateTaskAttributes(taskVariables2, Jurisdiction.IA);
+        initiateTask(taskVariables2, Jurisdiction.IA);
 
         //search by all work types
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -971,7 +971,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("aWorkType"))
@@ -997,7 +997,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN,
@@ -1028,14 +1028,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
 
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         //initiate second task
         taskType = "arrangeOfflinePayment";
         TestVariables taskVariables2 = common.setupTaskWithWarningsAndRetrieveIds(taskType);
         String taskId2 = taskVariables2.getTaskId();
 
-        initiateTaskAttributes(taskVariables2, Jurisdiction.IA);
+        initiateTask(taskVariables2, Jurisdiction.IA);
 
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -1074,7 +1074,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
@@ -1109,7 +1109,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("ADMIN")),
@@ -1143,7 +1143,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(
@@ -1182,14 +1182,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
 
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         //initiate second task
         taskType = "arrangeOfflinePayment";
         TestVariables taskVariables2 = common.setupTaskWithWarningsAndRetrieveIds(taskType);
 
         String taskId2 = taskVariables2.getTaskId();
-        initiateTaskAttributes(taskVariables2, Jurisdiction.IA);
+        initiateTask(taskVariables2, Jurisdiction.IA);
 
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -1230,10 +1230,10 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.setupCFTOrganisationalWithMultipleRoles(caseworkerCredentials.getHeaders());
 
         // insert taskId1
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         // insert taskId2
-        initiateTaskAttributes(taskVariables2, Jurisdiction.IA);
+        initiateTask(taskVariables2, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -1272,15 +1272,15 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         // insert taskId1
         String taskType1 = "reviewAdditionalHomeOfficeEvidence";
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         // insert taskId2
         TestVariables taskVariables2 = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, "reviewAdditionalEvidence");
-        initiateTaskAttributes(taskVariables2, Jurisdiction.IA);
+        initiateTask(taskVariables2, Jurisdiction.IA);
 
         // insert taskId3
         TestVariables taskVariables3 = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, "reviewTheAppeal");
-        initiateTaskAttributes(taskVariables3, Jurisdiction.IA);
+        initiateTask(taskVariables3, Jurisdiction.IA);
 
 
 
@@ -1333,10 +1333,10 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.setupCFTOrganisationalWithMultipleRoles(caseworkerCredentials.getHeaders());
 
         // insert taskId1
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         // insert taskId2
-        initiateTaskAttributes(taskVariables2, Jurisdiction.IA);
+        initiateTask(taskVariables2, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
@@ -1372,10 +1372,10 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
 
         // insert taskId1
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         // insert taskId2
-        initiateTaskAttributes(taskVariables2, Jurisdiction.IA);
+        initiateTask(taskVariables2, Jurisdiction.IA);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),

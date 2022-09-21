@@ -39,7 +39,7 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
         String taskId = taskVariables.getTaskId();
         Headers headers = caseworkerCredentials.getHeaders();
         common.setupCFTJudicialOrganisationalRoleAssignment(headers, taskVariables.getCaseId(), "IA", "Asylum");
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,

@@ -69,7 +69,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -95,7 +95,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -119,7 +119,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,

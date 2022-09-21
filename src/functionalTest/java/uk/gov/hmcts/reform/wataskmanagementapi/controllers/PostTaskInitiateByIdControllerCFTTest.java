@@ -82,7 +82,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.permissions.values", hasItems("Read", "Refer", "Manage", "Execute", "Cancel"));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA, assertConsumer);
+        initiateTask(taskVariables, Jurisdiction.IA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -130,7 +130,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.permissions.values", hasItems("Read", "Refer", "Execute", "Manage", "Cancel"));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA, assertConsumer);
+        initiateTask(taskVariables, Jurisdiction.IA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -179,7 +179,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.permissions.values", hasItems("Read", "Refer", "Execute", "Manage", "Cancel"));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA, assertConsumer);
+        initiateTask(taskVariables, Jurisdiction.IA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -225,7 +225,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.permissions.values", hasItems("Read", "Refer", "Execute", "Manage", "Cancel"));
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA, assertConsumer);
+        initiateTask(taskVariables, Jurisdiction.IA, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -247,7 +247,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .statusCode(HttpStatus.OK.value());
         };
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA, assertConsumer);
+        initiateTask(taskVariables, Jurisdiction.IA, assertConsumer);
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);

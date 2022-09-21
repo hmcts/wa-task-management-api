@@ -75,7 +75,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -101,7 +101,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -132,7 +132,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
     public void should_return_a_204_when_claiming_a_task_by_id_with_restricted_role_assignment() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
 
@@ -163,7 +163,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
     public void endpoint_should_be_idempotent_should_return_a_204_when_claiming_a_task_by_id() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
@@ -198,7 +198,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
@@ -242,7 +242,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -273,7 +273,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -307,7 +307,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(LOCATION, "765324");
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -341,7 +341,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 

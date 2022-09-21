@@ -38,6 +38,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -79,17 +80,15 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     public static final String SOME_ASSIGNEE = "someAssignee";
     public static final String SOME_CASE_ID = "someCaseId";
 
-    OffsetDateTime createdDate = OffsetDateTime.now();
-    OffsetDateTime dueDate = createdDate.plusDays(1);
-    String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-    Map<String, Object> taskAttributes = Map.of(
-        TASK_TYPE.value(), A_TASK_TYPE,
+    private final OffsetDateTime dueDate = OffsetDateTime.now().plusDays(1);
+    private final String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+    private final Map<String, Object> taskAttributes = new HashMap<>(Map.of(
         TASK_NAME.value(), A_TASK_NAME,
-        TASK_ASSIGNEE.value(), SOME_ASSIGNEE,
         TASK_CASE_ID.value(), SOME_CASE_ID,
-        DUE_DATE.value(), formattedDueDate
-    );
+        DUE_DATE.value(), formattedDueDate,
+        TASK_TYPE.value(), A_TASK_TYPE,
+        TASK_ASSIGNEE.value(), SOME_ASSIGNEE
+    ));
 
     private final InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
@@ -178,6 +177,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         assignedTask = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED, SOME_CASE_ID, dueDate);
         assignedTask.setCreated(OffsetDateTime.now());
 
+        when(cftTaskMapper.mapToTaskResource(taskId, taskAttributes)).thenReturn(testTaskResource);
+
         when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
             .thenReturn(assignedTask);
 
@@ -203,7 +204,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             cftTaskDatabaseService
         );
 
-        inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+        inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, taskAttributes);
         inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class));
         inOrder.verify(camundaService).updateCftTaskState(any(), any());
         inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);

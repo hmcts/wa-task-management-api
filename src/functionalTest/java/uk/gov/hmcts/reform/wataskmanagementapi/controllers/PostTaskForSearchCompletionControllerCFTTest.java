@@ -73,7 +73,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
             common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-            initiateTaskAttributes(testVariables, Jurisdiction.IA);
+            initiateTask(testVariables, Jurisdiction.IA);
 
             Response result = restApiActions.post(
                 ENDPOINT_BEING_TESTED,
@@ -105,7 +105,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "Asylum");
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -140,7 +140,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             "Asylum");
         final String taskId = taskVariables.getTaskId();
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -176,11 +176,11 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         TestVariables taskVariables2 = sendMessage(caseId, "reviewTheAppeal", 2);
 
         final String taskId1 = taskVariables1.getTaskId();
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         // role created without completion permission
         final String taskId2 = taskVariables2.getTaskId();
-        initiateTaskAttributes(taskVariables2, Jurisdiction.IA);
+        initiateTask(taskVariables2, Jurisdiction.IA);
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -225,7 +225,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "Asylum");
@@ -278,10 +278,10 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         // The UnknownEvent event is used to test so that permissions table is matched only to
         // "Read,Refer,Manage,Cancel" Rest of the events has either Own or Execute
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         final String taskId2 = taskVariables2.getTaskId();
-        initiateTaskAttributes(taskVariables2, Jurisdiction.IA);
+        initiateTask(taskVariables2, Jurisdiction.IA);
 
         // assign user to taskId2
         restApiActions.post(
@@ -347,11 +347,11 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         // No user assigned to this task
         final String taskId1 = taskVariables1.getTaskId();
-        initiateTaskAttributes(taskVariables1, Jurisdiction.IA);
+        initiateTask(taskVariables1, Jurisdiction.IA);
 
         // assign user to taskId2
         final String taskId2 = taskVariables2.getTaskId();
-        initiateTaskAttributes(taskVariables2, Jurisdiction.IA);
+        initiateTask(taskVariables2, Jurisdiction.IA);
 
         // assign user to taskId2
         restApiActions.post(
@@ -411,7 +411,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -438,7 +438,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -463,7 +463,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -490,7 +490,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -527,7 +527,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -555,7 +555,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -584,7 +584,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

@@ -64,11 +64,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication", "process application");
         tasksCreated.add(taskVariables);
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication", "process application");
         tasksCreated.add(taskVariables);
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -152,11 +152,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA, additionalProperties);
+        initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
 
         taskVariables = common.setupWATaskAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA, additionalProperties);
+        initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -194,11 +194,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -239,11 +239,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
-        initiateTaskAttributes(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());

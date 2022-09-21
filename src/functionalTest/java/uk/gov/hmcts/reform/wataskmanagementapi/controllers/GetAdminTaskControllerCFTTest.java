@@ -38,7 +38,7 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("allocateHearingJudge");
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Headers headers = caseworkerCredentials.getHeaders();
         common.setupCFTAdministrativeOrganisationalRoleAssignment(headers);

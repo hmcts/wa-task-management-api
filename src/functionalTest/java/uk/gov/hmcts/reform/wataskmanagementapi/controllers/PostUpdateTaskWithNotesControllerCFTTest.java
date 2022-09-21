@@ -83,7 +83,7 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -110,7 +110,7 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         String notesRequest = objectMapper.writeValueAsString(new NotesRequest(emptyList()));
         Response result = restApiActions.post(
@@ -139,7 +139,7 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -167,7 +167,7 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -194,7 +194,7 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
     public void given_a_task_with_note_when_new_note_is_added_then_return_all_notes() {
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         String notesRequest = addNotes();
 
@@ -243,7 +243,7 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
     public void given_a_task_when_new_note_is_added_then_return_all_notes() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
-        initiateTaskAttributes(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.IA);
 
         String notesRequest = addNotes();
 
