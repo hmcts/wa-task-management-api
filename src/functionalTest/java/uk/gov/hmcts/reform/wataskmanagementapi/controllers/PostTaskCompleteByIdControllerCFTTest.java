@@ -560,6 +560,52 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     }
 
     @Test
+    public void should_return_403_when_a_task_was_already_claimed_and_privileged_auto_complete_is_false() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
+        String taskId = taskVariables.getTaskId();
+        initiateTask(taskVariables, Jurisdiction.IA);
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+
+        //S2S service name is wa_task_management_api
+        TestAuthenticationCredentials otherUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        common.setupCFTOrganisationalRoleAssignment(otherUser.getHeaders(), "IA", "Asylum");
+
+        CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            completeTaskRequest,
+            otherUser.getHeaders()
+        );
+
+        UserInfo userInfo = idamService.getUserInfo(caseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .and()
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
+            .body("message", equalTo(String.format(
+                LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER,
+                taskId, userInfo.getUid()
+            )));
+
+        common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(otherUser.getHeaders());
+
+    }
+
+    @Test
     public void should_return_403_when_complete_a_task_that_was_already_claimed_by_other_uer() {
 
         TestVariables taskVariables
