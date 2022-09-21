@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -128,7 +130,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private TaskResource testTaskResource;
     private TaskResource assignedTask;
 
-    @Mock
     private Map<String, Object> taskAttributes;
     private RoleAssignmentVerificationService roleAssignmentVerification;
     @Mock
@@ -176,7 +177,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         assignedTask = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED, SOME_CASE_ID, dueDate);
         assignedTask.setCreated(OffsetDateTime.now());
 
-        when(cftTaskMapper.getTaskAttributes(testTaskResource)).thenReturn(taskAttributes);
+        taskAttributes = getTaskAttributes(assignedTask);
+        when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
         when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
             .thenReturn(assignedTask);
 
@@ -288,6 +290,11 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
                 return true;
             }
         }).count() == expectedFailureCalls;
+    }
+
+    private Map<String, Object> getTaskAttributes(TaskResource taskResource) {
+        return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
+        });
     }
 
 }

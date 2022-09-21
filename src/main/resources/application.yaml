@@ -121,7 +121,7 @@ launchDarkly:
 
 logging:
   level:
-    root: DEBUG
+    root: INFO
     uk.gov.hmcts.reform.wataskmanagementapi.clients.*: INFO
     org.zalando.logbook: INFO
 
