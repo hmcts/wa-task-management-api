@@ -11,8 +11,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
@@ -456,7 +458,7 @@ public class TaskManagementService {
         );
 
         if (isRelease2EndpointsFeatureEnabled) {
-            checkPermissions(taskId, accessControlResponse, isGranularPermissionFeatureEnabled, userId);
+            checkCompletePermissions(taskId, accessControlResponse, isGranularPermissionFeatureEnabled, userId);
         } else {
             CamundaTask camundaTask = camundaService.getUnmappedCamundaTask(taskId);
 
@@ -502,14 +504,16 @@ public class TaskManagementService {
         }
     }
 
-    private void checkPermissions(String taskId, AccessControlResponse accessControlResponse,
-            boolean isGranularPermissionFeatureEnabled, String userId) {
+    private void checkCompletePermissions(String taskId, AccessControlResponse accessControlResponse,
+                                          boolean isGranularPermissionFeatureEnabled, String userId) {
         PermissionRequirements permissionsRequired;
         if (isGranularPermissionFeatureEnabled) {
             permissionsRequired = PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                 .joinPermissionRequirement(OR)
                 .nextPermissionRequirement(asList(COMPLETE), OR)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                 .build();
         } else {
             permissionsRequired = PermissionRequirementBuilder.builder()
@@ -517,63 +521,56 @@ public class TaskManagementService {
         }
 
         TaskResource taskResource;
-        try {
-            taskResource = roleAssignmentVerification.verifyRoleAssignments(
-                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
-            );
-        }  catch (RoleAssignmentVerificationException e) {
-            if (isGranularPermissionFeatureEnabled) {
-                taskResource = checkCompleteOwn(taskId, accessControlResponse, userId);
-            } else {
-                throw e;
-            }
-        }
+        taskResource = roleAssignmentVerification.verifyRoleAssignments(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
 
         //Safe-guard
-        if (taskResource.getAssignee() == null) {
-            if (isGranularPermissionFeatureEnabled) {
-                checkForComplete(taskId, accessControlResponse);
-            } else {
+        checkAssignee(taskResource, userId, taskId,
+              accessControlResponse.getRoleAssignments(), isGranularPermissionFeatureEnabled);
+    }
+
+    private void checkAssignee(TaskResource taskResource, String userId,
+        String taskId, List<RoleAssignment> roleAssignments, boolean isGranularPermissionFeatureEnabled) {
+        if (isGranularPermissionFeatureEnabled) {
+            if (!checkUserHasCompletePermission(roleAssignments, taskResource.getTaskRoleResources())) {
+                if (taskResource.getAssignee() == null) {
+                    throw new TaskStateIncorrectException(
+                        String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
+                    );
+                } else if (!userId.equals(taskResource.getAssignee())) {
+                    throw new TaskStateIncorrectException(
+                        String.format("Could not complete task with id: %s as task was assigned to other user %s",
+                                      taskId, taskResource.getAssignee()
+                        )
+                    );
+                }
+            }
+        } else {
+            if (taskResource.getAssignee() == null) {
                 throw new TaskStateIncorrectException(
-                    String.format(
-                        "Could not complete task with id: %s as task was not previously assigned",
-                        taskId
-                    )
+                    String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
                 );
             }
         }
     }
 
-    private TaskResource checkCompleteOwn(String taskId, AccessControlResponse accessControlResponse, String userId) {
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(COMPLETE_OWN);
-        TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
-            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
-        );
-        if (!userId.equals(taskResource.getAssignee())) {
-            throw new TaskStateIncorrectException(
-                String.format("Could not complete task with id: %s as "
-                                  + "task was not previously assigned to user id %s", taskId, userId)
-            );
+    private boolean checkUserHasCompletePermission(List<RoleAssignment> roleAssignments,
+                                                   Set<TaskRoleResource> taskRoleResources) {
+        if (roleAssignments != null) {
+            for (RoleAssignment roleAssignment : roleAssignments) {
+                String roleName = roleAssignment.getRoleName();
+                if (taskRoleResources != null) {
+                    for (TaskRoleResource taskRoleResource : taskRoleResources) {
+                        if (roleName.equals(taskRoleResource.getRoleName())
+                            && Boolean.TRUE.equals(taskRoleResource.getComplete())) {
+                            return true;
+                        }
+                    }
+                }
+            }
         }
-        return taskResource;
-    }
-
-    private void checkForComplete(String taskId, AccessControlResponse accessControlResponse) {
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(COMPLETE);
-        try {
-            roleAssignmentVerification.verifyRoleAssignments(
-                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
-            );
-        } catch (RoleAssignmentVerificationException e) {
-            throw new TaskStateIncorrectException(
-                String.format(
-                    "Could not complete task with id: %s as task was not previously assigned",
-                    taskId, e
-                )
-            );
-        }
+        return false;
     }
 
     /**

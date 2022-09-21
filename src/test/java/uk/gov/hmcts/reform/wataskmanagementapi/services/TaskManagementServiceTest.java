@@ -120,8 +120,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE_OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
@@ -1748,6 +1750,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                 .joinPermissionRequirement(OR)
                 .nextPermissionRequirement(asList(COMPLETE), OR)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                 .build();
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
@@ -1877,6 +1881,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                 .joinPermissionRequirement(OR)
                 .nextPermissionRequirement(asList(COMPLETE), OR)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                 .build();
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.empty());
@@ -2143,6 +2149,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
                     .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .joinPermissionRequirement(OR)
+                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                     .build();
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
@@ -2520,6 +2528,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
                     .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .joinPermissionRequirement(OR)
+                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                     .build();
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
@@ -2622,6 +2632,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
                     .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .joinPermissionRequirement(OR)
+                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                     .build();
 
                 when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
@@ -2777,6 +2789,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
                     .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .joinPermissionRequirement(OR)
+                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                     .build();
 
                 when(cftQueryService.getTask(taskId, roleAssignments, requirements))
@@ -2856,14 +2870,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
                     .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .joinPermissionRequirement(OR)
+                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                     .build();
                 when(cftQueryService.getTask(taskId, roleAssignments, requirements))
                     .thenReturn(Optional.of(taskResource));
-
-                PermissionRequirements completePermissionsRequired = PermissionRequirementBuilder.builder()
-                    .buildSingleType(COMPLETE);
-                when(cftQueryService.getTask(taskId, roleAssignments, completePermissionsRequired))
-                    .thenThrow(RoleAssignmentVerificationException.class);
 
                 when(taskResource.getAssignee()).thenReturn(null);
 
@@ -2950,6 +2961,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
                     .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .joinPermissionRequirement(OR)
+                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                     .build();
 
                 TaskResource taskResource = spy(TaskResource.class);

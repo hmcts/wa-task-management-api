@@ -52,6 +52,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE_OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.GRANULAR_PERMISSION_FEATURE;
@@ -108,6 +109,8 @@ class CompleteTaskTest extends CamundaHelpers {
             .initPermissionRequirement(asList(OWN, EXECUTE), OR)
             .joinPermissionRequirement(OR)
             .nextPermissionRequirement(asList(COMPLETE), OR)
+            .joinPermissionRequirement(OR)
+            .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
             .build();
 
         when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
@@ -217,16 +220,13 @@ class CompleteTaskTest extends CamundaHelpers {
             .initPermissionRequirement(asList(OWN, EXECUTE), OR)
             .joinPermissionRequirement(OR)
             .nextPermissionRequirement(asList(COMPLETE), OR)
+            .joinPermissionRequirement(OR)
+            .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
             .build();
 
         when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(null);
-
-        PermissionRequirements completePermissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(COMPLETE);
-        when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), completePermissionsRequired))
-            .thenThrow(RoleAssignmentVerificationException.class);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
             GRANULAR_PERMISSION_FEATURE,
