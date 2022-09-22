@@ -22,7 +22,8 @@ public class DueDateCalculator {
     private static final String DUE_DATE_TME_PREFIX = "dueDateTime";
     public static final LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2).withHour(16);
     public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-    public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER_WITHOUT_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER_WITHOUT_TIME
+        = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public List<ConfigurationDmnEvaluationResponse> calculateDueDate(
         List<ConfigurationDmnEvaluationResponse> configResponses) {

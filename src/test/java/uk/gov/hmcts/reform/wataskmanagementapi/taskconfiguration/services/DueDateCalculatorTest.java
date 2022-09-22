@@ -37,8 +37,8 @@ public class DueDateCalculatorTest {
             .value(CamundaValue.stringValue("18:00"))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator().calculateDueDate(
-            List.of(defaultDueDate, defaultDueDateTime, dueDate, dueDateTime));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
+            .calculateDueDate(List.of(defaultDueDate, defaultDueDateTime, dueDate, dueDateTime));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -63,8 +63,8 @@ public class DueDateCalculatorTest {
             .value(CamundaValue.stringValue(expectedDueDate + "T18:00"))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator().calculateDueDate(
-            List.of(defaultDueDate, dueDate));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
+            .calculateDueDate(List.of(defaultDueDate, dueDate));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -89,8 +89,8 @@ public class DueDateCalculatorTest {
             .value(CamundaValue.stringValue("18:00"))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator().calculateDueDate(
-            List.of(defaultDueDateTime, dueDateTime));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
+            .calculateDueDate(List.of(defaultDueDateTime, dueDateTime));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -115,8 +115,8 @@ public class DueDateCalculatorTest {
             .value(CamundaValue.stringValue("16:00"))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator().calculateDueDate(
-            List.of(defaultDueDate, defaultDueDateTime));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
+            .calculateDueDate(List.of(defaultDueDate, defaultDueDateTime));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -136,8 +136,8 @@ public class DueDateCalculatorTest {
             .value(CamundaValue.stringValue("16:00"))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator().calculateDueDate(
-            List.of(defaultDueDateTime));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
+            .calculateDueDate(List.of(defaultDueDateTime));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -158,8 +158,8 @@ public class DueDateCalculatorTest {
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator().calculateDueDate(
-            List.of(defaultDueDate));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
+            .calculateDueDate(List.of(defaultDueDate));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -179,8 +179,8 @@ public class DueDateCalculatorTest {
             .value(CamundaValue.stringValue(expectedDueDate))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator().calculateDueDate(
-            List.of(defaultDueDate));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
+            .calculateDueDate(List.of(defaultDueDate));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()

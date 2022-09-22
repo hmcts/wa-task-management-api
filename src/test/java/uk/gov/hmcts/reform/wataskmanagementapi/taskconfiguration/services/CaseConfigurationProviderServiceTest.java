@@ -14,7 +14,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
@@ -465,7 +464,8 @@ class CaseConfigurationProviderServiceTest {
             "name3",
             "value3"
         );
-        Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isNotEmpty()
+        Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .isNotEmpty()
             .hasSize(3)
             .contains(
                 new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
@@ -473,8 +473,7 @@ class CaseConfigurationProviderServiceTest {
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
                     stringValue(writeValueAsString(additionalProperties))
-                )
-            );
+                ));
     }
 
     @Test
