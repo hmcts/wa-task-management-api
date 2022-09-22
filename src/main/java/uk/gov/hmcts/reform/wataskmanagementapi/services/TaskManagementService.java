@@ -75,6 +75,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_ASSIGNMENT_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
@@ -845,7 +846,8 @@ public class TaskManagementService {
     private TaskResource initiateTaskProcess(String taskId, InitiateTaskRequest initiateTaskRequest) {
         try {
             TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
-            taskResource = configureTask(taskResource);
+            String roleAssignmentId = getRoleAssignmentId(initiateTaskRequest.getTaskAttributes());
+            taskResource = configureTask(taskResource, roleAssignmentId);
             boolean isOldAssigneeValid = false;
 
             if (taskResource.getAssignee() != null) {
@@ -878,6 +880,20 @@ public class TaskManagementService {
         }
     }
 
+    private String getRoleAssignmentId(List<TaskAttribute> taskAttributes) {
+
+        return taskAttributes.stream()
+            .filter(attribute -> {
+                log.debug("filtering out null attributes: attribute({})", attribute);
+                return attribute != null && attribute.getValue() != null;
+            })
+            .filter(attribute -> attribute.getName().value().equals(TASK_ROLE_ASSIGNMENT_ID.value()))
+            .map(TaskAttribute::getValue)
+            .findFirst()
+            .map(Object::toString)
+            .orElse(null);
+    }
+
     @SuppressWarnings("PMD.PreserveStackTrace")
     private void lockTaskId(String taskId, OffsetDateTime dueDate) {
         try {
@@ -896,7 +912,7 @@ public class TaskManagementService {
         }
     }
 
-    private TaskResource configureTask(TaskResource taskSkeleton) {
+    private TaskResource configureTask(TaskResource taskSkeleton, String roleAssignmentId) {
         TaskToConfigure taskToConfigure = new TaskToConfigure(
             taskSkeleton.getTaskId(),
             taskSkeleton.getTaskType(),
@@ -906,7 +922,8 @@ public class TaskManagementService {
 
         return configureTaskService.configureCFTTask(
             taskSkeleton,
-            taskToConfigure
+            taskToConfigure,
+            roleAssignmentId
         );
     }
 
