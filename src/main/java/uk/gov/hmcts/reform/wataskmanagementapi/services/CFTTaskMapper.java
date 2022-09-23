@@ -354,18 +354,6 @@ public class CFTTaskMapper {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T readNonCamundaDate(Map<CamundaVariableDefinition, Object> attributesMap,
-                                    CamundaVariableDefinition extractor,
-                                    Object defaultValue) {
-        Optional<T> maybeValue = map(attributesMap, extractor);
-        if (maybeValue.isPresent()) {
-            return (T) OffsetDateTime.parse((String) maybeValue.get());
-        } else {
-            return (T) defaultValue;
-        }
-    }
-
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
         return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
         });
