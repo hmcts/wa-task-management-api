@@ -69,9 +69,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_MANAGEMENT_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DESCRIPTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
@@ -89,6 +94,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
 
@@ -188,17 +194,77 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_map_initiation_attributes_to_cft_task() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        Map<String, Object> attributes
+            = getDefaultInitiationAttributes(formattedCreatedDate, formattedDueDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+
+        assertEquals("SOME_TASK_ID", taskResource.getTaskId());
+        assertEquals("someCamundaTaskName", taskResource.getTaskName());
+        assertEquals("someTaskType", taskResource.getTaskType());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getDueDateTime()
+        );
+        assertEquals(CFTTaskState.UNCONFIGURED, taskResource.getState());
+        assertEquals(TaskSystem.SELF, taskResource.getTaskSystem());
+        assertEquals(SecurityClassification.PUBLIC, taskResource.getSecurityClassification());
+        assertEquals("someTitle", taskResource.getTitle());
+        assertEquals("someCamundaTaskDescription", taskResource.getDescription());
+        assertNull(taskResource.getNotes());
+        assertEquals(5000, taskResource.getMajorPriority());
+        assertEquals(500, taskResource.getMinorPriority());
+        assertEquals("someAssignee", taskResource.getAssignee());
+        assertEquals(false, taskResource.getAutoAssigned());
+        assertNull(taskResource.getWorkTypeResource());
+        assertNull(taskResource.getRoleCategory());
+        assertEquals(true, taskResource.getHasWarnings());
+        assertThat(taskResource.getNotes()).isNull();
+        assertNull(taskResource.getAssignmentExpiry());
+        assertEquals("00000", taskResource.getCaseId());
+        assertEquals("someCaseType", taskResource.getCaseTypeId());
+        assertEquals("someCaseName", taskResource.getCaseName());
+        assertEquals("someJurisdiction", taskResource.getJurisdiction());
+        assertEquals("someRegion", taskResource.getRegion());
+        assertNull(taskResource.getRegionName());
+        assertEquals("someStaffLocationId", taskResource.getLocation());
+        assertEquals("someStaffLocationName", taskResource.getLocationName());
+        assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
+        assertNull(taskResource.getBusinessContext());
+        assertNull(taskResource.getTerminationReason());
+        assertEquals(
+            OffsetDateTime.parse(formattedCreatedDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getCreated()
+        );
+        assertEquals(new ExecutionTypeResource(
+            ExecutionType.MANUAL,
+            ExecutionType.MANUAL.getName(),
+            ExecutionType.MANUAL.getDescription()
+        ), taskResource.getExecutionTypeCode());
+        assertNull(taskResource.getTaskRoleResources());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getPriorityDate()
+        );
+    }
+
+
+    @Test
     void should_map_task_attributes_to_cft_task_with_warnings() {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-
         List<TaskAttribute> attributes = getDefaultAttributesWithWarnings(formattedCreatedDate, formattedDueDate);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
-
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
         assertEquals("someCamundaTaskName", taskResource.getTaskName());
@@ -275,7 +341,6 @@ class CFTTaskMapperTest {
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
-
 
         assertNotNull(task);
         assertTrue(task.getWarnings());
@@ -2173,6 +2238,42 @@ class CFTTaskMapperTest {
                               CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
         );
     }
+
+    private Map<String, Object> getDefaultInitiationAttributes(String createdDate,
+                                                               String dueDate, String priorityDate) {
+
+        Map<String, Object> attributes = new HashMap<>();
+
+        attributes.put(ASSIGNEE.value(), "someAssignee");
+        attributes.put(AUTO_ASSIGNED.value(), false);
+        attributes.put(CASE_CATEGORY.value(), "someCaseCategory");
+        attributes.put(CASE_ID.value(), "00000");
+        attributes.put(CASE_NAME.value(), "someCaseName");
+        attributes.put(CASE_TYPE_ID.value(), "someCaseType");
+        attributes.put(CREATED.value(), createdDate);
+        attributes.put(DUE_DATE.value(), dueDate);
+        attributes.put(DESCRIPTION.value(), "someCamundaTaskDescription");
+        attributes.put(EXECUTION_TYPE.value(), "MANUAL");
+        attributes.put(HAS_WARNINGS.value(), true);
+        attributes.put(WARNING_LIST.value(), "[]");
+        attributes.put(JURISDICTION.value(), "someJurisdiction");
+        attributes.put(LOCATION.value(), "someStaffLocationId");
+        attributes.put(LOCATION_NAME.value(), "someStaffLocationName");
+        attributes.put(CamundaVariableDefinition.TASK_NAME.value(), "someCamundaTaskName");
+        attributes.put(REGION.value(), "someRegion");
+        attributes.put(SECURITY_CLASSIFICATION.value(), "PUBLIC");
+        attributes.put(TASK_STATE.value(), CFTTaskState.UNCONFIGURED);
+        attributes.put(TASK_SYSTEM.value(), "SELF");
+        attributes.put(TITLE.value(), "someTitle");
+        attributes.put(TASK_TYPE.value(), "someTaskType");
+        attributes.put(ADDITIONAL_PROPERTIES.value(), EXPECTED_ADDITIONAL_PROPERTIES);
+        attributes.put(PRIORITY_DATE.value(), priorityDate);
+        attributes.put(NEXT_HEARING_ID.value(), "nextHearingId");
+        attributes.put(NEXT_HEARING_DATE.value(), CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()));
+
+        return attributes;
+    }
+
 
     private List<TaskAttribute> getDefaultAttributesWithoutDueDate() {
         return asList(

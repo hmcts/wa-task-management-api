@@ -89,7 +89,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 
-
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
@@ -763,7 +762,6 @@ public class CFTTaskMapper {
         }
         return notes;
     }
-
 
     private List<NoteResource> extractWarningNotesNew(Map<CamundaVariableDefinition, Object> attributes) {
         List<NoteResource> notes = null;
