@@ -72,14 +72,13 @@ withNightlyPipeline(type, product, component) {
   env.INITIATION_JOB_RUNNING = true
 
   enableSecurityScan()
-//  disabled until we can ignore dirs from being scanned. A false positive is reported about a variable called password in a test class
-//  enableFortifyScan()
+  enableFortifyScan()
   enableMutationTest()
   loadVaultSecrets(secrets)
   enableFullFunctionalTest()
   enableSlackNotifications('#wa-build')
 
-//  after('fortify-scan') {
-//    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
-//  }
+  after('fortify-scan') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
+  }
 }
