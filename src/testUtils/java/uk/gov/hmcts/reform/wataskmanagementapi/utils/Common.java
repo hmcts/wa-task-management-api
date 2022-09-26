@@ -53,6 +53,8 @@ public class Common {
     public static final WarningValues DEFAULT_WARNINGS = new WarningValues();
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
+    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
+    private static final String TASK_INITIATION_NEW_ENDPOINT_BEING_TESTED = "task/{task-id}/initiation";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     public static final String R2_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/r2/set-organisational-role-assignment-request.json";
     public static final String R1_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/set-organisational-role-assignment-request.json";
@@ -107,7 +109,7 @@ public class Common {
         Map<String, CamundaValue<?>> processVariables
             = warningValues.getValues().isEmpty()
             ? given.createDefaultTaskVariables(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, Map.of())
-            : given.createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, warningString);
+            : given.createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, warningString, Map.of());
 
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables.put(
@@ -266,7 +268,7 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
-    public TestVariables setupWATaskAndRetrieveIds(CamundaVariableDefinition key, Map<String, String> additionalProperties, String resourceFileName, String taskType) {
+    public TestVariables setupWATaskAndRetrieveIds(Map<String, String> additionalProperties, String resourceFileName, String taskType) {
         String caseId = given.iCreateWACcdCase(resourceFileName);
 
         Map<String, CamundaValue<?>> processVariables =
