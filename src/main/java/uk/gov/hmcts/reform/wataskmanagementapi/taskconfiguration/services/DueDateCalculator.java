@@ -31,7 +31,7 @@ public class DueDateCalculator {
             .filter(r -> r.getName().getValue().contains(DUE_DATE_PREFIX))
             .collect(Collectors.toList());
 
-        if (dueDateProperties.isEmpty()) {
+        if (isIACJurisdiction()) {
             return configResponses;
         }
 
@@ -44,6 +44,10 @@ public class DueDateCalculator {
         List<ConfigurationDmnEvaluationResponse> responsesWithoutDueDate = filterOutDueDate(configResponses);
         responsesWithoutDueDate.add(dueDateResponse);
         return responsesWithoutDueDate;
+    }
+
+    private boolean isIACJurisdiction() {
+        return false;
     }
 
     private List<ConfigurationDmnEvaluationResponse> filterOutDueDate(

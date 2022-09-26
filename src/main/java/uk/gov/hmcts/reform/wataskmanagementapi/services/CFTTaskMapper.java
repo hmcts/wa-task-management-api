@@ -513,7 +513,7 @@ public class CFTTaskMapper {
                     }
                     break;
                 case DUE_DATE:
-                    ZoneOffset zoneOffset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
+                    ZoneOffset zoneOffset = ZoneId.of("Europe/London").getRules().getOffset(Instant.now());
                     LocalDateTime dateTime = LocalDateTime.parse((String) value, DUE_DATE_TIME_FORMATTER);
                     taskResource.setDueDateTime(dateTime.atOffset(zoneOffset));
                     break;
