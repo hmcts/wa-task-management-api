@@ -41,7 +41,8 @@ class InitiateTaskRequestTest extends SpringBootIntegrationBaseTest {
                                              + "  ]\n"
                                              + "}";
 
-        InitiateTaskRequest actual = objectMapper.readValue(expectedInitiateBodyRequest, InitiateTaskRequest.class);
+        InitiateTaskRequestAttributes actual = objectMapper.readValue(expectedInitiateBodyRequest,
+                                                                      InitiateTaskRequestAttributes.class);
 
         assertThat(actual.getTaskAttributes()).isNotNull();
         assertThat(actual.getTaskAttributes()).isEqualTo(List.of(

@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
@@ -41,7 +40,6 @@ class ReconfigureTaskServiceTest {
     private TaskAutoAssignmentService autoAssignmentService;
     private CaseConfigurationProviderService caseConfigurationProviderService;
     private CFTTaskMapper cftTaskMapper;
-    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @BeforeEach
     void setup() {
@@ -49,15 +47,13 @@ class ReconfigureTaskServiceTest {
         taskVariableExtractor = mock(TaskConfigurator.class);
         autoAssignmentService = mock(TaskAutoAssignmentService.class);
         caseConfigurationProviderService = mock(CaseConfigurationProviderService.class);
-        featureFlagProvider = mock(LaunchDarklyFeatureFlagProvider.class);
         cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         configureTaskService = new ConfigureTaskService(
             camundaService,
             Collections.singletonList(taskVariableExtractor),
             autoAssignmentService,
             caseConfigurationProviderService,
-            cftTaskMapper,
-            featureFlagProvider
+            cftTaskMapper
         );
 
     }
@@ -68,7 +64,9 @@ class ReconfigureTaskServiceTest {
         TaskResource taskResource = createTaskResourceWithRoleResource();
 
         TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-            configurationDmnResponse(true), permissionsResponse());
+                                                                        configurationDmnResponse(true),
+                                                                        permissionsResponse()
+        );
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
 
         TaskResource reconfiguredTaskResource = configureTaskService.reconfigureCFTTask(taskResource);
@@ -79,8 +77,10 @@ class ReconfigureTaskServiceTest {
         assertEquals("512401", reconfiguredTaskResource.getLocation());
         assertEquals("Manchester", reconfiguredTaskResource.getLocationName());
         assertEquals(taskResource.getCaseCategory(), reconfiguredTaskResource.getCaseCategory());
-        assertEquals(taskResource.getWorkTypeResource().getId(),
-            reconfiguredTaskResource.getWorkTypeResource().getId());
+        assertEquals(
+            taskResource.getWorkTypeResource().getId(),
+            reconfiguredTaskResource.getWorkTypeResource().getId()
+        );
         assertEquals(taskResource.getRoleCategory(), reconfiguredTaskResource.getRoleCategory());
         assertEquals(taskResource.getPriorityDate(), reconfiguredTaskResource.getPriorityDate());
         assertEquals(1, reconfiguredTaskResource.getMinorPriority());
@@ -95,7 +95,9 @@ class ReconfigureTaskServiceTest {
         TaskResource taskResource = createTaskResourceWithRoleResource();
 
         TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-            configurationDmnResponse(false), permissionsResponse());
+                                                                        configurationDmnResponse(false),
+                                                                        permissionsResponse()
+        );
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
 
         TaskResource reconfiguredTaskResource = configureTaskService.reconfigureCFTTask(taskResource);
@@ -106,8 +108,10 @@ class ReconfigureTaskServiceTest {
         assertEquals(taskResource.getLocation(), reconfiguredTaskResource.getLocation());
         assertEquals(taskResource.getLocationName(), reconfiguredTaskResource.getLocationName());
         assertEquals(taskResource.getCaseCategory(), reconfiguredTaskResource.getCaseCategory());
-        assertEquals(taskResource.getWorkTypeResource().getId(),
-            reconfiguredTaskResource.getWorkTypeResource().getId());
+        assertEquals(
+            taskResource.getWorkTypeResource().getId(),
+            reconfiguredTaskResource.getWorkTypeResource().getId()
+        );
         assertEquals(taskResource.getRoleCategory(), reconfiguredTaskResource.getRoleCategory());
         assertEquals(taskResource.getPriorityDate(), reconfiguredTaskResource.getPriorityDate());
         assertEquals(taskResource.getMinorPriority(), reconfiguredTaskResource.getMinorPriority());
@@ -176,41 +180,58 @@ class ReconfigureTaskServiceTest {
                 null,
                 stringValue("LEGAL_OPERATIONS"),
                 stringValue("categoryB,categoryD")
-            ));
+            )
+        );
     }
 
     private List<ConfigurationDmnEvaluationResponse> configurationDmnResponse(boolean canReconfigure) {
         return asList(
             new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
-                booleanValue(false)),
+                                                   booleanValue(false)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
-                booleanValue(canReconfigure)),
-            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"),
+                                                   booleanValue(canReconfigure)
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("priorityDate"),
                 stringValue("2021-05-09T20:15:45.345875+01:00"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
-                booleanValue(canReconfigure)),
-            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
+                                                   booleanValue(canReconfigure)
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("nextHearingDate"),
                 stringValue("2021-05-09T20:15:45.345875+01:00"),
-                booleanValue(canReconfigure))
+                booleanValue(canReconfigure)
+            )
         );
     }
 }

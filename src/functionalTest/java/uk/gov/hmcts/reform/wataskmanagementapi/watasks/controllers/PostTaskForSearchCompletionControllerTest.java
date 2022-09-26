@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.List;
@@ -53,11 +52,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Stream<CompletableTaskScenario> scenarios = tasksToCompleteScenarios();
         scenarios.forEach(scenario -> {
 
-            TestVariables testVariables = common.setupWATaskAndRetrieveIds(
-                "requests/ccd/wa_case_data.json",
-                "processApplication",
-                "process application"
-            );
+            TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                           "processApplication",
+                                                                           "process application");
             initiateTask(testVariables, Jurisdiction.WA);
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
@@ -139,7 +136,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            CamundaVariableDefinition.ADDITIONAL_PROPERTIES,
             additionalProperties,
             "requests/ccd/wa_case_data.json",
             "reviewSpecificAccessRequestLegalOps"
