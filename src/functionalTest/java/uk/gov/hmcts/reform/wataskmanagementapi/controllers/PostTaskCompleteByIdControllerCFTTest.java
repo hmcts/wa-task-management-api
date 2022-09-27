@@ -602,49 +602,6 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         common.cleanUpTask(taskId);
         common.clearAllRoleAssignments(otherUser.getHeaders());
-
     }
-
-    @Test
-    public void should_return_403_when_complete_a_task_that_was_already_claimed_by_other_uer() {
-
-        TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables, Jurisdiction.WA);
-
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
-
-        given.iClaimATaskWithIdAndAuthorization(
-            taskId,
-            caseworkerCredentials.getHeaders(),
-            HttpStatus.NO_CONTENT
-        );
-
-        TestAuthenticationCredentials otherUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignment(otherUser.getHeaders(), "WA", "WaCaseType");
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            otherUser.getHeaders()
-        );
-
-        UserInfo userInfo = idamService.getUserInfo(caseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message", equalTo(String.format(
-                LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER,
-                taskId, userInfo.getUid()
-            )));
-    }
-
 }
 

@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -54,6 +53,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -181,7 +181,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                     post(ENDPOINT_BEING_TESTED)
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .contentType(APPLICATION_JSON_VALUE)
                 )
                 .andExpect(status().isNoContent());
 
@@ -189,6 +189,39 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             assertTrue(taskResource.isPresent());
             assertEquals(COMPLETED, taskResource.get().getState());
+        }
+
+        @Test
+        void should_return_a_403_when_the_user_ids_are_different() throws Exception {
+
+            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
+                .thenReturn(true);
+
+            CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
+            when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+            TaskResource task = spy(TaskResource.class);
+            when(cftQueryService.getTask(anyString(),any(),any(PermissionRequirements.class))).thenReturn(Optional.of(task));
+            when(task.getAssignee()).thenReturn("IDAM_OTHER_USER_ID");
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+            )).thenReturn(true);
+
+            doNothing().when(camundaServiceApi).assignTask(any(), any(), any());
+            doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(APPLICATION_JSON_VALUE)
+            ).andExpectAll(
+                status().is4xxClientError(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.message").value("Could not complete task with id: " + taskId + " as task was assigned to other user IDAM_OTHER_USER_ID")
+            );
         }
 
         @Test
@@ -226,7 +259,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 post(ENDPOINT_BEING_TESTED)
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .contentType(APPLICATION_JSON_VALUE)
             ).andExpectAll(
                 status().is4xxClientError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -275,7 +308,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 post(ENDPOINT_BEING_TESTED)
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .contentType(APPLICATION_JSON_VALUE)
                     .content(asJsonString(request))
             ).andExpectAll(
                 status().is4xxClientError(),

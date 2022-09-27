@@ -510,7 +510,7 @@ public class TaskManagementService {
         }
     }
 
-    private void checkAssignee(String taskAssignee, String userId, String taskId) {
+    protected void checkAssignee(String taskAssignee, String userId, String taskId) {
         if (taskAssignee == null) {
             throw new TaskStateIncorrectException(
                 String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
