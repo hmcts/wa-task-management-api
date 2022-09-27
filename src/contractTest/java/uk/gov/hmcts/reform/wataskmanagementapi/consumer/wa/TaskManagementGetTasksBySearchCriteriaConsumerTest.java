@@ -245,6 +245,33 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .statusCode(HttpStatus.OK.value());
     }
 
+    @Test
+    @PactTestFor(pactMethod = "testSearchQueryWithAvailableTasksOnlyContext200Test", pactVersion = PactSpecVersion.V3)
+    void testSearchQueryWithAvailableTasksOnlyContext200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithAvailableTasksOnlyContext())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+
+    @Test
+    @PactTestFor(pactMethod = "testSearchQueryWithAllWorkContext200Test", pactVersion = PactSpecVersion.V3)
+    void testSearchQueryWithAllWorkContext200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithAllWorkContext())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
     private DslPart createResponseForGetTask() {
         return newJsonBody(
             o -> o
@@ -461,6 +488,46 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                + "        }\n"
                + "    ]\n"
                + "}";
+    }
+
+    private String createSearchEventCaseWithAvailableTasksOnlyContext() {
+
+        return "{\n"
+            + "    \"search_parameters\": [\n"
+            + "        {\n"
+            + "            \"key\": \"jurisdiction\",\n"
+            + "            \"operator\": \"IN\",\n"
+            + "            \"values\": [\n"
+            + "                \"IA\"\n"
+            + "            ]\n"
+            + "        },\n"
+            + "        {\n"
+            + "            \"key\": \"request_context\",\n"
+            + "            \"operator\": \"CONTEXT\",\n"
+            + "            \"value\": \"AVAILABLE_TASK_ONLY\""
+            + "        }\n"
+            + "    ]\n"
+            + "}";
+    }
+
+    private String createSearchEventCaseWithAllWorkContext() {
+
+        return "{\n"
+            + "    \"search_parameters\": [\n"
+            + "        {\n"
+            + "            \"key\": \"jurisdiction\",\n"
+            + "            \"operator\": \"IN\",\n"
+            + "            \"values\": [\n"
+            + "                \"IA\"\n"
+            + "            ]\n"
+            + "        },\n"
+            + "        {\n"
+            + "            \"key\": \"request_context\",\n"
+            + "            \"operator\": \"CONTEXT\",\n"
+            + "            \"value\": \"ALL_WORK\""
+            + "        }\n"
+            + "    ]\n"
+            + "}";
     }
 
     private String createSearchByRoleCategoryRequest() {

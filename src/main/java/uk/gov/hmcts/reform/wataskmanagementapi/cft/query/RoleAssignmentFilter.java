@@ -59,27 +59,6 @@ public final class RoleAssignmentFilter {
     }
 
     public static Predicate buildRoleAssignmentConstraints(
-        List<PermissionTypes> permissionsRequired,
-        List<RoleAssignment> roleAssignments,
-        boolean andPermissions,
-        CriteriaBuilder builder,
-        Root<TaskResource> root) {
-
-        final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
-
-        // roll assigment filter
-        Predicate roleAssignmentFilterPredicate = getRoleAssignmentFilterPredicate(roleAssignments,
-                                                                                   builder, root, taskRoleResources);
-
-        // permissions check
-        Predicate permissionRequirementPredicate = getPermissionRequirementPredicate(permissionsRequired,
-                                                                                     builder, taskRoleResources,
-                                                                                     andPermissions);
-
-        return builder.and(roleAssignmentFilterPredicate, permissionRequirementPredicate);
-    }
-
-    public static Predicate buildRoleAssignmentConstraints(
         PermissionRequirements permissionsRequired,
         List<RoleAssignment> roleAssignments,
         CriteriaBuilder builder,
@@ -156,24 +135,6 @@ public final class RoleAssignmentFilter {
         final Predicate standardChallengedExcluded = builder.and(standardAndChallenged, excluded.not());
 
         return builder.or(specific, standardChallengedExcluded);
-    }
-
-    private static Predicate getPermissionRequirementPredicate(List<PermissionTypes> permissionsRequired,
-                                                               CriteriaBuilder builder,
-                                                               Join<TaskResource, TaskRoleResource> taskRoleResources,
-                                                               boolean andPermissions) {
-        List<Predicate> permissionPredicates = new ArrayList<>();
-        for (PermissionTypes type : permissionsRequired) {
-            permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
-        }
-        Predicate permissionPredicate;
-        if (andPermissions) {
-            permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
-        } else {
-            permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
-        }
-
-        return permissionPredicate;
     }
 
     private static Predicate getPermissionRequirementPredicate(PermissionRequirements permissionsRequired,
