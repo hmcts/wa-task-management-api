@@ -251,7 +251,7 @@ public abstract class SpringBootFunctionalBaseTest {
         if (initiationJobRunning) {
             await()
                 .pollInterval(10, SECONDS)
-                .atMost(80, SECONDS)
+                .atMost(120, SECONDS)
                 .until(
                     () -> {
                         Response response = restApiActions.get(
