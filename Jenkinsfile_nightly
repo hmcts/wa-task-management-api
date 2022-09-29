@@ -76,7 +76,7 @@ withNightlyPipeline(type, product, component) {
 //  enableFortifyScan()
   enableMutationTest()
   loadVaultSecrets(secrets)
-  enableFullFunctionalTest()
+  enableFullFunctionalTest(60)
   enableSlackNotifications('#wa-build')
 
 //  after('fortify-scan') {
