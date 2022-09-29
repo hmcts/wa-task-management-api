@@ -38,7 +38,7 @@ public class RoleAssignmentHelper
 					RoleAttributeDefinition.CASE_ID,
 					clientFilter.getCaseIds())
 				.filter(RoleAssignmentHelper::isTaskAccessGrantType)
-				.filter(RoleAssignmentHelper::hasJurisdictionAttribute)
+				.filter(RoleAssignmentHelper::hasJurisdictionAttributeIfRequired)
 				.collect(Collectors.toSet());
 	}
 
@@ -55,7 +55,7 @@ public class RoleAssignmentHelper
 						RoleAttributeDefinition.JURISDICTION,
 						clientFilter.getJurisdictions())
 				.filter(ra -> ra.getGrantType() == GrantType.EXCLUDED)
-				.filter(RoleAssignmentHelper::hasJurisdictionAttribute)
+				.filter(RoleAssignmentHelper::hasJurisdictionAttributeIfRequired)
 				.collect(Collectors.toSet());
 	}
 
@@ -76,10 +76,17 @@ public class RoleAssignmentHelper
 	/**
 	 * Returns true if the role assignment has a non-null jurisdiction.
 	 */
-	public static boolean hasJurisdictionAttribute(RoleAssignment roleAssignment)
+	public static boolean hasJurisdictionAttributeIfRequired(RoleAssignment roleAssignment)
 	{
-		String jurisdiction = roleAssignment.getAttributes().get(RoleAttributeDefinition.JURISDICTION.value());
-		return jurisdiction != null && jurisdiction.trim().length() != 0;
+		if (TaskPerfConfig.onlyUseRoleAssignmentsWithJurisdictions)
+		{
+			String jurisdiction = roleAssignment.getAttributes().get(RoleAttributeDefinition.JURISDICTION.value());
+			return jurisdiction != null && jurisdiction.trim().length() != 0;
+		}
+		else
+		{
+			return true;
+		}
 	}
 
 	/**
