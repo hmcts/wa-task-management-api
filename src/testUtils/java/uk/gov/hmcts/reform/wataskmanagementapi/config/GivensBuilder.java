@@ -82,7 +82,15 @@ public class GivensBuilder {
     public GivensBuilder iCreateATaskWithWarnings(String caseId, String jurisdiction, String caseType, String taskType,
                                                   String taskName, String warnings) {
         Map<String, CamundaValue<?>> processVariables
-            = createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseType, taskType, taskName, warnings);
+            = createDefaultTaskVariablesWithWarnings(
+            caseId,
+            jurisdiction,
+            caseType,
+            taskType,
+            taskName,
+            warnings,
+            Map.of()
+        );
         createTask(processVariables);
 
         return this;
@@ -225,7 +233,8 @@ public class GivensBuilder {
         String caseTypeId,
         String taskType,
         String taskName,
-        String warnings
+        String warnings,
+        Map<String, String> additionalProperties
     ) {
         return createTaskVariables(caseId,
                                    jurisdiction,
@@ -247,7 +256,7 @@ public class GivensBuilder {
                                    warnings,
                                    "Protection",
                                    "aDescription",
-                                   Map.of()
+                                   additionalProperties
         );
     }
 

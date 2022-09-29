@@ -71,7 +71,7 @@ public class CaseConfigurationProviderService {
             );
 
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
-            = updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults);
+            = updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults, jurisdiction);
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(
@@ -127,7 +127,7 @@ public class CaseConfigurationProviderService {
     }
 
     private List<ConfigurationDmnEvaluationResponse> updateTaskConfigurationDmnResultsForAdditionalProperties(
-        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults) {
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults, String jurisdiction) {
 
         Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
             .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
@@ -144,7 +144,9 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return dueDateCalculator.calculateDueDate(configResponses);
+        return "IA".equals(jurisdiction)
+            ? configResponses
+            : dueDateCalculator.calculateDueDate(configResponses);
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(
