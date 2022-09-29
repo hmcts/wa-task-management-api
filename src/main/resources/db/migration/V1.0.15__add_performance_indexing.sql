@@ -295,17 +295,17 @@ begin
              r.region as region,
              l.location as location
       from   cft_task_db.tasks t,
-             (select unnest(array['*', jurisdiction]) as jurisdiction
+             (select unnest(cft_task_db.add_wildcard(jurisdiction)) as jurisdiction
               from cft_task_db.tasks where task_id = l_task_id) j,
-             (select unnest(array['*', state::text]) as state
+             (select unnest(cft_task_db.add_wildcard(state::text)) as state
               from cft_task_db.tasks where task_id = l_task_id) s,
-             (select unnest(array['*', role_category::text]) as role_category
+             (select unnest(cft_task_db.add_wildcard(role_category::text)) as role_category
               from cft_task_db.tasks where task_id = l_task_id) c,
-             (select unnest(array['*', work_type]) as work_type
+             (select unnest(cft_task_db.add_wildcard(work_type)) as work_type
               from cft_task_db.tasks where task_id = l_task_id) w,
-             (select unnest(array['*', region]) as region
+             (select unnest(cft_task_db.add_wildcard(region)) as region
               from cft_task_db.tasks where task_id = l_task_id) r,
-             (select unnest(array['*', location]) as location
+             (select unnest(cft_task_db.add_wildcard(location)) as location
               from cft_task_db.tasks where task_id = l_task_id) l
       where  t.task_id = l_task_id) sig;
     return l_signatures;
