@@ -119,6 +119,18 @@ public class ClientFilter
 				mergedConstraints.retainAll(constraints);
 			}
 		}
+		/*
+		 * If we have more than one occurrence of the parameter in the query, but we ended up
+		 * with no values in the list, then we have a query which cannot return any results.
+		 * We need to trap this, because a client could automatically add constraints to the
+		 * user's query, which the user could then remove by inputting a conflicting constraint -
+		 * we can't just proceed to run the query with an empty constraint for the parameter.
+		 */
+		if (constraintsList.size() > 1 && mergedConstraints.isEmpty())
+		{
+			throw new RuntimeException("Two incompatible lists of values received for " + searchParameterKey + ". " +
+					"Should probably be properly trapped and result in a BAD REQUEST response.");
+		}
 		return mergedConstraints;
 	}
 }
