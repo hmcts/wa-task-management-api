@@ -147,6 +147,10 @@ public class ServiceMocks {
     }
 
     public List<RoleAssignment> createRoleAssignmentsWithJurisdiction(String jurisdiction,String caseId) {
+        return createRoleAssignmentsWithJurisdiction(jurisdiction, caseId, "tribunal-caseworker");
+    }
+
+    public List<RoleAssignment> createRoleAssignmentsWithJurisdiction(String jurisdiction,String caseId, String role) {
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         Map<String, String> roleAttributes = new HashMap<>();
         // Role Assignment with SCSS and RoleType CASE
@@ -155,7 +159,7 @@ public class ServiceMocks {
 
         final RoleAssignment caseRoleAssignment = createBaseAssignment(
             UUID.randomUUID().toString(),
-            "tribunal-caseworker",
+            role,
             RoleType.CASE,
             Classification.PUBLIC,
             roleAttributes

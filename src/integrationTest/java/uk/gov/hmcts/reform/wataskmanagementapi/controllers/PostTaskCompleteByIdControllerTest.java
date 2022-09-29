@@ -290,6 +290,75 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
     }
 
+    @Nested
+    @DisplayName("without privileged access")
+    class CompleteTaskWithoutPrivilegedAccess {
+
+        @BeforeEach
+        void beforeEach() {
+
+            when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+                .thenReturn(false);
+
+        }
+
+        @Test
+        void should_return_a_403_when_user_has_no_own_or_execute_and_task_is_assigned() throws Exception {
+
+            CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
+            insertDummyTaskInDb(taskId, cftTaskDatabaseService);
+
+            mockServices.mockUserInfo();
+            List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
+                "WA", "caseId1", "lead-judge");
+            // create role assignments Organisation and WA , Case Id
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+                roleAssignmentsWithJurisdiction
+            );
+
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo,
+                                                      roleAssignmentsWithJurisdiction));
+
+            when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+            )).thenReturn(true);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
+            )).thenReturn(true);
+
+            CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(request))
+            ).andExpectAll(
+                status().is4xxClientError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
+                jsonPath("$.title").value("Forbidden"),
+                jsonPath("$.status").value(403),
+                jsonPath("$.detail").value(
+                    "Forbidden: The action could not be completed "
+                        + "because the client/user had insufficient rights to a resource.")
+            );
+        }
+    }
+
     private void insertDummyTaskInDb(String taskId, CFTTaskDatabaseService cftTaskDatabaseService) {
         TaskResource taskResource = new TaskResource(
             taskId,
