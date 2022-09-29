@@ -102,7 +102,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
 
-        verify(configureTaskService, times(0)).configureCFTTask(any(), any(), any());
+        verify(configureTaskService, times(0)).configureCFTTask(any(), any());
         verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
 
         assertEquals(0, taskResourcesReconfigured.size());
@@ -235,7 +235,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
 
-        verify(configureTaskService, times(0)).configureCFTTask(any(), any(), any());
+        verify(configureTaskService, times(0)).configureCFTTask(any(), any());
         verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
 
         taskResourcesReconfigured.forEach(taskResource -> {
