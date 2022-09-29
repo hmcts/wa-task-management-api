@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.hmcts.taskperf.config.TaskPerfConfig;
 import net.hmcts.taskperf.model.ClientFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
@@ -189,18 +190,25 @@ public class RoleAssignmentHelper
 	 */
 	private static String makeRoleSignature(RoleAssignment roleAssignment, String classification, String authorisation, String permission)
 	{
-		if (treatAsOrganisationalRole(roleAssignment))
+		if (TaskPerfConfig.useUniformRoleSignatures)
 		{
-			return makeOrganisationalRoleSignature(roleAssignment, classification, authorisation, permission);
-		}
-		else if (treatAsCaseRole(roleAssignment))
-		{
-			return makeCaseRoleSignature(roleAssignment, classification, authorisation, permission);
+			return makeUniformRoleSignature(roleAssignment, classification, authorisation, permission);
 		}
 		else
 		{
-			System.err.println("IGNORING UNSUPPORTED ROLE ASSIGNMENT " + roleAssignment.getRoleName());
-			return null;
+			if (treatAsOrganisationalRole(roleAssignment))
+			{
+				return makeOrganisationalRoleSignature(roleAssignment, classification, authorisation, permission);
+			}
+			else if (treatAsCaseRole(roleAssignment))
+			{
+				return makeCaseRoleSignature(roleAssignment, classification, authorisation, permission);
+			}
+			else
+			{
+				System.err.println("IGNORING UNSUPPORTED ROLE ASSIGNMENT " + roleAssignment.getRoleName());
+				return null;
+			}
 		}
 	}
 
@@ -249,6 +257,26 @@ public class RoleAssignmentHelper
 				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.REGION.value())) + ":" +
 				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.BASE_LOCATION.value())) + ":" +
 				roleAssignment.getRoleName() + ":" +
+				permission + ":" +
+				classification + ":" +
+				authorisation;
+	}
+
+	/**
+	 * Create the signature of the given role assignment, combined with the
+	 * classification, authorisation and permission.  This matches the signatures used in
+	 * the database to index tasks based on task role / permission configuration.
+	 * This is a uniform procedure that can be used for both case roles and organisational
+	 * roles.
+	 */
+	private static String makeUniformRoleSignature(RoleAssignment roleAssignment, String classification, String authorisation, String permission)
+	{
+		return
+				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.JURISDICTION.value())) + ":" +
+				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.REGION.value())) + ":" +
+				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.BASE_LOCATION.value())) + ":" +
+				roleAssignment.getRoleName() + ":" +
+				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.CASE_ID.value())) + ":" +
 				permission + ":" +
 				classification + ":" +
 				authorisation;

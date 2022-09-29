@@ -1,4 +1,16 @@
 /*
+ * Set configuration values equivalent to those held in the TaskPerfConfig
+ * Java class, if they affect the database.
+ */
+do $$
+begin
+	if select current_setting('task_perf_config.use_uniform_role_signatures') is null then
+		alter database postgres set task_perf_config.use_uniform_role_signatures to 'N';
+	end if;
+end;
+$$;
+
+/*
  * Column to avoid index churn.  We don't want to modify indexes until the
  * task and all its permissions have been modified - the signature-generating
  * functions are lying about being immutable, but that's OK as long as we
@@ -73,6 +85,18 @@ where manage;
 create or replace function cft_task_db.role_signatures(l_task_id text)
   returns text[] language plpgsql immutable
 as $$
+begin
+  if (select current_setting('task_perf_config.use_uniform_role_signatures')) = 'Y' then
+    return cft_task_db.uniform_role_signatures(l_task_id);
+  else
+    return cft_task_db.case_and_org_role_signatures(l_task_id);
+  end if;
+end;
+$$;
+
+create or replace function cft_task_db.case_and_org_role_signatures(l_task_id text)
+  returns text[] language plpgsql immutable
+as $$
 declare
   org_signatures text[];
   case_signatures text[];
@@ -137,6 +161,100 @@ begin
       and    p.task_id = l_task_id
       and    s.lower = t.security_classification::text) sig;
     return org_signatures || case_signatures;
+end;
+$$;
+
+/*
+ * Returns an array containing a '*' wildcard and the given value, if it is not null.
+ */
+create or replace function cft_task_db.add_wildcard(l_value text)
+  returns text[] language plpgsql immutable
+as $$
+declare
+	l_values text[] := ARRAY['*'];
+begin
+	if l_value is not null then
+		l_values := array_append(l_values, l_value);
+	end if;
+	return l_values;
+end;
+$$;
+
+/*
+ * Returns the abbreviation for the given security classification.
+ */
+create or replace function cft_task_db.abbreviate_classification(l_classification text)
+	returns text language plpgsql immutable
+as $$
+begin
+	return
+		case
+			when l_classification = 'PUBLIC' then 'U'
+			when l_classification = 'PRIVATE' then 'P'
+			when l_classification = 'RESTRICTED' then 'R'
+			else l_classification
+		end;
+end;
+$$;
+
+create or replace function cft_task_db.uniform_role_signatures(l_task_id text)
+  returns text[] language plpgsql immutable
+as $$
+declare
+  l_signatures text[];
+  l_task_data record;
+begin
+	-- Get the task data needed to generate signatures
+	select jurisdiction, region, location, case_id, security_classification::text
+	into l_task_data
+	from cft_task_db.tasks
+	where task_id = l_task_id;
+    -- Generate all the role assignment signatures which will match this task
+    select array_agg(
+             sig.jurisdiction
+             || ':' || sig.region
+             || ':' || sig.location
+             || ':' || sig.role_name
+             || ':' || sig.case_id
+             || ':' || sig.permission
+             || ':' || sig.classification
+             || ':' || sig.authorization)
+    into l_signatures
+    from (
+		with
+			jurisdictions (jurisdiction) as (
+				select unnest(cft_task_db.add_wildcard(l_task_data.jurisdiction))),
+			regions (region) as (
+				select unnest(cft_task_db.add_wildcard(l_task_data.region))),
+			locations (location) as (
+				select unnest(cft_task_db.add_wildcard(l_task_data.location))),
+			case_ids (case_id) as (
+				select unnest(cft_task_db.add_wildcard(l_task_data.case_id))),
+			classifications (classification) as (
+				select cft_task_db.abbreviate_classification(higher)
+				from cft_task_db.classifications
+				where lower = l_task_data.security_classification),
+			permissions (role_name, "permission", "authorization") as (
+				select role_name, "permission", "authorization"
+				from cft_task_db.task_permissions
+				where task_id = l_task_id)
+		select
+			j.jurisdiction as jurisdiction,
+			r.region as region,
+			l.location as location,
+			i.case_id as case_id,
+			p.role_name as role_name,
+			p.permission as "permission",
+			p.authorization as "authorization",
+			c.classification as classification
+		from
+			jurisdictions j,
+			regions r,
+			locations l,
+			case_ids i,
+			permissions p,
+			classifications c) sig;
+    return l_signatures;
 end;
 $$;
 
@@ -214,8 +332,20 @@ create index search_index on cft_task_db.tasks using gin (
 where state in ('ASSIGNED','UNASSIGNED') and indexed;
 
 /*
- * Add all the current task records to the index (if they are ASSIGNED or
- * UNASSIGNED), by setting the indexed flag which is require for the
- * search index.
+ * Reindex all tasks.
  */
-update cft_task_db.tasks set indexed = true;
+create or replace procedure cft_task_db.reindex_all_tasks()
+	language plpgsql
+as $$
+begin
+	update cft_task_db.tasks set indexed = false;
+	commit;
+	update cft_task_db.tasks set indexed = true where state in ('ASSIGNED'::cft_task_db.task_state_enum, 'UNASSIGNED'::cft_task_db.task_state_enum);
+	commit;
+end;
+$$;
+
+/*
+ * To reindex all tasks, run:
+ * call cft_task_db.reindex_all_tasks();
+ */
