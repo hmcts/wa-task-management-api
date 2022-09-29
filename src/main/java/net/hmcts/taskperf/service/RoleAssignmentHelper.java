@@ -173,6 +173,24 @@ public class RoleAssignmentHelper
 	}
 
 	/**
+	 * Return the abbreviation for the given classification.
+	 */
+	private static String abbreviateClassification(Classification classification)
+	{
+		switch (classification)
+		{
+		case PUBLIC:
+			return "U";
+		case PRIVATE:
+			return "P";
+		case RESTRICTED:
+			return "R";
+		default:
+			return null;
+		}
+	}
+
+	/**
 	 * Add all the role signatures to the list which can be created by the Cartesian product of:
 	 *     - a pair of each singular attribute value and a wildcard (*)
 	 *     - all the classifications <= the role assignment classification
@@ -180,11 +198,23 @@ public class RoleAssignmentHelper
 	 */
 	private static void addRoleSignatures(RoleAssignment roleAssignment, String permission, Set<String> roleSignatures)
 	{
-		for (String classification : lowerClassifications(roleAssignment.getClassification()))
+		if (TaskPerfConfig.expandRoleAssignmentClassifications)
+		{
+			for (String classification : lowerClassifications(roleAssignment.getClassification()))
+			{
+				for (String authorisation : withWildcard(roleAssignment.getAuthorisations()))
+				{
+					String roleSignature = makeRoleSignature(roleAssignment, classification, authorisation, permission);
+					if (roleSignature != null) roleSignatures.add(roleSignature);
+				}
+			}
+		}
+		else
 		{
 			for (String authorisation : withWildcard(roleAssignment.getAuthorisations()))
 			{
-				String roleSignature = makeRoleSignature(roleAssignment, classification, authorisation, permission);
+				String classificationAbbreviation = abbreviateClassification(roleAssignment.getClassification());
+				String roleSignature = makeRoleSignature(roleAssignment, classificationAbbreviation, authorisation, permission);
 				if (roleSignature != null) roleSignatures.add(roleSignature);
 			}
 		}

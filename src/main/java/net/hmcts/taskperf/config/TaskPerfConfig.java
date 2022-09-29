@@ -14,6 +14,15 @@ public class TaskPerfConfig
 	 * when creating role assignment signatures.  Safest is to leave this false.
 	 */
 	public static boolean onlyUseRoleAssignmentsWithJurisdictions = false;
+	/*
+	 * Controls whether role assignment signatures are generated for all classifications
+	 * <= the role assignment classification.  It is necessary to match all tasks with
+	 * a classification <= the role assignment.  Currently, the GIN index expands the
+	 * signatures for all classifications >= the task classification, AND the signatures
+	 * generated for role assignments include all classifications >= the role assignment
+	 * classification.  We don't need both. 
+	 */
+	public static boolean expandRoleAssignmentClassifications = false;
 
 	public static void main(String[] args)
 	{
