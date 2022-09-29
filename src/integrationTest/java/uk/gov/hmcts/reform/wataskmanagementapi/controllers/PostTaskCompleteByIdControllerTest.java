@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,10 +26,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -36,8 +39,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Compl
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import javax.persistence.EntityManager;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -101,6 +107,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     private TaskResourceRepository taskResourceRepository;
     @MockBean
     private CftQueryService cftQueryService;
+
+    @Autowired
+    private EntityManager entityManager;
+    @Autowired
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
     private ServiceMocks mockServices;
     private String taskId;
@@ -360,6 +371,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     private void insertDummyTaskInDb(String taskId, CFTTaskDatabaseService cftTaskDatabaseService) {
+        insertDummyTaskInDb(taskId, cftTaskDatabaseService, "IA", "Asylum");
+    }
+
+    private void insertDummyTaskInDb(String taskId, CFTTaskDatabaseService cftTaskDatabaseService, String jurisdiction, String caseType) {
         TaskResource taskResource = new TaskResource(
             taskId,
             "someTaskName",
@@ -368,8 +383,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
         taskResource.setCreated(OffsetDateTime.now());
         taskResource.setDueDateTime(OffsetDateTime.now());
-        taskResource.setJurisdiction("IA");
-        taskResource.setCaseTypeId("Asylum");
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setCaseTypeId(caseType);
         taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
         taskResource.setLocation("765324");
         taskResource.setLocationName("Taylor House");
@@ -386,6 +401,5 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         taskResource.setTaskRoleResources(taskRoleResourceSet);
         cftTaskDatabaseService.saveTask(taskResource);
     }
-
 }
 
