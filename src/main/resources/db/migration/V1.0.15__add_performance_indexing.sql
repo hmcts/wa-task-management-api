@@ -253,6 +253,40 @@ end;
 $$;
 
 /*
+ * Returns the abbreviation for the given state.
+ */
+create or replace function cft_task_db.abbreviate_state(l_state text)
+	returns text language plpgsql immutable
+as $$
+begin
+	return
+		case
+			when l_state = 'UNASSIGNED' then 'U'
+			when l_state = 'ASSIGNED' then 'A'
+			else null
+		end;
+end;
+$$;
+
+/*
+ * Returns the abbreviation for the given role category.
+ */
+create or replace function cft_task_db.abbreviate_role_category(l_role_category text)
+	returns text language plpgsql immutable
+as $$
+begin
+	return
+		case
+			when l_role_category = 'JUDICIAL' then 'J'
+			when l_role_category = 'LEGAL_OPERATIONS' then 'L'
+			when l_role_category = 'ADMIN' then 'A'
+			when l_role_category = 'CTSC' then 'C'
+			else null
+		end;
+end;
+$$;
+
+/*
  * Calculates the signatures of all combined filter conditions which
  * would match the task.  Each signature is a unique text string which
  * encodes the filter.  Wildcards are reprsented with '*'.
@@ -262,49 +296,48 @@ create or replace function cft_task_db.filter_signatures(l_task_id text)
 as $$
 declare
   l_signatures text[];
+  l_task_data record;
 begin
-    -- The signatures of client filters which will match this task
-    select array_agg(
-             sig.state
-             || ':' || sig.jurisdiction
-             || ':' || sig.role_category
-             || ':' || sig.work_type
-             || ':' || sig.region
-             || ':' || sig.location)
-    into l_signatures
-    from (
-      select
-             case
-                when s.state = 'ASSIGNED' then 'A'
-                when s.state = 'UNASSIGNED' then 'U'
-                else s.state end as state,
-             j.jurisdiction as jurisdiction,
-             case
-                when c.role_category = 'JUDICIAL' then 'J'
-                when c.role_category = 'LEGAL_OPERATIONS' then 'L'
-                when c.role_category = 'ADMIN' then 'A'
-                when c.role_category = 'UNKNOWN' then 'U'
-                else c.role_category end as role_category,
-             w.work_type as work_type,
-             r.region as region,
-             l.location as location
-      from   cft_task_db.tasks t,
-             (select unnest(cft_task_db.add_wildcard(jurisdiction)) as jurisdiction
-              from cft_task_db.tasks where task_id = l_task_id) j,
-             (select unnest(cft_task_db.add_wildcard(state::text)) as state
-              from cft_task_db.tasks where task_id = l_task_id) s,
-             (select unnest(cft_task_db.add_wildcard(role_category::text)) as role_category
-              from cft_task_db.tasks where task_id = l_task_id) c,
-             (select unnest(cft_task_db.add_wildcard(work_type)) as work_type
-              from cft_task_db.tasks where task_id = l_task_id) w,
-             (select unnest(cft_task_db.add_wildcard(region)) as region
-              from cft_task_db.tasks where task_id = l_task_id) r,
-             (select unnest(cft_task_db.add_wildcard(location)) as location
-              from cft_task_db.tasks where task_id = l_task_id) l
-      where  t.task_id = l_task_id) sig;
-    return l_signatures;
+	-- Get the task data needed to generate signatures
+	select state::text, jurisdiction, role_category, work_type,region, location
+	into l_task_data
+	from cft_task_db.tasks
+	where task_id = l_task_id;
+  -- The signatures of client filters which will match this task
+  select array_agg(
+            sig.state
+            || ':' || sig.jurisdiction
+            || ':' || sig.role_category
+            || ':' || sig.work_type
+            || ':' || sig.region
+            || ':' || sig.location)
+  into l_signatures
+  from (
+    with
+      states (state) as (select unnest(cft_task_db.add_wildcard(cft_task_db.abbreviate_state(l_task_data.state)))),
+      jurisdictions (jurisdiction) as (select unnest(cft_task_db.add_wildcard(l_task_data.jurisdiction))),
+      role_categories (role_category) as(select unnest(cft_task_db.add_wildcard(cft_task_db.abbreviate_role_category(l_task_data.role_category)))),
+      work_types (work_type) as (select unnest(cft_task_db.add_wildcard(l_task_data.work_type))),
+      regions (region) as (select unnest(cft_task_db.add_wildcard(l_task_data.region))),
+      locations (location) as (select unnest(cft_task_db.add_wildcard(l_task_data.location)))
+    select
+      s.state as state,
+      j.jurisdiction as jurisdiction,
+      c.role_category as role_category,
+      w.work_type as work_type,
+      r.region as region,
+      l.location as location
+    from
+      states s,
+      jurisdictions j,
+      role_categories c,
+      work_types w,
+      regions r,
+      locations l) sig;
+  return l_signatures;
 end;
 $$;
+
 
 /*
  * Needed to add scalar values to the GIN index.
