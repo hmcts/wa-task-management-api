@@ -269,7 +269,7 @@ ext.libraries = [
   ]
 ]
 
-ext['snakeyaml.version'] = '1.31'
+ext['snakeyaml.version'] = '1.32'
 
 dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
