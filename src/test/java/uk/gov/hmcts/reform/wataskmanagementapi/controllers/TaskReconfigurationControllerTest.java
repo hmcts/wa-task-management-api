@@ -71,7 +71,8 @@ class TaskReconfigurationControllerTest {
 
         assertThatThrownBy(() -> taskReconfigurationController.performOperation(
             SERVICE_AUTHORIZATION_TOKEN,
-            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE)))
+            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE)
+        ))
             .isInstanceOf(GenericForbiddenException.class)
             .hasNoCause()
             .hasMessage("Forbidden: "
@@ -80,7 +81,12 @@ class TaskReconfigurationControllerTest {
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName) {
-        TaskOperation operation = new TaskOperation(operationName, "run_id1", 2, 120);
+        TaskOperation operation = TaskOperation.builder()
+            .name(operationName)
+            .runId("run_id1")
+            .maxTimeLimit(2)
+            .retryWindowHours(120)
+            .build();
         return new TaskOperationRequest(operation, taskFilters());
     }
 
