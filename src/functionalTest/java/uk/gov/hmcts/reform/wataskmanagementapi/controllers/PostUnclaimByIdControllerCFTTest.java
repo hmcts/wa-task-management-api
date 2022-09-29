@@ -363,7 +363,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     }
 
     @Test
-    public void should_return_a_204_when_unclaiming_a_task_by_id_user_credentials_gp_flag_on() {
+    public void should_return_a_204_when_unclaiming_a_task_by_id_for_same_user_credentials_gp_flag_on() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
