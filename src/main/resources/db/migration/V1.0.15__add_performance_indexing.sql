@@ -2,13 +2,7 @@
  * Set configuration values equivalent to those held in the TaskPerfConfig
  * Java class, if they affect the database.
  */
-do $$
-begin
-	if select current_setting('task_perf_config.use_uniform_role_signatures') is null then
-		alter database postgres set task_perf_config.use_uniform_role_signatures to 'N';
-	end if;
-end;
-$$;
+alter database postgres set task_perf_config.use_uniform_role_signatures to 'Y';
 
 /*
  * Column to avoid index churn.  We don't want to modify indexes until the
