@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.List;
@@ -335,7 +334,6 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            CamundaVariableDefinition.ADDITIONAL_PROPERTIES,
             additionalProperties,
             "requests/ccd/wa_case_data.json",
             "reviewSpecificAccessRequestJudiciary"
