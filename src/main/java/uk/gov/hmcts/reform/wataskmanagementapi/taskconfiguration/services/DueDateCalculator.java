@@ -20,16 +20,22 @@ public class DueDateCalculator {
 
     private static final String DUE_DATE_PREFIX = "dueDate";
     private static final String DUE_DATE_TME_PREFIX = "dueDateTime";
-    public static final LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2).withHour(16);
+    public static final LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
+        .withHour(16).withMinute(0);
     public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER_WITHOUT_TIME
         = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final String IA_JURISDICTION = "IA";
 
     public List<ConfigurationDmnEvaluationResponse> calculateDueDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses) {
+        List<ConfigurationDmnEvaluationResponse> configResponses, String jurisdiction) {
         List<ConfigurationDmnEvaluationResponse> dueDateProperties = configResponses.stream()
             .filter(r -> r.getName().getValue().contains(DUE_DATE_PREFIX))
             .collect(Collectors.toList());
+
+        if (dueDateProperties.isEmpty() && IA_JURISDICTION.equals(jurisdiction)) {
+            return configResponses;
+        }
 
         LocalDateTime dueDate = getDueDate(dueDateProperties);
         ConfigurationDmnEvaluationResponse dueDateResponse = ConfigurationDmnEvaluationResponse.builder()

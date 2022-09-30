@@ -38,7 +38,7 @@ public class DueDateCalculatorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
-            .calculateDueDate(List.of(defaultDueDate, defaultDueDateTime, dueDate, dueDateTime));
+            .calculateDueDate(List.of(defaultDueDate, defaultDueDateTime, dueDate, dueDateTime), "WA");
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -64,7 +64,7 @@ public class DueDateCalculatorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
-            .calculateDueDate(List.of(defaultDueDate, dueDate));
+            .calculateDueDate(List.of(defaultDueDate, dueDate), "WA");
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -90,7 +90,7 @@ public class DueDateCalculatorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
-            .calculateDueDate(List.of(defaultDueDateTime, dueDateTime));
+            .calculateDueDate(List.of(defaultDueDateTime, dueDateTime), "WA");
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -116,7 +116,7 @@ public class DueDateCalculatorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
-            .calculateDueDate(List.of(defaultDueDate, defaultDueDateTime));
+            .calculateDueDate(List.of(defaultDueDate, defaultDueDateTime), "WA");
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -137,7 +137,7 @@ public class DueDateCalculatorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
-            .calculateDueDate(List.of(defaultDueDateTime));
+            .calculateDueDate(List.of(defaultDueDateTime), "WA");
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -159,7 +159,7 @@ public class DueDateCalculatorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
-            .calculateDueDate(List.of(defaultDueDate));
+            .calculateDueDate(List.of(defaultDueDate), "WA");
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -180,7 +180,30 @@ public class DueDateCalculatorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
-            .calculateDueDate(List.of(defaultDueDate));
+            .calculateDueDate(List.of(defaultDueDate), "WA");
+
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
+            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("dueDate"))
+                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                                   .build()));
+    }
+
+    @Test
+    public void shouldNotCalculateDueDateWhenNoDueDatePropertiesAreNotAvailableAndJurisdictionIsIA() {
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
+            .calculateDueDate(List.of(), "IA");
+
+        Assertions.assertThat(configurationDmnEvaluationResponses).isEmpty();
+    }
+
+    @Test
+    public void shouldCalculateDueDateWhenNoDueDatePropertiesAreNotAvailableAndJurisdictionIsWA() {
+        String expectedDueDate = LocalDateTime.now().plusDays(2)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = new DueDateCalculator()
+            .calculateDueDate(List.of(), "WA");
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()

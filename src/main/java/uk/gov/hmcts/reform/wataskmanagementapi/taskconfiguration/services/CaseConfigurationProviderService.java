@@ -144,9 +144,7 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return "IA".equals(jurisdiction)
-            ? configResponses
-            : dueDateCalculator.calculateDueDate(configResponses);
+        return dueDateCalculator.calculateDueDate(configResponses, jurisdiction);
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(
