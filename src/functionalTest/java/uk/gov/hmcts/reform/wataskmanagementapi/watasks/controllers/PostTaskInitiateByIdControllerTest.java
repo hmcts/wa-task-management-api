@@ -154,7 +154,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_priorty_date_when_initiating_a_task_without_hearing_date() {
+    public void should_return_priority_date_when_initiating_a_task_without_hearing_date() {
         TestVariables taskVariables
             = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
             "processApplication",
