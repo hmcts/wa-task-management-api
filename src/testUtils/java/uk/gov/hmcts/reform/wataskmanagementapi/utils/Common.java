@@ -86,12 +86,12 @@ public class Common {
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String jurisdiction, String caseType
     ) {
         String caseId = given.iCreateACcdCase();
-        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride,  caseId, jurisdiction, caseType, DEFAULT_WARNINGS, 1);
+        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride, caseId, jurisdiction, caseType, DEFAULT_WARNINGS, 1);
     }
 
     public TestVariables setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String caseId, String jurisdiction, String caseType, int taskIndex) {
-        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride,  caseId, jurisdiction, caseType, DEFAULT_WARNINGS, taskIndex);
+        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride, caseId, jurisdiction, caseType, DEFAULT_WARNINGS, taskIndex);
     }
 
     public TestVariables setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(

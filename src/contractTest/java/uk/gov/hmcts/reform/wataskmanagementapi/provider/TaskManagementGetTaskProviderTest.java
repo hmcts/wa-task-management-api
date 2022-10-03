@@ -203,8 +203,12 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
                 PermissionTypes.READ,
-                PermissionTypes.EXECUTE,
-                PermissionTypes.REFER
+                PermissionTypes.COMPLETE,
+                PermissionTypes.CLAIM,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.UNASSIGN_CLAIM,
+                PermissionTypes.CANCEL,
+                PermissionTypes.EXECUTE
             )
         );
 
@@ -238,7 +242,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             RoleCategory.LEGAL_OPERATIONS.name(),
             "aDescription",
             getAdditionalProperties(),
-                "nextHearingId",
+            "nextHearingId",
             ZonedDateTime.now(),
             500,
             5000,
