@@ -8,8 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -72,11 +74,19 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_ASSIGNMENT_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
@@ -248,14 +258,7 @@ public class TaskManagementService {
             String taskState = taskResource.getState().getValue();
             taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
 
-            //Lock & update Task
-            TaskResource task = findByIdAndObtainLock(taskId);
-            task.setState(CFTTaskState.UNASSIGNED);
-            task.setAssignee(null);
-            //Perform Camunda updates
-            camundaService.unclaimTask(taskId, taskHasUnassigned);
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
+            unClaimTask(taskId, taskHasUnassigned);
         } else {
             CamundaTask camundaTask = camundaService.getUnmappedCamundaTask(taskId);
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
@@ -273,6 +276,17 @@ public class TaskManagementService {
         }
     }
 
+    private void unClaimTask(String taskId, boolean taskHasUnassigned) {
+        //Lock & update Task
+        TaskResource task = findByIdAndObtainLock(taskId);
+        task.setState(CFTTaskState.UNASSIGNED);
+        task.setAssignee(null);
+        //Perform Camunda updates
+        camundaService.unclaimTask(taskId, taskHasUnassigned);
+        //Commit transaction
+        cftTaskDatabaseService.saveTask(task);
+    }
+
     /**
      * Assigns the task to another user in Camunda.
      * Also performs role assignment verifications for both assignee and assigner.
@@ -287,52 +301,81 @@ public class TaskManagementService {
     @Transactional
     public void assignTask(String taskId,
                            AccessControlResponse assignerAccessControlResponse,
-                           AccessControlResponse assigneeAccessControlResponse) {
+                           Optional<AccessControlResponse> assigneeAccessControlResponse) {
         requireNonNull(assignerAccessControlResponse.getUserInfo().getUid(), "Assigner userId cannot be null");
-        requireNonNull(assigneeAccessControlResponse.getUserInfo().getUid(), "Assignee userId cannot be null");
-        PermissionRequirements assignerPermissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(MANAGE);
-        PermissionRequirements assigneePermissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(OWN, EXECUTE);
-
-        Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-        String assigneeUserId = assigneeAccessControlResponse.getUserInfo().getUid();
-
         final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
             assignerAccessControlResponse.getUserInfo().getUid(),
             assignerAccessControlResponse.getUserInfo().getEmail()
         );
+
         if (isRelease2EndpointsFeatureEnabled) {
-            roleAssignmentVerification.verifyRoleAssignments(
-                taskId,
-                assignerAccessControlResponse.getRoleAssignments(),
-                assignerPermissionsRequired,
-                ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER
-            );
+            UserInfo assigner = assignerAccessControlResponse.getUserInfo();
+            Optional<String> currentAssignee = cftTaskDatabaseService.findByIdOnly(taskId)
+                .filter(t -> CFTTaskState.ASSIGNED.equals(t.getState()))
+                .map(TaskResource::getAssignee);
+            Optional<UserInfo> assignee = assigneeAccessControlResponse.map(AccessControlResponse::getUserInfo);
 
-            roleAssignmentVerification.verifyRoleAssignments(
-                taskId,
-                assigneeAccessControlResponse.getRoleAssignments(),
-                assigneePermissionsRequired,
-                ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
-            );
+            if (verifyActionRequired(currentAssignee, assignee)) {
+                final boolean granularPermissionEnabled = isGranularPermissionFeatureEnabled(
+                    assignerAccessControlResponse.getUserInfo().getUid(),
+                    assignerAccessControlResponse.getUserInfo().getEmail());
 
-            //Lock & update Task
-            TaskResource task = findByIdAndObtainLock(taskId);
-            task.setState(CFTTaskState.ASSIGNED);
-            task.setAssignee(assigneeUserId);
+                PermissionRequirements assignerPermissionsRequired = assignerPermissionRequirement(
+                    granularPermissionEnabled,
+                    assigner,
+                    assignee,
+                    currentAssignee
+                );
+                //Verify assigner role assignments
+                TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
+                    taskId,
+                    assignerAccessControlResponse.getRoleAssignments(),
+                    assignerPermissionsRequired,
+                    ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER
+                );
 
-            //Perform Camunda updates
-            camundaService.assignTask(
-                taskId,
-                assigneeUserId,
-                false
-            );
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
+                if (assignee.isEmpty()) {
+                    String taskState = taskResource.getState().getValue();
+                    boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
+                    unClaimTask(taskId, taskHasUnassigned);
+                } else {
+                    requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
 
+                    PermissionRequirements assigneePermissionsRequired = PermissionRequirementBuilder.builder()
+                        .buildSingleRequirementWithOr(OWN, EXECUTE);
+
+                    roleAssignmentVerification.verifyRoleAssignments(
+                        taskId,
+                        assigneeAccessControlResponse.get().getRoleAssignments(),
+                        assigneePermissionsRequired,
+                        ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
+                    );
+
+                    //Lock & update Task
+                    TaskResource task = findByIdAndObtainLock(taskId);
+                    task.setState(CFTTaskState.ASSIGNED);
+                    task.setAssignee(assignee.get().getUid());
+
+                    //Perform Camunda updates
+                    camundaService.assignTask(
+                        taskId,
+                        assignee.get().getUid(),
+                        false
+                    );
+
+                    //Commit transaction
+                    cftTaskDatabaseService.saveTask(task);
+                }
+            }
         } else {
+            requireNonNull(assigneeAccessControlResponse.orElse(null),
+                           "Assignee userId cannot be null");
+            requireNonNull(assigneeAccessControlResponse.get().getUserInfo().getUid(),
+                           "Assignee userId cannot be null");
+
+            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
+
             roleAssignmentVerification.verifyRoleAssignments(
                 variables,
                 assignerAccessControlResponse.getRoleAssignments(),
@@ -341,10 +384,11 @@ public class TaskManagementService {
             );
             roleAssignmentVerification.verifyRoleAssignments(
                 variables,
-                assigneeAccessControlResponse.getRoleAssignments(),
+                assigneeAccessControlResponse.get().getRoleAssignments(),
                 asList(OWN, EXECUTE),
                 ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
             );
+            String assigneeUserId = assigneeAccessControlResponse.get().getUserInfo().getUid();
 
             String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
             boolean isTaskStateAssigned = TaskState.ASSIGNED.value().equals(taskState);
@@ -354,6 +398,87 @@ public class TaskManagementService {
                 isTaskStateAssigned
             );
         }
+    }
+
+    private boolean verifyActionRequired(Optional<String> currentAssignee,
+                                         Optional<UserInfo> assignee) {
+
+        return (currentAssignee.isPresent()
+            || assignee.isPresent())
+            && (currentAssignee.isEmpty()
+            || assignee.isEmpty()
+            || !currentAssignee.get().equals(assignee.get().getUid()));
+    }
+
+    private PermissionRequirements assignerPermissionRequirement(boolean granularPermissionEnabled,
+                                                                 UserInfo assigner,
+                                                                 Optional<UserInfo> assignee,
+                                                                 Optional<String> currentAssignee) {
+        if (granularPermissionEnabled) {
+            if (currentAssignee.isEmpty() && assignee.isPresent()) {
+                return getPermissionToAssignAnUnassignedTask(assigner, assignee.get());
+            } else if (assignee.isPresent()) {
+                return getPermissionToAssignAnAssignedTask(assigner, assignee.get(), currentAssignee.get());
+            } else {
+                //Task is assigned to someone and assignee is no one
+                return PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNASSIGN, UNCLAIM);
+            }
+        } else {
+            return PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        }
+    }
+
+    private PermissionRequirements getPermissionToAssignAnAssignedTask(UserInfo assigner,
+                                                                       UserInfo assignee,
+                                                                       String currentAssignee) {
+        String assigneeUid = assignee.getUid();
+
+        if (!assigner.getUid().equals(currentAssignee)
+            && assigner.getUid().equals(assigneeUid)) {
+            //Task is assigned  to someone else and requester tries to assign it to themselves
+            return PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNASSIGN_CLAIM)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, CLAIM), PermissionJoin.AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), PermissionJoin.AND)
+                .build();
+        } else if (assigner.getUid().equals(currentAssignee)
+            && !assigner.getUid().equals(assigneeUid)) {
+            //Task is assigned to requester and requester tries to assign it to someone new
+            return PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNCLAIM_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNCLAIM, ASSIGN), PermissionJoin.AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), PermissionJoin.AND)
+                .build();
+        } else {
+            //When assigner tries to assign own task again themselves, it will be filtered out before come here.
+            //Task is assigned to someone else and requester tries to assign it to someone new
+            return PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), PermissionJoin.AND)
+                .build();
+        }
+    }
+
+    private PermissionRequirements getPermissionToAssignAnUnassignedTask(UserInfo assigner,
+                                                                         UserInfo assignee) {
+        //Task is unassigned and requester tries to assign task to someone
+        PermissionRequirementBuilder builder = PermissionRequirementBuilder.builder().initPermissionRequirement(ASSIGN);
+
+        if (assigner.getUid().equals(assignee.getUid())) {
+            //Task is unassigned and requester tries to assign task to themselves
+            return builder.joinPermissionRequirement(OR)
+                .nextPermissionRequirement(CLAIM).build();
+        }
+        return builder.build();
     }
 
     /**
@@ -1108,6 +1233,15 @@ public class TaskManagementService {
         });
 
 
+    }
+
+    private boolean isGranularPermissionFeatureEnabled(String userId, String email) {
+        return launchDarklyFeatureFlagProvider
+            .getBooleanValue(
+                FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+                userId,
+                email
+            );
     }
 
 

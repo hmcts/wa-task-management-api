@@ -19,6 +19,11 @@ public class AssignTaskRequest {
         this.userId = userId;
     }
 
+    @JsonCreator
+    public AssignTaskRequest() {
+        this.userId = null;
+    }
+
     public String getUserId() {
         return userId;
     }
