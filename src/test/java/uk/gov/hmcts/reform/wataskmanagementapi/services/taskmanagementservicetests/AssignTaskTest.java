@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 
@@ -79,6 +80,31 @@ class AssignTaskTest extends CamundaHelpers {
     @Mock
     private List<TaskOperationService> taskOperationServices;
 
+    @BeforeEach
+    public void setUp() {
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
+        taskManagementService = new TaskManagementService(
+            camundaService,
+            camundaQueryBuilder,
+            cftTaskDatabaseService,
+            cftTaskMapper,
+            launchDarklyFeatureFlagProvider,
+            configureTaskService,
+            taskAutoAssignmentService,
+            roleAssignmentVerification,
+            taskOperationServices,
+            entityManager,
+            allowedJurisdictionConfiguration
+        );
+
+
+        taskId = UUID.randomUUID().toString();
+    }
+
     @Test
     void assignTask_should_succeed() {
         AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
@@ -107,7 +133,8 @@ class AssignTaskTest extends CamundaHelpers {
             asList(OWN, EXECUTE)
         )).thenReturn(true);
 
-        taskManagementService.assignTask(taskId, assignerAccessControlResponse, assigneeAccessControlResponse);
+        taskManagementService.assignTask(taskId, assignerAccessControlResponse,
+                                         Optional.of(assigneeAccessControlResponse));
         boolean isTaskAssigned = mockedVariables.get("taskState").getValue().equals("ASSIGNED");
         verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, isTaskAssigned);
     }
@@ -135,9 +162,9 @@ class AssignTaskTest extends CamundaHelpers {
         )).thenReturn(false);
 
         assertThatThrownBy(() -> taskManagementService.assignTask(
-            taskId,
-            assignerAccessControlResponse,
-            assigneeAccessControlResponse
+                taskId,
+                assignerAccessControlResponse,
+                Optional.of(assigneeAccessControlResponse)
         ))
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
@@ -179,7 +206,7 @@ class AssignTaskTest extends CamundaHelpers {
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,
             assignerAccessControlResponse,
-            assigneeAccessControlResponse
+            Optional.of(assigneeAccessControlResponse)
         ))
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
@@ -199,7 +226,7 @@ class AssignTaskTest extends CamundaHelpers {
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,
             assignerAccessControlResponse,
-            assigneeAccessControlResponse
+            Optional.of(assigneeAccessControlResponse)
         ))
             .isInstanceOf(NullPointerException.class)
             .hasNoCause()
@@ -213,7 +240,7 @@ class AssignTaskTest extends CamundaHelpers {
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,
             assignerAccessControlResponse,
-            assigneeAccessControlResponse
+            Optional.of(assigneeAccessControlResponse)
         ))
             .isInstanceOf(NullPointerException.class)
             .hasNoCause()
@@ -221,29 +248,6 @@ class AssignTaskTest extends CamundaHelpers {
 
     }
 
-    @BeforeEach
-    public void setUp() {
-        roleAssignmentVerification = new RoleAssignmentVerificationService(
-            permissionEvaluatorService,
-            cftTaskDatabaseService,
-            cftQueryService
-        );
-        taskManagementService = new TaskManagementService(
-            camundaService,
-            camundaQueryBuilder,
-            cftTaskDatabaseService,
-            cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
-            configureTaskService,
-            taskAutoAssignmentService,
-            roleAssignmentVerification,
-            taskOperationServices,
-            entityManager,
-            allowedJurisdictionConfiguration
-        );
 
-
-        taskId = UUID.randomUUID().toString();
-    }
 }
 
