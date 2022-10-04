@@ -43,13 +43,14 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             common.clearAllRoleAssignmentsForChallenged(assignerCredentials.getHeaders());
             common.clearAllRoleAssignmentsForChallenged(assigneeCredentials.getHeaders());
             common.clearAllRoleAssignmentsForChallenged(secondAssigneeCredentials.getHeaders());
+            common.clearAllRoleAssignments(granularPermissionCaseworkerCredentials.getHeaders());
         } else {
             common.clearAllRoleAssignments(assignerCredentials.getHeaders());
             common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
             common.clearAllRoleAssignments(secondAssigneeCredentials.getHeaders());
+            common.clearAllRoleAssignments(granularPermissionCaseworkerCredentials.getHeaders());
         }
         common.clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
-        common.clearAllRoleAssignments(granularPermissionCaseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(secondAssigneeCredentials.getAccount().getUsername());
@@ -516,22 +517,32 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void user_should_assign_a_task_when_granular_permission_satisfied() {
-
+        testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
-        String taskId = taskVariables.getTaskId();
+        taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCaseworkerCredentials.getHeaders());
+        common.setupChallengedAccessAdmin(granularPermissionCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupChallengedAccessLegalOps(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
+        String assigneeId = getAssigneeId(assigneeCredentials.getHeaders());
+
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskId,
+            taskVariables.getTaskId(),
+            new AssignTaskRequest(assigneeId),
             granularPermissionCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.setupCFTOrganisationalRoleAssignmentForChallengedAccess(granularPermissionCaseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+        assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned", granularPermissionCaseworkerCredentials.getHeaders());
+        assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee", assigneeId, granularPermissionCaseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -541,16 +552,18 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void user_should_not_assign_a_task_when_granular_permission_not_satisfied() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
-        String taskId = taskVariables.getTaskId();
+        taskId = taskVariables.getTaskId();
 
-//        common.setupStandardCaseManager(granularPermissionCaseworkerCredentials.getHeaders(),
-//                                        taskVariables.getCaseId(), "WA", "WaCaseType");
+        common.setupCaseManagerForSpecificAccess(granularPermissionCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskId,
+            taskVariables.getTaskId(),
+            new AssignTaskRequest(getAssigneeId(assigneeCredentials.getHeaders())),
             granularPermissionCaseworkerCredentials.getHeaders()
         );
 
@@ -560,7 +573,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER));
 
         common.cleanUpTask(taskId);
     }

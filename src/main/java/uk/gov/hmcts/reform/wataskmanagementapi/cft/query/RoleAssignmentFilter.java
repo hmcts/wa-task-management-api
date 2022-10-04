@@ -190,7 +190,7 @@ public final class RoleAssignmentFilter {
             PermissionRequirement requirement = nextRequirements.getPermissionRequirement();
 
             for (PermissionTypes type : requirement.getPermissionTypes()) {
-                permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value())));
+                permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.taskRoleResourceField())));
             }
             Predicate permissionPredicate;
             if (PermissionJoin.AND.equals(requirement.getPermissionJoin())) {

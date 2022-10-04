@@ -8,28 +8,31 @@ import static java.util.Arrays.stream;
 
 public enum PermissionTypes {
 
-    READ("read"),
-    REFER("refer"),
-    OWN("own"),
-    MANAGE("manage"),
-    EXECUTE("execute"),
-    CANCEL("cancel"),
-    COMPLETE("complete"),
-    COMPLETE_OWN("completeOwn"),
-    CANCEL_OWN("cancelOwn"),
-    CLAIM("claim"),
-    UNCLAIM("unclaim"),
-    ASSIGN("assign"),
-    UNASSIGN("unassign"),
-    UNCLAIM_ASSIGN("unclaimAssign"),
-    UNASSIGN_CLAIM("unassignClaim"),
-    UNASSIGN_ASSIGN("unassignAssign");
+    READ("Read", "read"),
+    REFER("Refer", "refer"),
+    OWN("Own", "own"),
+    MANAGE("Manage", "manage"),
+    EXECUTE("Execute", "execute"),
+    CANCEL("Cancel", "cancel"),
+    COMPLETE("Complete", "complete"),
+    COMPLETE_OWN("CompleteOwn", "completeOwn"),
+    CANCEL_OWN("CancelOwn", "cancelOwn"),
+    CLAIM("Claim", "claim"),
+    UNCLAIM("Unclaim", "unclaim"),
+    ASSIGN("Assign", "assign"),
+    UNASSIGN("Unassign", "unassign"),
+    UNCLAIM_ASSIGN("UnclaimAssign", "unclaimAssign"),
+    UNASSIGN_CLAIM("UnassignClaim", "unassignClaim"),
+    UNASSIGN_ASSIGN("UnassignAssign", "unassignAssign");
 
     @JsonValue
-    private String value;
+    private final String value;
 
-    PermissionTypes(String value) {
+    private final String taskRoleResourceField;
+
+    PermissionTypes(String value, String taskRoleResourceField) {
         this.value = value;
+        this.taskRoleResourceField = taskRoleResourceField;
     }
 
     public static Optional<PermissionTypes> from(String value) {
@@ -40,5 +43,9 @@ public enum PermissionTypes {
 
     public String value() {
         return value;
+    }
+
+    public String taskRoleResourceField() {
+        return taskRoleResourceField;
     }
 }

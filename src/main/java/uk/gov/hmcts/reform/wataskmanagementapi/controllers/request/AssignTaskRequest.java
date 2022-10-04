@@ -12,7 +12,7 @@ import lombok.ToString;
 @ToString
 public class AssignTaskRequest {
 
-    private final String userId;
+    private String userId;
 
     @JsonCreator
     public AssignTaskRequest(@JsonProperty("userId") @JsonAlias("user_id") String userId) {
@@ -21,7 +21,7 @@ public class AssignTaskRequest {
 
     @JsonCreator
     public AssignTaskRequest() {
-        this.userId = null;
+        //assignee user id is optional
     }
 
     public String getUserId() {

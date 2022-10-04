@@ -1535,6 +1535,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             ).thenReturn(Optional.of(taskResource));
 
             when(taskResource.getAssignee()).thenReturn(THIRD_IDAM_USER_ID);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
 
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -1593,6 +1594,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             ).thenReturn(Optional.of(taskResource));
 
             when(taskResource.getAssignee()).thenReturn(THIRD_IDAM_USER_ID);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
 
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -1655,6 +1657,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             ).thenReturn(Optional.of(taskResource));
 
             when(taskResource.getAssignee()).thenReturn(SECONDARY_IDAM_USER_ID);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
 
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -1735,6 +1738,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             TaskResource taskResource = spy(TaskResource.class);
             when(taskResource.getAssignee()).thenReturn(SECONDARY_IDAM_USER_ID);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
 
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -1769,6 +1773,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             TaskResource taskResource = spy(TaskResource.class);
             when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
 
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
