@@ -1113,6 +1113,9 @@ class CFTTaskMapperTest {
         TaskResource taskResource = createTaskResourceWithRoleResource(roleResource);
         taskResource.setReconfigureRequestTime(OffsetDateTime.now());
         taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+        taskResource.setLastUpdatedAction("someAction");
+        taskResource.setLastUpdatedUser("someUser");
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
 
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, new HashSet<>());
 
@@ -1145,6 +1148,9 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().isEmpty());
         assertNotNull(task.getReconfigureRequestTime());
         assertNotNull(task.getLastReconfigurationTime());
+        assertNotNull(task.getLastUpdatedTimestamp());
+        assertNotNull(task.getLastUpdatedAction());
+        assertNotNull(task.getLastUpdatedUser());
     }
 
     @Test
@@ -1232,6 +1238,9 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN_ASSIGN));
         assertNull(task.getReconfigureRequestTime());
         assertNull(task.getLastReconfigurationTime());
+        assertNull(task.getLastUpdatedTimestamp());
+        assertNull(task.getLastUpdatedAction());
+        assertNull(task.getLastUpdatedUser());
     }
 
     @Test
