@@ -1714,10 +1714,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         taskResource.setLocationName("Taylor House");
         taskResource.setRegion("TestRegion");
         taskResource.setCaseId("caseId1");
-        taskResource.setAssignee(assignee);
-        if (assignee != null) {
-            taskResource.setState(CFTTaskState.ASSIGNED);
-        }
 
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);

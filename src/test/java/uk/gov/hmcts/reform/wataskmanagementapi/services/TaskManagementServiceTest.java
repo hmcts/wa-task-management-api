@@ -1063,6 +1063,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assigneeAccessControlResponse.getUserInfo()).thenReturn(userInfo);
 
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                      RELEASE_2_ENDPOINTS_FEATURE,
                      SECONDARY_IDAM_USER_ID,
