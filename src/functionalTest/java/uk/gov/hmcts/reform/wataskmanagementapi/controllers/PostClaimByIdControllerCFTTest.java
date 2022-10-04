@@ -17,9 +17,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -136,7 +136,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("assigned"))
             .body("task.assignee", equalTo(userInfo.getUid()))
-            .body("task.last_updated_timestamp", nullValue())
+            .body("task.last_updated_timestamp", notNullValue())
             .body("task.last_updated_user", equalTo(userInfo.getUid()))
             .body("task.last_updated_action", equalTo(CLAIM.getValue()));
 
@@ -180,7 +180,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("assigned"))
             .body("task.assignee", equalTo(userInfo.getUid()))
-            .body("task.last_updated_timestamp", nullValue())
+            .body("task.last_updated_timestamp", notNullValue())
             .body("task.last_updated_user", equalTo(userInfo.getUid()))
             .body("task.last_updated_action", equalTo(CLAIM.getValue()));
 
@@ -235,7 +235,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("assigned"))
             .body("task.assignee", equalTo(userInfo.getUid()))
-            .body("task.last_updated_timestamp", nullValue())
+            .body("task.last_updated_timestamp", notNullValue())
             .body("task.last_updated_user", equalTo(userInfo.getUid()))
             .body("task.last_updated_action", equalTo(CLAIM.getValue()));
 
@@ -328,7 +328,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("assigned"))
             .body("task.assignee", equalTo(userInfo.getUid()))
-            .body("task.last_updated_timestamp", nullValue())
+            .body("task.last_updated_timestamp", notNullValue())
             .body("task.last_updated_user", equalTo(userInfo.getUid()))
             .body("task.last_updated_action", equalTo(CLAIM.getValue()));
 
