@@ -4,7 +4,7 @@ public enum TaskAction {
 
     CLAIM("Claim");
 
-    public final String value;
+    private final String value;
 
     TaskAction(String value) {
         this.value = value;
