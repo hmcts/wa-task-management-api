@@ -81,7 +81,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL =
         "Role Assignment Verification: "
-            + "The user being assigned the Task has failed the Role Assignment checks performed.";
+        + "The user being assigned the Task has failed the Role Assignment checks performed.";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED =
         "Role Assignment Verification: The request failed the Role Assignment checks performed.";
 
@@ -90,6 +90,8 @@ public abstract class SpringBootFunctionalBaseTest {
     protected Common common;
     protected RestApiActions restApiActions;
     protected RestApiActions camundaApiActions;
+
+    protected RestApiActions workflowApiActions;
     protected RestApiActions launchDarklyActions;
     @Autowired
     protected AuthorizationProvider authorizationProvider;
@@ -108,6 +110,8 @@ public abstract class SpringBootFunctionalBaseTest {
 
     @Value("${targets.camunda}")
     private String camundaUrl;
+    @Value("${targets.workflow}")
+    private String workflowUrl;
     @Value("${targets.instance}")
     private String testUrl;
     @Value("${launch_darkly.url}")
@@ -122,6 +126,7 @@ public abstract class SpringBootFunctionalBaseTest {
     public void setUpGivens() throws IOException {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
+        workflowApiActions = new RestApiActions(workflowUrl, LOWER_CAMEL_CASE).setUp();
         assertions = new Assertions(camundaApiActions, restApiActions, authorizationProvider);
 
         launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
@@ -132,7 +137,8 @@ public abstract class SpringBootFunctionalBaseTest {
             restApiActions,
             authorizationProvider,
             coreCaseDataApi,
-            documentManagementFiles
+            documentManagementFiles,
+            workflowApiActions
         );
 
         common = new Common(
@@ -141,8 +147,8 @@ public abstract class SpringBootFunctionalBaseTest {
             camundaApiActions,
             authorizationProvider,
             idamService,
-            roleAssignmentServiceApi
-        );
+            roleAssignmentServiceApi,
+            workflowApiActions);
 
         iaCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         common.setupCFTOrganisationalRoleAssignment(iaCaseworkerCredentials.getHeaders(), "IA", "Asylum");
@@ -288,9 +294,12 @@ public abstract class SpringBootFunctionalBaseTest {
 
     private Headers getAuthHeadersForJurisdiction(Jurisdiction jurisdiction) {
         switch (jurisdiction) {
-            case IA: return iaCaseworkerCredentials.getHeaders();
-            case WA: return waCaseworkerCredentials.getHeaders();
-            default: return null;
+            case IA:
+                return iaCaseworkerCredentials.getHeaders();
+            case WA:
+                return waCaseworkerCredentials.getHeaders();
+            default:
+                return null;
         }
     }
 

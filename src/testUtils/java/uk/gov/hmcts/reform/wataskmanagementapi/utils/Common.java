@@ -61,6 +61,8 @@ public class Common {
     private final GivensBuilder given;
     private final RestApiActions restApiActions;
     private final RestApiActions camundaApiActions;
+
+    private final RestApiActions workflowApiActions;
     private final AuthorizationProvider authorizationProvider;
 
     private final IdamService idamService;
@@ -73,13 +75,15 @@ public class Common {
                   RestApiActions camundaApiActions,
                   AuthorizationProvider authorizationProvider,
                   IdamService idamService,
-                  RoleAssignmentServiceApi roleAssignmentServiceApi) {
+                  RoleAssignmentServiceApi roleAssignmentServiceApi,
+                  RestApiActions workflowApiActions) {
         this.given = given;
         this.restApiActions = restApiActions;
         this.camundaApiActions = camundaApiActions;
         this.authorizationProvider = authorizationProvider;
         this.idamService = idamService;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
+        this.workflowApiActions = workflowApiActions;
     }
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariablesOverride(
@@ -297,6 +301,22 @@ public class Common {
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, "WA", "WaCaseType", taskType, taskName)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
+    }
+
+    public TestVariables setupWAStandaloneTaskAndRetrieveIds(String resourceFileName, String taskType, String taskName) {
+
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        List<CamundaTask> response = given
+            .iCreateAStandaloneTaskWithCaseId(caseId, "WA", "WaCaseType", taskType, taskName)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 

@@ -203,7 +203,7 @@ public class TaskManagementService {
             TaskResource task = findByIdAndObtainLock(taskId);
             if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
                 throw new ConflictException("Task '" + task.getTaskId()
-                                                + "' is already claimed by someone else.", null);
+                                            + "' is already claimed by someone else.", null);
             }
             task.setState(CFTTaskState.ASSIGNED);
             task.setAssignee(userId);
@@ -394,7 +394,7 @@ public class TaskManagementService {
             boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
             log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
-                     taskId, previousTaskState, isCftTaskStateExist
+                taskId, previousTaskState, isCftTaskStateExist
             );
 
             try {
@@ -407,7 +407,7 @@ public class TaskManagementService {
             } catch (TaskCancelException ex) {
                 if (isCftTaskStateExist) {
                     log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda.Exception: {}",
-                             taskId, ex.getMessage()
+                        taskId, ex.getMessage()
                     );
                     throw ex;
                 }
@@ -416,13 +416,13 @@ public class TaskManagementService {
                     task.setState(CFTTaskState.TERMINATED);
                     cftTaskDatabaseService.saveTask(task);
                     log.info("{} setting CFTTaskState to TERMINATED. previousTaskState : {} ",
-                             taskId, previousTaskState
+                        taskId, previousTaskState
                     );
                     return;
                 }
 
                 log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
-                             + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
+                         + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
                 throw ex;
             }
 
@@ -759,6 +759,7 @@ public class TaskManagementService {
     public TaskResource initiateTask(String taskId, InitiateTaskRequestMap initiateTaskRequest) {
         //Get DueDatetime or throw exception
         Map<String, Object> taskAttributes = new ConcurrentHashMap<>(initiateTaskRequest.getTaskAttributes());
+        taskAttributes.put("taskId", taskId);
 
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
