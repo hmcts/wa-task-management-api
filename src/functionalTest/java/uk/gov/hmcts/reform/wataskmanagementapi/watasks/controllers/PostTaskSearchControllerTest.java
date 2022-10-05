@@ -146,10 +146,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_200_with_search_results_and_correct_properties_for_granular_permission() {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
         tasksCreated.add(taskVariables);
-        initiateTask(granularPermissionCaseworkerCredentials.getHeaders(), taskVariables,
-                     "processApplication", "process application", "process task");
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         common.setupHearingPanelJudgeForSpecificAccess(granularPermissionCaseworkerCredentials.getHeaders(),
                                                        taskVariables.getTaskId(),
@@ -157,10 +156,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                                                        "WaCaseType"
                                                        );
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
         tasksCreated.add(taskVariables);
-        initiateTask(granularPermissionCaseworkerCredentials.getHeaders(), taskVariables,
-                     "processApplication", "process application", "process task");
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -171,9 +169,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
             new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
         ));
-
-        tasksCreated.forEach(testVariable ->
-                                 common.insertTaskInCftTaskDb(testVariable, "processApplication", granularPermissionCaseworkerCredentials.getHeaders()));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
