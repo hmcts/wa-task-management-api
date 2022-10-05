@@ -124,8 +124,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.REFER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.GRANULAR_PERMISSION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
@@ -704,46 +710,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void claimTask_should_succeed_for_granular_permission() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-            TaskResource taskResource = spy(TaskResource.class);
-
-            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
-                .initPermissionRequirement(asList(CLAIM, OWN), PermissionJoin.AND)
-                .joinPermissionRequirement(PermissionJoin.OR)
-                .nextPermissionRequirement(asList(CLAIM, EXECUTE), PermissionJoin.AND)
-                .joinPermissionRequirement(PermissionJoin.OR)
-                .nextPermissionRequirement(asList(ASSIGN, EXECUTE), PermissionJoin.AND)
-                .joinPermissionRequirement(PermissionJoin.OR)
-                .nextPermissionRequirement(asList(ASSIGN, OWN), PermissionJoin.AND)
-                .build();
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
-                .thenReturn(Optional.of(taskResource));
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                     RELEASE_2_ENDPOINTS_FEATURE,
-                     IDAM_USER_ID,
-                     IDAM_USER_EMAIL
-                 )
-            ).thenReturn(true);
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                     GRANULAR_PERMISSION_FEATURE,
-                     IDAM_USER_ID,
-                     IDAM_USER_EMAIL
-                 )
-            ).thenReturn(true);
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                .thenReturn(Optional.of(taskResource));
-            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-
-            taskManagementService.claimTask(taskId, accessControlResponse);
-
-            verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
-
-        }
-
-        @Test
         void claimTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
@@ -759,52 +725,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                      RELEASE_2_ENDPOINTS_FEATURE,
-                     IDAM_USER_ID,
-                     IDAM_USER_EMAIL
-                 )
-            ).thenReturn(true);
-
-            assertThatThrownBy(() -> taskManagementService.claimTask(
-                taskId,
-                accessControlResponse
-            ))
-                .isInstanceOf(RoleAssignmentVerificationException.class)
-                .hasNoCause()
-                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
-
-            verify(camundaService, times(0)).claimTask(any(), any());
-        }
-
-        @Test
-        void claimTask_should_throw_role_assignment_verification_exception_when_granular_permission_access_fail() {
-
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-            TaskResource taskResource = spy(TaskResource.class);
-            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
-                .initPermissionRequirement(asList(CLAIM, OWN), PermissionJoin.AND)
-                .joinPermissionRequirement(PermissionJoin.OR)
-                .nextPermissionRequirement(asList(CLAIM, EXECUTE), PermissionJoin.AND)
-                .joinPermissionRequirement(PermissionJoin.OR)
-                .nextPermissionRequirement(asList(ASSIGN, EXECUTE), PermissionJoin.AND)
-                .joinPermissionRequirement(PermissionJoin.OR)
-                .nextPermissionRequirement(asList(ASSIGN, OWN), PermissionJoin.AND)
-                .build();
-            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
-                .thenReturn(Optional.empty());
-            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                     RELEASE_2_ENDPOINTS_FEATURE,
-                     IDAM_USER_ID,
-                     IDAM_USER_EMAIL
-                 )
-            ).thenReturn(true);
-
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                     GRANULAR_PERMISSION_FEATURE,
                      IDAM_USER_ID,
                      IDAM_USER_EMAIL
                  )
