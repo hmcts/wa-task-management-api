@@ -280,7 +280,8 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithAvailableTasksOnlyContext200Test", pactVersion = PactSpecVersion.V3)
+    @PactTestFor(pactMethod = "executeSearchQueryWithAvailableTasksOnlyContext200Test",
+        pactVersion = PactSpecVersion.V3)
     void testSearchQueryWithAvailableTasksOnlyContext200Test(MockServer mockServer) {
         SerenityRest
             .given()
