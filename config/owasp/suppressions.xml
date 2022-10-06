@@ -30,9 +30,4 @@
     <notes>Not affected by this cve (https://lists.apache.org/thread/k04zk0nq6w57m72w5gb0r6z9ryhmvr4k)</notes>
     <cve>CVE-2022-34305</cve>
   </suppress>
-  <suppress>
-    <notes>In FasterXML jackson-databind before 2.14.0-rc1, resource exhaustion can occur because of a lack of a check
-      in primitive value deserializers to avoid deep wrapper array nesting, when the UNWRAP_SINGLE_VALUE_ARRAYS feature is enabled.</notes>
-    <cve>CVE-2022-42003</cve>
-  </suppress>
 </suppressions>
