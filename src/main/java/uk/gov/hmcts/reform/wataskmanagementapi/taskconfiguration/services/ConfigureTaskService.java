@@ -1,10 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -20,7 +18,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.stream.Collectors.toMap;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
@@ -34,20 +31,17 @@ public class ConfigureTaskService {
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final CaseConfigurationProviderService caseConfigurationProviderService;
     private final CFTTaskMapper cftTaskMapper;
-    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     public ConfigureTaskService(TaskConfigurationCamundaService taskConfigurationCamundaService,
                                 List<TaskConfigurator> taskConfigurators,
                                 TaskAutoAssignmentService taskAutoAssignmentService,
                                 CaseConfigurationProviderService caseConfigurationProviderService,
-                                CFTTaskMapper cftTaskMapper,
-                                LaunchDarklyFeatureFlagProvider featureFlagProvider) {
+                                CFTTaskMapper cftTaskMapper) {
         this.taskConfigurationCamundaService = taskConfigurationCamundaService;
         this.taskConfigurators = taskConfigurators;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
         this.caseConfigurationProviderService = caseConfigurationProviderService;
         this.cftTaskMapper = cftTaskMapper;
-        this.featureFlagProvider = featureFlagProvider;
     }
 
     @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
@@ -102,17 +96,7 @@ public class ConfigureTaskService {
     }
 
     public TaskResource configureCFTTask(TaskResource skeletonMappedTask, TaskToConfigure taskToConfigure) {
-        TaskToConfigure.TaskToConfigureBuilder taskToConfigureBuilder = taskToConfigure.toBuilder();
-        if (featureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            StringUtils.EMPTY,
-            StringUtils.EMPTY
-        )) {
-            Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(skeletonMappedTask);
-            taskToConfigureBuilder.taskAttributes(taskAttributes);
-        }
-
-        TaskConfigurationResults configurationVariables = getConfigurationResults(taskToConfigureBuilder.build());
+        TaskConfigurationResults configurationVariables = getConfigurationResults(taskToConfigure);
         return cftTaskMapper.mapConfigurationAttributes(skeletonMappedTask, configurationVariables);
     }
 
