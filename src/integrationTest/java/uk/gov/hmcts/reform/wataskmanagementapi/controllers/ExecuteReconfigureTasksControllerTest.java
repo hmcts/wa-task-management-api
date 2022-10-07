@@ -85,13 +85,15 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
-        lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
-            any())).thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(
-                    CamundaValue.stringValue("caseName"),
-                    CamundaValue.stringValue("Value"),
-                    CamundaValue.booleanValue(true)
-                )
+        lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(
+            anyString(),
+            any()
+        )).thenReturn(List.of(
+            new ConfigurationDmnEvaluationResponse(
+                CamundaValue.stringValue("caseName"),
+                CamundaValue.stringValue("Value"),
+                CamundaValue.booleanValue(true)
+            )
         ));
 
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any())).thenAnswer(i -> i.getArguments()[0]);
@@ -133,16 +135,21 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             assertNull(task.getNextHearingId());
         });
 
-        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-            configurationDmnResponse(false), permissionsResponse());
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(false),
+            permissionsResponse()
+        );
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(EXECUTE_RECONFIGURE,
-                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L)))))
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
@@ -203,16 +210,21 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             assertNull(task.getNextHearingId());
         });
 
-        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-            configurationDmnResponse(true), permissionsResponse());
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(true),
+            permissionsResponse()
+        );
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(EXECUTE_RECONFIGURE,
-                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L)))))
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
@@ -232,10 +244,14 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertEquals("caseCategory", task.getCaseCategory());
                 assertEquals("routine_work", task.getWorkTypeResource().getId());
                 assertEquals("JUDICIAL", task.getRoleCategory());
-                assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                    task.getPriorityDate().toLocalDate());
-                assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                    task.getNextHearingDate().toLocalDate());
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getNextHearingDate().toLocalDate()
+                );
                 assertEquals("nextHearingId1", task.getNextHearingId());
             }
         );
@@ -268,8 +284,10 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(EXECUTE_RECONFIGURE,
-                    executeTaskFilters(OffsetDateTime.now().plusDays(1)))))
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().plusDays(1))
+                )))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
@@ -283,13 +301,20 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, List<TaskFilter<?>> taskFilters) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 2, 120);
+        TaskOperation operation = TaskOperation
+            .builder()
+            .name(operationName)
+            .runId(UUID.randomUUID().toString())
+            .maxTimeLimit(2)
+            .retryWindowHours(120)
+            .build();
         return new TaskOperationRequest(operation, taskFilters);
     }
 
     private List<TaskFilter<?>> executeTaskFilters(OffsetDateTime reconfigureRequestTime) {
         TaskFilter<?> filter = new ExecuteReconfigureTaskFilter("reconfigure_request_time",
-            reconfigureRequestTime, TaskFilterOperator.AFTER);
+            reconfigureRequestTime, TaskFilterOperator.AFTER
+        );
         return List.of(filter);
     }
 
@@ -374,41 +399,58 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 null,
                 stringValue("LEGAL_OPERATIONS"),
                 stringValue("categoryB,categoryD")
-            ));
+            )
+        );
     }
 
     private List<ConfigurationDmnEvaluationResponse> configurationDmnResponse(boolean canReconfigure) {
         return asList(
             new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
-                booleanValue(false)),
+                booleanValue(false)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
-                booleanValue(canReconfigure)),
-            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"),
+                booleanValue(canReconfigure)
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("priorityDate"),
                 stringValue("2021-05-09T20:15:45.345875+01:00"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
-                booleanValue(canReconfigure)),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
-                booleanValue(canReconfigure)),
-            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
+                booleanValue(canReconfigure)
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("nextHearingDate"),
                 stringValue("2021-05-09T20:15:45.345875+01:00"),
-                booleanValue(canReconfigure))
+                booleanValue(canReconfigure)
+            )
         );
     }
 
