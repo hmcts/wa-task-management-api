@@ -316,7 +316,7 @@ public class Common {
         String caseId = given.iCreateWACcdCase(resourceFileName);
 
         List<CamundaTask> response = given
-            .iCreateAStandaloneTaskWithCaseId(caseId, "WA", "WaCaseType", taskType, taskName)
+            .iSendAMessageToWorkflowApi(caseId, "WA", "WaCaseType", taskType, taskName)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 

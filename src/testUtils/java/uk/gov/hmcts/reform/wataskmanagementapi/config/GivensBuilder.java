@@ -88,11 +88,11 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateAStandaloneTaskWithCaseId(String caseId, String jurisdiction, String caseType,
-                                                          String taskType, String taskName) {
+    public GivensBuilder iSendAMessageToWorkflowApi(String caseId, String jurisdiction, String caseType,
+                                                    String taskType, String taskName) {
         Map<String, DmnValue<?>> processVariables = standaloneProcessVariables(caseId, jurisdiction, caseType,
             taskType, taskName, now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER));
-        createStandaloneTask(processVariables);
+        postMessageToWorkflowApi(processVariables);
         return this;
     }
 
@@ -129,7 +129,7 @@ public class GivensBuilder {
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    private void createStandaloneTask(Map<String, DmnValue<?>> processVariables) {
+    private void postMessageToWorkflowApi(Map<String, DmnValue<?>> processVariables) {
         SendMessageRequest request = new SendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
             processVariables,
