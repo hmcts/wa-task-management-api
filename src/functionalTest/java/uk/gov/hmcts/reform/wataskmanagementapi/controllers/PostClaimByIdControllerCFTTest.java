@@ -334,8 +334,6 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
         common.cleanUpTask(taskId);
 
-        common.cleanUpTask(taskId);
-
     }
 
 

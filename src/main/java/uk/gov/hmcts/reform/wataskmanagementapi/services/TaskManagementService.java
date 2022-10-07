@@ -84,6 +84,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 
@@ -261,6 +262,7 @@ public class TaskManagementService {
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.UNASSIGNED);
             task.setAssignee(null);
+            setTaskActionAttributes(task, userId, UNCLAIM);
             //Perform Camunda updates
             camundaService.unclaimTask(taskId, taskHasUnassigned);
             //Commit transaction
