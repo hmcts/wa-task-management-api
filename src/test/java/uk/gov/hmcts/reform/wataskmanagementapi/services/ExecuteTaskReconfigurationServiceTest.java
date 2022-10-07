@@ -70,7 +70,11 @@ class ExecuteTaskReconfigurationServiceTest {
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
 
         TaskOperationRequest request = new TaskOperationRequest(
-            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, "", 2, 120), taskFilters
+            TaskOperation.builder()
+                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .maxTimeLimit(2)
+                .runId("")
+                .build(), taskFilters
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
@@ -97,7 +101,11 @@ class ExecuteTaskReconfigurationServiceTest {
             .thenReturn(Optional.empty());
 
         TaskOperationRequest request = new TaskOperationRequest(
-            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, "", 2, 120), taskFilters
+            TaskOperation.builder()
+                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .runId("")
+                .maxTimeLimit(2)
+                .build(), taskFilters
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
@@ -129,7 +137,11 @@ class ExecuteTaskReconfigurationServiceTest {
             .thenReturn(taskResources.get(1));
 
         TaskOperationRequest request = new TaskOperationRequest(
-            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, "",2, 120), taskFilters
+            TaskOperation.builder()
+                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .runId("")
+                .maxTimeLimit(2)
+                .build(), taskFilters
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
@@ -180,19 +192,24 @@ class ExecuteTaskReconfigurationServiceTest {
             .thenReturn(null);
 
         when(cftTaskDatabaseService
-                 .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(anyList(), anyList(), any())
-            ).thenReturn(taskResources);
+            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(anyList(), anyList(), any())
+        ).thenReturn(taskResources);
 
         TaskOperationRequest request = new TaskOperationRequest(
-            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, "", 2, 120), taskFilters
+            TaskOperation.builder()
+                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .runId("")
+                .maxTimeLimit(2)
+                .build(), taskFilters
         );
 
         assertThatThrownBy(() -> executeTaskReconfigurationService.performOperation(request))
             .hasNoCause()
             .hasMessageContaining("Task Execute Reconfiguration Failed: "
-                            + "Task Reconfiguration process failed to execute reconfiguration for the following tasks:")
-            .hasMessageContaining("1234 ,someTaskName ,UNASSIGNED",  OffsetDateTime.now(), "null")
-            .hasMessageContaining("4567 ,someTaskName ,ASSIGNED",  OffsetDateTime.now(), "null");
+                                  + "Task Reconfiguration process failed to execute "
+                                  + "reconfiguration for the following tasks:")
+            .hasMessageContaining("1234 ,someTaskName ,UNASSIGNED", OffsetDateTime.now(), "null")
+            .hasMessageContaining("4567 ,someTaskName ,ASSIGNED", OffsetDateTime.now(), "null");
     }
 
     @Test
@@ -207,11 +224,15 @@ class ExecuteTaskReconfigurationServiceTest {
             .thenReturn(null);
 
         when(cftTaskDatabaseService
-                 .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(anyList(), anyList(), any())
+            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(anyList(), anyList(), any())
         ).thenReturn(Collections.emptyList());
 
         TaskOperationRequest request = new TaskOperationRequest(
-            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, "", 2, 120), taskFilters
+            TaskOperation.builder()
+                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .runId("")
+                .maxTimeLimit(2)
+                .build(), taskFilters
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
@@ -230,7 +251,11 @@ class ExecuteTaskReconfigurationServiceTest {
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
 
         TaskOperationRequest request = new TaskOperationRequest(
-            new TaskOperation(TaskOperationName.EXECUTE_RECONFIGURE, "", 2, 0), taskFilters
+            TaskOperation.builder()
+                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .runId("")
+                .maxTimeLimit(2)
+                .build(), taskFilters
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService.performOperation(request);
@@ -244,6 +269,5 @@ class ExecuteTaskReconfigurationServiceTest {
         });
 
     }
-
 }
 
