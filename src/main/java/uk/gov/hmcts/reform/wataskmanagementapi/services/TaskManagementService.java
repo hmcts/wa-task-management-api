@@ -759,6 +759,7 @@ public class TaskManagementService {
     public TaskResource initiateTask(String taskId, InitiateTaskRequestMap initiateTaskRequest) {
         //Get DueDatetime or throw exception
         Map<String, Object> taskAttributes = new ConcurrentHashMap<>(initiateTaskRequest.getTaskAttributes());
+        taskAttributes.put("taskId", taskId);
 
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
