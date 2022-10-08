@@ -81,7 +81,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL =
         "Role Assignment Verification: "
-        + "The user being assigned the Task has failed the Role Assignment checks performed.";
+            + "The user being assigned the Task has failed the Role Assignment checks performed.";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED =
         "Role Assignment Verification: The request failed the Role Assignment checks performed.";
 
@@ -294,12 +294,9 @@ public abstract class SpringBootFunctionalBaseTest {
 
     private Headers getAuthHeadersForJurisdiction(Jurisdiction jurisdiction) {
         switch (jurisdiction) {
-            case IA:
-                return iaCaseworkerCredentials.getHeaders();
-            case WA:
-                return waCaseworkerCredentials.getHeaders();
-            default:
-                return null;
+            case IA: return iaCaseworkerCredentials.getHeaders();
+            case WA: return waCaseworkerCredentials.getHeaders();
+            default: return null;
         }
     }
 

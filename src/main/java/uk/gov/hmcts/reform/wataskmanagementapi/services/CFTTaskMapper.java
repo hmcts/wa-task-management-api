@@ -106,7 +106,7 @@ public class CFTTaskMapper {
     }
 
     public TaskResource mapToTaskResource(String taskId, List<TaskAttribute> taskAttributes) {
-        log.info("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
+        log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
         Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
             .filter(attribute -> {
                 log.debug("filtering out null attributes: attribute({})", attribute);
@@ -167,7 +167,7 @@ public class CFTTaskMapper {
     }
 
     public TaskResource mapToTaskResource(String taskId, Map<String, Object> taskAttributes) {
-        log.info("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
+        log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
         Map<CamundaVariableDefinition, Object> attributes = taskAttributes.entrySet().stream()
             .filter(key -> CamundaVariableDefinition.from(key.getKey()).isPresent())
             .collect(Collectors.toMap(

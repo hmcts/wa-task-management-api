@@ -41,4 +41,3 @@ java:
     POSTGRES_CONNECTION_OPTIONS: "?sslmode=require"
     ALLOWED_JURISDICTIONS: wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW
     ALLOWED_CASE_TYPES: asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS
-    WA_WORKFLOW_API_URL: "http://wa-workflow-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"

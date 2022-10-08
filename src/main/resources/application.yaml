@@ -28,6 +28,7 @@ camunda:
 
 role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
+
 security:
   anonymousPaths:
     - "/"
