@@ -328,6 +328,64 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
+    public void should_return_a_201_when_initiating_a_due_date_calculation_task_by_id() {
+        TestVariables taskVariables =
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                             "calculateDueDate", "Calculate Due Date");
+        String taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Calculate Due Date"))
+                .body("task.type", equalTo("calculateDueDate"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Calculate Due Date"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.case_management_category", equalTo("Protection"))
+                .body("task.description", equalTo(""))
+                .body("task.permissions.values.size()", equalTo(3))
+                .body("task.permissions.values", hasItems("Read", "Refer", "Execute"))
+                .body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"))
+                .body("task.due_date", notNullValue())
+                .body("task.due_date",
+                      equalTo(OffsetDateTime.now().plusDays(4).withHour(20).withMinute(0).withSecond(0).withNano(0)
+                                  .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+        };
+
+        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+
+    @Test
     public void should_return_a_201_when_initiating_a_specific_access_task_by_id() {
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds(
