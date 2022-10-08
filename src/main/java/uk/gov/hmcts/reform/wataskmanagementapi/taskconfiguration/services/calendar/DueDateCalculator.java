@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
+package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,14 +18,21 @@ import java.util.stream.Collectors;
 @Component
 public class DueDateCalculator {
 
+    private final DueDateOriginBasedCalculator dueDateOriginBasedCalculator;
+
+    public DueDateCalculator(DueDateOriginBasedCalculator dueDateOriginBasedCalculator) {
+        this.dueDateOriginBasedCalculator = dueDateOriginBasedCalculator;
+    }
+
     private static final String DUE_DATE_PREFIX = "dueDate";
     private static final String DUE_DATE_TME_PREFIX = "dueDateTime";
     public static final LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
-        .withHour(16).withMinute(0);
+        .withHour(16).withMinute(0).withSecond(0);
     public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER_WITHOUT_TIME
         = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static final String IA_JURISDICTION = "IA";
+    private static final String DUE_DATE_ORIGIN_PREFIX = "dueDateOrigin";
 
     public List<ConfigurationDmnEvaluationResponse> calculateDueDate(
         List<ConfigurationDmnEvaluationResponse> configResponses, String jurisdiction) {
@@ -64,6 +71,10 @@ public class DueDateCalculator {
             .filter(r -> r.getName().getValue().equals(DUE_DATE_TME_PREFIX))
             .reduce((a, b) -> b);
 
+        Optional<ConfigurationDmnEvaluationResponse> dueDateOriginResponse = dueDateProperties.stream()
+            .filter(r -> r.getName().getValue().equals(DUE_DATE_ORIGIN_PREFIX))
+            .reduce((a, b) -> b);
+
         if (dueDateResponse.isPresent()) {
             String dueDate = dueDateResponse.get().getValue().getValue();
 
@@ -74,17 +85,19 @@ public class DueDateCalculator {
                 return useDateTime(parsedDueDate, dueDateTime);
             } else {
                 if (parsedDueDate.getHour() == 0) {
-                    return parsedDueDate.withHour(16);
+                    return parsedDueDate.withHour(16).withMinute(0);
                 } else {
                     return parsedDueDate;
                 }
             }
+        } else if (dueDateOriginResponse.isPresent()) {
+            String dueDateOrigin = dueDateOriginResponse.get().getValue().getValue();
+            return dueDateOriginBasedCalculator.calculateDueDate(dueDateProperties);
         } else if (dueDateTimeResponse.isPresent()) {
             String dueDateTime = dueDateTimeResponse.get().getValue().getValue();
             return useDateTime(LocalDateTime.now().plusDays(2), dueDateTime);
-        } else {
-            return DEFAULT_ZONED_DATE_TIME;
         }
+        return DEFAULT_ZONED_DATE_TIME;
     }
 
     private static LocalDateTime parseDueDateTime(String dueDate) {

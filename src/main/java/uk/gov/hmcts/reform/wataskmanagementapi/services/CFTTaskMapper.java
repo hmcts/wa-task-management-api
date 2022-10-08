@@ -92,7 +92,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.DueDateCalculator.DUE_DATE_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateCalculator.DUE_DATE_TIME_FORMATTER;
 
 @Service
 @SuppressWarnings(

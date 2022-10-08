@@ -14,10 +14,17 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.BankHolidaysApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateCalculator;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateOriginBasedCalculator;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.PublicHolidaysCollection;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.WorkingDayIndicator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +54,9 @@ class CaseConfigurationProviderServiceTest {
     @Spy
     private ObjectMapper objectMapper;
 
+    @Mock
+    private BankHolidaysApi bankHolidaysApi;
+
     private CaseConfigurationProviderService caseConfigurationProviderService;
 
     @Mock
@@ -59,7 +69,8 @@ class CaseConfigurationProviderServiceTest {
             ccdDataService,
             dmnEvaluationService,
             objectMapper,
-            new DueDateCalculator()
+            new DueDateCalculator(new DueDateOriginBasedCalculator(
+                new WorkingDayIndicator(new PublicHolidaysCollection())))
         );
 
         lenient().when(caseDetails.getCaseType()).thenReturn("Asylum");
@@ -473,7 +484,8 @@ class CaseConfigurationProviderServiceTest {
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
                     stringValue(writeValueAsString(additionalProperties))
-                ));
+                )
+            );
     }
 
     @Test
