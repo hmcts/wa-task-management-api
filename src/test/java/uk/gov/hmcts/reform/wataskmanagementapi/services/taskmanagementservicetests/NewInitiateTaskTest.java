@@ -149,6 +149,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
         OffsetDateTime dueDate = OffsetDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
+        initiateTaskRequest.getTaskAttributes().put("taskId", taskId);
 
         TaskResource unassignedTaskResource = new TaskResource(
             taskId,
@@ -194,6 +195,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
         OffsetDateTime dueDate = OffsetDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
+        initiateTaskRequest.getTaskAttributes().put("taskId", taskId);
 
         TaskResource taskWithAssignee = new TaskResource(
             taskId,
@@ -250,6 +252,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
         OffsetDateTime dueDate = OffsetDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
+        initiateTaskRequest.getTaskAttributes().put("taskId", taskId);
 
         TaskResource taskWithAssignee = new TaskResource(
             taskId,
@@ -329,7 +332,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
             .isInstanceOf(DatabaseConflictException.class)
             .hasNoCause()
             .hasMessage("Database Conflict Error: "
-                            + "The action could not be completed because there was a conflict in the database.");
+                        + "The action could not be completed because there was a conflict in the database.");
     }
 
     @Test
