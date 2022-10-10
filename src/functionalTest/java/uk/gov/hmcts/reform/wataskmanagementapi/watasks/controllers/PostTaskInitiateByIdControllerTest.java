@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -20,6 +21,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -95,6 +98,47 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "unassigned"
         );
 
+
+        Response response = restApiActions.get(
+            TASK_GET_ROLES_ENDPOINT,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("roles.values.size()", equalTo(10))
+            .body("roles[0].role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("roles[0].role_name", equalTo("case-manager"))
+            .body("roles[0].permissions", hasItems("Own"))
+            .body("roles[1].role_category", equalTo("ADMIN"))
+            .body("roles[1].role_name", equalTo("challenged-access-admin"))
+            .body("roles[1].permissions", hasItems("Execute"))
+            .body("roles[2].role_category", equalTo("JUDICIAL"))
+            .body("roles[2].role_name", equalTo("challenged-access-judiciary"))
+            .body("roles[2].permissions", hasItems("Read"))
+            .body("roles[3].role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("roles[3].role_name", equalTo("challenged-access-legal-ops"))
+            .body("roles[3].permissions", hasItems("Manage"))
+            .body("roles[4].role_category", equalTo("JUDICIAL"))
+            .body("roles[4].role_name", equalTo("ftpa-judge"))
+            .body("roles[4].permissions", hasItems("Execute"))
+            .body("roles[5].role_category", equalTo("JUDICIAL"))
+            .body("roles[5].role_name", equalTo("hearing-panel-judge"))
+            .body("roles[5].permissions", hasItems("Manage"))
+            .body("roles[6].role_category", equalTo("JUDICIAL"))
+            .body("roles[6].role_name", equalTo("lead-judge"))
+            .body("roles[6].permissions", hasItems("Read"))
+            .body("roles[7].role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("roles[7].role_name", equalTo("senior-tribunal-caseworker"))
+            .body("roles[7].permissions", hasItems("Read", "Refer", "Execute"))
+            .body("roles[8].role_name", equalTo("task-supervisor"))
+            .body("roles[8].permissions", hasItems("Read", "Refer", "Manage", "Cancel"))
+            .body("roles[9].role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("roles[9].role_name", equalTo("tribunal-caseworker"))
+            .body("roles[9].permissions", hasItems("Read", "Refer", "Execute"));
+
         common.cleanUpTask(taskId);
     }
 
@@ -137,8 +181,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.location", equalTo("765324"))
                 .body("task.location_name", equalTo("Taylor House"))
                 .body("task.execution_type", equalTo("Case Management Task"))
-                .body("task.permissions.values.size()", equalTo(2))
-                .body("task.permissions.values", hasItems("Read", "Own"))
+                .body("task.work_type_id", equalTo("access_requests"))
+                .body("task.work_type_label", equalTo("Access requests"))
+                .body("task.role_category", equalTo("JUDICIAL"))
+                .body("task.permissions.values.size()", equalTo(3))
+                .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
                 .body("task.additional_properties", equalToObject(Map.of(
                     "roleAssignmentId", "roleAssignmentId")))
                 .body("task.minor_priority", equalTo(500))
@@ -154,6 +201,43 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "unassigned"
         );
 
+        Response response = restApiActions.get(
+            TASK_GET_ROLES_ENDPOINT,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("roles.values.size()", equalTo(9))
+            .body("roles[0].role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("roles[0].role_name", equalTo("case-manager"))
+            .body("roles[0].permissions", hasItems("Own", "Manage"))
+            .body("roles[1].role_category", equalTo("ADMIN"))
+            .body("roles[1].role_name", equalTo("challenged-access-admin"))
+            .body("roles[1].permissions", hasItems("Own", "Manage"))
+            .body("roles[2].role_category", equalTo("JUDICIAL"))
+            .body("roles[2].role_name", equalTo("challenged-access-judiciary"))
+            .body("roles[2].permissions", hasItems("Manage"))
+            .body("roles[3].role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("roles[3].role_name", equalTo("challenged-access-legal-ops"))
+            .body("roles[3].permissions", hasItems("Cancel"))
+            .body("roles[4].role_category", equalTo("JUDICIAL"))
+            .body("roles[4].role_name", equalTo("ftpa-judge"))
+            .body("roles[4].permissions", hasItems("Execute", "Manage"))
+            .body("roles[5].role_category", equalTo("JUDICIAL"))
+            .body("roles[5].role_name", equalTo("hearing-panel-judge"))
+            .body("roles[5].permissions", hasItems("Read", "Manage", "Cancel"))
+            .body("roles[6].role_category", equalTo("JUDICIAL"))
+            .body("roles[6].role_name", equalTo("judge"))
+            .body("roles[6].permissions", hasItems("Read", "Refer", "Own"))
+            .body("roles[7].role_category", equalTo("JUDICIAL"))
+            .body("roles[7].role_name", equalTo("lead-judge"))
+            .body("roles[7].permissions", hasItems("Cancel"))
+            .body("roles[8].role_name", equalTo("task-supervisor"))
+            .body("roles[8].permissions", hasItems("Read", "Refer", "Manage", "Cancel"));
+
         common.cleanUpTask(taskId);
     }
 
@@ -166,7 +250,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "process Application"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
@@ -229,6 +312,76 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
+    public void should_return_a_200_with_task_when_next_hearing_date_is_empty() {
+
+        TestVariables taskVariables =
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_empty_hearing_date.json",
+                                             "processApplication", "process application"
+            );
+        String taskId = taskVariables.getTaskId();
+//        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        Consumer<Response> assertConsumer = (result) -> {
+            //Note: this is the TaskResource.class
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("process application"))
+                .body("task.type", equalTo("processApplication"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("process application"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.location", equalTo("765324"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_category", equalTo("Protection"))
+                .body("task.case_name", equalTo("Bob Smith"))
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_management_category", equalTo("Protection"))
+                .body("task.work_type_id", equalTo("hearing_work"))
+                .body(
+                    "task.permissions.values",
+                    equalToObject(List.of("Read", "Refer", "Execute"))
+                )
+                .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                                      + "trigger/decideAnApplication)"))
+                .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+                .body("task.additional_properties", equalToObject(Map.of(
+                    "key1", "value1",
+                    "key2", "value2",
+                    "key3", "value3",
+                    "key4", "value4"
+                )))
+                .body("task.next_hearing_id", nullValue())
+                .body("task.next_hearing_date", nullValue())
+                .body("task.priority_date", not(""))
+                .body("task.priority_date", notNullValue());
+        };
+
+        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+
+    @Test
     public void should_initiate_review_appeal_skeleton_argument_task_with_ctsc_category() {
         TestVariables taskVariables
             = common.setupWATaskAndRetrieveIds(
@@ -285,6 +438,101 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "cftTaskState",
             "unassigned"
         );
+
+        Response response = restApiActions.get(
+            TASK_GET_ROLES_ENDPOINT,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("roles.values.size()", equalTo(2))
+            .body("roles[0].role_category", equalTo("CTSC"))
+            .body("roles[0].role_name", equalTo("ctsc"))
+            .body("roles[0].permissions", hasItems("Read", "Own", "Cancel"))
+            .body("roles[1].role_name", equalTo("task-supervisor"))
+            .body("roles[1].permissions", hasItems("Read", "Refer", "Manage", "Cancel"));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_201_when_initiating_a_follow_up_overdue_task_by_id() {
+        TestVariables taskVariables =
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                             "followUpOverdue",
+                                             "Follow Up Overdue");
+        String taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Follow Up Overdue"))
+                .body("task.type", equalTo("followUpOverdue"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Follow Up Overdue"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.case_management_category", equalTo("Protection"))
+                .body("task.permissions.values.size()", equalTo(3))
+                .body("task.permissions.values", hasItems("Read", "Refer", "Execute"))
+                .body("task.additional_properties", equalToObject(Map.of(
+                    "key1", "value1",
+                    "key2", "value2",
+                    "key3", "value3",
+                    "key4", "value4")))
+                .body("task.next_hearing_id", equalTo("next-hearing-id"))
+                .body("task.next_hearing_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
+        };
+
+        initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        Response response = restApiActions.get(
+            TASK_GET_ROLES_ENDPOINT,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("roles.values.size()", equalTo(3))
+            .body("roles[0].role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("roles[0].role_name", equalTo("senior-tribunal-caseworker"))
+            .body("roles[0].permissions", hasItems("Read", "Refer", "Execute"))
+            .body("roles[1].role_name", equalTo("task-supervisor"))
+            .body("roles[1].permissions", hasItems("Read", "Refer", "Manage", "Cancel"))
+            .body("roles[2].role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("roles[2].role_name", equalTo("tribunal-caseworker"))
+            .body("roles[2].permissions", hasItems("Read", "Refer", "Execute"));
 
         common.cleanUpTask(taskId);
     }
