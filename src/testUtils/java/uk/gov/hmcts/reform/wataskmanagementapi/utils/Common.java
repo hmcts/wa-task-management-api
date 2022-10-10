@@ -53,12 +53,16 @@ public class Common {
     public static final WarningValues DEFAULT_WARNINGS = new WarningValues();
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
+    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
+    private static final String TASK_INITIATION_NEW_ENDPOINT_BEING_TESTED = "task/{task-id}/initiation";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     public static final String R2_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/r2/set-organisational-role-assignment-request.json";
     public static final String R1_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/set-organisational-role-assignment-request.json";
     private final GivensBuilder given;
     private final RestApiActions restApiActions;
     private final RestApiActions camundaApiActions;
+
+    private final RestApiActions workflowApiActions;
     private final AuthorizationProvider authorizationProvider;
 
     private final IdamService idamService;
@@ -71,25 +75,27 @@ public class Common {
                   RestApiActions camundaApiActions,
                   AuthorizationProvider authorizationProvider,
                   IdamService idamService,
-                  RoleAssignmentServiceApi roleAssignmentServiceApi) {
+                  RoleAssignmentServiceApi roleAssignmentServiceApi,
+                  RestApiActions workflowApiActions) {
         this.given = given;
         this.restApiActions = restApiActions;
         this.camundaApiActions = camundaApiActions;
         this.authorizationProvider = authorizationProvider;
         this.idamService = idamService;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
+        this.workflowApiActions = workflowApiActions;
     }
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariablesOverride(
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String jurisdiction, String caseType
     ) {
         String caseId = given.iCreateACcdCase();
-        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride,  caseId, jurisdiction, caseType, DEFAULT_WARNINGS, 1);
+        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride, caseId, jurisdiction, caseType, DEFAULT_WARNINGS, 1);
     }
 
     public TestVariables setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String caseId, String jurisdiction, String caseType, int taskIndex) {
-        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride,  caseId, jurisdiction, caseType, DEFAULT_WARNINGS, taskIndex);
+        return setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(variablesToUseAsOverride, caseId, jurisdiction, caseType, DEFAULT_WARNINGS, taskIndex);
     }
 
     public TestVariables setupTaskWithCaseIdAndRetrieveIdsWithCustomVariablesOverride(
@@ -107,7 +113,7 @@ public class Common {
         Map<String, CamundaValue<?>> processVariables
             = warningValues.getValues().isEmpty()
             ? given.createDefaultTaskVariables(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, Map.of())
-            : given.createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, warningString);
+            : given.createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseType, DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, warningString, Map.of());
 
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables.put(
@@ -266,7 +272,7 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
-    public TestVariables setupWATaskAndRetrieveIds(CamundaVariableDefinition key, Map<String, String> additionalProperties, String resourceFileName, String taskType) {
+    public TestVariables setupWATaskAndRetrieveIds(Map<String, String> additionalProperties, String resourceFileName, String taskType) {
         String caseId = given.iCreateWACcdCase(resourceFileName);
 
         Map<String, CamundaValue<?>> processVariables =
@@ -295,6 +301,22 @@ public class Common {
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, "WA", "WaCaseType", taskType, taskName)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
+    }
+
+    public TestVariables setupWAStandaloneTaskAndRetrieveIds(String resourceFileName, String taskType, String taskName) {
+
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        List<CamundaTask> response = given
+            .iSendAMessageToWorkflowApi(caseId, "WA", "WaCaseType", taskType, taskName)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 

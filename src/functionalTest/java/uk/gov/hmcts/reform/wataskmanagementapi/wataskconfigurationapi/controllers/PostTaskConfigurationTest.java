@@ -4,6 +4,7 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -24,6 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.utils.CreateTaskMessageBuilder.createMessageForTask;
 
 @Slf4j
+@Ignore("disabling as this feature is not in use")
 public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task-configuration/{task-id}/configuration";

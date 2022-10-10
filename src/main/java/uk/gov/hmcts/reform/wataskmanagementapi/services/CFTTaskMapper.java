@@ -82,13 +82,19 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
-
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
         "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411",
-        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity"})
+        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity", "PMD.AvoidDuplicateLiterals"
+    })
 @Slf4j
 public class CFTTaskMapper {
 
@@ -160,6 +166,67 @@ public class CFTTaskMapper {
         );
     }
 
+    public TaskResource mapToTaskResource(String taskId, Map<String, Object> taskAttributes) {
+        log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
+        Map<CamundaVariableDefinition, Object> attributes = taskAttributes.entrySet().stream()
+            .filter(key -> CamundaVariableDefinition.from(key.getKey()).isPresent())
+            .collect(Collectors.toMap(
+                key -> CamundaVariableDefinition.from(key.getKey()).get(),
+                Map.Entry::getValue
+            ));
+
+        List<NoteResource> notes = extractWarningNotesNew(attributes);
+        ExecutionTypeResource executionTypeResource = extractExecutionTypeNew(attributes);
+        OffsetDateTime dueDate = readDate(attributes, DUE_DATE, null);
+        OffsetDateTime createdDate = readDate(attributes, CREATED, ZonedDateTime.now().toOffsetDateTime());
+        OffsetDateTime priorityDate = readDate(attributes, PRIORITY_DATE, null);
+
+        Objects.requireNonNull(dueDate, "DUE_DATE must not be null");
+        if (priorityDate == null) {
+            priorityDate = dueDate;
+        }
+
+        WorkTypeResource workTypeResource = extractWorkTypeNew(attributes);
+        return new TaskResource(
+            taskId,
+            read(attributes, CamundaVariableDefinition.TASK_NAME, null),
+            read(attributes, CamundaVariableDefinition.TASK_TYPE, null),
+            dueDate,
+            CFTTaskState.UNCONFIGURED,
+            read(attributes, CamundaVariableDefinition.TASK_SYSTEM, null),
+            read(attributes, CamundaVariableDefinition.SECURITY_CLASSIFICATION, null),
+            read(attributes, CamundaVariableDefinition.TITLE, null),
+            read(attributes, CamundaVariableDefinition.DESCRIPTION, null),
+            notes,
+            read(attributes, CamundaVariableDefinition.MAJOR_PRIORITY, 5000),
+            read(attributes, CamundaVariableDefinition.MINOR_PRIORITY, 500),
+            read(attributes, CamundaVariableDefinition.ASSIGNEE, null),
+            read(attributes, CamundaVariableDefinition.AUTO_ASSIGNED, false),
+            executionTypeResource,
+            workTypeResource,
+            read(attributes, CamundaVariableDefinition.ROLE_CATEGORY, null),
+            read(attributes, CamundaVariableDefinition.HAS_WARNINGS, false),
+            read(attributes, CamundaVariableDefinition.ASSIGNMENT_EXPIRY, null),
+            read(attributes, CamundaVariableDefinition.CASE_ID, null),
+            read(attributes, CamundaVariableDefinition.CASE_TYPE_ID, null),
+            read(attributes, CamundaVariableDefinition.CASE_NAME, null),
+            read(attributes, CamundaVariableDefinition.JURISDICTION, null),
+            read(attributes, CamundaVariableDefinition.REGION, null),
+            read(attributes, CamundaVariableDefinition.REGION_NAME, null),
+            read(attributes, CamundaVariableDefinition.LOCATION, null),
+            read(attributes, CamundaVariableDefinition.LOCATION_NAME, null),
+            read(attributes, CamundaVariableDefinition.BUSINESS_CONTEXT, null),
+            read(attributes, CamundaVariableDefinition.TERMINATION_REASON, null),
+            createdDate,
+            read(attributes, CamundaVariableDefinition.TASK_ROLES, null),
+            read(attributes, CamundaVariableDefinition.CASE_CATEGORY, null),
+            read(attributes, CamundaVariableDefinition.ADDITIONAL_PROPERTIES, null),
+            read(attributes, CamundaVariableDefinition.NEXT_HEARING_ID, null),
+            readDate(attributes, CamundaVariableDefinition.NEXT_HEARING_DATE, null),
+            priorityDate
+        );
+    }
+
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
                                                    TaskConfigurationResults taskConfigurationResults) {
 
@@ -178,10 +245,10 @@ public class CFTTaskMapper {
         List<ConfigurationDmnEvaluationResponse> configurationDmnResponse = taskConfigurationResults
             .getConfigurationDmnResponse();
         configurationDmnResponse.forEach(response -> reconfigureTaskAttribute(
-            taskResource,
-            response.getName().getValue(),
-            response.getValue().getValue(),
-            response.getCanReconfigure() != null && response.getCanReconfigure().getValue()
+                taskResource,
+                response.getName().getValue(),
+                response.getValue().getValue(),
+                response.getCanReconfigure() != null && response.getCanReconfigure().getValue()
             )
         );
 
@@ -253,9 +320,30 @@ public class CFTTaskMapper {
         return (T) map(attributesMap, extractor).orElse(defaultValue);
     }
 
+
+    @SuppressWarnings("unchecked")
+    public <T> T read(Map<CamundaVariableDefinition, Object> attributesMap,
+                      CamundaVariableDefinition extractor,
+                      Object defaultValue) {
+        return (T) map(attributesMap, extractor).orElse(defaultValue);
+    }
+
     @SuppressWarnings("unchecked")
     public <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
                           TaskAttributeDefinition extractor,
+                          Object defaultValue) {
+        Optional<T> maybeValue = map(attributesMap, extractor);
+        if (maybeValue.isPresent()) {
+            return (T) OffsetDateTime.parse((String) maybeValue.get(), CAMUNDA_DATA_TIME_FORMATTER);
+        } else {
+            return (T) defaultValue;
+        }
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public <T> T readDate(Map<CamundaVariableDefinition, Object> attributesMap,
+                          CamundaVariableDefinition extractor,
                           Object defaultValue) {
         Optional<T> maybeValue = map(attributesMap, extractor);
         if (maybeValue.isPresent()) {
@@ -331,6 +419,11 @@ public class CFTTaskMapper {
         return workTypeId == null ? null : new WorkTypeResource(workTypeId);
     }
 
+    private WorkTypeResource extractWorkTypeNew(Map<CamundaVariableDefinition, Object> attributes) {
+        String workTypeId = read(attributes, WORK_TYPE, null);
+        return workTypeId == null ? null : new WorkTypeResource(workTypeId);
+    }
+
     private Set<PermissionTypes> extractUnionOfPermissions(Set<TaskRoleResource> taskRoleResources) {
         //Using TreeSet to benefit from SortedSet
         TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
@@ -400,6 +493,7 @@ public class CFTTaskMapper {
     }
 
     private void mapVariableToTaskResourceProperty(TaskResource taskResource, String key, Object value) {
+        log.debug("map variable to taskResourceProperty {},{}", key, value);
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
         if (enumKey.isPresent()) {
             switch (enumKey.get()) {
@@ -530,9 +624,9 @@ public class CFTTaskMapper {
     }
 
     protected void reconfigureTaskAttribute(TaskResource taskResource,
-                                          String key,
-                                          Object value,
-                                          boolean canReconfigure) {
+                                            String key,
+                                            Object value,
+                                            boolean canReconfigure) {
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
         if (enumKey.isPresent() & canReconfigure) {
             switch (enumKey.get()) {
@@ -632,9 +726,47 @@ public class CFTTaskMapper {
         return null;
     }
 
+    private ExecutionTypeResource extractExecutionTypeNew(Map<CamundaVariableDefinition, Object> attributes) {
+        String executionTypeName = read(attributes, EXECUTION_TYPE, null);
+
+        if (executionTypeName != null) {
+            Optional<ExecutionType> value = ExecutionType.from(executionTypeName);
+            if (value.isPresent()) {
+                return new ExecutionTypeResource(
+                    value.get(),
+                    value.get().getName(),
+                    value.get().getDescription()
+                );
+            } else {
+                throw new IllegalStateException(
+                    "ExecutionTypeName value: '" + executionTypeName + "' could not be mapped to ExecutionType enum"
+                );
+            }
+        }
+        return null;
+    }
+
     private List<NoteResource> extractWarningNotes(Map<TaskAttributeDefinition, Object> attributes) {
         List<NoteResource> notes = null;
         WarningValues warningList = read(attributes, TASK_WARNINGS, null);
+        if (warningList != null) {
+            List<Warning> warnings = warningList.getValues();
+            if (!warnings.isEmpty()) {
+                notes = warnings.stream()
+                    .map(warning -> new NoteResource(
+                        warning.getWarningCode(),
+                        "WARNING",
+                        null,
+                        warning.getWarningText()
+                    )).collect(Collectors.toList());
+            }
+        }
+        return notes;
+    }
+
+    private List<NoteResource> extractWarningNotesNew(Map<CamundaVariableDefinition, Object> attributes) {
+        List<NoteResource> notes = null;
+        WarningValues warningList = read(attributes, WARNING_LIST, null);
         if (warningList != null) {
             List<Warning> warnings = warningList.getValues();
             if (!warnings.isEmpty()) {
@@ -664,6 +796,18 @@ public class CFTTaskMapper {
 
     @SuppressWarnings("unchecked")
     private <T> Optional<T> map(Map<TaskAttributeDefinition, Object> object, TaskAttributeDefinition extractor) {
+
+        if (object == null) {
+            return Optional.empty();
+        }
+        Object obj = object.get(extractor);
+        Object value = objectMapper.convertValue(obj, extractor.getTypeReference());
+
+        return value == null ? Optional.empty() : Optional.of((T) value);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> Optional<T> map(Map<CamundaVariableDefinition, Object> object, CamundaVariableDefinition extractor) {
 
         if (object == null) {
             return Optional.empty();
