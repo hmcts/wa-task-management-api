@@ -166,6 +166,8 @@ public class Task {
         description = "A value to be able to sort by priority")
     private final Integer majorPriority;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(required = true,
         description = "A value to be able to sort by priority")
     private final ZonedDateTime priorityDate;
