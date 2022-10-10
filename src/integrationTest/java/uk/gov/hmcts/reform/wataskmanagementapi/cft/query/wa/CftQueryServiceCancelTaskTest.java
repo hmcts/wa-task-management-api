@@ -86,6 +86,31 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
+    void should_not_retrieve_a_task_when_grant_type_standard_without_cancel_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111004";
+        final String caseId = "1623278362431004";
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
+        Assertions.assertThat(task.isEmpty()).isTrue();
+    }
+
+    @Test
     void should_not_retrieve_a_task_when_grant_type_standard_with_excluded() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111001";
         final String caseId = "1623278362431001";
@@ -148,6 +173,29 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+    }
+
+    @Test
+    void should_not_retrieve_a_task_when_grant_type_challenged_without_cancel_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111005";
+        final String caseId = "1623278362431005";
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
+        Assertions.assertThat(task.isEmpty()).isTrue();
     }
 
     @Test
@@ -227,6 +275,29 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
 
+    }
+
+    @Test
+    void should_not_retrieve_a_task_when_grant_type_specific_without_cancel_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111006";
+        final String caseId = "1623278362431006";
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
+        Assertions.assertThat(task.isEmpty()).isTrue();
     }
 
     @Test

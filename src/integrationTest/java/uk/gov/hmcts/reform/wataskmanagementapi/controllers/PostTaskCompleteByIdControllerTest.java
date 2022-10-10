@@ -273,7 +273,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_tru() throws Exception {
+        void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_true() throws Exception {
 
             CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
             insertDummyTaskInDb(taskId, cftTaskDatabaseService);
