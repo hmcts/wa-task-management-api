@@ -3009,7 +3009,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     class NewInitiateTask {
         OffsetDateTime dueDate = OffsetDateTime.now();
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        private final InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(
+        private InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(
             INITIATION,
             Map.of(
                 TASK_TYPE.value(), A_TASK_TYPE,
@@ -3057,8 +3057,18 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
         @Test
         void given_initiateTask_task_is_initiated() {
-            mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED);
 
+            initiateTaskRequest = new InitiateTaskRequestMap(
+                INITIATION,
+                Map.of(
+                    TASK_TYPE.value(), A_TASK_TYPE,
+                    TASK_NAME.value(), A_TASK_NAME,
+                    DUE_DATE.value(), formattedDueDate,
+                    ROLE_ASSIGNMENT_ID.value(), SOME_ROLE_ASSIGNMENT_ID,
+                    "taskId", taskId
+                )
+            );
+            mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED);
             taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
             verifyExpectations(CFTTaskState.UNASSIGNED);
