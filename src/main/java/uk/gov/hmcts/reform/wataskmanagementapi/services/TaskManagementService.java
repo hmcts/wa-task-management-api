@@ -496,14 +496,16 @@ public class TaskManagementService {
             TaskResource task = findByIdAndObtainLock(taskId);
             taskHasCompleted = task.getState() == CFTTaskState.COMPLETED;
 
-            // If task was not already completed complete it
-            if (taskHasCompleted) {
-                //Perform Camunda updates
-                camundaService.completeTask(taskId, taskHasCompleted);
-            } else {
+            if (!taskHasCompleted) {
+                //scenario, task not completed anywhere
                 task.setState(CFTTaskState.COMPLETED);
-                //Perform Camunda updates
-                camundaService.completeTask(taskId, taskHasCompleted);
+
+                //check the state, if not complete, complete
+                boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
+                if (!isTaskCompleted) {
+                    //Perform Camunda updates
+                    camundaService.completeTask(taskId, taskHasCompleted);
+                }
                 //Commit transaction
                 cftTaskDatabaseService.saveTask(task);
             }
