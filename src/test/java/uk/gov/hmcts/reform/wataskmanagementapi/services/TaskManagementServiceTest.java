@@ -1729,6 +1729,27 @@ class TaskManagementServiceTest extends CamundaHelpers {
             verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
         }
 
+        @Test
+        void should_throw_exception_when_assignee_is_null() {
+            assertThatThrownBy(() -> taskManagementService.checkAssignee(null, "userId", "taskId"))
+                .isInstanceOf(TaskStateIncorrectException.class)
+                .hasMessage("Could not complete task with id: taskId as task was not previously assigned")
+            ;
+        }
+
+        @Test
+        void should_throw_exception_when_assignee_is_not_user_null() {
+            assertThatThrownBy(() -> taskManagementService.checkAssignee("assignee", "userId", "taskId"))
+                .isInstanceOf(TaskStateIncorrectException.class)
+                .hasMessage("Could not complete task with id: taskId as task was assigned to other user assignee")
+            ;
+        }
+
+        @Test
+        void should_not_throw_exception_when_assignee_id_is_same_as_user_id() {
+            taskManagementService.checkAssignee("userId", "userId", "taskId");
+        }
+
     }
 
     @Nested
@@ -1745,7 +1766,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .buildSingleRequirementWithOr(OWN, EXECUTE);
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
-            when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
             when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
 
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
@@ -1760,8 +1781,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             taskManagementService.completeTask(taskId, accessControlResponse);
             boolean taskStateIsCompletedAlready = taskResource.getState().equals(CFTTaskState.COMPLETED);
-            assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
-            verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+            verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
         }
 
@@ -2431,7 +2451,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .equals(taskResource.getState().getValue());
                 assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
-                verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
+                verify(camundaService, times(0)).completeTask(taskId, taskStateIsCompletedAlready);
             }
 
             @Test
