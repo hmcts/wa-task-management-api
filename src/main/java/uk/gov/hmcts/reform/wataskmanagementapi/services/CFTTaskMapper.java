@@ -386,7 +386,10 @@ public class CFTTaskMapper {
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments,
                                                                  boolean granularPermissionResponseFeature) {
-        List<String> userRoleNames = roleAssignments.stream()
+        String caseId = taskRoleResources.stream().filter(t -> t.getTaskResource().getCaseId() != null).findFirst().get().getTaskResource().getCaseId();
+
+        List<String> userRoleNames = roleAssignments.stream().filter(ra -> ra.getAttributes() != null &&
+                ra.getAttributes().get("caseId") != null && ra.getAttributes().get("caseId").equals(caseId))
             .map(RoleAssignment::getRoleName)
             .collect(Collectors.toList());
 

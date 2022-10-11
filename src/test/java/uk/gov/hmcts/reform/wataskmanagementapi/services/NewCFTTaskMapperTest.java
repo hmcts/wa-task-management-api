@@ -1960,6 +1960,52 @@ class NewCFTTaskMapperTest {
         assertEquals("nextHearingId", taskResource.getNextHearingId());
     }
 
+    @Test
+    void should_not_use_specific_role_assignments() {
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            false,
+            true,
+            false,
+            false,
+            true,
+            new String[]{},
+            0,
+            true
+        );
+        taskRoleResource.setTaskResource(createTaskResource());
+
+        TaskRoleResource taskRoleResourceSpecific = new TaskRoleResource(
+            "case-manager",
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            new String[]{},
+            0,
+            true
+        );
+        taskRoleResourceSpecific.setTaskResource(createTaskResource());
+
+        Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource, taskRoleResourceSpecific));
+        List<RoleAssignment> roleAssignments = asList(RoleAssignmentCreator.aRoleAssignment("1623278362430412", "tribunal-caseworker").build(),
+                                                      RoleAssignmentCreator.aRoleAssignment("adifferentcaseId", "case-manager").build());
+
+        Set<PermissionTypes> permissionsUnion =
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
+
+        assertFalse(permissionsUnion.isEmpty());
+        assertTrue(permissionsUnion.contains(PermissionTypes.READ));
+        assertTrue(!permissionsUnion.contains(PermissionTypes.OWN));
+        assertTrue(!permissionsUnion.contains(PermissionTypes.MANAGE));
+        assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
+        assertTrue(!permissionsUnion.contains(PermissionTypes.CANCEL));
+        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
+    }
+
     private TaskResource createTaskResource() {
         return new TaskResource(
             "taskId",
