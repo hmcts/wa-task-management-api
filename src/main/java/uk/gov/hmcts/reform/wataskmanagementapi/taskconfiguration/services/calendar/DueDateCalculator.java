@@ -67,17 +67,22 @@ public class DueDateCalculator {
         var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME_PREFIX);
 
         boolean onlyDueDateAvailable = dueDateResponse.isPresent() && dueDateTimeResponse.isEmpty();
-        boolean bothDueDateAndTimeAvailable = dueDateResponse.isPresent() && dueDateTimeResponse.isPresent();
-        boolean onlyDueDateOriginPresent = getProperty(dueDateProperties, DUE_DATE_ORIGIN_PREFIX).isPresent();
-        boolean onlyDueDateTimePresent = dueDateTimeResponse.isPresent();
-
         if (onlyDueDateAvailable) {
             return calculateDueDateFrom(dueDateResponse.get());
-        } else if (bothDueDateAndTimeAvailable) {
+        }
+
+        boolean bothDueDateAndTimeAvailable = dueDateResponse.isPresent() && dueDateTimeResponse.isPresent();
+        if (bothDueDateAndTimeAvailable) {
             return calculateDueDateFrom(dueDateResponse.get(), dueDateTimeResponse.get());
-        } else if (onlyDueDateOriginPresent) {
+        }
+
+        boolean onlyDueDateOriginPresent = getProperty(dueDateProperties, DUE_DATE_ORIGIN_PREFIX).isPresent();
+        if (onlyDueDateOriginPresent) {
             return dueDateIntervalCalculator.calculateDueDate(dueDateProperties);
-        } else if (onlyDueDateTimePresent) {
+        }
+
+        boolean onlyDueDateTimePresent = dueDateTimeResponse.isPresent();
+        if (onlyDueDateTimePresent) {
             return addTimeToDate(dueDateTimeResponse.get(), DEFAULT_DATE);
         } else {
             return DEFAULT_ZONED_DATE_TIME;
@@ -113,7 +118,7 @@ public class DueDateCalculator {
             .reduce((a, b) -> b);
     }
 
-    private  LocalDateTime parseDueDateTime(String dueDate) {
+    private LocalDateTime parseDueDateTime(String dueDate) {
         if (dateContainsTime(dueDate)) {
             return LocalDateTime.parse(dueDate, DUE_DATE_TIME_FORMATTER);
         } else {
