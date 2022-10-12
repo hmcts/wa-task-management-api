@@ -376,7 +376,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void user_should_claim_task_when_grant_type_challenged_and_permissions_own_manage() {
+    public void user_should_claim_task_when_grant_type_challenged_and_permissions_execute_assign() {
         testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                                        "reviewSpecificAccessRequestJudiciary");
@@ -387,54 +387,6 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
                                                             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
-
-        String taskId = taskVariables.getTaskId();
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        common.cleanUpTask(taskId);
-    }
-
-    @Test
-    public void user_should_claim_task_when_grant_type_challenged_and_permission_manage() {
-        testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
-
-        common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                             WA_JURISDICTION, WA_CASE_TYPE);
-
-        initiateTask(taskVariables, Jurisdiction.WA);
-
-        String taskId = taskVariables.getTaskId();
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        common.cleanUpTask(taskId);
-    }
-
-    @Test
-    public void user_should_claim_task_when_grant_type_challenged_and_permission_execute() {
-        testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
-
-        common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                          WA_JURISDICTION, WA_CASE_TYPE);
-
-        initiateTask(taskVariables, Jurisdiction.WA);
 
         String taskId = taskVariables.getTaskId();
         Response result = restApiActions.post(
