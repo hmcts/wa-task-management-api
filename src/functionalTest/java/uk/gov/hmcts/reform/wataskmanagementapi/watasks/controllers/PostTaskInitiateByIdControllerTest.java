@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -10,11 +11,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticatio
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
+import java.time.ZonedDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
@@ -82,7 +85,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "key4", "value4"
                 ))).body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
                 .body("task.due_date", notNullValue())
                 .body("task.due_date",
                       equalTo(OffsetDateTime.now().plusDays(2).withHour(18).withMinute(0).withSecond(0).withNano(0)
@@ -139,7 +142,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.permissions.values", hasItems("Read", "Refer", "Execute"))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
                 .body("task.due_date", notNullValue())
                 .body("task.due_date", equalTo("2022-10-25T20:00:00+0100"));
         };
@@ -198,7 +201,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "roleAssignmentId", "roleAssignmentId")))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"));
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
         };
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
@@ -225,14 +228,14 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             //Note: this is the TaskResource.class
             result.prettyPrint();
 
-            //TODO: uncomment this once priority_date format is fixed in RWA-1779 ticket
-            //ZonedDateTime dueDate = ZonedDateTime.parse(result.jsonPath().get("task.due_date"),
-            //                                            ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
-            //String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+            ZonedDateTime dueDate = ZonedDateTime.parse(result.jsonPath().get("task.due_date"),
+                                                        ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
+            String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-            //OffsetDateTime priorityDate = OffsetDateTime.parse(result.jsonPath().get("task.priority_date"));
-            //String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
-            //Assert.assertEquals(formattedDueDate, formattedPriorityDate);
+            ZonedDateTime priorityDate = ZonedDateTime.parse(result.jsonPath().get("task.priority_date"),
+                                                              ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
+            String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
+            Assert.assertEquals(formattedDueDate, formattedPriorityDate);
 
             result.then().assertThat()
                 .statusCode(HttpStatus.OK.value())
