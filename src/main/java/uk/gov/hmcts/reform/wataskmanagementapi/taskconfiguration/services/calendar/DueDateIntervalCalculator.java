@@ -1,20 +1,18 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar;
 
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.dto.DueDateIntervalData;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-
-import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateCalculator.DEFAULT_ZONED_DATE_TIME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateCalculator.DUE_DATE_TIME_FORMATTER;
 
 @Slf4j
 @Component
@@ -28,6 +26,9 @@ public class DueDateIntervalCalculator {
     public static final String DUE_DATE_MUST_BE_WORKING_DAYS = "dueDateMustBeWorkingDay";
     public static final String DUE_DATE_TIME = "dueDateTime";
     public static final String DEFAULT_DUE_DATE_TIME = "16:00";
+    public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+    public static final LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
+        .withHour(16).withMinute(0).withSecond(0);
     private final WorkingDayIndicator workingDayIndicator;
 
     public DueDateIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
@@ -35,54 +36,53 @@ public class DueDateIntervalCalculator {
     }
 
     public LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
-        DueDateOriginData dueDateOriginData = readDueDateOriginFields(dueDateProperties);
+        DueDateIntervalData dueDateIntervalData = readDueDateOriginFields(dueDateProperties);
 
-        LocalDateTime dueDate = LocalDateTime.parse(dueDateOriginData.dueDateOrigin, DUE_DATE_TIME_FORMATTER);
+        LocalDateTime dueDate = LocalDateTime.parse(dueDateIntervalData.getDueDateOrigin(), DUE_DATE_TIME_FORMATTER);
 
         LocalDate localDate = dueDate.toLocalDate();
-        if (dueDateOriginData.dueDateSkipNonWorkingDays) {
+        if (dueDateIntervalData.isDueDateSkipNonWorkingDays()) {
 
-            for (int counter = 0; counter < dueDateOriginData.dueDateIntervalDays; counter++) {
+            for (int counter = 0; counter < dueDateIntervalData.getDueDateIntervalDays(); counter++) {
                 localDate = workingDayIndicator.getNextWorkingDay(
                     localDate,
-                    dueDateOriginData.dueDateNonWorkingCalendar,
-                    dueDateOriginData.dueDateNonWorkingDaysOfWeek
+                    dueDateIntervalData.getDueDateNonWorkingCalendar(),
+                    dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
                 );
             }
         } else {
 
-            localDate = localDate.plusDays(dueDateOriginData.dueDateIntervalDays);
+            localDate = localDate.plusDays(dueDateIntervalData.getDueDateIntervalDays());
             boolean workingDay = workingDayIndicator.isWorkingDay(
                 localDate,
-                dueDateOriginData.dueDateNonWorkingCalendar,
-                dueDateOriginData.dueDateNonWorkingDaysOfWeek
+                dueDateIntervalData.getDueDateNonWorkingCalendar(),
+                dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
             );
-            if (dueDateOriginData.dueDateMustBeWorkingDay && !workingDay) {
+            if (dueDateIntervalData.isDueDateMustBeWorkingDay() && !workingDay) {
                 localDate = workingDayIndicator.getNextWorkingDay(
                     localDate,
-                    dueDateOriginData.dueDateNonWorkingCalendar,
-                    dueDateOriginData.dueDateNonWorkingDaysOfWeek
+                    dueDateIntervalData.getDueDateNonWorkingCalendar(),
+                    dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
                 );
             }
         }
 
-        if (StringUtils.isNotBlank(dueDateOriginData.dueDateTime)) {
-            return localDate.atTime(LocalTime.parse(dueDateOriginData.dueDateTime));
+        if (StringUtils.isNotBlank(dueDateIntervalData.getDueDateTime())) {
+            return localDate.atTime(LocalTime.parse(dueDateIntervalData.getDueDateTime()));
         } else {
             return localDate.atTime(dueDate.toLocalTime());
         }
     }
 
-    private DueDateOriginData readDueDateOriginFields(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
-        return DueDateOriginData.builder()
+    private DueDateIntervalData readDueDateOriginFields(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
+        return DueDateIntervalData.builder()
             .dueDateOrigin(dueDateProperties.stream()
                                .filter(r -> r.getName().getValue().equals(
                                    DUE_DATE_ORIGIN))
                                .reduce((a, b) -> b)
                                .map(ConfigurationDmnEvaluationResponse::getValue)
                                .map(CamundaValue::getValue)
-                               .orElse(DEFAULT_ZONED_DATE_TIME.format(
-                                   DUE_DATE_TIME_FORMATTER)))
+                               .orElse(DEFAULT_ZONED_DATE_TIME.format(DUE_DATE_TIME_FORMATTER)))
             .dueDateIntervalDays(dueDateProperties.stream()
                                      .filter(r -> r.getName().getValue().equals(DUE_DATE_INTERVAL_DAYS))
                                      .reduce((a, b) -> b)
@@ -128,17 +128,5 @@ public class DueDateIntervalCalculator {
                              .map(CamundaValue::getValue)
                              .orElse(DEFAULT_DUE_DATE_TIME))
             .build();
-    }
-
-
-    @Builder
-    static class DueDateOriginData {
-        String dueDateOrigin;
-        Long dueDateIntervalDays;
-        String dueDateNonWorkingCalendar;
-        List<String> dueDateNonWorkingDaysOfWeek;
-        boolean dueDateSkipNonWorkingDays;
-        boolean dueDateMustBeWorkingDay;
-        String dueDateTime;
     }
 }

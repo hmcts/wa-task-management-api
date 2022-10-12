@@ -26,6 +26,7 @@ public class DueDateCalculator {
     public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     public static final DateTimeFormatter DUE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static final String IA_JURISDICTION = "IA";
+    public static final LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
 
     private final DueDateIntervalCalculator dueDateIntervalCalculator;
 
@@ -64,50 +65,59 @@ public class DueDateCalculator {
     private LocalDateTime getDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
         var dueDateResponse = getProperty(dueDateProperties, DUE_DATE_PREFIX);
         var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME_PREFIX);
-        var dueDateOriginResponse = getProperty(dueDateProperties, DUE_DATE_ORIGIN_PREFIX);
 
-        if (dueDateResponse.isPresent()) {
-            String dueDate = dueDateResponse.get().getValue().getValue();
+        boolean onlyDueDateAvailable = dueDateResponse.isPresent() && dueDateTimeResponse.isEmpty();
+        boolean bothDueDateAndTimeAvailable = dueDateResponse.isPresent() && dueDateTimeResponse.isPresent();
+        boolean onlyDueDateOriginPresent = getProperty(dueDateProperties, DUE_DATE_ORIGIN_PREFIX).isPresent();
+        boolean onlyDueDateTimePresent = dueDateTimeResponse.isPresent();
 
-            LocalDateTime parsedDueDate = parseDueDateTime(dueDate);
-
-            if (dueDateTimeResponse.isPresent()) {
-                String dueDateTime = dueDateTimeResponse.get().getValue().getValue();
-                return useDateTime(parsedDueDate, dueDateTime);
-            } else {
-                if (parsedDueDate.getHour() == 0) {
-                    return parsedDueDate.withHour(16).withMinute(0);
-                } else {
-                    return parsedDueDate;
-                }
-            }
-        } else if (dueDateOriginResponse.isPresent()) {
+        if (onlyDueDateAvailable) {
+            return calculateDueDateFrom(dueDateResponse.get());
+        } else if (bothDueDateAndTimeAvailable) {
+            return calculateDueDateFrom(dueDateResponse.get(), dueDateTimeResponse.get());
+        } else if (onlyDueDateOriginPresent) {
             return dueDateIntervalCalculator.calculateDueDate(dueDateProperties);
-        } else if (dueDateTimeResponse.isPresent()) {
-            String dueDateTime = dueDateTimeResponse.get().getValue().getValue();
-            return useDateTime(LocalDateTime.now().plusDays(2), dueDateTime);
+        } else if (onlyDueDateTimePresent) {
+            return addTimeToDate(dueDateTimeResponse.get(), DEFAULT_DATE);
+        } else {
+            return DEFAULT_ZONED_DATE_TIME;
         }
-        return DEFAULT_ZONED_DATE_TIME;
     }
 
-    private static Optional<ConfigurationDmnEvaluationResponse> getProperty(
+    private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse) {
+        String dueDate = dueDateResponse.getValue().getValue();
+        LocalDateTime parsedDueDate = parseDueDateTime(dueDate);
+        if (parsedDueDate.getHour() == 0) {
+            return parsedDueDate.withHour(16).withMinute(0);
+        } else {
+            return parsedDueDate;
+        }
+    }
+
+    private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse,
+                                               ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
+        String dueDate = dueDateResponse.getValue().getValue();
+        return addTimeToDate(dueDateTimeResponse, parseDueDateTime(dueDate));
+    }
+
+    private LocalDateTime addTimeToDate(
+        ConfigurationDmnEvaluationResponse dueDateTimeResponse, LocalDateTime date) {
+        String dueDateTime = dueDateTimeResponse.getValue().getValue();
+        return useDateTime(date, dueDateTime);
+    }
+
+    private Optional<ConfigurationDmnEvaluationResponse> getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dueDatePrefix))
             .reduce((a, b) -> b);
     }
 
-    private static LocalDateTime parseDueDateTime(String dueDate) {
+    private  LocalDateTime parseDueDateTime(String dueDate) {
         if (dateContainsTime(dueDate)) {
-            return LocalDateTime.parse(
-                dueDate,
-                DUE_DATE_TIME_FORMATTER
-            );
+            return LocalDateTime.parse(dueDate, DUE_DATE_TIME_FORMATTER);
         } else {
-            return LocalDate.parse(
-                dueDate,
-                DUE_DATE_FORMATTER
-            ).atStartOfDay();
+            return LocalDate.parse(dueDate, DUE_DATE_FORMATTER).atStartOfDay();
         }
     }
 
