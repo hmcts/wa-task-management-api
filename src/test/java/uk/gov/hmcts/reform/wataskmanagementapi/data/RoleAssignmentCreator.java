@@ -22,14 +22,16 @@ public class RoleAssignmentCreator {
     }
 
     public static RoleAssignment.RoleAssignmentBuilder aRoleAssignment() {
-        return aRoleAssignment("acaseid", "tribunal-caseworker");
+        return aRoleAssignment("acaseid", "tribunal-caseworker", RoleType.ORGANISATION);
     }
-    public static RoleAssignment.RoleAssignmentBuilder aRoleAssignment(String caseId, String roleName) {
+
+    public static RoleAssignment.RoleAssignmentBuilder aRoleAssignment(String caseId, String roleName,
+                                                                       RoleType roleType) {
         return RoleAssignment.builder()
             .id(UUID.randomUUID().toString())
             .actorIdType(ActorIdType.IDAM)
             .actorId("someActorId")
-            .roleType(RoleType.ORGANISATION)
+            .roleType(roleType)
             .roleName(roleName)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.SPECIFIC)
