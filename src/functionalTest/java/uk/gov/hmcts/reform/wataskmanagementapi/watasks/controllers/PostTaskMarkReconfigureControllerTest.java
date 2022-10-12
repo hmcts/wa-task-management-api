@@ -49,16 +49,20 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned_for_WA() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "processApplication"
+        );
 
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        );
         initiateTask(taskVariables, Jurisdiction.WA);
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
-            WA_JURISDICTION, WA_CASE_TYPE);
+                                                 WA_JURISDICTION, WA_CASE_TYPE
+        );
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
 
         Response result = restApiActions.post(
@@ -93,8 +97,10 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "processApplication"
+        );
 
         common.setupCFTOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(taskVariables, Jurisdiction.WA);
@@ -149,7 +155,12 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 2, 120);
+        TaskOperation operation = TaskOperation.builder()
+            .name(operationName)
+            .runId(UUID.randomUUID().toString())
+            .maxTimeLimit(2)
+            .retryWindowHours(120)
+            .build();
         return new TaskOperationRequest(operation, taskFilters(caseId));
     }
 
@@ -172,13 +183,16 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.setupCFTOrganisationalRoleAssignment(assignerCredentials.getHeaders(),
-            WA_JURISDICTION, WA_CASE_TYPE);
+                                                    WA_JURISDICTION, WA_CASE_TYPE
+        );
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned",
-            assignerCredentials.getHeaders());
+                                                 assignerCredentials.getHeaders()
+        );
         assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee",
-            assigneeId, assignerCredentials.getHeaders());
+                                                 assigneeId, assignerCredentials.getHeaders()
+        );
     }
 
 }

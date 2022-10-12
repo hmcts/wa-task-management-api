@@ -1,9 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
@@ -14,26 +13,20 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOpe
 )
 @EqualsAndHashCode
 @ToString
+@Builder
 public class TaskOperation {
 
     @Schema(required = true)
-    private final TaskOperationName name;
+    @JsonProperty("name")
+    private TaskOperationName name;
 
-    private final String runId;
+    @JsonProperty("run_id")
+    private String runId;
 
-    private final long retryWindowHours;
-    private final long maxTimeLimit;
-
-    @JsonCreator
-    public TaskOperation(TaskOperationName name,
-                         @JsonProperty("runId") @JsonAlias("run_id") String runId,
-                         @JsonProperty("retryWindowHours") @JsonAlias("retryWindowHours") long retryWindowHours,
-                         @JsonProperty("maxTimeLimit") @JsonAlias("maxTimeLimit") long maxTimeLimit) {
-        this.name = name;
-        this.runId = runId;
-        this.retryWindowHours = retryWindowHours;
-        this.maxTimeLimit = maxTimeLimit;
-    }
+    @JsonProperty("max_time_limit")
+    private long maxTimeLimit;
+    @JsonProperty("retry_window_hours")
+    private long retryWindowHours;
 
     public TaskOperationName getName() {
         return name;
@@ -43,11 +36,13 @@ public class TaskOperation {
         return runId;
     }
 
+    public long getMaxTimeLimit() {
+        return maxTimeLimit;
+    }
+
     public long getRetryWindowHours() {
         return retryWindowHours;
     }
 
-    public long getMaxTimeLimit() {
-        return maxTimeLimit;
-    }
+
 }

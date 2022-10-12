@@ -14,21 +14,22 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.BankHolidaysApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateCalculator;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateOriginBasedCalculator;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateIntervalCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.PublicHolidaysCollection;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.WorkingDayIndicator;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -46,16 +47,19 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @ExtendWith(MockitoExtension.class)
 class CaseConfigurationProviderServiceTest {
 
+    public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+
     @Mock
     private CcdDataService ccdDataService;
     @Mock
     private DmnEvaluationService dmnEvaluationService;
 
+    @Mock
+    private PublicHolidaysCollection publicHolidaysCollection;
+
     @Spy
     private ObjectMapper objectMapper;
-
-    @Mock
-    private BankHolidaysApi bankHolidaysApi;
 
     private CaseConfigurationProviderService caseConfigurationProviderService;
 
@@ -69,13 +73,27 @@ class CaseConfigurationProviderServiceTest {
             ccdDataService,
             dmnEvaluationService,
             objectMapper,
-            new DueDateCalculator(new DueDateOriginBasedCalculator(
-                new WorkingDayIndicator(new PublicHolidaysCollection())))
+            new DueDateCalculator(new DueDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection)))
         );
 
         lenient().when(caseDetails.getCaseType()).thenReturn("Asylum");
         lenient().when(caseDetails.getJurisdiction()).thenReturn("IA");
         lenient().when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        Set<LocalDate> localDates = Set.of(
+            LocalDate.of(2022, 1, 3),
+            LocalDate.of(2022, 4, 15),
+            LocalDate.of(2022, 4, 18),
+            LocalDate.of(2022, 5, 2),
+            LocalDate.of(2022, 6, 2),
+            LocalDate.of(2022, 6, 3),
+            LocalDate.of(2022, 8, 29),
+            LocalDate.of(2022, 9, 19),
+            LocalDate.of(2022, 12, 26),
+            LocalDate.of(2022, 12, 27)
+        );
+
+        lenient().when(publicHolidaysCollection.getPublicHolidays(CALENDAR_URI)).thenReturn(localDates);
     }
 
     public static Stream<Arguments> scenarioProvider() {
@@ -400,7 +418,6 @@ class CaseConfigurationProviderServiceTest {
         when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", caseData, "{}"))
             .thenReturn(permissions);
 
-
         TaskConfigurationResults mappedData = caseConfigurationProviderService
             .getCaseRelatedConfiguration(someCaseId, Map.of());
 
@@ -475,17 +492,13 @@ class CaseConfigurationProviderServiceTest {
             "name3",
             "value3"
         );
-        Assertions.assertThat(mappedData.getConfigurationDmnResponse())
-            .isNotEmpty()
+        Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isNotEmpty()
             .hasSize(3)
             .contains(
                 new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties"),
-                    stringValue(writeValueAsString(additionalProperties))
-                )
-            );
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties"),
+                    stringValue(writeValueAsString(additionalProperties))));
     }
 
     @Test
@@ -512,14 +525,13 @@ class CaseConfigurationProviderServiceTest {
         lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
             .thenReturn(permissions);
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
-            new ConfigurationDmnEvaluationResponse(
-                stringValue("additionalProperties_roleAssignmentId"),
-                stringValue(roleAssignmentId)
-            )
-        );
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
-            .thenReturn(evaluationResponses);
+            .thenReturn(List.of(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties_roleAssignmentId"),
+                    stringValue(roleAssignmentId)
+                )
+            ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
             .getCaseRelatedConfiguration(someCaseId, taskAttributes);
@@ -678,6 +690,80 @@ class CaseConfigurationProviderServiceTest {
             .isEmpty();
     }
 
+    @Test
+    void should_calculate_due_date_from_given_due_date_properties() {
+        String someCaseId = "someCaseId";
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+
+        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
+            .thenReturn(List.of());
+
+        String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+            .thenReturn(List.of(
+                new ConfigurationDmnEvaluationResponse(stringValue("dueDate"), stringValue(localDateTime)),
+                new ConfigurationDmnEvaluationResponse(stringValue("dueDateTime"), stringValue("18:00"))
+            ));
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, Map.of());
+
+        Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
+        Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .isNotEmpty()
+            .hasSize(1)
+            .contains(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("dueDate"),
+                    stringValue(localDateTime + "T18:00")
+                ));
+    }
+
+    @Test
+    void should_calculate_due_date_interval_from_given_due_date_origin_properties() {
+        String someCaseId = "someCaseId";
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+
+        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
+            .thenReturn(List.of());
+
+        String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+            .thenReturn(List.of(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("dueDateOrigin"),
+                    stringValue(localDateTime + "T20:00")
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("dueDateIntervalDays"), stringValue("6")),
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("dueDateNonWorkingCalendar"),
+                    stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json")
+                ),
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("dueDateNonWorkingDaysOfWeek"),
+                    stringValue("SATURDAY, SUNDAY")
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("dueDateSkipNonWorkingDays"), stringValue("true")),
+                new ConfigurationDmnEvaluationResponse(stringValue("dueDateMustBeWorkingDay"), stringValue("true")),
+                new ConfigurationDmnEvaluationResponse(stringValue("dueDateTime"), stringValue("18:00"))
+            ));
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, Map.of());
+
+        Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
+        String expectedDate = GIVEN_DATE.plusDays(8).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .isNotEmpty()
+            .hasSize(1)
+            .contains(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("dueDate"),
+                    stringValue(expectedDate + "T18:00")
+                ));
+    }
 
     private String writeValueAsString(Map<String, String> data) {
         try {

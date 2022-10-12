@@ -85,7 +85,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"))
                 .body("task.due_date", notNullValue())
                 .body("task.due_date",
-                      equalTo(OffsetDateTime.now().plusDays(2).withHour(16).withMinute(0).withSecond(0).withNano(0)
+                      equalTo(OffsetDateTime.now().plusDays(2).withHour(18).withMinute(0).withSecond(0).withNano(0)
                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
@@ -101,7 +101,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_201_when_initiating_a_due_date_calculation_task_by_id() {
+    public void should_return_a_201_when_initiating_a_due_date_calculation_task_by_using_due_date_origin() {
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                              "calculateDueDate", "Calculate Due Date");
@@ -141,9 +141,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(1000))
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00Z"))
                 .body("task.due_date", notNullValue())
-                .body("task.due_date",
-                      equalTo(OffsetDateTime.now().plusDays(4).withHour(20).withMinute(0).withSecond(0).withNano(0)
-                                  .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+                .body("task.due_date", equalTo("2022-10-25T20:00:00+0100"));
         };
 
         initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);

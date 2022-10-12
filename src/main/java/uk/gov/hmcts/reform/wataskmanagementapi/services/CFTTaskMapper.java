@@ -250,12 +250,11 @@ public class CFTTaskMapper {
         List<ConfigurationDmnEvaluationResponse> configurationDmnResponse = taskConfigurationResults
             .getConfigurationDmnResponse();
         configurationDmnResponse.forEach(response -> reconfigureTaskAttribute(
-                                             taskResource,
-                                             response.getName().getValue(),
-                                             response.getValue().getValue(),
-                                             response.getCanReconfigure() != null
-                                                 && response.getCanReconfigure().getValue()
-                                         )
+                taskResource,
+                response.getName().getValue(),
+                response.getValue().getValue(),
+                response.getCanReconfigure() != null && response.getCanReconfigure().getValue()
+            )
         );
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
@@ -499,6 +498,7 @@ public class CFTTaskMapper {
     }
 
     private void mapVariableToTaskResourceProperty(TaskResource taskResource, String key, Object value) {
+        log.debug("map variable to taskResourceProperty {},{}", key, value);
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
         if (enumKey.isPresent()) {
             switch (enumKey.get()) {

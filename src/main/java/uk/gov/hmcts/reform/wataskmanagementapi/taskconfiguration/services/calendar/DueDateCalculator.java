@@ -18,21 +18,20 @@ import java.util.stream.Collectors;
 @Component
 public class DueDateCalculator {
 
-    private final DueDateOriginBasedCalculator dueDateOriginBasedCalculator;
-
-    public DueDateCalculator(DueDateOriginBasedCalculator dueDateOriginBasedCalculator) {
-        this.dueDateOriginBasedCalculator = dueDateOriginBasedCalculator;
-    }
-
     private static final String DUE_DATE_PREFIX = "dueDate";
-    private static final String DUE_DATE_TME_PREFIX = "dueDateTime";
+    private static final String DUE_DATE_TIME_PREFIX = "dueDateTime";
+    private static final String DUE_DATE_ORIGIN_PREFIX = "dueDateOrigin";
     public static final LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
         .withHour(16).withMinute(0).withSecond(0);
     public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-    public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER_WITHOUT_TIME
-        = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter DUE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static final String IA_JURISDICTION = "IA";
-    private static final String DUE_DATE_ORIGIN_PREFIX = "dueDateOrigin";
+
+    private final DueDateIntervalCalculator dueDateIntervalCalculator;
+
+    public DueDateCalculator(DueDateIntervalCalculator dueDateIntervalCalculator) {
+        this.dueDateIntervalCalculator = dueDateIntervalCalculator;
+    }
 
     public List<ConfigurationDmnEvaluationResponse> calculateDueDate(
         List<ConfigurationDmnEvaluationResponse> configResponses, String jurisdiction) {
@@ -63,17 +62,9 @@ public class DueDateCalculator {
     }
 
     private LocalDateTime getDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
-        Optional<ConfigurationDmnEvaluationResponse> dueDateResponse = dueDateProperties.stream()
-            .filter(r -> r.getName().getValue().equals(DUE_DATE_PREFIX))
-            .reduce((a, b) -> b);
-
-        Optional<ConfigurationDmnEvaluationResponse> dueDateTimeResponse = dueDateProperties.stream()
-            .filter(r -> r.getName().getValue().equals(DUE_DATE_TME_PREFIX))
-            .reduce((a, b) -> b);
-
-        Optional<ConfigurationDmnEvaluationResponse> dueDateOriginResponse = dueDateProperties.stream()
-            .filter(r -> r.getName().getValue().equals(DUE_DATE_ORIGIN_PREFIX))
-            .reduce((a, b) -> b);
+        var dueDateResponse = getProperty(dueDateProperties, DUE_DATE_PREFIX);
+        var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME_PREFIX);
+        var dueDateOriginResponse = getProperty(dueDateProperties, DUE_DATE_ORIGIN_PREFIX);
 
         if (dueDateResponse.isPresent()) {
             String dueDate = dueDateResponse.get().getValue().getValue();
@@ -91,13 +82,19 @@ public class DueDateCalculator {
                 }
             }
         } else if (dueDateOriginResponse.isPresent()) {
-            String dueDateOrigin = dueDateOriginResponse.get().getValue().getValue();
-            return dueDateOriginBasedCalculator.calculateDueDate(dueDateProperties);
+            return dueDateIntervalCalculator.calculateDueDate(dueDateProperties);
         } else if (dueDateTimeResponse.isPresent()) {
             String dueDateTime = dueDateTimeResponse.get().getValue().getValue();
             return useDateTime(LocalDateTime.now().plusDays(2), dueDateTime);
         }
         return DEFAULT_ZONED_DATE_TIME;
+    }
+
+    private static Optional<ConfigurationDmnEvaluationResponse> getProperty(
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
+        return dueDateProperties.stream()
+            .filter(r -> r.getName().getValue().equals(dueDatePrefix))
+            .reduce((a, b) -> b);
     }
 
     private static LocalDateTime parseDueDateTime(String dueDate) {
@@ -109,7 +106,7 @@ public class DueDateCalculator {
         } else {
             return LocalDate.parse(
                 dueDate,
-                DUE_DATE_TIME_FORMATTER_WITHOUT_TIME
+                DUE_DATE_FORMATTER
             ).atStartOfDay();
         }
     }
