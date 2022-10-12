@@ -359,12 +359,13 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "process application"
         );
 
-        String taskId1 = taskVariables1.getTaskId();
-        String taskId2 = taskVariables2.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         initiateTask(taskVariables1, Jurisdiction.WA);
         initiateTask(taskVariables2, Jurisdiction.WA);
+
+        String taskId1 = taskVariables1.getTaskId();
+        String taskId2 = taskVariables2.getTaskId();
 
         Response result1 = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -404,6 +405,12 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             caseworkerCredentials.getHeaders()
         );
 
+        result2 = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId2,
+            caseworkerCredentials.getHeaders()
+        );
+
         result1.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and()
@@ -411,12 +418,6 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.name", equalTo("process application"))
             .body("task.type", equalTo("processApplication"))
             .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Own", "Execute")));
-
-        result2 = restApiActions.get(
-            ENDPOINT_BEING_TESTED,
-            taskId2,
-            caseworkerCredentials.getHeaders()
-        );
 
         result2.then().assertThat()
             .statusCode(HttpStatus.OK.value())
