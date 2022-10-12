@@ -220,10 +220,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new TaskSearchController(
-            taskManagementService,
             accessControlService,
-            cftQueryService,
-            launchDarklyFeatureFlagProvider
+            cftQueryService
         ));
 
         if (context != null) {
@@ -245,15 +243,6 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-
-        when(taskManagementService.searchForCompletableTasks(any(), any()))
-            .thenReturn(new GetTasksCompletableResponse<>(false, createTasks()));
     }
 
     private void setInitMockForSearchByCompletableWaTask() {
@@ -264,15 +253,6 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-
-        when(taskManagementService.searchForCompletableTasks(any(), any()))
-            .thenReturn(new GetTasksCompletableResponse<>(false, createWaTasks()));
     }
 
     private void setInitMockForSearchByCompletableTaskWithWarnings() {
@@ -284,15 +264,6 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
 
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-
-        when(taskManagementService.searchForCompletableTasks(any(), any()))
-            .thenReturn(new GetTasksCompletableResponse<>(false, createTasksWithWarnings()));
     }
 
 }

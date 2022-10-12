@@ -282,7 +282,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
             camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
@@ -2603,81 +2602,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
-        }
-    }
-
-    @Nested
-    @DisplayName("searchWithCriteria()")
-    class SearchWithCriteria {
-        @Test
-        void searchWithCriteria_should_succeed_and_return_emptyList() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
-            when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(null);
-
-            List<Task> response = taskManagementService.searchWithCriteria(
-                searchTaskRequest,
-                0,
-                1,
-                accessControlResponse
-            );
-
-            assertNotNull(response);
-            assertEquals(emptyList(), response);
-        }
-
-        @Test
-        void searchWithCriteria_should_succeed_and_return_mapped_tasks() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
-            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
-            Task mockedMappedTask = createMockedMappedTask();
-            when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQuery);
-            when(camundaService.searchWithCriteria(
-                camundaSearchQuery,
-                0,
-                1,
-                accessControlResponse,
-                singletonList(READ)
-            )).thenReturn(singletonList(mockedMappedTask));
-
-            List<Task> response = taskManagementService.searchWithCriteria(
-                searchTaskRequest,
-                0,
-                1,
-                accessControlResponse
-            );
-
-            assertNotNull(response);
-            assertEquals(mockedMappedTask, response.get(0));
-        }
-    }
-
-    @Nested
-    @DisplayName("getTaskCount()")
-    class GetTaskCount {
-        @Test
-        void getTaskCount_should_succeed_and_return_count() {
-            SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
-            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
-            when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQuery);
-            when(camundaService.getTaskCount(camundaSearchQuery)).thenReturn(Long.valueOf(50));
-
-            long response = taskManagementService.getTaskCount(searchTaskRequest);
-
-            assertEquals(50, response);
-            verify(camundaService, times(1)).getTaskCount(camundaSearchQuery);
-        }
-
-        @Test
-        void getTaskCount_should_succeed_and_return_count_when_query_is_null() {
-            SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
-            when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(null);
-
-            long response = taskManagementService.getTaskCount(searchTaskRequest);
-
-            assertEquals(0, response);
-            verify(camundaService, times(0)).getTaskCount(any());
         }
     }
 

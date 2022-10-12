@@ -226,7 +226,6 @@ class CancelTaskTest extends CamundaHelpers {
             camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,

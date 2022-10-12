@@ -117,7 +117,6 @@ class NewInitiateTaskTest extends CamundaHelpers {
             camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,

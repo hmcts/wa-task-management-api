@@ -23,13 +23,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,26 +50,20 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 public class TaskSearchController extends BaseController {
 
     private static final Logger LOG = getLogger(TaskSearchController.class);
-    private final TaskManagementService taskManagementService;
     private final AccessControlService accessControlService;
     private final CftQueryService cftQueryService;
-    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Value("${config.search.defaultMaxResults}")
     private int defaultMaxResults;
 
 
     @Autowired
-    public TaskSearchController(TaskManagementService taskManagementService,
-                                AccessControlService accessControlService,
-                                CftQueryService cftQueryService,
-                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider
+    public TaskSearchController(AccessControlService accessControlService,
+                                CftQueryService cftQueryService
     ) {
         super();
-        this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.cftQueryService = cftQueryService;
-        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     @Operation(description = "Retrieve a list of Task resources identified by set of search criteria.")
@@ -114,51 +105,22 @@ public class TaskSearchController extends BaseController {
         }
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
+        log.debug("Search request received '{}'", searchTaskRequest);
+        //Release 2
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(READ);
+        response = cftQueryService.searchForTasks(
+            Optional.ofNullable(firstResult).orElse(0),
+            Optional.ofNullable(maxResults).orElse(defaultMaxResults),
+            searchTaskRequest,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
         );
 
-        if (isFeatureEnabled) {
-            log.debug("Search request received '{}'", searchTaskRequest);
-            //Release 2
-            List<PermissionTypes> permissionsRequired = new ArrayList<>();
-            permissionsRequired.add(READ);
-            response = cftQueryService.searchForTasks(
-                Optional.ofNullable(firstResult).orElse(0),
-                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
-                searchTaskRequest,
-                accessControlResponse.getRoleAssignments(),
-                permissionsRequired
-            );
-
-            return ResponseEntity
-                .ok()
-                .cacheControl(CacheControl.noCache())
-                .body(response);
-        } else {
-            //Release 1
-            List<Task> tasks = taskManagementService.searchWithCriteria(
-                searchTaskRequest,
-                Optional.ofNullable(firstResult).orElse(0),
-                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
-                accessControlResponse
-            );
-
-            if (tasks.isEmpty()) {
-                return ResponseEntity
-                    .ok()
-                    .cacheControl(CacheControl.noCache())
-                    .body(new GetTasksResponse<>(tasks, 0));
-            } else {
-                final long taskCount = taskManagementService.getTaskCount(searchTaskRequest);
-                return ResponseEntity
-                    .ok()
-                    .cacheControl(CacheControl.noCache())
-                    .body(new GetTasksResponse<>(tasks, taskCount));
-            }
-        }
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noCache())
+            .body(response);
     }
 
 
@@ -192,25 +154,13 @@ public class TaskSearchController extends BaseController {
 
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
+        List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
+        response = cftQueryService.searchForCompletableTasks(
+            searchEventAndCase,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
         );
 
-        if (isFeatureEnabled) {
-            List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
-            response = cftQueryService.searchForCompletableTasks(
-                searchEventAndCase,
-                accessControlResponse.getRoleAssignments(),
-                permissionsRequired
-            );
-        } else {
-            response = taskManagementService.searchForCompletableTasks(
-                searchEventAndCase,
-                accessControlResponse
-            );
-        }
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())

@@ -85,7 +85,6 @@ class TerminateTaskTest extends CamundaHelpers {
             camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
