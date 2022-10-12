@@ -71,7 +71,7 @@ public class DueDateCalculator {
             return calculateDueDateFrom(dueDateResponse.get());
         }
 
-        boolean bothDueDateAndTimeAvailable = dueDateResponse.isPresent() && dueDateTimeResponse.isPresent();
+        boolean bothDueDateAndTimeAvailable = dueDateResponse.isPresent();
         if (bothDueDateAndTimeAvailable) {
             return calculateDueDateFrom(dueDateResponse.get(), dueDateTimeResponse.get());
         }
