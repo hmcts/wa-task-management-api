@@ -1729,6 +1729,27 @@ class TaskManagementServiceTest extends CamundaHelpers {
             verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
         }
 
+        @Test
+        void should_throw_exception_when_assignee_is_null() {
+            assertThatThrownBy(() -> taskManagementService.checkAssignee(null, "userId", "taskId"))
+                .isInstanceOf(TaskStateIncorrectException.class)
+                .hasMessage("Could not complete task with id: taskId as task was not previously assigned")
+            ;
+        }
+
+        @Test
+        void should_throw_exception_when_assignee_is_not_user_null() {
+            assertThatThrownBy(() -> taskManagementService.checkAssignee("assignee", "userId", "taskId"))
+                .isInstanceOf(TaskStateIncorrectException.class)
+                .hasMessage("Could not complete task with id: taskId as task was assigned to other user assignee")
+            ;
+        }
+
+        @Test
+        void should_not_throw_exception_when_assignee_id_is_same_as_user_id() {
+            taskManagementService.checkAssignee("userId", "userId", "taskId");
+        }
+
     }
 
     @Nested

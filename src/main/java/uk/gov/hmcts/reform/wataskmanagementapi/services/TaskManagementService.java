@@ -461,11 +461,7 @@ public class TaskManagementService {
             );
 
             //Safe-guard
-            if (taskResource.getAssignee() == null) {
-                throw new TaskStateIncorrectException(
-                    String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
-                );
-            }
+            checkAssignee(taskResource.getAssignee(), userId, taskId);
         } else {
             CamundaTask camundaTask = camundaService.getUnmappedCamundaTask(taskId);
 
@@ -511,6 +507,19 @@ public class TaskManagementService {
             }
         } else {
             camundaService.completeTask(taskId, taskHasCompleted);
+        }
+    }
+
+    protected void checkAssignee(String taskAssignee, String userId, String taskId) {
+        if (taskAssignee == null) {
+            throw new TaskStateIncorrectException(
+                String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
+            );
+        } else if (!userId.equals(taskAssignee)) {
+            throw new TaskStateIncorrectException(
+                String.format("Could not complete task with id: %s as task was assigned to other user %s",
+                              taskId, taskAssignee)
+            );
         }
     }
 
