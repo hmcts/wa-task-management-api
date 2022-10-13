@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.hmcts.taskperf.config.TaskPerfConfig;
 import net.hmcts.taskperf.model.ClientFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
@@ -37,7 +38,7 @@ public class RoleAssignmentHelper
 					RoleAttributeDefinition.CASE_ID,
 					clientFilter.getCaseIds())
 				.filter(RoleAssignmentHelper::isTaskAccessGrantType)
-				.filter(RoleAssignmentHelper::hasJurisdictionAttribute)
+				.filter(RoleAssignmentHelper::hasJurisdictionAttributeIfRequired)
 				.collect(Collectors.toSet());
 	}
 
@@ -54,7 +55,7 @@ public class RoleAssignmentHelper
 						RoleAttributeDefinition.JURISDICTION,
 						clientFilter.getJurisdictions())
 				.filter(ra -> ra.getGrantType() == GrantType.EXCLUDED)
-				.filter(RoleAssignmentHelper::hasJurisdictionAttribute)
+				.filter(RoleAssignmentHelper::hasJurisdictionAttributeIfRequired)
 				.collect(Collectors.toSet());
 	}
 
@@ -75,10 +76,17 @@ public class RoleAssignmentHelper
 	/**
 	 * Returns true if the role assignment has a non-null jurisdiction.
 	 */
-	public static boolean hasJurisdictionAttribute(RoleAssignment roleAssignment)
+	public static boolean hasJurisdictionAttributeIfRequired(RoleAssignment roleAssignment)
 	{
-		String jurisdiction = roleAssignment.getAttributes().get(RoleAttributeDefinition.JURISDICTION.value());
-		return jurisdiction != null && jurisdiction.trim().length() != 0;
+		if (TaskPerfConfig.onlyUseRoleAssignmentsWithJurisdictions)
+		{
+			String jurisdiction = roleAssignment.getAttributes().get(RoleAttributeDefinition.JURISDICTION.value());
+			return jurisdiction != null && jurisdiction.trim().length() != 0;
+		}
+		else
+		{
+			return true;
+		}
 	}
 
 	/**
@@ -165,6 +173,24 @@ public class RoleAssignmentHelper
 	}
 
 	/**
+	 * Return the abbreviation for the given classification.
+	 */
+	private static String abbreviateClassification(Classification classification)
+	{
+		switch (classification)
+		{
+		case PUBLIC:
+			return "U";
+		case PRIVATE:
+			return "P";
+		case RESTRICTED:
+			return "R";
+		default:
+			return null;
+		}
+	}
+
+	/**
 	 * Add all the role signatures to the list which can be created by the Cartesian product of:
 	 *     - a pair of each singular attribute value and a wildcard (*)
 	 *     - all the classifications <= the role assignment classification
@@ -172,11 +198,23 @@ public class RoleAssignmentHelper
 	 */
 	private static void addRoleSignatures(RoleAssignment roleAssignment, String permission, Set<String> roleSignatures)
 	{
-		for (String classification : lowerClassifications(roleAssignment.getClassification()))
+		if (TaskPerfConfig.expandRoleAssignmentClassifications)
+		{
+			for (String classification : lowerClassifications(roleAssignment.getClassification()))
+			{
+				for (String authorisation : withWildcard(roleAssignment.getAuthorisations()))
+				{
+					String roleSignature = makeRoleSignature(roleAssignment, classification, authorisation, permission);
+					if (roleSignature != null) roleSignatures.add(roleSignature);
+				}
+			}
+		}
+		else
 		{
 			for (String authorisation : withWildcard(roleAssignment.getAuthorisations()))
 			{
-				String roleSignature = makeRoleSignature(roleAssignment, classification, authorisation, permission);
+				String classificationAbbreviation = abbreviateClassification(roleAssignment.getClassification());
+				String roleSignature = makeRoleSignature(roleAssignment, classificationAbbreviation, authorisation, permission);
 				if (roleSignature != null) roleSignatures.add(roleSignature);
 			}
 		}
@@ -189,18 +227,25 @@ public class RoleAssignmentHelper
 	 */
 	private static String makeRoleSignature(RoleAssignment roleAssignment, String classification, String authorisation, String permission)
 	{
-		if (treatAsOrganisationalRole(roleAssignment))
+		if (TaskPerfConfig.useUniformRoleSignatures)
 		{
-			return makeOrganisationalRoleSignature(roleAssignment, classification, authorisation, permission);
-		}
-		else if (treatAsCaseRole(roleAssignment))
-		{
-			return makeCaseRoleSignature(roleAssignment, classification, authorisation, permission);
+			return makeUniformRoleSignature(roleAssignment, classification, authorisation, permission);
 		}
 		else
 		{
-			System.err.println("IGNORING UNSUPPORTED ROLE ASSIGNMENT " + roleAssignment.getRoleName());
-			return null;
+			if (treatAsOrganisationalRole(roleAssignment))
+			{
+				return makeOrganisationalRoleSignature(roleAssignment, classification, authorisation, permission);
+			}
+			else if (treatAsCaseRole(roleAssignment))
+			{
+				return makeCaseRoleSignature(roleAssignment, classification, authorisation, permission);
+			}
+			else
+			{
+				System.err.println("IGNORING UNSUPPORTED ROLE ASSIGNMENT " + roleAssignment.getRoleName());
+				return null;
+			}
 		}
 	}
 
@@ -249,6 +294,26 @@ public class RoleAssignmentHelper
 				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.REGION.value())) + ":" +
 				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.BASE_LOCATION.value())) + ":" +
 				roleAssignment.getRoleName() + ":" +
+				permission + ":" +
+				classification + ":" +
+				authorisation;
+	}
+
+	/**
+	 * Create the signature of the given role assignment, combined with the
+	 * classification, authorisation and permission.  This matches the signatures used in
+	 * the database to index tasks based on task role / permission configuration.
+	 * This is a uniform procedure that can be used for both case roles and organisational
+	 * roles.
+	 */
+	private static String makeUniformRoleSignature(RoleAssignment roleAssignment, String classification, String authorisation, String permission)
+	{
+		return
+				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.JURISDICTION.value())) + ":" +
+				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.REGION.value())) + ":" +
+				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.BASE_LOCATION.value())) + ":" +
+				roleAssignment.getRoleName() + ":" +
+				wildcardIfNull(roleAssignment.getAttributes().get(RoleAttributeDefinition.CASE_ID.value())) + ":" +
 				permission + ":" +
 				classification + ":" +
 				authorisation;

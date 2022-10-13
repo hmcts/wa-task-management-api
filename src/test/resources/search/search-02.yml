@@ -12,7 +12,7 @@ listFilters:
 booleanFilters:
   - key: available_tasks_only
     operator: BOOLEAN
-    values: false
+    value: false
 pagination:
   firstResult: 0
   maxResults: 25
