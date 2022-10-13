@@ -237,8 +237,6 @@ public class TaskManagementService {
         PermissionRequirements assigneePermissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
 
-        String assigneeUserId = assigneeAccessControlResponse.getUserInfo().getUid();
-
         roleAssignmentVerification.verifyRoleAssignments(
             taskId,
             assignerAccessControlResponse.getRoleAssignments(),
@@ -252,6 +250,8 @@ public class TaskManagementService {
             assigneePermissionsRequired,
             ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
         );
+
+        String assigneeUserId = assigneeAccessControlResponse.getUserInfo().getUid();
 
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);

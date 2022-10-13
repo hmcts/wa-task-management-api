@@ -47,7 +47,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 
 @ExtendWith(MockitoExtension.class)
 class CancelTaskTest extends CamundaHelpers {
@@ -89,7 +88,7 @@ class CancelTaskTest extends CamundaHelpers {
 
 
     @Test
-    void cancelTask_should_succeed_and_feature_flag_is_on() {
+    void cancelTask_should_succeed() {
 
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
@@ -105,14 +104,6 @@ class CancelTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 RELEASE_2_ENDPOINTS_FEATURE,
-                 IDAM_USER_ID,
-                 IDAM_USER_EMAIL
-             )
-        ).thenReturn(true);
-
-
         taskManagementService.cancelTask(taskId, accessControlResponse);
 
         assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
@@ -120,33 +111,6 @@ class CancelTaskTest extends CamundaHelpers {
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
     }
 
-    @Test
-    void cancelTask_should_succeed_and_feature_flag_is_off() {
-
-        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-        List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-        when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
-        when(permissionEvaluatorService.hasAccess(
-            mockedVariables,
-            roleAssignment,
-            singletonList(CANCEL)
-        )).thenReturn(true);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 RELEASE_2_ENDPOINTS_FEATURE,
-                 IDAM_USER_ID,
-                 IDAM_USER_EMAIL
-             )
-        ).thenReturn(false);
-
-        taskManagementService.cancelTask(taskId, accessControlResponse);
-
-        verify(camundaService, times(1)).cancelTask(taskId);
-    }
 
     @Test
     void cancelTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
@@ -190,21 +154,13 @@ class CancelTaskTest extends CamundaHelpers {
     }
 
     @Test
-    void should_throw_exception_when_task_resource_not_found_and_feature_flag_is_on() {
+    void should_throw_exception_when_task_resource_not_found() {
 
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
         TaskResource taskResource = spy(TaskResource.class);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 RELEASE_2_ENDPOINTS_FEATURE,
-                 IDAM_USER_ID,
-                 IDAM_USER_EMAIL
-             )
-        ).thenReturn(true);
-
 
         assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
             .isInstanceOf(TaskNotFoundException.class)
@@ -238,4 +194,3 @@ class CancelTaskTest extends CamundaHelpers {
         taskId = UUID.randomUUID().toString();
     }
 }
-

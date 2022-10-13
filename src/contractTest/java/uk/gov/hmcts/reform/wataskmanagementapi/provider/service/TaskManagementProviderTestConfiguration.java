@@ -105,7 +105,6 @@ public class TaskManagementProviderTestConfiguration {
             camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerificationService,

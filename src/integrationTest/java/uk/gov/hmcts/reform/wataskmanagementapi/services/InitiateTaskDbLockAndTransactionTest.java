@@ -151,7 +151,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,

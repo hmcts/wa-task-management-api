@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
@@ -122,12 +121,6 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(cftQueryService.getTask(anyString(), any(), any(PermissionRequirements.class)))
             .thenReturn(Optional.of(task));
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
-
         doNothing().when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
         mockMvc.perform(
@@ -167,12 +160,6 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         TaskResource task = spy(TaskResource.class);
         when(cftQueryService.getTask(anyString(), any(), any(PermissionRequirements.class)))
             .thenReturn(Optional.of(task));
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
 
         mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
