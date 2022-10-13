@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -72,11 +71,7 @@ class PostTaskCancelByIdControllerFailureTest extends SpringBootIntegrationBaseT
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
-    private RoleAssignment mockedRoleAssignment;
-    @Mock
     private UserInfo mockedUserInfo;
-    @Autowired
-    private TaskResourceRepository taskResourceRepository;
     private ServiceMocks mockServices;
     private String taskId;
 
