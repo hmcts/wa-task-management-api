@@ -11,7 +11,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -52,7 +51,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
@@ -107,6 +106,29 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
         );
     }
 
+    private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId, TaskRoleResource taskRoleResource) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            ASSIGNED
+        );
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setDueDateTime(OffsetDateTime.now());
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setCaseTypeId(caseType);
+        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+        taskResource.setLocation("765324");
+        taskResource.setLocationName("Taylor House");
+        taskResource.setRegion("TestRegion");
+        taskResource.setCaseId("completeFailureCaseId1");
+        taskResource.setAssignee(IDAM_USER_ID);
+        taskRoleResource.setTaskId(taskId);
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+        taskResource.setTaskRoleResources(taskRoleResourceSet);
+        cftTaskDatabaseService.saveTask(taskResource);
+    }
+
     @Nested
     @DisplayName("with privileged access")
     class CompleteTaskWithPrivilegedAccess {
@@ -135,8 +157,17 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 .build();
 
             createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-            insertDummyTaskInDb(taskId);
+
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, true, true, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            );
+            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
 
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
@@ -159,18 +190,17 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-            ).andExpect(
-                ResultMatcher.matchAll(
-                    status().is5xxServerError(),
-                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value(
-                        "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
-                    jsonPath("$.title").value("Task Complete Error"),
-                    jsonPath("$.status").value(500),
-                    jsonPath("$.detail").value(
-                        "Task Complete Error: Task complete partially succeeded. "
-                        + "The Task state was updated to completed, but the Task could not be completed.")
-                ));
+            ).andExpectAll(
+                status().is5xxServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value(
+                    "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                jsonPath("$.title").value("Task Complete Error"),
+                jsonPath("$.status").value(500),
+                jsonPath("$.detail").value(
+                    "Task Complete Error: Task complete partially succeeded. "
+                    + "The Task state was updated to completed, but the Task could not be completed.")
+            );
         }
 
         @Test
@@ -192,8 +222,17 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 .build();
 
             createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-            insertDummyTaskInDb(taskId);
+
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, true, true, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            );
+            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
 
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
@@ -212,17 +251,16 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
-            ).andExpect(
-                ResultMatcher.matchAll(
-                    status().is5xxServerError(),
-                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value(
-                        "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
-                    jsonPath("$.title").value("Task Assign and Complete Error"),
-                    jsonPath("$.status").value(500),
-                    jsonPath("$.detail").value(
-                        "Task Assign and Complete Error: Unable to assign the Task to the current user.")
-                ));
+            ).andExpectAll(
+                status().is5xxServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value(
+                    "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
+                jsonPath("$.title").value("Task Assign and Complete Error"),
+                jsonPath("$.status").value(500),
+                jsonPath("$.detail").value(
+                    "Task Assign and Complete Error: Unable to assign the Task to the current user.")
+            );
         }
 
         @Test
@@ -244,8 +282,17 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 .build();
 
             createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-            insertDummyTaskInDb(taskId);
+
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, true, true, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            );
+            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
 
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
@@ -268,19 +315,18 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
-            ).andExpect(
-                ResultMatcher.matchAll(
-                    status().is5xxServerError(),
-                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value(
-                        "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
-                    jsonPath("$.title").value("Task Assign and Complete Error"),
-                    jsonPath("$.status").value(500),
-                    jsonPath("$.detail").value(
-                        "Task Assign and Complete Error: Task assign and complete partially succeeded. "
-                        + "The Task was assigned to the user making the request, "
-                        + "the task state was also updated to completed, but he Task could not be completed.")
-                ));
+            ).andExpectAll(
+                status().is5xxServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value(
+                    "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
+                jsonPath("$.title").value("Task Assign and Complete Error"),
+                jsonPath("$.status").value(500),
+                jsonPath("$.detail").value(
+                    "Task Assign and Complete Error: Task assign and complete partially succeeded. "
+                    + "The Task was assigned to the user making the request, "
+                    + "the task state was also updated to completed, but he Task could not be completed.")
+            );
         }
 
         @Test
@@ -302,8 +348,17 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 .build();
 
             createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-            insertDummyTaskInDb(taskId);
+
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                true, false, false, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            );
+            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
 
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
@@ -328,18 +383,17 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                         .content(asJsonString(new CompleteTaskRequest(null)))
                 )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(
-                    ResultMatcher.matchAll(
-                        status().isForbidden(),
-                        content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                        jsonPath("$.type").value(
-                            "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
-                        jsonPath("$.title").value("Role Assignment Verification"),
-                        jsonPath("$.status").value(403),
-                        jsonPath("$.detail").value(
-                            "Role Assignment Verification: "
-                            + "The request failed the Role Assignment checks performed.")
-                    ));
+                .andExpectAll(
+                    status().isForbidden(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
+                    jsonPath("$.title").value("Role Assignment Verification"),
+                    jsonPath("$.status").value(403),
+                    jsonPath("$.detail").value(
+                        "Role Assignment Verification: "
+                        + "The request failed the Role Assignment checks performed.")
+                );
         }
 
         @Test
@@ -367,10 +421,9 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                                  + "}")
                 )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(
-                    ResultMatcher.matchAll(
-                        status().isBadRequest()
-                    ));
+                .andExpectAll(
+                    status().isBadRequest()
+                );
 
         }
 
@@ -399,10 +452,9 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                                  + "}")
                 )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(
-                    ResultMatcher.matchAll(
-                        status().isBadRequest()
-                    ));
+                .andExpectAll(
+                    status().isBadRequest()
+                );
         }
 
         @Test
@@ -430,16 +482,21 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                                  + "}")
                 )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(
-                    ResultMatcher.matchAll(
-                        status().isBadRequest()
-                    ));
+                .andExpectAll(
+                    status().isBadRequest()
+                );
         }
 
         @Test
         public void should_return_a_403_when_the_user_did_not_have_correct_jurisdiction() throws Exception {
             mockServices.mockUserInfo();
-            insertDummyTaskInDb(taskId);
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, true, true, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            );
+            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
             List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
                 "SCSS", "completeFailureCaseId1");
             // create role assignments Organisation and SCSS , Case Id
@@ -474,8 +531,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
         }
     }
 
-
-
     @Nested
     @DisplayName("with no privileged access")
     class CompleteTaskWithNoPrivilegedAccess {
@@ -505,7 +560,13 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
             createRoleAssignment(roleAssignments, roleAssignmentRequest);
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-            insertDummyTaskInDb(taskId);
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, true, true, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            );
+            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
@@ -523,10 +584,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             );
 
             mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    post(ENDPOINT_BEING_TESTED)
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpectAll(
@@ -554,47 +615,17 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                         .content(asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
                 )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(
-                    ResultMatcher.matchAll(
-                        status().isForbidden(),
-                        content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                        jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
-                        jsonPath("$.title").value("Forbidden"),
-                        jsonPath("$.status").value(403),
-                        jsonPath("$.detail").value(
-                            "Forbidden: "
-                            + "The action could not be completed because the client/user had insufficient rights to a resource.")
-                    ));
+                .andExpectAll(
+                    status().isForbidden(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
+                    jsonPath("$.title").value("Forbidden"),
+                    jsonPath("$.status").value(403),
+                    jsonPath("$.detail").value(
+                        "Forbidden: "
+                        + "The action could not be completed because the client/user had insufficient rights to a resource.")
+                );
         }
-    }
-
-
-    private void insertDummyTaskInDb(String taskId) {
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-            UNASSIGNED
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(OffsetDateTime.now());
-        taskResource.setJurisdiction("IA");
-        taskResource.setCaseTypeId("Asylum");
-        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
-        taskResource.setLocation("765324");
-        taskResource.setLocationName("Taylor House");
-        taskResource.setRegion("TestRegion");
-        taskResource.setCaseId("completeFailureCaseId1");
-
-
-        TaskRoleResource tribunalResource = new TaskRoleResource(
-            "tribunal-caseworker", true, false, false, false, true,
-            true, new String[]{}, 1, false, "LegalOperations"
-        );
-        tribunalResource.setTaskId(taskId);
-        Set<TaskRoleResource> taskRoleResourceSet = Set.of(tribunalResource);
-        taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
     }
 }
 

@@ -236,7 +236,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     public void should_return_a_403_when_the_user_jurisdiction_did_not_match(String jurisdiction, String caseType)
         throws Exception {
 
-        insertDummyTaskInDb(taskId, jurisdiction, caseType);
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
         mockServices.mockUserInfo();
         List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
@@ -689,33 +695,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
     }
 
-    private void insertDummyTaskInDb(String taskId, String jurisdiction, String caseType) {
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-            UNASSIGNED
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(OffsetDateTime.now());
-        taskResource.setJurisdiction(jurisdiction);
-        taskResource.setCaseTypeId(caseType);
-        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
-        taskResource.setLocation("765324");
-        taskResource.setLocationName("Taylor House");
-        taskResource.setRegion("TestRegion");
-        taskResource.setCaseId("caseId1");
-
-
-        TaskRoleResource tribunalResource = new TaskRoleResource(
-            "tribunal-caseworker", true, true, true, false, false,
-            true, new String[]{}, 1, false, "LegalOperations"
-        );
-        tribunalResource.setTaskId(taskId);
-        Set<TaskRoleResource> taskRoleResourceSet = Set.of(tribunalResource);
-        taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
-    }
 
     private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId,
                                      TaskRoleResource taskRoleResource) {
