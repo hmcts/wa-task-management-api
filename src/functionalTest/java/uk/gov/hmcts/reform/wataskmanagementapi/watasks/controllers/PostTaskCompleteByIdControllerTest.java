@@ -364,6 +364,64 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     }
 
+    @Test
+    public void should_return_a_case_role_assignment() {
+
+        TestVariables taskVariables1 = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables2 = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        String taskId1 = taskVariables1.getTaskId();
+        String taskId2 = taskVariables2.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        initiateTask(taskVariables1, Jurisdiction.WA);
+        initiateTask(taskVariables2, Jurisdiction.WA);
+
+        Response result1 = restApiActions.post(
+            CLAIM_ENDPOINT,
+            taskId1,
+            caseworkerCredentials.getHeaders()
+        );
+
+        Response result2 = restApiActions.post(
+            CLAIM_ENDPOINT,
+            taskId2,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result1.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        result2.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables1.getCaseId(),
+                                                 WA_JURISDICTION, WA_CASE_TYPE);
+
+        result1 = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId1,
+            caseworkerCredentials.getHeaders()
+        );
+        result2 = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId2,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result1.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+        result2.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value());
+
+        assertions.taskVariableWasUpdated(taskVariables1.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId1, "completed", caseworkerCredentials.getHeaders());
+
+        common.cleanUpTask(taskId1);
+        common.cleanUpTask(taskId2);
+    }
+
 
 }
 
