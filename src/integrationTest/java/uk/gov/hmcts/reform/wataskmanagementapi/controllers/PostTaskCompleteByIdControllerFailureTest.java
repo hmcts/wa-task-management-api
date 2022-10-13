@@ -45,6 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -93,9 +94,9 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
-        when(mockedUserInfo.getUid())
+        lenient().when(mockedUserInfo.getUid())
             .thenReturn(IDAM_USER_ID);
-        when(mockedUserInfo.getEmail())
+        lenient().when(mockedUserInfo.getEmail())
             .thenReturn(IDAM_USER_EMAIL);
 
         mockServices = new ServiceMocks(
@@ -169,63 +170,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                     jsonPath("$.detail").value(
                         "Task Complete Error: Task complete partially succeeded. "
                         + "The Task state was updated to completed, but the Task could not be completed.")
-                ));
-        }
-
-        @Test
-        void should_return_500_with_application_problem_response_when_task_update_call_fails_with_completion_options()
-            throws Exception {
-
-            mockServices.mockUserInfo();
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-                .roleAssignmentAttribute(
-                    RoleAssignmentAttribute.builder()
-                        .jurisdiction("IA")
-                        .caseType("Asylum")
-                        .caseId("completeFailureCaseId1")
-                        .build()
-                )
-                .build();
-
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
-            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-            insertDummyTaskInDb(taskId);
-
-            when(roleAssignmentServiceApi.getRolesForUser(
-                any(), any(), any()
-            )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
-
-            when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(
-                any(),
-                any(),
-                any()
-            );
-
-            mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
-            ).andExpect(
-                ResultMatcher.matchAll(
-                    status().is5xxServerError(),
-                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value(
-                        "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
-                    jsonPath("$.title").value("Task Assign and Complete Error"),
-                    jsonPath("$.status").value(500),
-                    jsonPath("$.detail").value(
-                        "Task Assign and Complete Error: Task assign and complete partially succeeded. "
-                        + "The Task was assigned to the user making the request but the Task could not be completed.")
                 ));
         }
 
@@ -370,6 +314,12 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(
+                any(),
+                any(),
+                any()
+            );
+
             mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -398,26 +348,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-                .roleAssignmentAttribute(
-                    RoleAssignmentAttribute.builder()
-                        .jurisdiction("IA")
-                        .caseType("Asylum")
-                        .caseId("completeFailureCaseId1")
-                        .build()
-                )
-                .build();
-
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
-            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-            insertDummyTaskInDb(taskId);
-
-            when(roleAssignmentServiceApi.getRolesForUser(
-                any(), any(), any()
-            )).thenReturn(accessControlResponse);
-
             when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
                 .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
@@ -450,26 +380,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-                .roleAssignmentAttribute(
-                    RoleAssignmentAttribute.builder()
-                        .jurisdiction("IA")
-                        .caseType("Asylum")
-                        .caseId("completeFailureCaseId1")
-                        .build()
-                )
-                .build();
-
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
-            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-            insertDummyTaskInDb(taskId);
-
-            when(roleAssignmentServiceApi.getRolesForUser(
-                any(), any(), any()
-            )).thenReturn(accessControlResponse);
-
             when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
                 .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
@@ -501,26 +411,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-                .roleAssignmentAttribute(
-                    RoleAssignmentAttribute.builder()
-                        .jurisdiction("IA")
-                        .caseType("Asylum")
-                        .caseId("completeFailureCaseId1")
-                        .build()
-                )
-                .build();
-
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
-            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-            insertDummyTaskInDb(taskId);
-
-            when(roleAssignmentServiceApi.getRolesForUser(
-                any(), any(), any()
-            )).thenReturn(accessControlResponse);
-
             when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
                 .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
@@ -559,6 +449,8 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignmentsWithJurisdiction));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
