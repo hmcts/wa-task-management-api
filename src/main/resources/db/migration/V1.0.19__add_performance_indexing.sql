@@ -2,7 +2,7 @@
  * Set configuration values equivalent to those held in the TaskPerfConfig
  * Java class, if they affect the database.
  */
-alter database postgres set task_perf_config.use_uniform_role_signatures to 'Y';
+alter database cft_task_db set task_perf_config.use_uniform_role_signatures to 'Y';
 
 /*
  * Column to avoid index churn.  We don't want to modify indexes until the

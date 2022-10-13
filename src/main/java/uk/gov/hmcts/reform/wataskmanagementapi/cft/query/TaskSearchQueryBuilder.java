@@ -69,18 +69,19 @@ public final class TaskSearchQueryBuilder {
 
         final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
 
+        List<PermissionTypes> permissionsForRequest = new ArrayList<>(permissionsRequired);
         if (availableTasksOnly && !permissionsRequired.contains(PermissionTypes.OWN)) {
-            permissionsRequired.add(PermissionTypes.OWN);
+            permissionsForRequest.add(PermissionTypes.OWN);
         }
 
         log.debug("Querying with 'available_tasks_only' set to '{}'", availableTasksOnly);
-        log.debug("Querying with 'permissions required' set to '{}'", permissionsRequired);
+        log.debug("Querying with 'permissions required' set to '{}'", permissionsForRequest);
 
         final Predicate constrainsSpec =
             buildApplicationConstraints(searchTaskRequest, availableTasksOnly, builder, root);
 
         final Predicate roleAssignmentSpec = buildRoleAssignmentConstraints(
-            permissionsRequired,
+            permissionsForRequest,
             roleAssignments,
             availableTasksOnly,
             builder,

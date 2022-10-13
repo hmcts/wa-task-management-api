@@ -227,7 +227,7 @@ public class TaskSearch
 		    "and    state in ('ASSIGNED','UNASSIGNED')\n" +
 		    "and    cft_task_db.filter_signatures(t.task_id) && ?\n" +
 		    "and    cft_task_db.role_signatures(t.task_id) && ?[EXTRA_CONSTRAINTS]\n" +
-		    "order by [ORDER_BY]t.major_priority desc, t.priority_date_time desc, t.minor_priority desc\n" +
+		    "order by [ORDER_BY]t.major_priority desc, t.priority_date desc, t.minor_priority desc\n" +
 		    "offset ? limit ?";
 
 	private static final String SEARCH_SQL_TASK_ALIAS = "t";

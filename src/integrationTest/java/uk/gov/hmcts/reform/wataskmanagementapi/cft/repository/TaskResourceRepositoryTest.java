@@ -90,8 +90,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             CFTTaskState.ASSIGNED,
             created,
             dueDate,
-            5000,
-            5000,
             priorityDate
         );
         taskResource.setCreated(created);
@@ -101,8 +99,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 taskResource.getTaskId(),
                 taskResource.getCreated(),
                 taskResource.getDueDateTime(),
-                taskResource.getMajorPriority(),
-                taskResource.getMinorPriority(),
                 taskResource.getPriorityDate()
             );
             await().timeout(10, SECONDS);
@@ -116,8 +112,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             CFTTaskState.ASSIGNED,
             created,
             dueDate,
-            5000,
-            5000,
             priorityDate
         );
 
@@ -125,8 +119,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             otherTaskResource.getTaskId(),
             otherTaskResource.getCreated(),
             otherTaskResource.getDueDateTime(),
-            otherTaskResource.getMajorPriority(),
-            otherTaskResource.getMinorPriority(),
             otherTaskResource.getPriorityDate()
         ));
 

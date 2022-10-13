@@ -5,7 +5,6 @@ import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
