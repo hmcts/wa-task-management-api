@@ -10,17 +10,24 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -43,8 +50,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/%s";
     private static String ENDPOINT_BEING_TESTED;
-    @Autowired
-    TaskResourceRepository taskResourceRepository;
     @MockBean
     private ClientAccessControlService clientAccessControlService;
     @Autowired
@@ -53,25 +58,14 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private AuthTokenGenerator authTokenGenerator;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
-
+    @Autowired
+    private CFTTaskDatabaseService cftTaskDatabaseService;
     private String taskId;
 
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
-    }
-
-    private void insertDummyTaskInDb(String taskId, CFTTaskDatabaseService cftTaskDatabaseService) {
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-            UNASSIGNED
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(OffsetDateTime.now().plusDays(2));
-        cftTaskDatabaseService.saveTask(taskResource);
     }
 
     @Nested
@@ -107,8 +101,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_204_and_delete_task() throws Exception {
-            CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
-            insertDummyTaskInDb(taskId, cftTaskDatabaseService);
+            createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId1");
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
@@ -169,8 +162,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_204_and_delete_task() throws Exception {
-            CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
-            insertDummyTaskInDb(taskId, cftTaskDatabaseService);
+            createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId2");
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
 
@@ -231,8 +223,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_204_and_delete_task() throws Exception {
-            CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
-            insertDummyTaskInDb(taskId, cftTaskDatabaseService);
+            createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId3");
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
@@ -256,6 +247,61 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             assertEquals(CFTTaskState.TERMINATED, taskInDb.get().getState());
             assertEquals("deleted", taskInDb.get().getTerminationReason());
         }
+    }
+
+    private void insertDummyTaskInDb(String jurisdiction,
+                                     String caseType,
+                                     String caseId,
+                                     String taskId, CFTTaskState cftTaskState,
+                                     TaskRoleResource taskRoleResource) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            cftTaskState
+        );
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setDueDateTime(OffsetDateTime.now());
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setCaseTypeId(caseType);
+        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+        taskResource.setLocation("765324");
+        taskResource.setLocationName("Taylor House");
+        taskResource.setRegion("TestRegion");
+        taskResource.setCaseId(caseId);
+
+        taskRoleResource.setTaskId(taskId);
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+        taskResource.setTaskRoleResources(taskRoleResourceSet);
+        cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private void createTaskAndRoleAssignments(CFTTaskState cftTaskState, String caseId) {
+        //assigner permission : manage, own, cancel
+        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
+            false, true, true, true, true, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
+        );
+        String jurisdiction = "IA";
+        String caseType = "Asylum";
+        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignerTaskRoleResource);
+
+        List<RoleAssignment> assignerRoles = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assignerRoles, roleAssignmentRequest);
     }
 }
 
