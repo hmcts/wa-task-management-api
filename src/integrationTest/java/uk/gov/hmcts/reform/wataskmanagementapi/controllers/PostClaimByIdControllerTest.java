@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -26,8 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
@@ -41,8 +38,6 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -74,10 +69,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
-    private PermissionEvaluatorService permissionEvaluatorService;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
@@ -109,59 +100,45 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_500_with_application_problem_response_when_task_update_call_fails() throws Exception {
-
-        mockServices.mockServiceAPIs();
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(false);
-
-        when(permissionEvaluatorService.hasAccess(any(), any(), any()))
-            .thenReturn(true);
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        UserInfo userInfo = mock(UserInfo.class);
-        when(userInfo.getUid()).thenReturn("dummyUserId");
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
-
-        doThrow(FeignException.FeignServerException.class)
-            .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().is5xxServerError(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-claim-error"),
-                jsonPath("$.title").value("Task Claim Error"),
-                jsonPath("$.status").value(500),
-                jsonPath("$.detail").value(
-                    "Task Claim Error: Task claim failed. Unable to update task state to assigned.")
-            ));
-    }
-
-    @Test
     void should_return_500_with_application_problem_response_when_claim_call_fails() throws Exception {
 
-        mockServices.mockServiceAPIs();
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        UserInfo userInfo = mock(UserInfo.class);
-        when(userInfo.getUid()).thenReturn("dummyUserId");
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        when(permissionEvaluatorService.hasAccess(any(), any(), any()))
-            .thenReturn(true);
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("caseId1")
+                    .build()
+            )
+            .build();
 
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
         FeignException mockedException = mock(FeignException.class);
 
         when(mockedException.contentUTF8()).thenReturn(
@@ -170,7 +147,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             + "    \"message\": \"server error.\"\n"
             + "  }"
         );
-        doThrow(mockedException).when(camundaServiceApi).claimTask(any(), any(), any());
+        doThrow(mockedException).when(camundaServiceApi).assignTask(any(), any(), any());
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -181,35 +158,56 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             ResultMatcher.matchAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-claim-error"),
-                jsonPath("$.title").value("Task Claim Error"),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-error"),
+                jsonPath("$.title").value("Task Assign Error"),
                 jsonPath("$.status").value(500),
                 jsonPath("$.detail").value(
-                    "Task Claim Error: Task claim partially succeeded. "
-                    + "The Task state was updated to assigned, but the Task could not be claimed.")
+                    "Task Assign Error: Task assign partially succeeded. "
+                    + "The Task state was updated to assigned, but the Task could not be assigned.")
             ));
     }
 
     @Test
     void should_return_500_with_application_problem_response_when_claim_call_fails_with_generic_exception()
         throws Exception {
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        mockServices.mockServiceAPIs();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("caseId1")
+                    .build()
+            )
+            .build();
 
-        when(permissionEvaluatorService.hasAccess(any(), any(), any()))
-            .thenReturn(true);
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
-        doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        UserInfo userInfo = mock(UserInfo.class);
-        when(userInfo.getUid()).thenReturn("dummyUserId");
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
-        doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).claimTask(any(), any(), any());
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).assignTask(any(), any(), any());
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -220,12 +218,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             ResultMatcher.matchAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-claim-error"),
-                jsonPath("$.title").value("Task Claim Error"),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-error"),
+                jsonPath("$.title").value("Task Assign Error"),
                 jsonPath("$.status").value(500),
                 jsonPath("$.detail").value(
-                    "Task Claim Error: Task claim partially succeeded. "
-                    + "The Task state was updated to assigned, but the Task could not be claimed.")
+                    "Task Assign Error: Task assign partially succeeded. "
+                    + "The Task state was updated to assigned, but the Task could not be assigned.")
             ));
     }
 

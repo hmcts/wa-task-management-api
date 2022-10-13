@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -25,9 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
@@ -40,8 +37,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -75,10 +70,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
-    private PermissionEvaluatorService permissionEvaluatorService;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @MockBean
     private AccessControlService accessControlService;
     @Mock
@@ -123,94 +114,87 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA",
-        "WA"
-    })
-    void should_return_500_with_application_problem_response_when_task_update_call_fails(
-        String jurisdiction) throws Exception {
-
-        when(permissionEvaluatorService.hasAccess(any(), any(), any()))
-            .thenReturn(true);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(false);
-
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
-        List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
-            jurisdiction, "caseId1");
-        // create role assignments Organisation and SCSS , Case Id
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
-            roleAssignmentsWithJurisdiction
-        );
-
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(accessControlResponse);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo,
-                roleAssignmentsWithJurisdiction));
-
-        when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo,
-                roleAssignmentsWithJurisdiction));
-
-        doThrow(FeignException.FeignServerException.class)
-            .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().is5xxServerError(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-error"),
-                jsonPath("$.title").value("Task Assign Error"),
-                jsonPath("$.status").value(500),
-                jsonPath("$.detail").value(
-                    "Task Assign Error: Task assign failed. Unable to update task state to assigned.")
-            ));
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {
-        "IA",
-        "WA"
+        "IA, Asylum",
+        "WA, WaCaseType"
     })
     void should_return_500_with_application_problem_response_when_assign_call_fails(
-        String jurisdiction
-    ) throws Exception {
+        String jurisdiction, String caseType) throws Exception {
 
-        List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
-            jurisdiction, "caseId1");
-        // create role assignments Organisation and SCSS , Case Id
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
-            roleAssignmentsWithJurisdiction
+        //assigner permission : manage
+        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
+            false, false, false, true, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
         );
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, assignerTaskRoleResource);
 
+        List<RoleAssignment> assignerRoles = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId("caseId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
+        assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
+
+        //assignee permissions : own, execute
+        //standard role
+        TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
+
+        List<RoleAssignment> assigneeRoles = new ArrayList<>();
+
+        roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId("caseId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+
+        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
+        assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
+
+        //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
-        )).thenReturn(accessControlResponse);
+        )).thenReturn(assignerRoleAssignmentResource);
 
         when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo,
-                roleAssignmentsWithJurisdiction));
+            .thenReturn(assignerAccessControlResponse);
 
-        when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo,
-                roleAssignmentsWithJurisdiction));
 
-        when(permissionEvaluatorService.hasAccess(any(), any(), any()))
-            .thenReturn(true);
+        //Assignee
+        lenient().when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(assigneeRoleAssignmentResource);
 
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(assigneeAccessControlResponse);
 
-        doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
         doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).assignTask(any(), any(), any());
 
         mockMvc.perform(
