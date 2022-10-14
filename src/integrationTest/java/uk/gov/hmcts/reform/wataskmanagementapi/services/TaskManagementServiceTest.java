@@ -270,7 +270,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             createAndSaveTestTask(taskId, UNCONFIGURED);
             Optional<TaskResource> taskResource = taskResourceRepository.findById(taskId);
-            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class))).thenReturn(taskResource);
+            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
+                .thenReturn(taskResource);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                 () -> taskManagementService.cancelTask(taskId, accessControlResponse)))
@@ -399,7 +400,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             createAndAssignTestTask(taskId);
             Optional<TaskResource> taskResource = taskResourceRepository.findById(taskId);
-            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class))).thenReturn(taskResource);
+            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
+                .thenReturn(taskResource);
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
@@ -423,7 +425,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             createAndAssignTestTask(taskId);
             Optional<TaskResource> taskResource = taskResourceRepository.findById(taskId);
-            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class))).thenReturn(taskResource);
+            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
+                .thenReturn(taskResource);
 
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).completeTask(any(), any(), any());
@@ -461,7 +464,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 createAndAssignTestTask(taskId);
                 Optional<TaskResource> taskResource = taskResourceRepository.findById(taskId);
-                when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class))).thenReturn(taskResource);
+                when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
+                    .thenReturn(taskResource);
 
                 assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
