@@ -6,9 +6,6 @@ public enum FeatureFlag {
     //Features
     PRIVILEGED_ACCESS_FEATURE("wa-task-management-privileged-access-feature"),
 
-    //Release 2 Features
-    RELEASE_2_TASK_QUERY("wa-r2-endpoints-task-query"),
-
     //The following keys are used for testing purposes only.
     TEST_KEY("tester"),
     NON_EXISTENT_KEY("non-existent");

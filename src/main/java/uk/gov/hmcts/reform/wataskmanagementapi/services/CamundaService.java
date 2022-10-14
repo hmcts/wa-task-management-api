@@ -50,7 +50,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
@@ -288,43 +287,6 @@ public class CamundaService {
             throw new TaskAssignAndCompleteException(TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_COMPLETE);
         }
 
-    }
-
-    public long getTaskCount(CamundaSearchQuery query) {
-        try {
-            return camundaServiceApi.getTaskCount(
-                authTokenGenerator.generate(),
-                query.getQueries()
-            ).getCount();
-        } catch (FeignException exp) {
-            log.error(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT);
-            throw new ServerErrorException(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT, exp);
-        }
-    }
-
-    public List<Task> searchWithCriteria(CamundaSearchQuery query,
-                                         int firstResult,
-                                         int maxResults,
-                                         AccessControlResponse accessControlResponse,
-                                         List<PermissionTypes> permissionsRequired) {
-
-        try {
-            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteriaAndPagination(
-                authTokenGenerator.generate(),
-                firstResult,
-                maxResults,
-                query.getQueries()
-            );
-
-            //Safe guard in case no search results were returned
-            if (searchResults.isEmpty()) {
-                return emptyList();
-            }
-            return performSearchAction(searchResults, accessControlResponse, permissionsRequired);
-        } catch (FeignException exp) {
-            log.error(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH);
-            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
-        }
     }
 
     public List<CamundaTask> searchWithCriteriaAndNoPagination(CamundaSearchQuery query) {
