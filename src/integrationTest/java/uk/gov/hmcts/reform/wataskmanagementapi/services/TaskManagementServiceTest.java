@@ -502,7 +502,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 createAndAssignTestTask(taskId);
                 Optional<TaskResource> taskResource = taskResourceRepository.findById(taskId);
-                when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class))).thenReturn(taskResource);
+                when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
+                    .thenReturn(taskResource);
 
                 assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
