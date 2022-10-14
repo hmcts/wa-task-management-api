@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -155,15 +154,15 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
-                status().is5xxServerError(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-error"),
-                jsonPath("$.title").value("Task Assign Error"),
-                jsonPath("$.status").value(500),
-                jsonPath("$.detail").value(
-                    "Task Assign Error: Task assign partially succeeded. "
-                    + "The Task state was updated to assigned, but the Task could not be assigned.")
-            );
+            status().is5xxServerError(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-error"),
+            jsonPath("$.title").value("Task Assign Error"),
+            jsonPath("$.status").value(500),
+            jsonPath("$.detail").value(
+                "Task Assign Error: Task assign partially succeeded. "
+                + "The Task state was updated to assigned, but the Task could not be assigned.")
+        );
     }
 
     @Test
@@ -214,16 +213,16 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
-                status().is5xxServerError(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-error"),
-                jsonPath("$.title").value("Task Assign Error"),
-                jsonPath("$.status").value(500),
-                jsonPath("$.detail").value(
-                    "Task Assign Error: Task assign partially succeeded. "
-                    + "The Task state was updated to assigned, but the Task could not be assigned.")
-            );
+            status().is5xxServerError(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-error"),
+            jsonPath("$.title").value("Task Assign Error"),
+            jsonPath("$.status").value(500),
+            jsonPath("$.detail").value(
+                "Task Assign Error: Task assign partially succeeded. "
+                + "The Task state was updated to assigned, but the Task could not be assigned.")
+        );
     }
 
     @ParameterizedTest
