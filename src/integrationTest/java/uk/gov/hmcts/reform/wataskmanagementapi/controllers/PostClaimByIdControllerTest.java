@@ -111,7 +111,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
-                    .caseId("caseId1")
+                    .caseId("claimCaseId1")
                     .build()
             )
             .build();
@@ -154,8 +154,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpect(
-            ResultMatcher.matchAll(
+        ).andExpectAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-error"),
@@ -164,7 +163,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.detail").value(
                     "Task Assign Error: Task assign partially succeeded. "
                     + "The Task state was updated to assigned, but the Task could not be assigned.")
-            ));
+            );
     }
 
     @Test
@@ -214,8 +213,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpect(
-            ResultMatcher.matchAll(
+        ).andExpectAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -225,7 +223,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.detail").value(
                     "Task Assign Error: Task assign partially succeeded. "
                     + "The Task state was updated to assigned, but the Task could not be assigned.")
-            ));
+            );
     }
 
     @ParameterizedTest
