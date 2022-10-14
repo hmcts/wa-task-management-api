@@ -13,20 +13,21 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Collections.emptyList;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -98,7 +99,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         setInitMockForSearchTaskWithRoleCategory();
     }
 
-    public TaskResource createTaskWithNoWarnings() {
+    public Task createTaskWithNoWarnings() {
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
                 PermissionTypes.READ,
@@ -110,7 +111,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             )
         );
 
-        Task task = new Task(
+        return new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
             "reviewTheAppeal",
@@ -132,7 +133,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(emptyList()),
+            new WarningValues(Collections.emptyList()),
             "Case Management Category",
             "hearing_work",
             "Hearing work",
@@ -146,11 +147,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             5000,
             ZonedDateTime.now()
         );
-
-        return fromTask(task, true, true, true, true, true, true);
     }
 
-    public TaskResource createTaskWithWarnings() {
+    public Task createTaskWithWarnings() {
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
                 PermissionTypes.READ,
@@ -166,7 +165,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             new Warning("Code1", "Text1")
         );
 
-        Task task = new Task(
+        return new Task(
             "fda422de-b381-43ff-94ea-eea5790188a3",
             "Review the appeal",
             "reviewTheAppeal",
@@ -202,11 +201,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             5000,
             ZonedDateTime.now()
         );
-
-        return fromTask(task, true, true, true, true, true, true);
     }
 
-    public TaskResource createWaTask() {
+    public Task createWaTask() {
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
                 PermissionTypes.READ,
@@ -215,7 +212,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             )
         );
 
-        Task task = new Task(
+        return new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Process Application",
             "processApplication",
@@ -237,7 +234,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             "Protection",
             "Bob Smith",
             false,
-            new WarningValues(emptyList()),
+            new WarningValues(Collections.emptyList()),
             "Protection",
             "hearing_work",
             "Hearing work",
@@ -251,11 +248,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             5000,
             ZonedDateTime.now()
         );
-
-        return fromTask(task, true, false, true, false, false, true);
     }
 
-    public TaskResource createTaskForRoleCategorySearch() {
+    public Task createTaskForRoleCategorySearch() {
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
                 PermissionTypes.READ,
@@ -267,7 +262,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             )
         );
 
-        Task task = new Task(
+        return new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "review appeal skeleton argument",
             "reviewAppealSkeletonArgument",
@@ -289,7 +284,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             "Protection",
             "Bob Smith",
             false,
-            new WarningValues(emptyList()),
+            new WarningValues(Collections.emptyList()),
             "Case Management Category",
             "hearing_work",
             "Hearing work",
@@ -303,8 +298,6 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             5000,
             ZonedDateTime.now()
         );
-
-        return fromTask(task, true, true, true, true, true, true);
     }
 
     private void setInitMockForSearchTask() {
@@ -315,8 +308,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.getTask(anyString(), anyList(), anyList()))
-            .thenReturn(Optional.of(createTaskWithNoWarnings()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new GetTasksResponse(List.of(createTaskWithNoWarnings(), createTaskWithNoWarnings()), 2L));
     }
 
     private void setInitMockForSearchWaTask() {
@@ -327,8 +320,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.getTask(anyString(), anyList(), anyList()))
-            .thenReturn(Optional.of(createWaTask()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new GetTasksResponse(List.of(createWaTask(), createWaTask()), 2L));
     }
 
     private void setInitMockForSearchTaskWithWarningsOnly() {
@@ -338,8 +331,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.getTask(anyString(), anyList(), anyList()))
-            .thenReturn(Optional.of(createTaskWithWarnings()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new GetTasksResponse(List.of(createTaskWithWarnings()), 1L));
     }
 
 
@@ -350,8 +343,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.getTask(anyString(), anyList(), anyList()))
-            .thenReturn(Optional.of(createTaskWithNoWarnings()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new GetTasksResponse(List.of(createTaskWithNoWarnings()), 1L));
     }
 
     private void setInitMockForSearchTaskWithRoleCategory() {
@@ -361,7 +354,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.getTask(anyString(), anyList(), anyList()))
-            .thenReturn(Optional.of(createTaskForRoleCategorySearch()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new GetTasksResponse(List.of(createTaskForRoleCategorySearch()), 1L));
     }
 }
