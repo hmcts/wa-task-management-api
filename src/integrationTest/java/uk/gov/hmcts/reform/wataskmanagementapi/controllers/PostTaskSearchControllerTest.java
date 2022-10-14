@@ -94,8 +94,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     private UserInfo mockedUserInfo;
     @MockBean
     private ClientAccessControlService clientAccessControlService;
-    @Mock
-    private CaseDetails caseDetails;
     private String taskId;
     private ServiceMocks mockServices;
 
