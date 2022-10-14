@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 public class ServiceMocks {
 
     public static final String IDAM_USER_ID = "IDAM_USER_ID";
+    public static final String IDAM_OTHER_USER_ID = "IDAM_OTHER_USER_ID";
     public static final String IDAM_USER_EMAIL = "wa-ft-test@test.com";
     public static final String SECONDARY_IDAM_USER_ID = "SECONDARY_IDAM_USER_ID";
     public static final String SECONDARY_IDAM_USER_EMAIL = "wa-ft-test@test.com";
