@@ -399,7 +399,7 @@ public class CFTTaskMapper {
         }
     }
 
-    public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
+    private Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments,
                                                                  String caseId,
                                                                  boolean granularPermissionResponseFeature) {
