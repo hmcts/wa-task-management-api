@@ -317,40 +317,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_complete_when_a_task_was_already_claimed_and_privileged_auto_complete_is_false() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
-        taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables, Jurisdiction.WA);
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
-
-        given.iClaimATaskWithIdAndAuthorization(
-            taskId,
-            caseworkerCredentials.getHeaders(),
-            HttpStatus.NO_CONTENT
-        );
-
-        //S2S service name is wa_task_management_api
-        TestAuthenticationCredentials otherUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignmentForWA(otherUser.getHeaders());
-
-        CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            completeTaskRequest,
-            otherUser.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        common.cleanUpTask(taskId);
-        common.clearAllRoleAssignments(otherUser.getHeaders());
-
-    }
-
-    @Test
     public void should_return_a_404_if_task_does_not_exist_with_completion_options_assign_and_complete_true() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 

@@ -133,5 +133,3 @@ caffeine:
     duration: 30
     unit: MINUTES
 
-initiation_job_running: ${INITIATION_JOB_RUNNING:false}
-
