@@ -15,18 +15,26 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
@@ -44,13 +52,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -98,6 +110,9 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     private ClientAccessControlService clientAccessControlService;
     @Mock
     private CaseDetails caseDetails;
+
+    @MockBean
+    private CftQueryService cftQueryService;
 
 
     private String taskId;
@@ -614,6 +629,130 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     }
 
+    @Test
+    @Execution(ExecutionMode.CONCURRENT)
+    void should_return_403_when_user_does_not_have_case_role_assignment() throws Exception {
+        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                           IDAM_USER_ID,
+                           IDAM_USER_EMAIL
+                       )
+        ).thenReturn(true);
+
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        String caseId1 = UUID.randomUUID().toString();
+        String taskId1 = UUID.randomUUID().toString();
+
+        TaskResource task1 = createTaskAndRoleResources(taskId1, caseId1);
+        when(cftQueryService.getTask(anyString(),any(),any(PermissionRequirements.class)))
+            .thenReturn(Optional.of(task1));
+
+        mockServices.mockUserInfo();
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "WA");
+
+        String actorId = UUID.randomUUID().toString();
+
+        RoleAssignment roleAssignment = mockServices.createBaseAssignment(
+            actorId, "tribunal-caseworker",
+            RoleType.ORGANISATION,
+            Classification.PUBLIC,
+            roleAttributes
+        );
+
+        roleAttributes.put(RoleAttributeDefinition.CASE_ID.value(), caseId1);
+        RoleAssignment roleAssignmentCase = mockServices.createBaseAssignment(
+            actorId, "case-manager",
+            RoleType.CASE,
+            Classification.PUBLIC,
+            roleAttributes
+        );
+
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
+        allTestRoles.add(roleAssignment);
+        allTestRoles.add(roleAssignmentCase);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            allTestRoles
+        );
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(caseDetails.getCaseType()).thenReturn("WaCaseType");
+        when(caseDetails.getJurisdiction()).thenReturn("WA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        //retrieve task
+        mockMvc.perform(
+                get("/task/" + taskId1)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andDo(print())
+            .andExpectAll(
+                status().is(HttpStatus.OK.value()),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task.id").value(taskId1),
+                jsonPath("$.task.case_id").value(caseId1),
+                jsonPath("$.task.permissions.values").isArray(),
+                jsonPath("$.task.permissions.values", hasSize(4)),
+                jsonPath("$.task.permissions.values[0]").value("Read"),
+                jsonPath("$.task.permissions.values[1]").value("Own"),
+                jsonPath("$.task.permissions.values[2]").value("Execute"),
+                jsonPath("$.task.permissions.values[3]").value("Cancel")
+            );
+
+        String caseId2 = UUID.randomUUID().toString();
+        String taskId2 = UUID.randomUUID().toString();
+
+        TaskResource task2 = createTaskAndRoleResources(taskId2, caseId2);
+
+        when(cftQueryService.getTask(anyString(),any(),any(PermissionRequirements.class)))
+            .thenReturn(Optional.of(task2));
+
+        mockMvc.perform(
+                get("/task/" + taskId2)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andDo(print())
+            .andExpectAll(
+                status().is(HttpStatus.OK.value()),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task.id").value(taskId2),
+                jsonPath("$.task.case_id").value(caseId2),
+                jsonPath("$.task.permissions.values").isArray(),
+                jsonPath("$.task.permissions.values", hasSize(3)),
+                jsonPath("$.task.permissions.values[0]").value("Read"),
+                jsonPath("$.task.permissions.values[1]").value("Execute"),
+                jsonPath("$.task.permissions.values[2]").value("Cancel")
+            );
+    }
+
+    private TaskResource createTaskAndRoleResources(String taskId2, String caseId2) {
+        TaskRoleResource tribunalResource = new TaskRoleResource(
+            "tribunal-caseworker", true, false, true, false, true,
+            false, new String[]{}, 1, false, "LegalOperations"
+        );
+
+        TaskRoleResource caseworkManagerResource = new TaskRoleResource(
+            "case-manager", false, true, false, false, false,
+            false, new String[]{}, 1, false, "LegalOperations"
+        );
+
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(tribunalResource, caseworkManagerResource);
+
+        TaskResource task = createTask(taskId2, taskRoleResourceSet, caseId2);
+        tribunalResource.setTaskResource(task);
+        return task;
+    }
+
     private void insertDummyTaskInDb(String jurisdiction,
                                      String caseType,
                                      String caseId,
@@ -694,5 +833,48 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
     }
+
+    private TaskResource createTask(String taskId, Set<TaskRoleResource> taskRoleResources,
+                                    String caseId) {
+        return new TaskResource(
+            taskId,
+            "aTaskName",
+            "startAppeal",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            CFTTaskState.ASSIGNED,
+            TaskSystem.SELF,
+            SecurityClassification.PUBLIC,
+            "title",
+            "a description",
+            null,
+            0,
+            0,
+            "someAssignee",
+            false,
+            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
+            new WorkTypeResource("routine_work", "Routine work"),
+            "JUDICIAL",
+            false,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            caseId,
+            "WaCaseType",
+            "TestCase",
+            "WA",
+            "1",
+            "TestRegion",
+            "765324",
+            "Taylor House",
+            BusinessContext.CFT_TASK,
+            "Some termination reason",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            taskRoleResources,
+            "caseCategory",
+            ADDITIONAL_PROPERTIES,
+            "nextHearingId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+        );
+    }
+
 }
 
