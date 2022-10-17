@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -345,10 +346,12 @@ public class TaskManagementService {
 
                     PermissionRequirements assigneePermissionsRequired = PermissionRequirementBuilder.builder()
                         .buildSingleRequirementWithOr(OWN, EXECUTE);
+                    List<RoleAssignment> roleAssignments = assigneeAccessControlResponse
+                        .map(AccessControlResponse::getRoleAssignments).orElse(List.of());
 
                     roleAssignmentVerification.verifyRoleAssignments(
                         taskId,
-                        assigneeAccessControlResponse.get().getRoleAssignments(),
+                        roleAssignments,
                         assigneePermissionsRequired,
                         ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
                     );
