@@ -70,6 +70,8 @@ public abstract class SpringBootFunctionalBaseTest {
         "There was a problem fetching the variables for task with id: %s";
     public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_NOT_ASSIGNED =
         "Could not complete task with id: %s as task was not previously assigned";
+    public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER =
+        "Could not complete task with id: %s as task was assigned to other user %s";
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}/initiation";
@@ -92,6 +94,8 @@ public abstract class SpringBootFunctionalBaseTest {
     protected Common common;
     protected RestApiActions restApiActions;
     protected RestApiActions camundaApiActions;
+
+    protected RestApiActions workflowApiActions;
     protected RestApiActions launchDarklyActions;
     @Autowired
     protected AuthorizationProvider authorizationProvider;
@@ -110,6 +114,8 @@ public abstract class SpringBootFunctionalBaseTest {
 
     @Value("${targets.camunda}")
     private String camundaUrl;
+    @Value("${targets.workflow}")
+    private String workflowUrl;
     @Value("${targets.instance}")
     private String testUrl;
     @Value("${launch_darkly.url}")
@@ -124,6 +130,7 @@ public abstract class SpringBootFunctionalBaseTest {
     public void setUpGivens() throws IOException {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
+        workflowApiActions = new RestApiActions(workflowUrl, LOWER_CAMEL_CASE).setUp();
         assertions = new Assertions(camundaApiActions, restApiActions, authorizationProvider);
 
         launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
@@ -134,7 +141,8 @@ public abstract class SpringBootFunctionalBaseTest {
             restApiActions,
             authorizationProvider,
             coreCaseDataApi,
-            documentManagementFiles
+            documentManagementFiles,
+            workflowApiActions
         );
 
         common = new Common(
@@ -143,8 +151,8 @@ public abstract class SpringBootFunctionalBaseTest {
             camundaApiActions,
             authorizationProvider,
             idamService,
-            roleAssignmentServiceApi
-        );
+            roleAssignmentServiceApi,
+            workflowApiActions);
 
         iaCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         common.setupCFTOrganisationalRoleAssignment(iaCaseworkerCredentials.getHeaders(), "IA", "Asylum");

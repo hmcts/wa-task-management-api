@@ -103,16 +103,78 @@ class CompleteTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
-        when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
+        when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
+        ).thenReturn(true);
+        Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+        taskManagementService.completeTask(taskId, accessControlResponse);
+        boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
+        assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+        verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+        verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
+    }
+
+    @Test
+    void completeTask_should_succeed_and_feature_flag_is_on_and_task_completed_in_camunda() {
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+        TaskResource taskResource = spy(TaskResource.class);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            .thenReturn(Optional.of(taskResource));
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+            .thenReturn(Optional.of(taskResource));
+        when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+        when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(true);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
+        ).thenReturn(true);
+        Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+        taskManagementService.completeTask(taskId, accessControlResponse);
+        boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
+        assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+        verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+        verify(camundaService, times(0)).completeTask(taskId, taskStateIsCompletedAlready);
+    }
+
+    @Test
+    void completeTask_should_succeed_and_feature_flag_is_on_and_task_not_completed_in_camunda() {
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+        TaskResource taskResource = spy(TaskResource.class);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            .thenReturn(Optional.of(taskResource));
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+            .thenReturn(Optional.of(taskResource));
+        when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+        when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(false);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(true);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         taskManagementService.completeTask(taskId, accessControlResponse);
@@ -142,10 +204,10 @@ class CompleteTaskTest extends CamundaHelpers {
         )).thenReturn(true);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(false);
 
         taskManagementService.completeTask(taskId, accessControlResponse);
@@ -194,10 +256,10 @@ class CompleteTaskTest extends CamundaHelpers {
         when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(false);
 
         assertThatThrownBy(() -> taskManagementService.completeTask(
@@ -239,10 +301,10 @@ class CompleteTaskTest extends CamundaHelpers {
         TaskResource taskResource = spy(TaskResource.class);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(true);
 
         assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))

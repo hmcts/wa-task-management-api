@@ -1,6 +1,7 @@
 targets:
   instance: ${TEST_URL:http://localhost:8087}
   camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+  workflow: ${WA_WORKFLOW_API_URL:http://localhost:8099}
 
 launch_darkly:
   url: ${LAUNCH_DARKLY_URL:https://app.launchdarkly.com/api/v2/flags/Work-Allocation/}
@@ -38,3 +39,6 @@ spring:
 config:
   allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW}
   allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS}
+
+
+initiation_job_running: ${INITIATION_JOB_RUNNING:false}
