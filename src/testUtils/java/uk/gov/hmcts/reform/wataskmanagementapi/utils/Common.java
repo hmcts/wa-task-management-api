@@ -61,6 +61,8 @@ public class Common {
     private final GivensBuilder given;
     private final RestApiActions restApiActions;
     private final RestApiActions camundaApiActions;
+
+    private final RestApiActions workflowApiActions;
     private final AuthorizationProvider authorizationProvider;
 
     private final IdamService idamService;
@@ -73,13 +75,15 @@ public class Common {
                   RestApiActions camundaApiActions,
                   AuthorizationProvider authorizationProvider,
                   IdamService idamService,
-                  RoleAssignmentServiceApi roleAssignmentServiceApi) {
+                  RoleAssignmentServiceApi roleAssignmentServiceApi,
+                  RestApiActions workflowApiActions) {
         this.given = given;
         this.restApiActions = restApiActions;
         this.camundaApiActions = camundaApiActions;
         this.authorizationProvider = authorizationProvider;
         this.idamService = idamService;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
+        this.workflowApiActions = workflowApiActions;
     }
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariablesOverride(
@@ -307,6 +311,22 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
+    public TestVariables setupWAStandaloneTaskAndRetrieveIds(String resourceFileName, String taskType, String taskName) {
+
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        List<CamundaTask> response = given
+            .iSendAMessageToWorkflowApi(caseId, "WA", "WaCaseType", taskType, taskName)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
+    }
+
     public TestVariables setupTaskWithWarningsAndRetrieveIds() {
         return setupTaskWithWarningsAndRetrieveIds(DEFAULT_TASK_TYPE);
     }
@@ -417,6 +437,45 @@ public class Common {
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
         createCaseAllocator(userInfo, headers, "IA");
         createStandardTribunalCaseworker(userInfo, headers, "IA", "Asylum");
+    }
+
+    public void setupWAOrganisationalRoleAssignment(Headers headers, String roleName) {
+
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            //This value must match the camunda task location variable for the permission check to pass
+            "baseLocation", "765324",
+            "jurisdiction", "WA"
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            roleName,
+            toJsonString(attributes),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid());
     }
 
     public void setupCFTOrganisationalRoleAssignment(Headers headers, String roleName) {

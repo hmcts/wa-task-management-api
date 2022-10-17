@@ -73,12 +73,14 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         taskId = UUID.randomUUID().toString();
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
-        lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
-            any())).thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(
-                    CamundaValue.stringValue("caseName"),
-                    CamundaValue.stringValue("Value"),
-                    CamundaValue.booleanValue(true)
+        lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(
+            anyString(),
+            any()
+        )).thenReturn(List.of(
+            new ConfigurationDmnEvaluationResponse(
+                CamundaValue.stringValue("caseName"),
+                CamundaValue.stringValue("Value"),
+                CamundaValue.booleanValue(true)
             )
         ));
     }
@@ -298,17 +300,17 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId8");
         assertNotNull(taskResources.stream()
-            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(0).getTaskId()))
-            .findFirst().get().getReconfigureRequestTime());
+                          .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(0).getTaskId()))
+                          .findFirst().get().getReconfigureRequestTime());
         assertNull(taskResources.stream()
-            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(1).getTaskId()))
-            .findFirst().get().getReconfigureRequestTime());
+                       .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(1).getTaskId()))
+                       .findFirst().get().getReconfigureRequestTime());
         assertNotNull(taskResources.stream()
-            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(2).getTaskId()))
-            .findFirst().get().getReconfigureRequestTime());
+                          .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(2).getTaskId()))
+                          .findFirst().get().getReconfigureRequestTime());
         assertNull(taskResources.stream()
-            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(3).getTaskId()))
-            .findFirst().get().getReconfigureRequestTime());
+                       .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(3).getTaskId()))
+                       .findFirst().get().getReconfigureRequestTime());
     }
 
     @Test
@@ -380,7 +382,12 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 2, 120);
+        TaskOperation operation = TaskOperation.builder()
+            .name(operationName)
+            .runId(UUID.randomUUID().toString())
+            .maxTimeLimit(2)
+            .retryWindowHours(120)
+            .build();
         return new TaskOperationRequest(operation, taskFilters(caseId));
     }
 

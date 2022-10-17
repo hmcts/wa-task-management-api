@@ -49,6 +49,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
     }
 
     private List<TaskResource> executeTasksToReconfigure(TaskOperationRequest request) {
+        log.debug("execute tasks toReconfigure request: {}", request);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(request.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
 
@@ -63,13 +64,13 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
             .collect(Collectors.toList());
 
         List<String> failedTaskIds = executeReconfiguration(taskIds,
-                                                            successfulTaskResources,
-                                                            request.getOperation().getMaxTimeLimit());
+            successfulTaskResources,
+            request.getOperation().getMaxTimeLimit());
 
         if (!failedTaskIds.isEmpty()) {
             failedTaskIds = executeReconfiguration(failedTaskIds,
-                                                   successfulTaskResources,
-                                                   request.getOperation().getMaxTimeLimit());
+                successfulTaskResources,
+                request.getOperation().getMaxTimeLimit());
         }
 
         if (!failedTaskIds.isEmpty()) {
@@ -88,7 +89,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
 
         if (!failedTasksToReport.isEmpty()) {
             throw new TaskExecuteReconfigurationException(TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED,
-                                                          failedTasksToReport
+                failedTasksToReport
             );
         }
     }
@@ -97,7 +98,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
                                                 List<TaskResource> successfulTaskResources,
                                                 long maxTimeLimit) {
 
-        final OffsetDateTime endTimer  = OffsetDateTime.now().plusSeconds(maxTimeLimit);
+        final OffsetDateTime endTimer = OffsetDateTime.now().plusSeconds(maxTimeLimit);
         List<String> failedTaskIds = reconfigureTasks(taskIds, successfulTaskResources, endTimer);
 
         List<String> secondaryFailedTaskIds = new ArrayList<>();

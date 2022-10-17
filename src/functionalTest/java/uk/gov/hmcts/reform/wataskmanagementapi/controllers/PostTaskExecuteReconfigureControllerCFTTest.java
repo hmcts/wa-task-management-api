@@ -61,12 +61,12 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
         );
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         initiateTask(taskVariables, Jurisdiction.WA);
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE
+            WA_JURISDICTION, WA_CASE_TYPE
         );
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
 
@@ -96,11 +96,12 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
             .body("task.task_state", is("assigned"))
             .body("task.reconfigure_request_time", notNullValue())
             .body("task.last_reconfiguration_time", nullValue());
-        ;
 
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskOperationRequest(TaskOperationName.EXECUTE_RECONFIGURE, OffsetDateTime.now().minus(Duration.ofDays(1))),
+            taskOperationRequestWithRetryWindowHours(
+                TaskOperationName.EXECUTE_RECONFIGURE,
+                OffsetDateTime.now().minus(Duration.ofDays(1))),
             assigneeCredentials.getHeaders()
         );
 
@@ -128,15 +129,24 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
         common.cleanUpTask(taskId);
     }
 
-    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName,
-                                                      OffsetDateTime reconfigureRequestTime) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 2, 120);
-        return new TaskOperationRequest(operation, taskFilters(reconfigureRequestTime));
+    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
+        TaskOperation operation = TaskOperation.builder()
+            .name(operationName)
+            .runId(UUID.randomUUID().toString())
+            .maxTimeLimit(2)
+            .build();
+        return new TaskOperationRequest(operation, taskFilters(caseId));
     }
 
-    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 2, 120);
-        return new TaskOperationRequest(operation, taskFilters(caseId));
+    private TaskOperationRequest taskOperationRequestWithRetryWindowHours(TaskOperationName operationName,
+                                                                          OffsetDateTime reconfigureRequestTime) {
+        TaskOperation operation = TaskOperation.builder()
+            .name(operationName)
+            .runId(UUID.randomUUID().toString())
+            .maxTimeLimit(2)
+            .retryWindowHours(120)
+            .build();
+        return new TaskOperationRequest(operation, taskFilters(reconfigureRequestTime));
     }
 
     private List<TaskFilter<?>> taskFilters(OffsetDateTime reconfigureRequestTime) {
@@ -164,15 +174,15 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.setupCFTOrganisationalRoleAssignment(assignerCredentials.getHeaders(),
-                                                    WA_JURISDICTION, WA_CASE_TYPE
+            WA_JURISDICTION, WA_CASE_TYPE
         );
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned",
-                                                 assignerCredentials.getHeaders()
+            assignerCredentials.getHeaders()
         );
         assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee",
-                                                 assigneeId, assignerCredentials.getHeaders()
+            assigneeId, assignerCredentials.getHeaders()
         );
     }
 

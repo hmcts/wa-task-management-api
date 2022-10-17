@@ -408,7 +408,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void user_should_claim_task_when_grant_type_challenged_and_permission_manage() {
+    public void user_should_not_claim_task_when_grant_type_challenged_and_permission_manage() {
         testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                                        "processApplication");
@@ -426,7 +426,12 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .and()
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
     }
