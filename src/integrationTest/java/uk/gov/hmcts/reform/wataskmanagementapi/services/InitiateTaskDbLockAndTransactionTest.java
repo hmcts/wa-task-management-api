@@ -15,7 +15,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -92,10 +91,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private CamundaServiceApi camundaServiceApi;
     @MockBean
     private CamundaService camundaService;
-    @MockBean
-    private CamundaQueryBuilder camundaQueryBuilder;
-    @MockBean
-    private PermissionEvaluatorService permissionEvaluatorService;
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @SpyBean
@@ -142,21 +137,18 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     void setUp() {
         taskId = UUID.randomUUID().toString();
         roleAssignmentVerification = new RoleAssignmentVerificationService(
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftQueryService
         );
         taskManagementService = new TaskManagementService(
             camundaService,
-            camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager,
-            allowedJurisdictionConfiguration
+            entityManager
         );
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);

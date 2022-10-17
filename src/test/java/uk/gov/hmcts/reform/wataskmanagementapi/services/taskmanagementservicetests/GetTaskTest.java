@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -18,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerif
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
@@ -48,10 +46,6 @@ class GetTaskTest extends CamundaHelpers {
     public static final String A_TASK_NAME = "aTaskName";
     @Mock
     CamundaService camundaService;
-    @Mock
-    CamundaQueryBuilder camundaQueryBuilder;
-    @Mock
-    PermissionEvaluatorService permissionEvaluatorService;
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
@@ -83,7 +77,7 @@ class GetTaskTest extends CamundaHelpers {
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(READ);
         taskId = UUID.randomUUID().toString();
-        when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
+        when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
 
         Task mockedMappedTask = mock(Task.class);
@@ -114,21 +108,18 @@ class GetTaskTest extends CamundaHelpers {
     @BeforeEach
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftQueryService
         );
         taskManagementService = new TaskManagementService(
             camundaService,
-            camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager,
-            allowedJurisdictionConfiguration
+            entityManager
         );
 
 

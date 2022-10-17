@@ -13,12 +13,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
@@ -72,16 +67,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder.WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY;
 
 @ExtendWith(MockitoExtension.class)
 class CamundaServiceTest extends CamundaHelpers {
@@ -102,8 +94,6 @@ class CamundaServiceTest extends CamundaHelpers {
     private AuthTokenGenerator authTokenGenerator;
     @Mock
     private CamundaServiceApi camundaServiceApi;
-    @Mock
-    private PermissionEvaluatorService permissionEvaluatorService;
     private CamundaObjectMapper camundaObjectMapper;
     private CamundaService camundaService;
     private String taskId;
@@ -117,7 +107,6 @@ class CamundaServiceTest extends CamundaHelpers {
             camundaServiceApi,
             taskMapper,
             authTokenGenerator,
-            permissionEvaluatorService,
             camundaObjectMapper
         );
 
@@ -923,143 +912,6 @@ class CamundaServiceTest extends CamundaHelpers {
 
             assertNull(response);
 
-        }
-
-    }
-
-    @Nested
-    @DisplayName("performSearchAction()")
-    class PerformSearchAction {
-
-        List<CamundaTask> camundaTasks;
-        List<RoleAssignment> roleAssignment;
-        List<PermissionTypes> permissionsRequired;
-        AccessControlResponse accessControlResponse;
-
-        @BeforeEach
-        void setup() {
-
-            camundaTasks = List.of(createMockedUnmappedTask());
-            roleAssignment = singletonList(mock(RoleAssignment.class));
-            permissionsRequired = singletonList(READ);
-            accessControlResponse = new AccessControlResponse(mock(UserInfo.class), roleAssignment);
-
-        }
-
-        @Test
-        void should_return_task_list() {
-
-            mockCamundaGetAllVariables();
-
-            when(permissionEvaluatorService.hasAccess(
-                anyMap(),
-                eq(accessControlResponse.getRoleAssignments()),
-                eq(permissionsRequired)
-            )).thenReturn(true);
-
-            List<Task> actualTask = camundaService.performSearchAction(
-                camundaTasks,
-                accessControlResponse,
-                permissionsRequired
-            );
-
-            assertEquals("java.util.ArrayList", actualTask.getClass().getCanonicalName());
-            assertEquals(1, actualTask.size());
-            assertEquals(CONFIGURED.value(), actualTask.get(0).getTaskState());
-
-        }
-
-        @Test
-        void should_return_task_list_with_warnings() {
-
-            String taskId = "someCamundaTaskId";
-            mockCamundaGetAllVariablesWithWarning(taskId);
-
-            when(permissionEvaluatorService.hasAccess(
-                anyMap(),
-                eq(accessControlResponse.getRoleAssignments()),
-                eq(permissionsRequired)
-            )).thenReturn(true);
-
-            List<Task> actualTask = camundaService.performSearchAction(
-                camundaTasks,
-                accessControlResponse,
-                permissionsRequired
-            );
-
-            assertEquals(1, actualTask.size());
-            assertEquals(taskId, actualTask.get(0).getId());
-            assertEquals(CONFIGURED.value(), actualTask.get(0).getTaskState());
-            assertTrue(actualTask.get(0).getWarnings());
-            assertEquals(expectedWarningValues, actualTask.get(0).getWarningList());
-
-        }
-
-        @Test
-        void should_return_task_list_with_warnings_permission_is_false() {
-
-            String taskId = "someCamundaTaskId";
-            mockCamundaGetAllVariablesWithWarning(taskId);
-
-            when(permissionEvaluatorService.hasAccess(
-                anyMap(),
-                eq(accessControlResponse.getRoleAssignments()),
-                eq(permissionsRequired)
-            )).thenReturn(false);
-
-            List<Task> actualTask = camundaService.performSearchAction(
-                camundaTasks,
-                accessControlResponse,
-                permissionsRequired
-            );
-
-            assertEquals(0, actualTask.size());
-
-        }
-
-        @Test
-        void should_return_task_list_with_warnings_and_taskId_is_null() {
-
-            mockCamundaGetAllVariablesWithWarning(null);
-
-            when(permissionEvaluatorService.hasAccess(
-                anyMap(),
-                eq(accessControlResponse.getRoleAssignments()),
-                eq(permissionsRequired)
-            )).thenReturn(true);
-
-            List<Task> actualTask = camundaService.performSearchAction(
-                camundaTasks,
-                accessControlResponse,
-                permissionsRequired
-            );
-
-            assertEquals(1, actualTask.size());
-            assertEquals("someCamundaTaskId", actualTask.get(0).getId());
-            assertNull(actualTask.get(0).getTaskState());
-            assertTrue(actualTask.get(0).getWarnings());
-            assertEquals(expectedWarningValues, actualTask.get(0).getWarningList());
-
-        }
-
-        private void mockCamundaGetAllVariables() {
-            when(camundaServiceApi.getAllVariables(
-                BEARER_SERVICE_TOKEN,
-                Map.of(
-                    "processInstanceIdIn", singletonList("someProcessInstanceId"),
-                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
-                )
-            )).thenReturn(mockedVariablesResponse("someProcessInstanceId", "someTaskId"));
-        }
-
-        private void mockCamundaGetAllVariablesWithWarning(String taskId) {
-            when(camundaServiceApi.getAllVariables(
-                BEARER_SERVICE_TOKEN,
-                Map.of(
-                    "processInstanceIdIn", singletonList("someProcessInstanceId"),
-                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
-                )
-            )).thenReturn(mockedVariablesResponseWithWarning("someProcessInstanceId", taskId));
         }
 
     }

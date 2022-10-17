@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -16,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
@@ -25,10 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -52,7 +46,6 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -65,7 +58,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
@@ -77,7 +69,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_ASSIGNMENT_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 
@@ -94,7 +85,6 @@ public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
 
     private final CamundaService camundaService;
-    private final CamundaQueryBuilder camundaQueryBuilder;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
     private final ConfigureTaskService configureTaskService;
@@ -105,21 +95,16 @@ public class TaskManagementService {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    private final AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
-
     @Autowired
     public TaskManagementService(CamundaService camundaService,
-                                 CamundaQueryBuilder camundaQueryBuilder,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
                                  CFTTaskMapper cftTaskMapper,
                                  ConfigureTaskService configureTaskService,
                                  TaskAutoAssignmentService taskAutoAssignmentService,
                                  RoleAssignmentVerificationService roleAssignmentVerification,
                                  List<TaskOperationService> taskOperationServices,
-                                 EntityManager entityManager,
-                                 AllowedJurisdictionConfiguration allowedJurisdictionConfiguration) {
+                                 EntityManager entityManager) {
         this.camundaService = camundaService;
-        this.camundaQueryBuilder = camundaQueryBuilder;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
         this.configureTaskService = configureTaskService;
@@ -127,7 +112,6 @@ public class TaskManagementService {
         this.taskOperationServices = taskOperationServices;
         this.roleAssignmentVerification = roleAssignmentVerification;
         this.entityManager = entityManager;
-        this.allowedJurisdictionConfiguration = allowedJurisdictionConfiguration;
     }
 
     /**
@@ -423,74 +407,6 @@ public class TaskManagementService {
         } else {
             completeTask(taskId, accessControlResponse);
         }
-    }
-
-
-    /**
-     * Performs a specific search in camunda to find tasks that could be completed.
-     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
-     *
-     * @param searchEventAndCase    the search request.
-     * @param accessControlResponse the access control response containing user id and role assignments.
-     */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
-    public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
-                                                                       AccessControlResponse accessControlResponse) {
-        //Safe-guard against unsupported Jurisdictions
-        if (!allowedJurisdictionConfiguration.getAllowedJurisdictions()
-            .contains(searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT))
-            || !allowedJurisdictionConfiguration.getAllowedCaseTypes()
-            .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))
-        ) {
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-
-        //1. Evaluate Dmn
-        final List<Map<String, CamundaVariable>> evaluateDmnResult = camundaService.evaluateTaskCompletionDmn(
-            searchEventAndCase);
-
-        // Collect task types
-        List<String> taskTypes = extractTaskTypes(evaluateDmnResult);
-
-        if (taskTypes.isEmpty()) {
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-
-        //2. Build query and perform search
-        CamundaSearchQuery camundaSearchQuery =
-            camundaQueryBuilder.createCompletableTasksQuery(searchEventAndCase.getCaseId(), taskTypes);
-        //3. Perform the search
-        List<CamundaTask> searchResults = camundaService.searchWithCriteriaAndNoPagination(camundaSearchQuery);
-
-        //Safe guard in case no search results were returned
-        if (searchResults.isEmpty()) {
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-        //4. Extract if a task is assigned and assignee is idam userId
-        String idamUserId = accessControlResponse.getUserInfo().getUid();
-
-        final List<CamundaTask> tasksAssignedToUser = searchResults.stream()
-            .filter(task -> idamUserId.equals(task.getAssignee()))
-            .collect(Collectors.toList());
-
-        if (!tasksAssignedToUser.isEmpty()) {
-            searchResults = tasksAssignedToUser;
-        }
-
-        List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
-        final List<Task> taskList = camundaService.performSearchAction(
-            searchResults,
-            accessControlResponse,
-            permissionsRequired
-        );
-
-        if (taskList.isEmpty()) {
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-
-        boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
-
-        return new GetTasksCompletableResponse<>(taskRequiredForEvent, taskList);
     }
 
     /**
@@ -844,26 +760,6 @@ public class TaskManagementService {
         return cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId)
             .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
     }
-
-    private boolean isTaskRequired(List<Map<String, CamundaVariable>> evaluateDmnResult, List<String> taskTypes) {
-        /*
-         * EvaluateDmnResult contains with and without empty rows for an event.
-         * TaskTypes are extracted from evaluateDmnResult.
-         * If both the sizes are equal, it means there is no empty row and task is required for the event
-         * If they are of different sizes, it means there is an empty row and task is not required
-         */
-        return evaluateDmnResult.size() == taskTypes.size();
-    }
-
-    private List<String> extractTaskTypes(List<Map<String, CamundaVariable>> evaluateDmnResult) {
-        return evaluateDmnResult.stream()
-            .filter(result -> result.containsKey(TASK_TYPE.value()))
-            .map(result -> camundaService.getVariableValue(result.get(TASK_TYPE.value()), String.class))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-
-    }
-
 
     @SuppressWarnings({"PMD.PrematureDeclaration"})
     private void validateNoteRequest(NotesRequest notesRequest) {

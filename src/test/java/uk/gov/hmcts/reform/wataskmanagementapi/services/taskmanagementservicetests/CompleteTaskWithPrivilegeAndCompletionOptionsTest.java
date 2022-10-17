@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -26,7 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundExcepti
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
@@ -61,10 +59,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
     @Mock
     CamundaService camundaService;
     @Mock
-    CamundaQueryBuilder camundaQueryBuilder;
-    @Mock
-    PermissionEvaluatorService permissionEvaluatorService;
-    @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
     CftQueryService cftQueryService;
@@ -91,21 +85,18 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
     @BeforeEach
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftQueryService
         );
         taskManagementService = new TaskManagementService(
             camundaService,
-            camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager,
-            allowedJurisdictionConfiguration
+            entityManager
         );
 
 
@@ -146,7 +137,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
 
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
-                when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
@@ -199,7 +190,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
 
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
-                when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.empty());
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -235,7 +226,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
-                when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
                 Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -287,7 +278,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
 
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
-                when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(

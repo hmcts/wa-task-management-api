@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -25,7 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceReposi
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
@@ -63,7 +61,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
@@ -79,17 +76,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private TaskResourceRepository taskResourceRepository;
     @Autowired
     private EntityManager entityManager;
-
-    @Autowired
-    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
     @Autowired
     private CamundaService camundaService;
-    @MockBean
-    private CamundaQueryBuilder camundaQueryBuilder;
-    @MockBean
-    private PermissionEvaluatorService permissionEvaluatorService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired
@@ -132,21 +122,18 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         );
 
         roleAssignmentVerification = new RoleAssignmentVerificationService(
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftQueryService
         );
         taskManagementService = new TaskManagementService(
             camundaService,
-            camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager,
-            allowedJurisdictionConfiguration
+            entityManager
         );
 
         mockServices.mockServiceAPIs();
@@ -302,11 +289,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
-            when(permissionEvaluatorService.hasAccess(
-                mockedVariables,
-                roleAssignment,
-                singletonList(CANCEL)
-            )).thenReturn(true);
 
             when(camundaService.isCftTaskStateExistInCamunda(taskId))
                 .thenReturn(null);
@@ -345,11 +327,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
-            when(permissionEvaluatorService.hasAccess(
-                mockedVariables,
-                roleAssignment,
-                singletonList(CANCEL)
-            )).thenReturn(true);
 
             List<HistoryVariableInstance> historyVariableInstances = singletonList(new HistoryVariableInstance(
                 "id",
