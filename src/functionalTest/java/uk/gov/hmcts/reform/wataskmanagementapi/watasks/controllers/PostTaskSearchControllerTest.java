@@ -151,7 +151,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         initiateTask(taskVariables, Jurisdiction.WA);
 
         common.setupHearingPanelJudgeForSpecificAccess(granularPermissionCaseworkerCredentials.getHeaders(),
-                                                       taskVariables.getTaskId(),
+                                                       taskVariables.getCaseId(),
                                                        "WA",
                                                        "WaCaseType"
                                                        );
