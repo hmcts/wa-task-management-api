@@ -37,7 +37,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
-    private static final String ENDPOINT_PATH = "/task-types";
+    private static final String ENDPOINT_PATH = "/task/task-types";
 
     @MockBean
     private IdamWebApi idamWebApi;

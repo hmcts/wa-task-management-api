@@ -24,7 +24,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
-@RequestMapping(path = "/task-types", produces = APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/task/task-types", produces = APPLICATION_JSON_VALUE)
 @RestController
 public class TaskTypesController extends BaseController {
 

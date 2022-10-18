@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
 
-    private static final String ENDPOINT_BEING_TESTED = "/task-types";
+    private static final String ENDPOINT_BEING_TESTED = "/task/task-types";
     private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before

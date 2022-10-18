@@ -32,7 +32,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class TaskTypeConsumerTest extends SpringBootContractBaseTest {
 
     public static final String CONTENT_TYPE = "Content-Type";
-    private static final String WA_URL = "/task-types";
+    private static final String WA_URL = "/task/task-types";
     private static final String BY_JURISDICTION = "jurisdiction=wa";
 
     @Pact(provider = "wa_task_management_api_get_task_types_by_jurisdiction", consumer = "wa_task_management_api")
