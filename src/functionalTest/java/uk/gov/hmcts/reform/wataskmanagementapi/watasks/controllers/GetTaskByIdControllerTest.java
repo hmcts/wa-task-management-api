@@ -78,7 +78,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.warnings", equalTo(false))
             .body("task.case_management_category", equalTo("Protection"))
             .body("task.work_type_id", equalTo("hearing_work"))
-            .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")))
+            .body("task.permissions.values", equalToObject(List.of("Read", "Execute")))
             .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                   + "trigger/decideAnApplication)"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
@@ -144,7 +144,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.warnings", equalTo(false))
             .body("task.case_management_category", equalTo("Protection"))
             .body("task.work_type_id", equalTo("hearing_work"))
-            .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")))
+            .body("task.permissions.values", equalToObject(List.of("Read", "Execute")))
             .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                   + "trigger/decideAnApplication)"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
