@@ -312,95 +312,109 @@ public class TaskManagementService {
         );
 
         if (isRelease2EndpointsFeatureEnabled) {
-            UserInfo assigner = assignerAccessControlResponse.getUserInfo();
-            Optional<String> currentAssignee = cftTaskDatabaseService.findByIdOnly(taskId)
-                .filter(t -> CFTTaskState.ASSIGNED.equals(t.getState()))
-                .map(TaskResource::getAssignee);
-            Optional<UserInfo> assignee = assigneeAccessControlResponse.map(AccessControlResponse::getUserInfo);
-
-            if (verifyActionRequired(currentAssignee, assignee)) {
-                final boolean granularPermissionEnabled = isGranularPermissionFeatureEnabled(
-                    assignerAccessControlResponse.getUserInfo().getUid(),
-                    assignerAccessControlResponse.getUserInfo().getEmail());
-
-                PermissionRequirements assignerPermissionsRequired = assignerPermissionRequirement(
-                    granularPermissionEnabled,
-                    assigner,
-                    assignee,
-                    currentAssignee
-                );
-                //Verify assigner role assignments
-                TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
-                    taskId,
-                    assignerAccessControlResponse.getRoleAssignments(),
-                    assignerPermissionsRequired,
-                    ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER
-                );
-
-                if (assignee.isEmpty()) {
-                    String taskState = taskResource.getState().getValue();
-                    boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
-                    unClaimTask(taskId, taskHasUnassigned);
-                } else {
-                    requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
-
-                    PermissionRequirements assigneePermissionsRequired = PermissionRequirementBuilder.builder()
-                        .buildSingleRequirementWithOr(OWN, EXECUTE);
-                    List<RoleAssignment> roleAssignments = assigneeAccessControlResponse
-                        .map(AccessControlResponse::getRoleAssignments).orElse(List.of());
-
-                    roleAssignmentVerification.verifyRoleAssignments(
-                        taskId,
-                        roleAssignments,
-                        assigneePermissionsRequired,
-                        ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
-                    );
-
-                    //Lock & update Task
-                    TaskResource task = findByIdAndObtainLock(taskId);
-                    task.setState(CFTTaskState.ASSIGNED);
-                    task.setAssignee(assignee.get().getUid());
-
-                    //Perform Camunda updates
-                    camundaService.assignTask(
-                        taskId,
-                        assignee.get().getUid(),
-                        false
-                    );
-
-                    //Commit transaction
-                    cftTaskDatabaseService.saveTask(task);
-                }
-            }
+            r2AssignTask(taskId, assignerAccessControlResponse, assigneeAccessControlResponse);
         } else {
-            requireNonNull(assigneeAccessControlResponse.orElse(null),
-                           "Assignee userId cannot be null");
-            requireNonNull(assigneeAccessControlResponse.get().getUserInfo().getUid(),
-                           "Assignee userId cannot be null");
+            r1AssignTask(taskId, assignerAccessControlResponse, assigneeAccessControlResponse);
+        }
+    }
 
-            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
+    private void r1AssignTask(String taskId,
+                              AccessControlResponse assignerAccessControlResponse,
+                              Optional<AccessControlResponse> assigneeAccessControlResponse) {
+        requireNonNull(
+            assigneeAccessControlResponse.orElse(null),
+            "Assignee userId cannot be null");
+        requireNonNull(
+            assigneeAccessControlResponse.get().getUserInfo().getUid(),
+            "Assignee userId cannot be null");
 
-            roleAssignmentVerification.verifyRoleAssignments(
-                variables,
+        Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
+
+        roleAssignmentVerification.verifyRoleAssignments(
+            variables,
+            assignerAccessControlResponse.getRoleAssignments(),
+            singletonList(MANAGE),
+            ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER
+        );
+        roleAssignmentVerification.verifyRoleAssignments(
+            variables,
+            assigneeAccessControlResponse.get().getRoleAssignments(),
+            asList(OWN, EXECUTE),
+            ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
+        );
+        String assigneeUserId = assigneeAccessControlResponse.get().getUserInfo().getUid();
+
+        String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
+        boolean isTaskStateAssigned = TaskState.ASSIGNED.value().equals(taskState);
+        camundaService.assignTask(
+            taskId,
+            assigneeUserId,
+            isTaskStateAssigned
+        );
+    }
+
+    private void r2AssignTask(String taskId,
+                              AccessControlResponse assignerAccessControlResponse,
+                              Optional<AccessControlResponse> assigneeAccessControlResponse) {
+        UserInfo assigner = assignerAccessControlResponse.getUserInfo();
+        Optional<String> currentAssignee = cftTaskDatabaseService.findByIdOnly(taskId)
+            .filter(t -> CFTTaskState.ASSIGNED.equals(t.getState()))
+            .map(TaskResource::getAssignee);
+        Optional<UserInfo> assignee = assigneeAccessControlResponse.map(AccessControlResponse::getUserInfo);
+
+        if (verifyActionRequired(currentAssignee, assignee)) {
+            final boolean granularPermissionEnabled = isGranularPermissionFeatureEnabled(
+                assignerAccessControlResponse.getUserInfo().getUid(),
+                assignerAccessControlResponse.getUserInfo().getEmail());
+
+            PermissionRequirements assignerPermissionsRequired = assignerPermissionRequirement(
+                granularPermissionEnabled,
+                assigner,
+                assignee,
+                currentAssignee
+            );
+            //Verify assigner role assignments
+            TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
+                taskId,
                 assignerAccessControlResponse.getRoleAssignments(),
-                singletonList(MANAGE),
+                assignerPermissionsRequired,
                 ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER
             );
-            roleAssignmentVerification.verifyRoleAssignments(
-                variables,
-                assigneeAccessControlResponse.get().getRoleAssignments(),
-                asList(OWN, EXECUTE),
-                ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
-            );
-            String assigneeUserId = assigneeAccessControlResponse.get().getUserInfo().getUid();
 
-            String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
-            boolean isTaskStateAssigned = TaskState.ASSIGNED.value().equals(taskState);
-            camundaService.assignTask(
-                taskId,
-                assigneeUserId,
-                isTaskStateAssigned
-            );
+            if (assignee.isEmpty()) {
+                String taskState = taskResource.getState().getValue();
+                boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
+                unClaimTask(taskId, taskHasUnassigned);
+            } else {
+                requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
+
+                PermissionRequirements assigneePermissionsRequired = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                List<RoleAssignment> roleAssignments = assigneeAccessControlResponse
+                    .map(AccessControlResponse::getRoleAssignments).orElse(List.of());
+
+                roleAssignmentVerification.verifyRoleAssignments(
+                    taskId,
+                    roleAssignments,
+                    assigneePermissionsRequired,
+                    ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
+                );
+
+                //Lock & update Task
+                TaskResource task = findByIdAndObtainLock(taskId);
+                task.setState(CFTTaskState.ASSIGNED);
+                task.setAssignee(assignee.get().getUid());
+
+                //Perform Camunda updates
+                camundaService.assignTask(
+                    taskId,
+                    assignee.get().getUid(),
+                    false
+                );
+
+                //Commit transaction
+                cftTaskDatabaseService.saveTask(task);
+            }
         }
     }
 
