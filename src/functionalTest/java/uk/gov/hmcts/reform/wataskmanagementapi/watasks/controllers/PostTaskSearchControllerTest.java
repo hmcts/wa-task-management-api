@@ -146,7 +146,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_200_with_search_results_and_correct_properties_for_granular_permission() {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication",
+                                                                       "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -156,7 +158,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                                                        "WaCaseType"
                                                        );
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                         "processApplication",
+                                                         "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, Jurisdiction.WA);
 
