@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
-import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -11,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -633,8 +631,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
         @Test
         public void should_return_a_404_if_task_does_not_exist() throws Exception {
-            String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
                 "SCSS", "caseId1");
@@ -661,6 +657,8 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             )).thenReturn(true);
 
             CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
+            String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+
             mockMvc.perform(
                 post(String.format(ENDPOINT_PATH, nonExistentTaskId))
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -833,8 +831,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
         @Test
         public void should_return_a_404_if_task_does_not_exist() throws Exception {
-            String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
                 "SCSS", "caseId1");
@@ -860,6 +856,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 IDAM_USER_EMAIL
             )).thenReturn(true);
 
+            String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
             mockMvc.perform(
                 post(String.format(ENDPOINT_PATH, nonExistentTaskId))
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -914,8 +911,8 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
                 jsonPath("$.title").value("Forbidden"),
                 jsonPath("$.status").value(403),
-                jsonPath("$.detail").value("Forbidden: The action could not be completed " +
-                                               "because the client/user had insufficient rights to a resource.")
+                jsonPath("$.detail").value("Forbidden: The action could not be completed "
+                                               + "because the client/user had insufficient rights to a resource.")
             );
         }
     }
