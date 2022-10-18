@@ -582,7 +582,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_not_retrieve_a_task_when_grant_type_challenged_without_assigner_has_manage_assignee_has_own_or_execute_permission() {
+    void should_not_retrieve_a_task_when_grant_type_challenged_without_assigner_assignee_having_required_permission() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111005";
         final String caseId = "1623278362431005";
 
@@ -640,7 +640,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_not_retrieve_a_task_when_grant_type_standard_without_assigner_has_manage_assignee_has_own_or_execute_permission() {
+    void should_not_retrieve_a_task_when_grant_type_standard_without_assigner_assignee_having_required_permission() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111004";
         final String caseId = "1623278362431004";
 
@@ -697,7 +697,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_not_retrieve_a_task_when_grant_type_specific_without_assigner_has_manage_assignee_has_own_or_execute_permission() {
+    void should_not_retrieve_a_task_when_grant_type_specific_without_assigner_assignee_having_required_permission() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111006";
         final String caseId = "1623278362431006";
 

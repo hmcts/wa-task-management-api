@@ -309,7 +309,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                              "processApplication", "process application"
             );
         String taskId = taskVariables.getTaskId();
-//        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
