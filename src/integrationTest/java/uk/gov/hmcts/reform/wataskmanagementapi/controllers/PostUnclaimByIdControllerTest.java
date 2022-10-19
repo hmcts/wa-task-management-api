@@ -3,24 +3,37 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -29,9 +42,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
@@ -47,21 +63,28 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
+    @Autowired
+    private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
-    private PermissionEvaluatorService permissionEvaluatorService;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private AccessControlService accessControlService;
 
     private ServiceMocks mockServices;
+    @Mock
+    private UserInfo mockedUserInfo;
     private String taskId;
 
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
-
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
+        when(authTokenGenerator.generate())
+            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
+        when(mockedUserInfo.getUid())
+            .thenReturn(IDAM_USER_ID);
+        when(mockedUserInfo.getEmail())
+            .thenReturn(IDAM_USER_EMAIL);
         mockServices = new ServiceMocks(
             idamWebApi,
             serviceAuthorisationApi,
@@ -71,16 +94,98 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_return_204_unclaim_successful() throws Exception {
+
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("unclaimCaseId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, true, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        doNothing()
+            .when(camundaServiceApi).unclaimTask(any(), any());
+        doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isNoContent()
+        );
+    }
+
+    @Test
     void should_return_500_with_application_problem_response_when_task_update_call_fails() throws Exception {
 
-        mockServices.mockServiceAPIs();
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
-            .thenReturn(true);
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(false);
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("unclaimCaseId1")
+                    .build()
+            )
+            .build();
 
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, true, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         doThrow(FeignException.FeignServerException.class)
             .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
@@ -105,13 +210,42 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_500_with_application_problem_response_when_unclaim_call_fails() throws Exception {
 
-        mockServices.mockServiceAPIs();
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
-            .thenReturn(true);
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("unclaimCaseId1")
+                    .build()
+            )
+            .build();
 
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, true, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
         doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).unclaimTask(any(), any());
@@ -132,6 +266,30 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                     "Task Unclaim Error: Task unclaim partially succeeded. "
                     + "The Task state was updated to unassigned, but the Task could not be unclaimed.")
             ));
+    }
+
+    private void insertDummyTaskInDb(String jurisdiction, String caseType,
+                                     String taskId, TaskRoleResource taskRoleResource) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            ASSIGNED
+        );
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setDueDateTime(OffsetDateTime.now());
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setCaseTypeId(caseType);
+        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+        taskResource.setLocation("765324");
+        taskResource.setLocationName("Taylor House");
+        taskResource.setRegion("TestRegion");
+        taskResource.setCaseId("unclaimCaseId1");
+        taskResource.setAssignee(IDAM_USER_ID);
+        taskRoleResource.setTaskId(taskId);
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+        taskResource.setTaskRoleResources(taskRoleResourceSet);
+        cftTaskDatabaseService.saveTask(taskResource);
     }
 
 }
