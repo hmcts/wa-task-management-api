@@ -119,6 +119,46 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_return_a_404_when_id_is_not_found() throws Exception {
+
+        mockServices.mockUserInfo();
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+
+        // Role attribute is IA
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
+        roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
+            .forEach(roleType -> {
+                RoleAssignment roleAssignment = mockServices.createBaseAssignment(
+                    UUID.randomUUID().toString(), "tribunal-caseworker",
+                    roleType,
+                    Classification.PUBLIC,
+                    roleAttributes
+                );
+                allTestRoles.add(roleAssignment);
+            }));
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            allTestRoles
+        );
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+
+        mockMvc.perform(
+            get("/task/" + taskId)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(status().isNotFound());
+    }
+
+    @Test
     void should_return_a_403_when_restricted_role_is_given() throws Exception {
 
         createTaskAndRoleAssignments(UNASSIGNED, "getTaskCaseId1");
