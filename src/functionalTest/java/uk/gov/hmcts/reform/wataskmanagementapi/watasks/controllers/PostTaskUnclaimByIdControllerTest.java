@@ -6,7 +6,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
@@ -19,37 +18,16 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";
 
     private TestAuthenticationCredentials caseworkerCredentials;
-    private TestAuthenticationCredentials currentCaseworkerCredentials;
-    private TestAuthenticationCredentials caseworkerForReadCredentials;
-    private TestAuthenticationCredentials granularPermissionCaseworkerCredentials;
-    private GrantType testGrantType = GrantType.SPECIFIC;
 
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        currentCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2");
-        caseworkerForReadCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2");
-        granularPermissionCaseworkerCredentials = authorizationProvider
-            .getNewTribunalCaseworker("wa-granular-permission-");
     }
 
     @After
     public void cleanUp() {
-        if (testGrantType == GrantType.CHALLENGED) {
-            common.clearAllRoleAssignmentsForChallenged(caseworkerCredentials.getHeaders());
-            common.clearAllRoleAssignmentsForChallenged(currentCaseworkerCredentials.getHeaders());
-            common.clearAllRoleAssignmentsForChallenged(granularPermissionCaseworkerCredentials.getHeaders());
-        } else {
-            common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-            common.clearAllRoleAssignments(currentCaseworkerCredentials.getHeaders());
-            common.clearAllRoleAssignments(granularPermissionCaseworkerCredentials.getHeaders());
-        }
-        common.clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
-
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(currentCaseworkerCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(caseworkerForReadCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(granularPermissionCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -131,9 +109,9 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     }
 
     @Test
-    public void should_return_a_403_when_unassigning_a_task_by_id_with_different_user_withoutun_assign_permission_gp_flag_on() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+    public void should_return_a_403_when_unassign_a_task_different_user_without_un_assign_permission_gp_flag_on() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json", "processApplication");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
                                                     "WA", "WaCaseType");

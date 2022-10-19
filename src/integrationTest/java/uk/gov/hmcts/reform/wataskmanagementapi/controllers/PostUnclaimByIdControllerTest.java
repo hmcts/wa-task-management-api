@@ -44,8 +44,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -55,8 +57,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASS
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.*;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL_GP;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID_GP;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/%s/unclaim";
@@ -250,11 +256,9 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         "false, true, true",
         "false, true, false"
     })
-    public void user_should_unclaim_task_when_grant_type_standard_with_gp_permissions_on_with_unclaim(boolean unclaimPermission,
-                                                                                                      boolean unassignPermission, boolean useUserIdAsAssignee)
+    public void user_should_unclaim_task_when_grant_type_standard_with_gp_permissions_on_with_unclaim(
+        boolean unclaimPermission, boolean unassignPermission, boolean useUserIdAsAssignee)
         throws Exception {
-        String jurisdiction = "WA";
-        String caseType = "caseType";
 
         mockServices.mockServiceAPIsGp();
 
@@ -264,6 +268,9 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        String jurisdiction = "WA";
+        String caseType = "caseType";
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
@@ -327,11 +334,9 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         "false, false, true",
         "true, false, false"
     })
-    public void user_throw_403_when_unclaim_task_with_no_permissions_gp_permissions_on(boolean unclaimPermission,
-                                                                                       boolean unassignPermission, boolean useUserIdAsAssignee)
+    public void user_throw_403_when_unclaim_task_with_no_permissions_gp_permissions_on(
+        boolean unclaimPermission, boolean unassignPermission, boolean useUserIdAsAssignee)
         throws Exception {
-        String jurisdiction = "WA";
-        String caseType = "caseType";
 
         mockServices.mockServiceAPIsGp();
 
@@ -341,6 +346,9 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        String jurisdiction = "WA";
+        String caseType = "caseType";
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
