@@ -155,7 +155,14 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpect(status().isNotFound());
+        ).andExpectAll(
+            status().isNotFound(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
+            jsonPath("$.title").value("Task Not Found Error"),
+            jsonPath("$.status").value(HttpStatus.NOT_FOUND.value()),
+            jsonPath("$.detail").value("Task Not Found Error: The task could not be found.")
+        );
     }
 
     @Test
