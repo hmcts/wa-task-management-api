@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,8 +19,9 @@ public class BankHolidays {
     List<EventDate> events;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
     @Builder
-    static class EventDate {
+    public static class EventDate {
 
         @JsonProperty("date")
         String date;

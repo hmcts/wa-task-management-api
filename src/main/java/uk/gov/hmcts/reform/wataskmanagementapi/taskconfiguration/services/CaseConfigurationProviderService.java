@@ -10,7 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateCalculator;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateConfigurator;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,17 +32,17 @@ public class CaseConfigurationProviderService {
     private final CcdDataService ccdDataService;
     private final DmnEvaluationService dmnEvaluationService;
     private final ObjectMapper objectMapper;
-    private final DueDateCalculator dueDateCalculator;
+    private final DueDateConfigurator dueDateConfigurator;
 
     @Autowired
     public CaseConfigurationProviderService(CcdDataService ccdDataService,
                                             DmnEvaluationService dmnEvaluationService,
                                             ObjectMapper objectMapper,
-                                            DueDateCalculator dueDateCalculator) {
+                                            DueDateConfigurator dueDateConfigurator) {
         this.ccdDataService = ccdDataService;
         this.dmnEvaluationService = dmnEvaluationService;
         this.objectMapper = objectMapper;
-        this.dueDateCalculator = dueDateCalculator;
+        this.dueDateConfigurator = dueDateConfigurator;
     }
 
     /**
@@ -145,7 +145,7 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return dueDateCalculator.calculateDueDate(configResponses, jurisdiction);
+        return dueDateConfigurator.configureDueDate(configResponses, jurisdiction);
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(

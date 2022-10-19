@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.dto;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar;
 
 import lombok.Builder;
 import lombok.Getter;

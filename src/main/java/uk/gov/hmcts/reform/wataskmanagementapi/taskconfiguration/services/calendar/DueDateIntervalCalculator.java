@@ -3,38 +3,32 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calen
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.dto.DueDateIntervalData;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
 @Component
-public class DueDateIntervalCalculator {
-    public static final String DUE_DATE_ORIGIN = "dueDateOrigin";
-    public static final String DUE_DATE_INTERVAL_DAYS = "dueDateIntervalDays";
-    public static final String DUE_DATE_NON_WORKING_CALENDAR = "dueDateNonWorkingCalendar";
-    public static final String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
-    public static final String DUE_DATE_NON_WORKING_DAYS_OF_WEEK = "dueDateNonWorkingDaysOfWeek";
-    public static final String DUE_DATE_SKIP_NON_WORKING_DAYS = "dueDateSkipNonWorkingDays";
-    public static final String DUE_DATE_MUST_BE_WORKING_DAYS = "dueDateMustBeWorkingDay";
-    public static final String DUE_DATE_TIME = "dueDateTime";
-    public static final String DEFAULT_DUE_DATE_TIME = "16:00";
-    public static final DateTimeFormatter DUE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-    public static final LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
-        .withHour(16).withMinute(0).withSecond(0);
+public class DueDateIntervalCalculator implements DateCalculator {
     private final WorkingDayIndicator workingDayIndicator;
 
     public DueDateIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
         this.workingDayIndicator = workingDayIndicator;
     }
 
+    @Override
+    public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
+        return getProperty(dueDateProperties, DUE_DATE_ORIGIN).isPresent()
+            && getProperty(dueDateProperties, DUE_DATE).isEmpty();
+    }
+
+    @Override
     public LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
         DueDateIntervalData dueDateIntervalData = readDueDateOriginFields(dueDateProperties);
 

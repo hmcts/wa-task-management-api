@@ -5,6 +5,8 @@ import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -32,7 +34,7 @@ public class PublicHolidaysCollection {
         BankHolidays bankHolidays = bankHolidaysApi.retrieveAll();
         return Optional.ofNullable(bankHolidays).isPresent()
             ? bankHolidays.getEvents().stream()
-            .map(item -> LocalDate.parse(item.date, DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+            .map(item -> LocalDate.parse(item.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
             .collect(Collectors.toSet())
             : Set.of();
     }

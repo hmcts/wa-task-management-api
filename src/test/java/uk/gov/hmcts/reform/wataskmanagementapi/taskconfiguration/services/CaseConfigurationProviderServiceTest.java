@@ -19,7 +19,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateCalculator;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateConfigurator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateIntervalCalculator;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.DueDateTimeCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.PublicHolidaysCollection;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.WorkingDayIndicator;
 
@@ -73,7 +75,9 @@ class CaseConfigurationProviderServiceTest {
             ccdDataService,
             dmnEvaluationService,
             objectMapper,
-            new DueDateCalculator(new DueDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection)))
+            new DueDateConfigurator(List.of(new DueDateCalculator(),
+                        new DueDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection)),
+                        new DueDateTimeCalculator()))
         );
 
         lenient().when(caseDetails.getCaseType()).thenReturn("Asylum");
