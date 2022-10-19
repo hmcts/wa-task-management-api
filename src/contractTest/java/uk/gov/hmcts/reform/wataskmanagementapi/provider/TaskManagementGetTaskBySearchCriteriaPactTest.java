@@ -13,8 +13,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -36,6 +34,30 @@ import static org.mockito.Mockito.when;
 
 @Provider("wa_task_management_api_search")
 public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootContractProviderBaseTest {
+
+    @TestTemplate
+    @ExtendWith(PactVerificationInvocationContextProvider.class)
+    void pactVerificationTestTemplate(PactVerificationContext context) {
+        if (context != null) {
+            context.verifyInteraction();
+        }
+    }
+
+    @BeforeEach
+    void beforeCreate(PactVerificationContext context) {
+        MockMvcTestTarget testTarget = new MockMvcTestTarget();
+        testTarget.setControllers(new TaskSearchController(
+            accessControlService,
+            cftQueryService
+        ));
+
+        if (context != null) {
+            context.setTarget(testTarget);
+        }
+
+        testTarget.setMessageConverters(mappingJackson2HttpMessageConverter);
+
+    }
 
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
@@ -278,32 +300,6 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         );
     }
 
-    @TestTemplate
-    @ExtendWith(PactVerificationInvocationContextProvider.class)
-    void pactVerificationTestTemplate(PactVerificationContext context) {
-        if (context != null) {
-            context.verifyInteraction();
-        }
-    }
-
-    @BeforeEach
-    void beforeCreate(PactVerificationContext context) {
-        MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskSearchController(
-            taskManagementService,
-            accessControlService,
-            cftQueryService,
-            launchDarklyFeatureFlagProvider
-        ));
-
-        if (context != null) {
-            context.setTarget(testTarget);
-        }
-
-        testTarget.setMessageConverters(mappingJackson2HttpMessageConverter);
-
-    }
-
     private void setInitMockForSearchTask() {
         Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
         UserInfo userInfo = mock(UserInfo.class);
@@ -312,15 +308,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-
-        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(asList(createTaskWithNoWarnings(), createTaskWithNoWarnings()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new GetTasksResponse<>(List.of(createTaskWithNoWarnings(), createTaskWithNoWarnings()), 2L));
     }
 
     private void setInitMockForSearchWaTask() {
@@ -331,15 +320,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-
-        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(asList(createWaTask(), createWaTask()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new GetTasksResponse<>(List.of(createWaTask(), createWaTask()), 2L));
     }
 
     private void setInitMockForSearchTaskWithWarningsOnly() {
@@ -349,14 +331,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(singletonList(createTaskWithWarnings()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new GetTasksResponse<>(List.of(createTaskWithWarnings()), 1L));
     }
 
 
@@ -367,15 +343,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-
-        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(singletonList(createTaskWithNoWarnings()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new GetTasksResponse<>(List.of(createTaskWithNoWarnings()), 1L));
     }
 
     private void setInitMockForSearchTaskWithRoleCategory() {
@@ -385,13 +354,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(singletonList(createTaskForRoleCategorySearch()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new GetTasksResponse<>(List.of(createTaskForRoleCategorySearch()), 1L));
     }
 }
