@@ -169,7 +169,7 @@ public class TaskManagementService {
         task.setAssignee(userId);
         setTaskActionAttributes(task, userId, CLAIM);
         
-          camundaService.assignTask(taskId, userId, false);
+        camundaService.assignTask(taskId, userId, false);
 
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);

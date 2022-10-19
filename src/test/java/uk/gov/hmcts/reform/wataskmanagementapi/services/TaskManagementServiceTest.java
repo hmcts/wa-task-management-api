@@ -568,6 +568,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Test
         void unclaimTask_should_succeed() {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
             PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
@@ -592,6 +594,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         void unclaimTask_succeed_when_task_assignee_differs_from_user_and_role_is_senior_tribunal_caseworker() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
             PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
