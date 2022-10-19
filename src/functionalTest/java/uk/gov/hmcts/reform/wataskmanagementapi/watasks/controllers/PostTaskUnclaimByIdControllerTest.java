@@ -19,9 +19,13 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
     private TestAuthenticationCredentials caseworkerCredentials;
 
+    private TestAuthenticationCredentials unassignUser;
+
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        unassignUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
     }
 
     @After
@@ -41,21 +45,18 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
         String taskId = taskVariables.getTaskId();
 
-        TestAuthenticationCredentials unassignUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
-
         common.setupWAOrganisationalRoleAssignment(unassignUser.getHeaders(), "task-supervisor");
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            unassignUser.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            caseworkerCredentials.getHeaders()
+            unassignUser.getHeaders()
         );
 
         result.then().assertThat()
@@ -79,10 +80,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         initiateTask(taskVariables, Jurisdiction.WA);
 
         String taskId = taskVariables.getTaskId();
-
-        TestAuthenticationCredentials unassignUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
-
+        
         common.setupWAOrganisationalRoleAssignment(unassignUser.getHeaders(), "task-supervisor");
 
         given.iClaimATaskWithIdAndAuthorization(
@@ -120,8 +118,6 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
         String taskId = taskVariables.getTaskId();
 
-        TestAuthenticationCredentials unassignUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
         common.setupWAOrganisationalRoleAssignment(unassignUser.getHeaders(), "senior-tribunal-caseworker");
 
         given.iClaimATaskWithIdAndAuthorization(
