@@ -106,29 +106,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
         );
     }
 
-    private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId, TaskRoleResource taskRoleResource) {
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-            ASSIGNED
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(OffsetDateTime.now());
-        taskResource.setJurisdiction(jurisdiction);
-        taskResource.setCaseTypeId(caseType);
-        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
-        taskResource.setLocation("765324");
-        taskResource.setLocationName("Taylor House");
-        taskResource.setRegion("TestRegion");
-        taskResource.setCaseId("completeFailureCaseId1");
-        taskResource.setAssignee(IDAM_USER_ID);
-        taskRoleResource.setTaskId(taskId);
-        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
-        taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
-    }
-
     @Nested
     @DisplayName("with privileged access")
     class CompleteTaskWithPrivilegedAccess {
@@ -137,6 +114,64 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
         void beforeEach() {
             when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
                 .thenReturn(true);
+
+        }
+
+        @Test
+        void should_return_500_with_application_problem_response_when_task_update_call_fails() throws Exception {
+            mockServices.mockUserInfo();
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+                .roleAssignmentAttribute(
+                    RoleAssignmentAttribute.builder()
+                        .jurisdiction("IA")
+                        .caseType("Asylum")
+                        .caseId("completeFailureCaseId1")
+                        .build()
+                )
+                .build();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, true, true, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            );
+            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+            when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andExpectAll(
+                status().is5xxServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value(
+                    "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                jsonPath("$.title").value("Task Complete Error"),
+                jsonPath("$.status").value(500),
+                jsonPath("$.detail").value(
+                    "Task Complete Error: Task complete failed. Unable to update task state to completed.")
+            );
         }
 
         @Test
@@ -179,6 +214,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
+            doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
             doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(
                 any(),
                 any(),
@@ -200,6 +236,69 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 jsonPath("$.detail").value(
                     "Task Complete Error: Task complete partially succeeded. "
                     + "The Task state was updated to completed, but the Task could not be completed.")
+            );
+        }
+
+        @Test
+        void should_return_500_with_application_problem_response_when_task_update_call_fails_with_completion_options()
+            throws Exception {
+
+            mockServices.mockUserInfo();
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+                .roleAssignmentAttribute(
+                    RoleAssignmentAttribute.builder()
+                        .jurisdiction("IA")
+                        .caseType("Asylum")
+                        .caseId("completeFailureCaseId1")
+                        .build()
+                )
+                .build();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, true, true, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            );
+            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+            when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
+            ).andExpectAll(
+                status().is5xxServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value(
+                    "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
+                jsonPath("$.title").value("Task Assign and Complete Error"),
+                jsonPath("$.status").value(500),
+                jsonPath("$.detail").value(
+                    "Task Assign and Complete Error: Task assign and complete partially succeeded. "
+                    + "The Task was assigned to the user making the request but the Task could not be completed.")
             );
         }
 
@@ -541,6 +640,62 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 .thenReturn(false);
         }
 
+        @Test
+        void should_return_500_with_application_problem_response_when_task_update_call_fails() throws Exception {
+
+            mockServices.mockUserInfo();
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+                .roleAssignmentAttribute(
+                    RoleAssignmentAttribute.builder()
+                        .jurisdiction("IA")
+                        .caseType("Asylum")
+                        .caseId("completeFailureCaseId1")
+                        .build()
+                )
+                .build();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, true, true, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            );
+            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+            when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andExpectAll(
+                status().is5xxServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value(
+                    "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                jsonPath("$.title").value("Task Complete Error"),
+                jsonPath("$.status").value(500),
+                jsonPath("$.detail").value(
+                    "Task Complete Error: Task complete failed. Unable to update task state to completed.")
+            );
+        }
 
         @Test
         void should_return_500_with_application_problem_response_when_complete_call_fails() throws Exception {
@@ -626,6 +781,29 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                         + "The action could not be completed because the client/user had insufficient rights to a resource.")
                 );
         }
+    }
+
+    private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId, TaskRoleResource taskRoleResource) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            ASSIGNED
+        );
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setDueDateTime(OffsetDateTime.now());
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setCaseTypeId(caseType);
+        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+        taskResource.setLocation("765324");
+        taskResource.setLocationName("Taylor House");
+        taskResource.setRegion("TestRegion");
+        taskResource.setCaseId("completeFailureCaseId1");
+        taskResource.setAssignee(IDAM_USER_ID);
+        taskRoleResource.setTaskId(taskId);
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+        taskResource.setTaskRoleResources(taskRoleResourceSet);
+        cftTaskDatabaseService.saveTask(taskResource);
     }
 }
 
