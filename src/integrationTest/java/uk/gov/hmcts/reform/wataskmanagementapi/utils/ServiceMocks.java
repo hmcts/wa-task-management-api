@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import static org.mockito.Mockito.when;
 public class ServiceMocks {
 
     public static final String IDAM_USER_ID = "IDAM_USER_ID";
+    public static final String IDAM_OTHER_USER_ID = "IDAM_OTHER_USER_ID";
     public static final String IDAM_USER_EMAIL = "wa-ft-test@test.com";
     public static final String SECONDARY_IDAM_USER_ID = "SECONDARY_IDAM_USER_ID";
     public static final String SECONDARY_IDAM_USER_EMAIL = "wa-ft-test@test.com";
@@ -174,14 +176,14 @@ public class ServiceMocks {
         return allTestRoles;
     }
 
-    public List<RoleAssignment> createRoleAssignmentsWithSCSSandIA() {
+    public List<RoleAssignment> createRoleAssignmentsWithSCSSandIA(String caseId) {
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         // Role Assignment with IA and RoleType Organisation
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
         final RoleAssignment orgRoleAssignment = createBaseAssignment(
             UUID.randomUUID().toString(),
-            "tribunal-caseworker",
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             RoleType.ORGANISATION,
             Classification.PUBLIC,
             roleAttributes
@@ -191,10 +193,10 @@ public class ServiceMocks {
         // Role Assignment with SCSS and RoleType CASE
         roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "SSCS");
-        roleAttributes.put(RoleAttributeDefinition.CASE_ID.value(), "caseId1");
+        roleAttributes.put(RoleAttributeDefinition.CASE_ID.value(), caseId);
         final RoleAssignment caseRoleAssignment = createBaseAssignment(
             UUID.randomUUID().toString(),
-            "tribunal-caseworker",
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             RoleType.CASE,
             Classification.PUBLIC,
             roleAttributes
