@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -37,6 +38,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -99,7 +101,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_500_with_application_problem_response_when_claim_call_fails() throws Exception {
+    void should_return_500_with_application_problem_response_when_task_update_call_fails() throws Exception {
 
         mockServices.mockUserInfo();
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -138,6 +140,66 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
+        doThrow(FeignException.FeignServerException.class)
+            .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+                status().is5xxServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-error"),
+                jsonPath("$.title").value("Task Assign Error"),
+                jsonPath("$.status").value(500),
+                jsonPath("$.detail").value(
+                    "Task Assign Error: Task assign failed. Unable to update task state to assigned.")
+            );
+    }
+
+    @Test
+    void should_return_500_with_application_problem_response_when_claim_call_fails() throws Exception {
+
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("claimCaseId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+        doNothing()
+            .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
         FeignException mockedException = mock(FeignException.class);
 
         when(mockedException.contentUTF8()).thenReturn(
