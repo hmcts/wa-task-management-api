@@ -7,17 +7,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
@@ -26,16 +25,16 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,17 +50,11 @@ class AssignTaskTest extends CamundaHelpers {
     @Mock
     CamundaService camundaService;
     @Mock
-    CamundaQueryBuilder camundaQueryBuilder;
-    @Mock
-    PermissionEvaluatorService permissionEvaluatorService;
-    @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
     CftQueryService cftQueryService;
     @Mock
     CFTTaskMapper cftTaskMapper;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
@@ -93,23 +86,25 @@ class AssignTaskTest extends CamundaHelpers {
         when(assigneeAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
-        Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-        when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+        TaskResource taskResource = spy(TaskResource.class);
 
-        when(permissionEvaluatorService.hasAccess(
-            mockedVariables,
-            roleAssignmentAssigner,
-            singletonList(MANAGE)
-        )).thenReturn(true);
-        when(permissionEvaluatorService.hasAccess(
-            mockedVariables,
-            roleAssignmentAssignee,
-            asList(OWN, EXECUTE)
-        )).thenReturn(true);
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        when(cftQueryService.getTask(
+            taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+        ).thenReturn(Optional.of(taskResource));
+
+        PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        when(cftQueryService.getTask(
+            taskId, assigneeAccessControlResponse.getRoleAssignments(), otherRequirements)
+        ).thenReturn(Optional.of(taskResource));
+
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
         taskManagementService.assignTask(taskId, assignerAccessControlResponse, assigneeAccessControlResponse);
-        boolean isTaskAssigned = mockedVariables.get("taskState").getValue().equals("ASSIGNED");
-        verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, isTaskAssigned);
+        verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
     }
 
     @Test
@@ -124,15 +119,15 @@ class AssignTaskTest extends CamundaHelpers {
         when(assigneeAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
-        Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
-        when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
-
-        when(permissionEvaluatorService.hasAccess(
-            mockedVariables,
-            roleAssignmentAssigner,
-            singletonList(MANAGE)
-        )).thenReturn(false);
+        TaskResource taskResource = spy(TaskResource.class);
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        when(cftQueryService.getTask(
+            taskId,
+            assignerAccessControlResponse.getRoleAssignments(),
+            requirements
+        )).thenReturn(Optional.empty());
+        when(cftTaskDatabaseService.findByIdOnly(taskId))
+            .thenReturn(Optional.of(taskResource));
 
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,
@@ -142,7 +137,7 @@ class AssignTaskTest extends CamundaHelpers {
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
             .hasMessage("Role Assignment Verification: "
-                            + "The user assigning the Task has failed the Role Assignment checks performed.");
+                        + "The user assigning the Task has failed the Role Assignment checks performed.");
 
         verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
     }
@@ -161,20 +156,20 @@ class AssignTaskTest extends CamundaHelpers {
         when(assigneeAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
-        Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-        when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+        TaskResource taskResource = spy(TaskResource.class);
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+            .buildSingleType(MANAGE);
+        when(cftQueryService.getTask(
+            taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+        ).thenReturn(Optional.of(taskResource));
 
-        when(permissionEvaluatorService.hasAccess(
-            mockedVariables,
-            roleAssignmentAssigner,
-            singletonList(MANAGE)
-        )).thenReturn(true);
-
-        when(permissionEvaluatorService.hasAccess(
-            mockedVariables,
-            roleAssignmentAssignee,
-            asList(OWN, EXECUTE)
-        )).thenReturn(false);
+        PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        when(cftQueryService.getTask(
+            taskId, assigneeAccessControlResponse.getRoleAssignments(), otherRequirements)
+        ).thenReturn(Optional.empty());
+        when(cftTaskDatabaseService.findByIdOnly(taskId))
+            .thenReturn(Optional.of(taskResource));
 
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,
@@ -224,22 +219,18 @@ class AssignTaskTest extends CamundaHelpers {
     @BeforeEach
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftQueryService
         );
         taskManagementService = new TaskManagementService(
             camundaService,
-            camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager,
-            allowedJurisdictionConfiguration
+            entityManager
         );
 
 
