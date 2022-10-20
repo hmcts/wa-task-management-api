@@ -64,7 +64,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_TASK_QUERY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.BOOLEAN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
@@ -1084,13 +1083,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        //enable R2 flag
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 RELEASE_2_TASK_QUERY,
-                 accessControlResponse.getUserInfo().getUid(),
-                 IDAM_USER_EMAIL
-             )
-        ).thenReturn(true);
 
         mockMvc.perform(
             post("/task")
@@ -1147,13 +1139,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        //enable R2 flag
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 RELEASE_2_TASK_QUERY,
-                 accessControlResponse.getUserInfo().getUid(),
-                 IDAM_USER_EMAIL
-             )
-        ).thenReturn(true);
 
         mockMvc.perform(
             post("/task")
