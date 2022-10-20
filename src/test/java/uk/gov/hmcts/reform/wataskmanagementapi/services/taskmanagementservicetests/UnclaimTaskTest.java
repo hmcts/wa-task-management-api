@@ -11,7 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -61,10 +61,8 @@ class UnclaimTaskTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
-
     @Mock
-    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
-
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Test
     void unclaimTask_should_succeed() {
@@ -112,6 +110,7 @@ class UnclaimTaskTest extends CamundaHelpers {
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
+            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
