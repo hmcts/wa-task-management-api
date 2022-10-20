@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.MarkTaskReconfigurationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
@@ -83,8 +82,6 @@ class InitiateTaskTest extends CamundaHelpers {
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
-    private MarkTaskReconfigurationService taskReconfigurationService;
-    @Mock
     private Map<String, Object> taskAttributes;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
@@ -112,6 +109,7 @@ class InitiateTaskTest extends CamundaHelpers {
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
+            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
@@ -100,7 +99,6 @@ public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
 
     private final CamundaService camundaService;
-    private final CamundaQueryBuilder camundaQueryBuilder;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -931,9 +929,15 @@ public class TaskManagementService {
                 throw new CustomConstraintViolationException(singletonList(violation));
             }
         });
-
-
     }
 
+    private boolean isGranularPermissionFeatureEnabled(String userId, String email) {
+        return launchDarklyFeatureFlagProvider
+            .getBooleanValue(
+                FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+                userId,
+                email
+            );
+    }
 
 }

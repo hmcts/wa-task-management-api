@@ -25,6 +25,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
@@ -72,6 +74,8 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @MockBean
     private AccessControlService accessControlService;
     @Mock
@@ -1073,12 +1077,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.GRANULAR_PERMISSION_FEATURE,
             IDAM_USER_ID,
             IDAM_USER_EMAIL
@@ -1182,12 +1180,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.GRANULAR_PERMISSION_FEATURE,
@@ -1297,12 +1289,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.GRANULAR_PERMISSION_FEATURE,
             IDAM_USER_ID,
             IDAM_USER_EMAIL
@@ -1406,12 +1392,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.GRANULAR_PERMISSION_FEATURE,
@@ -1519,12 +1499,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.GRANULAR_PERMISSION_FEATURE,
             IDAM_USER_ID,
             IDAM_USER_EMAIL
@@ -1601,12 +1575,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.GRANULAR_PERMISSION_FEATURE,
