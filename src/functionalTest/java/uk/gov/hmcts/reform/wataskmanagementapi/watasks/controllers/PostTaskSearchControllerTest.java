@@ -152,11 +152,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, Jurisdiction.WA);
 
-        common.setupHearingPanelJudgeForSpecificAccess(granularPermissionCaseworkerCredentials.getHeaders(),
-                                                       taskVariables.getCaseId(),
-                                                       "WA",
-                                                       "WaCaseType"
-                                                       );
+        common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCaseworkerCredentials.getHeaders());
 
         taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                          "processApplication",
