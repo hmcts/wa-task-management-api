@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -24,6 +25,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
@@ -42,7 +48,9 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -73,6 +81,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
     private AccessControlService accessControlService;
+    @MockBean
+    private IdamService idamService;
 
     private ServiceMocks mockServices;
     @Mock
@@ -335,6 +345,67 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.detail").value(
                 "Role Assignment Verification: "
                 + "The request failed the Role Assignment checks performed.")
+        );
+    }
+
+    @Test
+    public void should_return_a_401_when_the_user_did_not_have_any_roles() throws Exception {
+        List<RoleAssignment> roles = new ArrayList<>();
+
+        RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roles);
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+        //Assigner
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(roleAssignmentResource);
+
+        mockMvc.perform(
+            get("/task/" + "taskId")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().is4xxClientError(),
+            content().contentType(APPLICATION_JSON_VALUE),
+            jsonPath("$.error").value("Unauthorized"),
+            jsonPath("$.status").value(401),
+            jsonPath("$.message").value(
+                "User did not have sufficient permissions to perform this action"));
+    }
+
+    @Test
+    public void should_return_a_404_if_task_does_not_exist() throws Exception {
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
+            "SCSS", "caseId1");
+        // create role assignments Organisation and SCSS , Case Id
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignmentsWithJurisdiction
+        );
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
+        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+
+        mockMvc.perform(
+            get("/task/" + nonExistentTaskId)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(request))
+        ).andExpectAll(
+            status().is4xxClientError(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
+            jsonPath("$.title").value("Task Not Found Error"),
+            jsonPath("$.status").value(404),
+            jsonPath("$.detail").value(
+                "Task Not Found Error: The task could not be found.")
         );
     }
 

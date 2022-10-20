@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 
 import io.restassured.response.Response;
@@ -22,7 +22,7 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
-public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "work-types";
 
@@ -41,7 +41,7 @@ public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest 
 
     @Test
     public void should_return_work_types_when_user_has_work_types() {
-        common.setupOrganisationalRoleAssignmentWithWorkTypes(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignmentWithWorkTypes(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED + "/?filter-by-user=true",
@@ -65,7 +65,7 @@ public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest 
 
     @Test
     public void should_return_empty_work_types_when_user_has_no_work_types() {
-        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED + "/?filter-by-user=true",
@@ -84,7 +84,7 @@ public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest 
 
     @Test
     public void should_return_all_work_types() {
-        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED + "/?filter-by-user=false",

@@ -216,60 +216,12 @@ public class Common {
     }
 
 
-    public TestVariables setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
-        CamundaVariableDefinition key, String value
-    ) {
-        final String caseId = UUID.randomUUID().toString();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
-            caseId,
-            "IA",
-            "Asylum",
-            DEFAULT_TASK_TYPE,
-            DEFAULT_TASK_NAME,
-            Map.of()
+    public TestVariables setupWATaskAndRetrieveIds() {
+        return setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "processApplication",
+            "process application"
         );
-        processVariables.put(key.value(), new CamundaValue<>(value, "String"));
-
-        List<CamundaTask> response = given
-            .iCreateATaskWithCustomVariables(processVariables)
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
-    }
-
-    public TestVariables setupTaskAndRetrieveIds() {
-        return setupTaskAndRetrieveIds(DEFAULT_TASK_TYPE);
-    }
-
-    public TestVariables setupTaskAndRetrieveIds(String taskType) {
-        String caseId = given.iCreateACcdCase();
-        return setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType, DEFAULT_TASK_NAME);
-    }
-
-    public TestVariables setupTaskAndRetrieveIds(String taskType, String taskName) {
-        String caseId = given.iCreateACcdCase();
-        return setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType, taskName);
-    }
-
-    public TestVariables setupTaskAndRetrieveIdsForGivenCaseId(String caseId, String taskType) {
-        return setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType, DEFAULT_TASK_NAME);
-    }
-
-    public TestVariables setupTaskAndRetrieveIdsForGivenCaseId(String caseId, String taskType, String taskName) {
-        List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, "IA", "Asylum", taskType, taskName)
-            .and()
-            .iRetrieveATasksWithProcessVariableFilter("caseId", caseId, taskType);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
     public TestVariables setupWATaskAndRetrieveIds(Map<String, String> additionalProperties, String resourceFileName, String taskType) {
@@ -327,11 +279,11 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
-    public TestVariables setupTaskWithWarningsAndRetrieveIds() {
-        return setupTaskWithWarningsAndRetrieveIds(DEFAULT_TASK_TYPE);
+    public TestVariables setupWATaskWithWarningsAndRetrieveIds() {
+        return setupWATaskWithWarningsAndRetrieveIds(DEFAULT_TASK_TYPE);
     }
 
-    public TestVariables setupTaskWithWarningsAndRetrieveIds(String taskType) {
+    public TestVariables setupWATaskWithWarningsAndRetrieveIds(String taskType) {
 
         String caseId = given.iCreateACcdCase();
         WarningValues warnings = new WarningValues(
@@ -348,7 +300,7 @@ public class Common {
         }
 
         List<CamundaTask> response = given
-            .iCreateATaskWithWarnings(caseId, "IA", "Asylum", taskType, DEFAULT_TASK_NAME, warningString)
+            .iCreateATaskWithWarnings(caseId, "WA", "WaCaseType", taskType, DEFAULT_TASK_NAME, warningString)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -849,7 +801,7 @@ public class Common {
 
     }
 
-    public void setupOrganisationalRoleAssignmentWithWorkTypes(Headers headers) {
+    public void setupWAOrganisationalRoleAssignmentWithWorkTypes(Headers headers, String roleName) {
 
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -858,21 +810,21 @@ public class Common {
             "region", "1",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
-            "jurisdiction", "IA",
+            "jurisdiction", "WA",
             "workTypes", "hearing_work,upper_tribunal,routine_work"
         );
 
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
-        //Creates an organizational role for jurisdiction IA
+        //Creates an organizational role for jurisdiction WA
         log.info("Creating Organizational Role");
         postRoleAssignment(
             null,
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo.getUid(),
-            "tribunal-caseworker",
+            roleName,
             toJsonString(attributes),
             R1_ROLE_ASSIGNMENT_REQUEST,
             GrantType.STANDARD.name(),
