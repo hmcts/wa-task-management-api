@@ -8,7 +8,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public interface DateCalculator {
 
@@ -33,11 +32,12 @@ public interface DateCalculator {
 
     LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
 
-    default Optional<ConfigurationDmnEvaluationResponse> getProperty(
+    default ConfigurationDmnEvaluationResponse getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dueDatePrefix))
-            .reduce((a, b) -> b);
+            .reduce((a, b) -> b)
+            .orElse(null);
     }
 
     default LocalDateTime addTimeToDate(

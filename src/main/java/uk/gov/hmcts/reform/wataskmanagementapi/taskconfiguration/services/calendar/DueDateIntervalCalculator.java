@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -24,8 +25,8 @@ public class DueDateIntervalCalculator implements DateCalculator {
 
     @Override
     public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
-        return getProperty(dueDateProperties, DUE_DATE_ORIGIN).isPresent()
-            && getProperty(dueDateProperties, DUE_DATE).isEmpty();
+        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isPresent()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE)).isEmpty();
     }
 
     @Override

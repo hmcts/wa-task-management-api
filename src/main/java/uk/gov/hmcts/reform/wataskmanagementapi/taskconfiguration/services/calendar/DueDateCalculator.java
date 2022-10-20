@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -13,7 +14,7 @@ public class DueDateCalculator implements DateCalculator {
 
     @Override
     public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
-        return getProperty(dueDateProperties, DUE_DATE).isPresent();
+        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE)).isPresent();
     }
 
     @Override
@@ -21,10 +22,10 @@ public class DueDateCalculator implements DateCalculator {
         var dueDateResponse = getProperty(dueDateProperties, DUE_DATE);
         var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME);
 
-        if (dueDateTimeResponse.isPresent()) {
-            return calculateDueDateFrom(dueDateResponse.get(), dueDateTimeResponse.get());
+        if (Optional.ofNullable(dueDateTimeResponse).isPresent()) {
+            return calculateDueDateFrom(dueDateResponse, dueDateTimeResponse);
         } else {
-            return calculateDueDateFrom(dueDateResponse.get());
+            return calculateDueDateFrom(dueDateResponse);
         }
     }
 
