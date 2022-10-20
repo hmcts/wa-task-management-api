@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
@@ -32,16 +33,19 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
 @Slf4j
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
@@ -112,48 +116,19 @@ public class TaskSearchController extends BaseController {
         }
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
+        log.debug("Search request received '{}'", searchTaskRequest);
+        //Release 2
+        response = cftQueryService.searchForTasks(
+            Optional.ofNullable(firstResult).orElse(0),
+            Optional.ofNullable(maxResults).orElse(defaultMaxResults),
+            searchTaskRequest,
+            accessControlResponse
         );
 
-        if (isFeatureEnabled) {
-            log.debug("Search request received '{}'", searchTaskRequest);
-            //Release 2
-            response = cftQueryService.searchForTasks(
-                Optional.ofNullable(firstResult).orElse(0),
-                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
-                searchTaskRequest,
-                accessControlResponse
-            );
-
-            return ResponseEntity
-                .ok()
-                .cacheControl(CacheControl.noCache())
-                .body(response);
-        } else {
-            //Release 1
-            List<Task> tasks = taskManagementService.searchWithCriteria(
-                searchTaskRequest,
-                Optional.ofNullable(firstResult).orElse(0),
-                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
-                accessControlResponse
-            );
-
-            if (tasks.isEmpty()) {
-                return ResponseEntity
-                    .ok()
-                    .cacheControl(CacheControl.noCache())
-                    .body(new GetTasksResponse<>(tasks, 0));
-            } else {
-                final long taskCount = taskManagementService.getTaskCount(searchTaskRequest);
-                return ResponseEntity
-                    .ok()
-                    .cacheControl(CacheControl.noCache())
-                    .body(new GetTasksResponse<>(tasks, taskCount));
-            }
-        }
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noCache())
+            .body(response);
     }
 
 
@@ -187,26 +162,14 @@ public class TaskSearchController extends BaseController {
 
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        response = cftQueryService.searchForCompletableTasks(
+            searchEventAndCase,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
         );
 
-        if (isFeatureEnabled) {
-            PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-                .buildSingleRequirementWithOr(OWN, EXECUTE);
-            response = cftQueryService.searchForCompletableTasks(
-                searchEventAndCase,
-                accessControlResponse.getRoleAssignments(),
-                permissionsRequired
-            );
-        } else {
-            response = taskManagementService.searchForCompletableTasks(
-                searchEventAndCase,
-                accessControlResponse
-            );
-        }
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
