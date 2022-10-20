@@ -409,6 +409,73 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
     }
 
+    @Test
+    public void should_return_a_401_when_the_user_did_not_have_any_roles() throws Exception {
+        List<RoleAssignment> roles = new ArrayList<>();
+
+        RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roles);
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+        //Assigner
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(roleAssignmentResource);
+
+        mockMvc.perform(
+            get("/task/" + "taskId")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().is4xxClientError(),
+            content().contentType(APPLICATION_JSON_VALUE),
+            jsonPath("$.error").value("Unauthorized"),
+            jsonPath("$.status").value(401),
+            jsonPath("$.message").value(
+                "User did not have sufficient permissions to perform this action"));
+    }
+
+    @Test
+    public void should_return_a_404_if_task_does_not_exist() throws Exception {
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
+            "SCSS", "caseId1");
+        // create role assignments Organisation and SCSS , Case Id
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignmentsWithJurisdiction
+        );
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+        )).thenReturn(true);
+
+        CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
+        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+
+        mockMvc.perform(
+            get("/task/" + nonExistentTaskId)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(request))
+        ).andExpectAll(
+            status().is4xxClientError(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
+            jsonPath("$.title").value("Task Not Found Error"),
+            jsonPath("$.status").value(404),
+            jsonPath("$.detail").value(
+                "Task Not Found Error: The task could not be found.")
+        );
+    }
+
     @ParameterizedTest
     @CsvSource(value = {
         "IA, Asylum",
