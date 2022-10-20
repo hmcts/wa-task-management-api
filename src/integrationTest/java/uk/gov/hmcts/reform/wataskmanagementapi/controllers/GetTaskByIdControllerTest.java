@@ -62,7 +62,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -630,15 +629,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    @Execution(ExecutionMode.CONCURRENT)
     void should_return_403_when_user_does_not_have_case_role_assignment() throws Exception {
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                           IDAM_USER_ID,
-                           IDAM_USER_EMAIL
-                       )
-        ).thenReturn(true);
-
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
