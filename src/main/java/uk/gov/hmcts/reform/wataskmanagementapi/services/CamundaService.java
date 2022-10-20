@@ -5,10 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
@@ -18,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
@@ -41,20 +37,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTask
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTaskUnclaimException;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
@@ -72,7 +63,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_COMPLETE_UNABLE_TO_UPDATE_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_UNCLAIM_UNABLE_TO_UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_UNCLAIM_UNABLE_TO_UPDATE_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder.WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY;
 
 @Slf4j
 @Service
@@ -84,27 +74,23 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuild
 public class CamundaService {
 
     public static final String THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH = "There was a problem performing the search";
-    public static final String THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT = "There was a problem retrieving task count";
 
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
 
     private final CamundaServiceApi camundaServiceApi;
     private final TaskMapper taskMapper;
     private final AuthTokenGenerator authTokenGenerator;
-    private final PermissionEvaluatorService permissionEvaluatorService;
     private final CamundaObjectMapper camundaObjectMapper;
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
                           TaskMapper taskMapper,
                           AuthTokenGenerator authTokenGenerator,
-                          PermissionEvaluatorService permissionEvaluatorService,
                           CamundaObjectMapper camundaObjectMapper
     ) {
         this.camundaServiceApi = camundaServiceApi;
         this.taskMapper = taskMapper;
         this.authTokenGenerator = authTokenGenerator;
-        this.permissionEvaluatorService = permissionEvaluatorService;
         this.camundaObjectMapper = camundaObjectMapper;
     }
 
@@ -290,43 +276,6 @@ public class CamundaService {
 
     }
 
-    public long getTaskCount(CamundaSearchQuery query) {
-        try {
-            return camundaServiceApi.getTaskCount(
-                authTokenGenerator.generate(),
-                query.getQueries()
-            ).getCount();
-        } catch (FeignException exp) {
-            log.error(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT);
-            throw new ServerErrorException(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT, exp);
-        }
-    }
-
-    public List<Task> searchWithCriteria(CamundaSearchQuery query,
-                                         int firstResult,
-                                         int maxResults,
-                                         AccessControlResponse accessControlResponse,
-                                         List<PermissionTypes> permissionsRequired) {
-
-        try {
-            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteriaAndPagination(
-                authTokenGenerator.generate(),
-                firstResult,
-                maxResults,
-                query.getQueries()
-            );
-
-            //Safe guard in case no search results were returned
-            if (searchResults.isEmpty()) {
-                return emptyList();
-            }
-            return performSearchAction(searchResults, accessControlResponse, permissionsRequired);
-        } catch (FeignException exp) {
-            log.error(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH);
-            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
-        }
-    }
-
     public List<CamundaTask> searchWithCriteriaAndNoPagination(CamundaSearchQuery query) {
         try {
             return camundaServiceApi.searchWithCriteriaAndNoPagination(
@@ -365,44 +314,6 @@ public class CamundaService {
             );
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
-        }
-    }
-
-    public List<Task> performSearchAction(List<CamundaTask> searchResults,
-                                          AccessControlResponse accessControlResponse,
-                                          List<PermissionTypes> permissionsRequired) {
-
-        List<Task> response = new ArrayList<>();
-        try {
-
-            List<String> processInstanceIdList = searchResults.stream()
-                .map(CamundaTask::getProcessInstanceId)
-                .collect(Collectors.toList());
-
-            List<CamundaVariableInstance> allVariablesForProcessInstanceIdList =
-                retrieveAllVariablesForProcessInstanceList(processInstanceIdList);
-
-            //Safe guard in case no variables where returned
-            if (allVariablesForProcessInstanceIdList.isEmpty()) {
-                return response;
-            }
-
-            Map<String, List<CamundaVariableInstance>> mapWarningVarAndLocalTaskVarsGroupByProcessInstanceId =
-                allVariablesForProcessInstanceIdList.stream()
-                    .filter(this::filterOnlyHasWarningVarAndLocalTaskVars)
-                    .collect(groupingBy(CamundaVariableInstance::getProcessInstanceId));
-
-            loopThroughAllSearchResultsAndBuildResponse(
-                searchResults,
-                accessControlResponse,
-                permissionsRequired,
-                response,
-                mapWarningVarAndLocalTaskVarsGroupByProcessInstanceId
-            );
-
-            return response;
-        } catch (FeignException | ResourceNotFoundException ex) {
-            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, ex);
         }
     }
 
@@ -525,65 +436,6 @@ public class CamundaService {
             }
         }
 
-    }
-
-    private void loopThroughAllSearchResultsAndBuildResponse(
-        List<CamundaTask> searchResults,
-        AccessControlResponse accessControlResponse,
-        List<PermissionTypes> permissionsRequired,
-        List<Task> response,
-        Map<String, List<CamundaVariableInstance>> warningVarAndLocalTaskVarsGroupByProcessInstanceId) {
-
-        searchResults.forEach(camundaTask -> {
-
-            //2. Get Variables for the task
-            List<CamundaVariableInstance> variablesForProcessInstanceId =
-                warningVarAndLocalTaskVarsGroupByProcessInstanceId.get(camundaTask.getProcessInstanceId());
-            if (variablesForProcessInstanceId != null) {
-                //Format variables
-                Map<String, CamundaVariable> variables = variablesForProcessInstanceId.stream()
-                    .collect(
-                        toMap(
-                            CamundaVariableInstance::getName,
-                            variable -> new CamundaVariable(variable.getValue(), variable.getType()), (a, b) -> b
-                        )
-                    );
-
-                //3. Evaluate access to task
-                boolean hasAccess = permissionEvaluatorService
-                    .hasAccess(
-                        variables,
-                        accessControlResponse.getRoleAssignments(),
-                        permissionsRequired
-                    );
-
-                if (hasAccess) {
-                    //4. If user had sufficient access to this task map to a task object and add to response
-                    Task task = taskMapper.mapToTaskObject(variables, camundaTask);
-                    response.add(task);
-                }
-
-            }
-        });
-    }
-
-    private boolean filterOnlyHasWarningVarAndLocalTaskVars(CamundaVariableInstance camundaVariableInstance) {
-        if (("hasWarnings".equals(camundaVariableInstance.getName())
-             || "warningList".equals(camundaVariableInstance.getName()))
-            && camundaVariableInstance.getTaskId() == null) {
-            return true;
-        }
-        return camundaVariableInstance.getTaskId() != null;
-    }
-
-    private List<CamundaVariableInstance> retrieveAllVariablesForProcessInstanceList(
-        List<String> processInstanceIdList) {
-        Map<String, Object> body = Map.of(
-            "processInstanceIdIn", processInstanceIdList,
-            "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
-        );
-
-        return camundaServiceApi.getAllVariables(authTokenGenerator.generate(), body);
     }
 
     /**

@@ -8,12 +8,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamelCaseFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
@@ -51,24 +49,6 @@ public interface CamundaServiceApi {
     List<CamundaTask> searchWithCriteriaAndNoPagination(
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
         @RequestBody Map<String, Object> body);
-
-    @PostMapping(value = "/task",
-        consumes = APPLICATION_JSON_VALUE,
-        produces = APPLICATION_JSON_VALUE
-    )
-    @ResponseBody
-    List<CamundaTask> searchWithCriteriaAndPagination(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                                                      @RequestParam("firstResult") Integer firstResult,
-                                                      @RequestParam("maxResults") Integer maxResults,
-                                                      @RequestBody Map<String, Object> body);
-
-    @PostMapping(value = "/task/count",
-        consumes = APPLICATION_JSON_VALUE,
-        produces = APPLICATION_JSON_VALUE
-    )
-    @ResponseBody
-    CamundaTaskCount getTaskCount(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                                  @RequestBody Map<String, Object> body);
 
     @GetMapping(
         value = "/task/{task-id}",
