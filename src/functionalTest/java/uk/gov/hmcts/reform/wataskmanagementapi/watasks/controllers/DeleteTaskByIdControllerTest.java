@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import org.junit.After;
@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
     private TestAuthenticationCredentials caseworkerCredentials;
@@ -37,8 +37,8 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_succeed_when_terminate_reason_is_cancelled() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
@@ -64,8 +64,8 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_succeed_when_terminate_reason_is_completed() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        initiateTask(taskVariables, Jurisdiction.WA);
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
