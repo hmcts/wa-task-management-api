@@ -1969,6 +1969,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
+            .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035"
                 )
