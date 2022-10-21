@@ -41,7 +41,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 public class CftQueryService {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
         "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
-        "applications", "priority", "access_requests", "error_management"
+        "applications", "priority", "access_requests", "error_management",
+        "review_case", "evidence", "follow_up"
     );
 
     private final CamundaService camundaService;
@@ -88,10 +89,10 @@ public class CftQueryService {
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
-                     cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                         taskResource,
-                         roleAssignments
-                     )
+                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                    taskResource,
+                    roleAssignments
+                )
             )
             .collect(Collectors.toList());
 
@@ -175,9 +176,9 @@ public class CftQueryService {
 
         return taskResources.stream()
             .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                     taskResource,
-                     roleAssignments
-                 )
+                    taskResource,
+                    roleAssignments
+                )
             )
             .collect(Collectors.toList());
     }
