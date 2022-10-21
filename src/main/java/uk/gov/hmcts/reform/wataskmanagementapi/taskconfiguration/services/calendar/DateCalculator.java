@@ -63,6 +63,8 @@ public interface DateCalculator {
         List<String> split = Arrays.asList(dueDateTime.replace("T", "").trim().split(":"));
         return date
             .with(ChronoField.HOUR_OF_DAY, Long.parseLong(split.get(0)))
-            .with(ChronoField.MINUTE_OF_HOUR, Long.parseLong(split.get(1)));
+            .with(ChronoField.MINUTE_OF_HOUR, Long.parseLong(split.get(1)))
+            .with(ChronoField.SECOND_OF_MINUTE, 0)
+            .with(ChronoField.NANO_OF_SECOND, 0);
     }
 }

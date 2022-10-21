@@ -252,6 +252,7 @@ public class DueDateConfiguratorTest {
         "true,true,8,12",
         "true,false,6,8",
         "false,true,6,6",
+        "false,true,2,4",
         "false,false,6,6"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvided(
