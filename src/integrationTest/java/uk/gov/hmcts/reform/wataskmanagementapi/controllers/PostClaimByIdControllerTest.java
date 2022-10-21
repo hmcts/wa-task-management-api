@@ -419,7 +419,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
-                    .caseId("caseId1")
+                    .caseId("claimCaseId1")
                     .build()
             )
             .build();
@@ -625,7 +625,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
-                    .caseId("caseId1")
+                    .caseId("claimCaseId1")
                     .build()
             )
             .build();
@@ -828,7 +828,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
-                    .caseId("caseId1")
+                    .caseId("claimCaseId1")
                     .build()
             )
             .build();
@@ -970,7 +970,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
-                    .caseId("caseId1")
+                    .caseId("claimCaseId1")
                     .build()
             )
             .build();
@@ -1005,7 +1005,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
-                    .caseId("caseId1")
+                    .caseId("claimCaseId1")
                     .build()
             )
             .build();

@@ -47,7 +47,7 @@ public abstract class RoleAssignmentHelper {
                     ? LocalDateTime.now().plusYears(1)
                     : roleAssignmentRequest.getEndTime()
             )
-            .roleType(RoleType.CASE)
+            .roleType(roleAssignmentRequest.getTestRolesWithGrantType().getRoleType())
             .build();
 
         roleAssignments.add(roleAssignment);
