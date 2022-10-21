@@ -281,7 +281,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal,review_case");
 
         List<RoleAssignment> allTestRoles =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
@@ -318,7 +318,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.violations.[0].message")
                         .value("work_type must be one of [hearing_work, upper_tribunal, routine_work, "
                                + "decision_making_work, applications, priority, access_requests, "
-                               + "error_management]")
+                               + "error_management, review_case, evidence, follow_up]")
                 ));
     }
 
@@ -834,7 +834,10 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                              + "        \"applications\",\n"
                              + "        \"priority\",\n"
                              + "        \"error_management\",\n"
-                             + "        \"access_requests\"\n"
+                             + "        \"access_requests\",\n"
+                             + "        \"review_case\",\n"
+                             + "        \"evidence\",\n"
+                             + "        \"follow_up\"\n"
                              + "      ],\n"
                              + "      \"operator\": \"IN\"\n"
                              + "    }\n"
@@ -842,9 +845,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                              + "}\n")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
-            .andExpect(
-                ResultMatcher.matchAll(
-                    status().isOk()));
+            .andExpectAll(status().isOk());
     }
 
     @Test
