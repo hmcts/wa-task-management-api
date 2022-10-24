@@ -77,7 +77,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     }
 
     @Test
-    public void assigner_should_assign_a_task_to_assignee_when_role_assignment_verification_failed() {
+    public void assigner_should_assign_a_task_to_assignee_when_role_assignment_verification_pass() {
         //assigner role : manage
         //assignee role : own
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
