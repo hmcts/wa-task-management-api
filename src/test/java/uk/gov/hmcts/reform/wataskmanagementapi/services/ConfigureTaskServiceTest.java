@@ -4,8 +4,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
@@ -44,7 +45,7 @@ class ConfigureTaskServiceTest {
                                   TASK_TITLE.value(), "A test task"
                               )
     );
-    private TaskConfigurationCamundaService camundaService;
+    private CamundaService camundaService;
     private ConfigureTaskService configureTaskService;
     private TaskConfigurator taskVariableExtractor;
     private TaskAutoAssignmentService autoAssignmentService;
@@ -53,7 +54,7 @@ class ConfigureTaskServiceTest {
 
     @BeforeEach
     void setup() {
-        camundaService = mock(TaskConfigurationCamundaService.class);
+        camundaService = mock(CamundaService.class);
         taskVariableExtractor = mock(TaskConfigurator.class);
         autoAssignmentService = mock(TaskAutoAssignmentService.class);
         caseConfigurationProviderService = mock(CaseConfigurationProviderService.class);
@@ -80,21 +81,21 @@ class ConfigureTaskServiceTest {
         );
         when(camundaService.getTask(TASK_TO_CONFIGURE.getId())).thenReturn(camundaTask);
 
-        HashMap<String, CamundaValue<?>> processVariables = new HashMap<>();
+        HashMap<String, CamundaVariable> processVariables = new HashMap<>();
         processVariables.put(
             CASE_ID.value(),
-            new CamundaValue<>(TASK_TO_CONFIGURE.getCaseId(), "String")
+            new CamundaVariable(TASK_TO_CONFIGURE.getCaseId(), "String")
         );
         processVariables.put(
             TASK_STATE.value(),
-            new CamundaValue<>(UNCONFIGURED.value(), "String")
+            new CamundaVariable(UNCONFIGURED.value(), "String")
         );
         processVariables.put(
             TASK_ID.value(),
-            CamundaValue.stringValue("taskTypeId")
+            new CamundaVariable(TASK_TYPE.value(), "String")
         );
 
-        doReturn(processVariables).when(camundaService).getVariables(TASK_TO_CONFIGURE.getId());
+        doReturn(processVariables).when(camundaService).getTaskVariables(TASK_TO_CONFIGURE.getId());
 
         HashMap<String, Object> mappedValues = new HashMap<>();
         mappedValues.put("key1", "value1");
@@ -102,8 +103,7 @@ class ConfigureTaskServiceTest {
         mappedValues.put(TASK_TYPE.value(), "taskTypeId");
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
 
-        TaskToConfigure taskToConfigure = TASK_TO_CONFIGURE.toBuilder().taskAttributes(null).build();
-        when(taskVariableExtractor.getConfigurationVariables(taskToConfigure))
+        when(taskVariableExtractor.getConfigurationVariables(any()))
             .thenReturn(new TaskConfigurationResults(mappedValues));
 
         configureTaskService.configureTask(TASK_TO_CONFIGURE.getId());
@@ -119,7 +119,7 @@ class ConfigureTaskServiceTest {
             modifications
         );
 
-        verify(taskVariableExtractor).getConfigurationVariables(taskToConfigure);
+        verify(taskVariableExtractor).getConfigurationVariables(any());
     }
 
     @Test
@@ -134,28 +134,27 @@ class ConfigureTaskServiceTest {
         );
         when(camundaService.getTask(TASK_TO_CONFIGURE.getId())).thenReturn(camundaTask);
 
-        HashMap<String, CamundaValue<?>> processVariables = new HashMap<>();
+        HashMap<String, CamundaVariable> processVariables = new HashMap<>();
         processVariables.put(
             CASE_ID.value(),
-            new CamundaValue<>(TASK_TO_CONFIGURE.getCaseId(), "String")
+            new CamundaVariable(TASK_TO_CONFIGURE.getCaseId(), "String")
         );
         processVariables.put(
             TASK_STATE.value(),
-            new CamundaValue<>(UNCONFIGURED.value(), "String")
+            new CamundaVariable(UNCONFIGURED.value(), "String")
         );
         processVariables.put(
             TASK_ID.value(),
-            CamundaValue.stringValue("taskTypeId")
+            new CamundaVariable(TASK_TYPE.value(), "String")
         );
 
-        doReturn(processVariables).when(camundaService).getVariables(TASK_TO_CONFIGURE.getId());
-        TaskToConfigure taskToConfigure = TASK_TO_CONFIGURE.toBuilder().taskAttributes(null).build();
+        doReturn(processVariables).when(camundaService).getTaskVariables(TASK_TO_CONFIGURE.getId());
 
         HashMap<String, Object> mappedValues = new HashMap<>();
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
         mappedValues.put(TASK_TYPE.value(), "taskTypeId");
 
-        when(taskVariableExtractor.getConfigurationVariables(taskToConfigure))
+        when(taskVariableExtractor.getConfigurationVariables(any()))
             .thenReturn(new TaskConfigurationResults(mappedValues));
 
         configureTaskService.configureTask(TASK_TO_CONFIGURE.getId());

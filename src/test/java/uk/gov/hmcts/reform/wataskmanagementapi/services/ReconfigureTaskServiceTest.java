@@ -9,9 +9,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.configurators.TaskConfigurator;
 
@@ -33,7 +33,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 class ReconfigureTaskServiceTest {
 
-    private TaskConfigurationCamundaService camundaService;
+    private CamundaService camundaService;
     private ConfigureTaskService configureTaskService;
     private TaskConfigurator taskVariableExtractor;
     private TaskAutoAssignmentService autoAssignmentService;
@@ -42,7 +42,7 @@ class ReconfigureTaskServiceTest {
 
     @BeforeEach
     void setup() {
-        camundaService = mock(TaskConfigurationCamundaService.class);
+        camundaService = mock(CamundaService.class);
         taskVariableExtractor = mock(TaskConfigurator.class);
         autoAssignmentService = mock(TaskAutoAssignmentService.class);
         caseConfigurationProviderService = mock(CaseConfigurationProviderService.class);

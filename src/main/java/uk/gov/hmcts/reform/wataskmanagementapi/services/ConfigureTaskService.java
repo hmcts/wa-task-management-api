@@ -3,9 +3,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.configurators.TaskConfigurator;
@@ -22,18 +23,18 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Component
 public class ConfigureTaskService {
 
-    private final TaskConfigurationCamundaService taskConfigurationCamundaService;
+    private final CamundaService camundaService;
     private final List<TaskConfigurator> taskConfigurators;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final CaseConfigurationProviderService caseConfigurationProviderService;
     private final CFTTaskMapper cftTaskMapper;
 
-    public ConfigureTaskService(TaskConfigurationCamundaService taskConfigurationCamundaService,
+    public ConfigureTaskService(CamundaService camundaService,
                                 List<TaskConfigurator> taskConfigurators,
                                 TaskAutoAssignmentService taskAutoAssignmentService,
                                 CaseConfigurationProviderService caseConfigurationProviderService,
                                 CFTTaskMapper cftTaskMapper) {
-        this.taskConfigurationCamundaService = taskConfigurationCamundaService;
+        this.camundaService = camundaService;
         this.taskConfigurators = taskConfigurators;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
         this.caseConfigurationProviderService = caseConfigurationProviderService;
@@ -42,12 +43,12 @@ public class ConfigureTaskService {
 
     @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
     public void configureTask(String taskId) {
-        CamundaTask task = taskConfigurationCamundaService.getTask(taskId);
+        CamundaTask task = camundaService.getTask(taskId);
         log.info("CamundaTask id '{}' retrieved from Camunda", task.getId());
 
-        Map<String, CamundaValue<Object>> processVariables = taskConfigurationCamundaService.getVariables(taskId);
-        CamundaValue<Object> caseIdValue = processVariables.get(CamundaVariableDefinition.CASE_ID.value());
-        CamundaValue<Object> taskTypeIdValue = processVariables.get(CamundaVariableDefinition.TASK_ID.value());
+        Map<String, CamundaVariable> processVariables = camundaService.getTaskVariables(taskId);
+        CamundaVariable caseIdValue = processVariables.get(CamundaVariableDefinition.CASE_ID.value());
+        CamundaVariable taskTypeIdValue = processVariables.get(CamundaVariableDefinition.TASK_ID.value());
         String caseId = (String) caseIdValue.getValue();
         String taskTypeId = (String) taskTypeIdValue.getValue();
 
@@ -60,7 +61,7 @@ public class ConfigureTaskService {
             convertToCamundaFormat(configurationResults.getProcessVariables());
 
         //Update Variables
-        taskConfigurationCamundaService.addProcessVariables(taskId, processVariablesToAdd);
+        camundaService.addProcessVariables(taskId, processVariablesToAdd);
 
         //Get latest task state as it was updated previously
         CamundaValue<String> taskState = processVariablesToAdd.get(TASK_STATE.value());

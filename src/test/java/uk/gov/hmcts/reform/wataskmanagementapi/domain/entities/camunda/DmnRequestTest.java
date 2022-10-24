@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.request.DmnRequest;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 

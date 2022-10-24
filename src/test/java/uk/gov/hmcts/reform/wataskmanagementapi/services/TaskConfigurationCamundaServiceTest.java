@@ -9,16 +9,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ServerErrorException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.request.AssigneeRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,12 +28,16 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNCONFIGURED;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,7 +55,9 @@ class TaskConfigurationCamundaServiceTest {
     @Mock
     private AuthTokenGenerator authTokenGenerator;
 
-    private TaskConfigurationCamundaService taskConfigurationCamundaService;
+    private CamundaObjectMapper camundaObjectMapper;
+
+    private CamundaService camundaService;
 
     @Test
     void should_get_task() {
@@ -65,7 +72,7 @@ class TaskConfigurationCamundaServiceTest {
         when(authTokenGenerator.generate()).thenReturn(serviceTokenId);
         when(camundaServiceApi.getTask(serviceTokenId, taskId)).thenReturn(camundaTask);
 
-        CamundaTask actualCamundaTask = taskConfigurationCamundaService.getTask(taskId);
+        CamundaTask actualCamundaTask = camundaService.getTask(taskId);
         Assertions.assertEquals(actualCamundaTask.getName(), camundaTask.getName());
         Assertions.assertEquals(actualCamundaTask.getId(), camundaTask.getId());
         Assertions.assertEquals(actualCamundaTask.getProcessInstanceId(), camundaTask.getProcessInstanceId());
@@ -85,7 +92,7 @@ class TaskConfigurationCamundaServiceTest {
         when(camundaServiceApi.getTask(serviceTokenId, taskId)).thenThrow(FeignException.class);
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            taskConfigurationCamundaService.getTask(taskId);
+            camundaService.getTask(taskId);
         });
     }
 
@@ -93,19 +100,19 @@ class TaskConfigurationCamundaServiceTest {
     void should_get_variables() {
 
         final String caseId = randomUUID().toString();
-        Map<String, CamundaValue<Object>> processVariables = Map.of(
-            CASE_ID.value(), new CamundaValue<>(caseId, "String"),
-            TASK_STATE.value(), new CamundaValue<>(UNCONFIGURED, "String")
+        Map<String, CamundaVariable> processVariables = Map.of(
+            CASE_ID.value(), new CamundaVariable(caseId, "String"),
+            TASK_STATE.value(), new CamundaVariable(UNCONFIGURED, "String")
         );
 
         when(authTokenGenerator.generate()).thenReturn(serviceTokenId);
         when(camundaServiceApi.getVariables(serviceTokenId, taskId)).thenReturn(processVariables);
 
-        Map<String, CamundaValue<Object>> expectedProcessVariables =
-            taskConfigurationCamundaService.getVariables(taskId);
+        Map<String, CamundaVariable> expectedProcessVariables =
+            camundaService.getTaskVariables(taskId);
 
         assertNotNull(expectedProcessVariables);
-        final CamundaValue<Object> taskState = expectedProcessVariables.get("taskState");
+        final CamundaVariable taskState = expectedProcessVariables.get(TASK_STATE.value());
         Assertions.assertEquals(taskState.getValue().toString(), UNCONFIGURED.toString());
         Assertions.assertEquals(expectedProcessVariables.get("caseId").getValue().toString(), caseId);
     }
@@ -123,7 +130,7 @@ class TaskConfigurationCamundaServiceTest {
         when(camundaServiceApi.getVariables(serviceTokenId, taskId)).thenThrow(FeignException.class);
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            taskConfigurationCamundaService.getVariables(taskId);
+            camundaService.getTaskVariables(taskId);
         });
     }
 
@@ -137,7 +144,7 @@ class TaskConfigurationCamundaServiceTest {
 
         when(authTokenGenerator.generate()).thenReturn(serviceTokenId);
 
-        taskConfigurationCamundaService.addProcessVariables(taskId, variableToAdd);
+        camundaService.addProcessVariables(taskId, variableToAdd);
 
         verify(camundaServiceApi).addLocalVariablesToTask(
             serviceTokenId,
@@ -159,7 +166,7 @@ class TaskConfigurationCamundaServiceTest {
         doThrow(FeignException.class).when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            taskConfigurationCamundaService.addProcessVariables(taskId, variableToAdd);
+            camundaService.addProcessVariables(taskId, variableToAdd);
         });
     }
 
@@ -170,10 +177,10 @@ class TaskConfigurationCamundaServiceTest {
         final String assigneeId = randomUUID().toString();
 
         when(authTokenGenerator.generate()).thenReturn(serviceTokenId);
+        boolean taskStateIsAssignedAlready = ASSIGNED.equals(taskState.value());
+        camundaService.assignTask(taskId, assigneeId, taskStateIsAssignedAlready);
 
-        taskConfigurationCamundaService.assignTask(taskId, assigneeId, taskState.value());
-
-        verify(camundaServiceApi).assignTask(serviceTokenId, taskId, new AssigneeRequest(assigneeId));
+        verify(camundaServiceApi).assignTask(anyString(), anyString(), anyMap());
     }
 
     @Test
@@ -182,7 +189,8 @@ class TaskConfigurationCamundaServiceTest {
 
         when(authTokenGenerator.generate()).thenReturn(serviceTokenId);
 
-        taskConfigurationCamundaService.assignTask(taskId, assigneeId, TaskState.UNASSIGNED.value());
+        boolean taskStateIsAssignedAlready = ASSIGNED.equals(UNASSIGNED.value());
+        camundaService.assignTask(taskId, assigneeId, taskStateIsAssignedAlready);
 
         HashMap<String, CamundaValue<String>> newTaskState = new HashMap<>();
         newTaskState.put("taskState", CamundaValue.stringValue(TaskState.ASSIGNED.value()));
@@ -206,8 +214,8 @@ class TaskConfigurationCamundaServiceTest {
 
         doThrow(FeignException.class).when(camundaServiceApi).assignTask(any(), any(), any());
 
-        assertThrows(ServerErrorException.class, () -> {
-            taskConfigurationCamundaService.assignTask(taskId, assigneeId, "ASSIGNED");
+        assertThrows(TaskAssignException.class, () -> {
+            camundaService.assignTask(taskId, assigneeId, true);
         });
     }
 
@@ -221,7 +229,7 @@ class TaskConfigurationCamundaServiceTest {
 
         final AddLocalVariableRequest addLocalVariableRequest = new AddLocalVariableRequest(newTaskState);
 
-        taskConfigurationCamundaService.addProcessVariables(taskId, newTaskState);
+        camundaService.addProcessVariables(taskId, newTaskState);
 
         verify(camundaServiceApi).addLocalVariablesToTask(
             serviceTokenId,
@@ -232,7 +240,15 @@ class TaskConfigurationCamundaServiceTest {
 
     @BeforeEach
     public void setUp() {
-        taskConfigurationCamundaService = new TaskConfigurationCamundaService(camundaServiceApi, authTokenGenerator);
+        camundaObjectMapper = new CamundaObjectMapper();
+
+        TaskMapper taskMapper = new TaskMapper(camundaObjectMapper);
+        camundaService = new CamundaService(
+            camundaServiceApi,
+            taskMapper,
+            authTokenGenerator,
+            camundaObjectMapper
+        );
 
         taskId = randomUUID().toString();
 

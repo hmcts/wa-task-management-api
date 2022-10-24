@@ -1,9 +1,8 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 
 @ToString
 @Builder

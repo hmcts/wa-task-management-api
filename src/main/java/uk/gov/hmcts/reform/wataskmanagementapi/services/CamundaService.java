@@ -512,7 +512,7 @@ public class CamundaService {
      *
      * @throws CamundaTaskStateUpdateException if call fails when updating the task state.
      */
-    private void updateTaskStateTo(String taskId, TaskState newState) {
+    public void updateTaskStateTo(String taskId, TaskState newState) {
         Map<String, CamundaValue<String>> variable = Map.of(
             CamundaVariableDefinition.TASK_STATE.value(), CamundaValue.stringValue(newState.value())
         );
@@ -545,6 +545,37 @@ public class CamundaService {
         } catch (FeignException ex) {
             log.error("Task id '{}' could not be cancelled", taskId);
             throw new CamundaTaskCancelException(ex);
+        }
+    }
+
+    public CamundaTask getTask(String taskId) {
+        requireNonNull(taskId, "taskId cannot be null");
+        return performGetCamundaTaskAction(taskId);
+    }
+
+    public void addProcessVariables(String taskId, Map<String, CamundaValue<String>> processVariablesToAdd) {
+        requireNonNull(taskId, "taskId cannot be null");
+        addLocalVariablesToTask(taskId, processVariablesToAdd);
+    }
+
+    private void addLocalVariablesToTask(String taskId, Map<String, CamundaValue<String>> processVariablesToAdd) {
+        try {
+            camundaServiceApi.addLocalVariablesToTask(
+                authTokenGenerator.generate(),
+                taskId,
+                new AddLocalVariableRequest(processVariablesToAdd)
+            );
+            log.info("Task id '{}' configured", taskId);
+        } catch (FeignException ex) {
+            log.error(
+                "Task Configuration Failure : Error occurred while adding local task variables to task id '{}'."
+                + "list of variables: {}",
+                taskId, processVariablesToAdd.toString()
+            );
+            throw new ResourceNotFoundException(String.format(
+                "There was a problem updating task variables to task id: %s",
+                taskId
+            ), ex);
         }
     }
 }

@@ -58,7 +58,7 @@ class TaskAutoRoleAssignmentServiceTest {
     private TaskConfigurationRoleAssignmentService roleAssignmentService;
 
     @Mock
-    private TaskConfigurationCamundaService camundaService;
+    private CamundaService camundaService;
 
     @Mock
     private CftQueryService cftQueryService;
@@ -154,7 +154,7 @@ class TaskAutoRoleAssignmentServiceTest {
         verify(camundaService).assignTask(
             testTaskToConfigure.getId(),
             "someUserId",
-            UNCONFIGURED.value()
+            false
         );
     }
 

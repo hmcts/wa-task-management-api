@@ -8,12 +8,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.request.DecisionTableRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.request.DmnRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.EvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DecisionTableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.EvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 
 import java.util.List;
 

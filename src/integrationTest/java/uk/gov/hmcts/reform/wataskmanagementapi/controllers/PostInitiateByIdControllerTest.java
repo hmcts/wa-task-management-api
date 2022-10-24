@@ -28,8 +28,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -90,7 +90,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private CamundaServiceApi camundaServiceApi;
     @MockBean
-    private uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi camundaTaskConfig;
+    private uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi camundaTaskConfig;
     @MockBean
     private CcdDataServiceApi ccdDataServiceApi;
     @MockBean

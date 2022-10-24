@@ -35,14 +35,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 public class TaskAutoAssignmentService {
 
     private final TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService;
-    private final TaskConfigurationCamundaService taskConfigurationCamundaService;
+    private final CamundaService camundaService;
     private final CftQueryService cftQueryService;
 
     public TaskAutoAssignmentService(TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService,
-                                     TaskConfigurationCamundaService taskConfigurationCamundaService,
+                                     CamundaService camundaService,
                                      CftQueryService cftQueryService) {
         this.taskConfigurationRoleAssignmentService = taskConfigurationRoleAssignmentService;
-        this.taskConfigurationCamundaService = taskConfigurationCamundaService;
+        this.camundaService = camundaService;
         this.cftQueryService = cftQueryService;
     }
 
@@ -229,7 +229,7 @@ public class TaskAutoAssignmentService {
         log.info("Role assignments retrieved for caseId '{}'", taskToConfigure.getCaseId());
         if (roleAssignments.isEmpty()) {
             log.info("The case did not have specific users assigned, Setting task state to '{}'", UNASSIGNED);
-            taskConfigurationCamundaService.updateTaskStateTo(taskToConfigure.getId(), UNASSIGNED);
+            camundaService.updateTaskStateTo(taskToConfigure.getId(), UNASSIGNED);
         } else {
             String assignee = roleAssignments.get(0).getActorId();
             log.info(
@@ -237,10 +237,12 @@ public class TaskAutoAssignmentService {
                 ASSIGNED
             );
 
-            taskConfigurationCamundaService.assignTask(
+            boolean taskStateIsAssignedAlready = ASSIGNED.value().equals(currentTaskState);
+
+            camundaService.assignTask(
                 taskToConfigure.getId(),
                 assignee,
-                currentTaskState
+                taskStateIsAssignedAlready
             );
 
         }

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.request;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

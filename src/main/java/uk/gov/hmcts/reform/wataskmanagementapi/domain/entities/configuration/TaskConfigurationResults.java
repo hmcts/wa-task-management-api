@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 
 import java.util.List;
 import java.util.Map;
