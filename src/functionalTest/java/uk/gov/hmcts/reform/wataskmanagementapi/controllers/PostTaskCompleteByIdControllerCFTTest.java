@@ -608,7 +608,8 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_204_when_task_not_assigned_user_has_granular_complete_permission() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
 
@@ -638,8 +639,8 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_403_if_task_was_not_previously_assigned_task_granular_permissions() {
-
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
 
@@ -712,7 +713,8 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_403_when_assignee_does_not_have_granular_permission_() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -830,7 +832,8 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     //@Ignore("Bug reported in https://tools.hmcts.net/jira/browse/RWA-1780")
     @Test
     public void should_return_a_403_when_assignee_id_does_not_match() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
 
