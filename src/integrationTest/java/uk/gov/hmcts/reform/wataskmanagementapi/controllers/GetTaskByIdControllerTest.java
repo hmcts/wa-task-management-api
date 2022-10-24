@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -55,10 +54,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -265,140 +260,6 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    public void should_return_a_200_when_get_by_standard_tribunal_case_worker() throws Exception {
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            true, true, false, true, true, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
-        );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource);
-
-        List<RoleAssignment> roles = new ArrayList<>();
-
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction("WA")
-                    .caseType("WaCaseType")
-                    .caseId("caseId1")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(roles, roleAssignmentRequest);
-
-        RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roles);
-
-        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
-        //Assigner
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(roleAssignmentResource);
-
-        mockMvc.perform(
-            get("/task/" + taskId)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpectAll(
-            status().is(HttpStatus.OK.value()),
-            jsonPath("$.task.id").value(taskId)
-        );
-    }
-
-    @Test
-    public void should_return_a_200_when_get_by_standard_judge() throws Exception {
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_JUDGE_PUBLIC.getRoleName(),
-            true, true, false, true, true, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_JUDGE_PUBLIC.getRoleCategory().name()
-        );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource);
-
-        List<RoleAssignment> roles = new ArrayList<>();
-
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_JUDGE_PUBLIC)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction("WA")
-                    .caseType("WaCaseType")
-                    .caseId("caseId1")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(roles, roleAssignmentRequest);
-
-        RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roles);
-
-        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
-
-        //Assigner
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(roleAssignmentResource);
-
-        mockMvc.perform(
-            get("/task/" + taskId)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpectAll(
-            status().is(HttpStatus.OK.value()),
-            jsonPath("$.task.id").value(taskId)
-        );
-    }
-
-    @Test
-    public void should_return_a_200_when_get_by_challenge_access_admin() throws Exception {
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN.getRoleName(),
-            true, true, false, true, true, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN.getRoleCategory().name()
-        );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource);
-
-        List<RoleAssignment> roles = new ArrayList<>();
-
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction("WA")
-                    .caseType("WaCaseType")
-                    .caseId("caseId1")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(roles, roleAssignmentRequest);
-
-        RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roles);
-
-        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
-
-        //Assigner
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(roleAssignmentResource);
-
-        mockMvc.perform(
-            get("/task/" + taskId)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpectAll(
-            status().is(HttpStatus.OK.value()),
-            jsonPath("$.task.id").value(taskId)
-        );
-    }
-
-    @Test
     void should_return_a_404_when_id_is_not_found() throws Exception {
 
         mockServices.mockUserInfo();
@@ -421,14 +282,14 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 allTestRoles.add(roleAssignment);
             }));
 
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
             allTestRoles
         );
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
         mockMvc.perform(
             get("/task/" + taskId)
@@ -445,33 +306,6 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
     }
 
-    @Test
-    void should_return_a_500_when_id_invalid() throws Exception {
-
-        mockServices.mockServiceAPIs();
-
-        FeignException mockFeignException = mock(FeignException.FeignServerException.class);
-
-        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
-
-        when(mockFeignException.contentUTF8())
-            .thenReturn(mockServices.createCamundaTestException(
-                "aCamundaErrorType", String.format(
-                    "There was a problem fetching the task with id: %s",
-                    taskId
-                )));
-        doThrow(mockFeignException).when(roleAssignmentServiceApi).createRoleAssignment(any(), any(), any());
-
-        mockMvc.perform(
-            get("/task/" + taskId)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpect(status().is5xxServerError());
-
-        verify(camundaServiceApi, times(1))
-            .getTask(any(), any());
-    }
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() throws Exception {
