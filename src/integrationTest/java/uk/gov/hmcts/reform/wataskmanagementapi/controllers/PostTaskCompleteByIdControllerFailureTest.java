@@ -650,12 +650,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
-            )).thenReturn(true);
-
             CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
             String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
@@ -850,12 +844,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
-            )).thenReturn(true);
-
             String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
             mockMvc.perform(
                 post(String.format(ENDPOINT_PATH, nonExistentTaskId))
@@ -870,49 +858,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 jsonPath("$.status").value(404),
                 jsonPath("$.detail").value(
                     "Task Not Found Error: The task could not be found.")
-            );
-        }
-
-        @Test
-        void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_true() throws Exception {
-
-            CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
-            insertDummyTaskInDb(taskId, cftTaskDatabaseService);
-
-            mockServices.mockUserInfo();
-            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(List.of());
-
-            when(roleAssignmentServiceApi.getRolesForUser(
-                any(), any(), any()
-            )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, List.of()));
-
-            when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
-            )).thenReturn(true);
-
-            CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
-            mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(asJsonString(request))
-            ).andExpectAll(
-                status().is4xxClientError(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
-                jsonPath("$.title").value("Forbidden"),
-                jsonPath("$.status").value(403),
-                jsonPath("$.detail").value("Forbidden: The action could not be completed "
-                                               + "because the client/user had insufficient rights to a resource.")
             );
         }
     }
