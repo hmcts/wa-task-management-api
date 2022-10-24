@@ -135,10 +135,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[7].permissions", hasItems("Read", "Execute", "Complete", "Claim", "Unclaim",
                                                    "UnclaimAssign", "UnassignClaim", "UnassignAssign"))
             .body("roles[8].role_name", equalTo("task-supervisor"))
-            .body("roles[8].permissions", hasItems("Read", "Refer", "Manage", "Cancel"))
+            .body("roles[8].permissions", hasItems("Read", "Manage", "Cancel", "Complete", "Assign", "Unassign"))
             .body("roles[9].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("roles[9].role_name", equalTo("tribunal-caseworker"))
-            .body("roles[9].permissions", hasItems("Read", "Refer", "Execute"));
+            .body("roles[9].permissions", hasItems("Read","CompleteOwn","CancelOwn","Claim","Own"));
 
         common.cleanUpTask(taskId);
     }
@@ -232,12 +232,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[5].permissions", hasItems("Read", "Manage", "Cancel"))
             .body("roles[6].role_category", equalTo("JUDICIAL"))
             .body("roles[6].role_name", equalTo("judge"))
-            .body("roles[6].permissions", hasItems("Read", "Refer", "Own"))
+            .body("roles[6].permissions", hasItems("Read", "Own"))
             .body("roles[7].role_category", equalTo("JUDICIAL"))
             .body("roles[7].role_name", equalTo("lead-judge"))
             .body("roles[7].permissions", hasItems("Cancel"))
             .body("roles[8].role_name", equalTo("task-supervisor"))
-            .body("roles[8].permissions", hasItems("Read", "Refer", "Manage", "Cancel"));
+            .body("roles[8].permissions", hasItems("Read", "Manage", "Cancel", "Complete", "Assign", "Unassign"));
 
         common.cleanUpTask(taskId);
     }
@@ -527,12 +527,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles.values.size()", equalTo(3))
             .body("roles[0].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("roles[0].role_name", equalTo("senior-tribunal-caseworker"))
-            .body("roles[0].permissions", hasItems("Read", "Refer", "Execute"))
+            .body("roles[0].permissions", hasItems("Read", "Execute"))
             .body("roles[1].role_name", equalTo("task-supervisor"))
-            .body("roles[1].permissions", hasItems("Read", "Refer", "Manage", "Cancel"))
+            .body("roles[1].permissions", hasItems("Read", "Manage", "Cancel", "Complete", "Assign", "Unassign"))
             .body("roles[2].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("roles[2].role_name", equalTo("tribunal-caseworker"))
-            .body("roles[2].permissions", hasItems("Read", "Refer", "Execute"));
+            .body("roles[2].permissions", hasItems("Read", "Execute"));
 
         common.cleanUpTask(taskId);
     }
