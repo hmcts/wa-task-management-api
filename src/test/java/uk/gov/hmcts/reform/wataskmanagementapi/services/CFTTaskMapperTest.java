@@ -25,12 +25,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAtt
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -443,7 +443,7 @@ class CFTTaskMapperTest {
         );
 
         HashMap<String, Object> mappedValues = new HashMap<>();
-        mappedValues.put(CamundaVariableDefinition.CASE_ID.value(), "otherCaseId");
+        mappedValues.put(CASE_ID.value(), "otherCaseId");
         mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
         mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
 
@@ -1886,10 +1886,10 @@ class CFTTaskMapperTest {
         );
 
         HashMap<String, Object> mappedValues = new HashMap<>();
-        mappedValues.put(CamundaVariableDefinition.CASE_ID.value(), "otherCaseId");
+        mappedValues.put(CASE_ID.value(), "otherCaseId");
         mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
         mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
-        mappedValues.put(CamundaVariableDefinition.DESCRIPTION.value(), "aDescription");
+        mappedValues.put(DESCRIPTION.value(), "aDescription");
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
@@ -1915,10 +1915,10 @@ class CFTTaskMapperTest {
         );
 
         HashMap<String, Object> mappedValues = new HashMap<>();
-        mappedValues.put(CamundaVariableDefinition.CASE_ID.value(), "otherCaseId");
+        mappedValues.put(CASE_ID.value(), "otherCaseId");
         mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
         mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
-        mappedValues.put(CamundaVariableDefinition.DESCRIPTION.value(), "aDescription");
+        mappedValues.put(DESCRIPTION.value(), "aDescription");
         mappedValues.put(PRIORITY_DATE.value(), "2022-05-09T20:15:45.345875+01:00");
         mappedValues.put(MAJOR_PRIORITY.value(), "5000");
         mappedValues.put(MINOR_PRIORITY.value(), "500");

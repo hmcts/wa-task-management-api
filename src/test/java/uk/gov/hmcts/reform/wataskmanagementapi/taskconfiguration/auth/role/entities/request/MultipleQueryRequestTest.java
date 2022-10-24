@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.enti
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.MultipleQueryRequest;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
