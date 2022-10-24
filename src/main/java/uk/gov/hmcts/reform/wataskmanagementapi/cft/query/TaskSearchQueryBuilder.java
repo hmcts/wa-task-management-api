@@ -43,6 +43,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 
@@ -52,6 +53,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
     "PMD.TooManyMethods",
     "PMD.LawOfDemeter",
     "PMD.ExcessiveImports",
+    "PMD.NPathComplexity"
 })
 public final class TaskSearchQueryBuilder {
 
@@ -170,6 +172,7 @@ public final class TaskSearchQueryBuilder {
         SearchParameterList userParam = keyMap.get(USER);
         SearchParameterList workTypeParam = keyMap.get(WORK_TYPE);
         SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
+        SearchParameterList taskTypeParam = keyMap.get(TASK_TYPE);
 
         ArrayList<Predicate> predicates = new ArrayList<>();
         predicates.add(searchByJurisdiction(
@@ -203,6 +206,12 @@ public final class TaskSearchQueryBuilder {
             roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues(),
             builder, root
         ));
+
+        predicates.add(searchByTaskTypes(
+            taskTypeParam == null ? Collections.emptyList() : taskTypeParam.getValues(),
+            builder, root
+        ));
+
         return builder.and(predicates.toArray(new Predicate[0]));
     }
 

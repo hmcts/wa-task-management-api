@@ -53,6 +53,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 
@@ -473,6 +474,61 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     }
 
+    @Test
+    void should_retrieve_tasks_when_task_type_filter_applied() {
+
+        List<String> caseIds = List.of("1623278362400035", "1623278362400036");
+        String taskType = "followUpOverdueCaseBuilding";
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList(taskType)),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+        ));
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        //apply standard role to user
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_SENIOR_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .region("1")
+                    .baseLocation(PRIMARY_LOCATION)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
+        permissionsRequired.add(PermissionTypes.READ);
+
+        GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+            0,
+            10,
+            searchTaskRequest,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
+        );
+
+
+        //standard user can retrieve task
+        Assertions.assertThat(allTasks.getTotalRecords())
+            .isEqualTo(1);
+
+        Assertions.assertThat(allTasks.getTasks())
+            .hasSize(1)
+            .flatExtracting(Task::getCaseId)
+            .containsExactly(caseIds.get(0));
+
+        //allTasks.getTasks().get(0).getType()
+        Assertions.assertThat(allTasks.getTasks())
+            .hasSize(1)
+            .flatExtracting(Task::getType)
+            .containsExactly(taskType);
+
+    }
+
     private static Stream<TaskQueryScenario> grantTypeStandardScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
@@ -486,9 +542,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(2)
-            .expectedTotalRecords(2)
+            .expectedAmountOfTasksInResponse(4)
+            .expectedTotalRecords(4)
             .expectedTaskDetails(newArrayList(
+                    "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000036", "1623278362400036",
                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
                 )
@@ -500,10 +558,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(4)
-            .expectedTotalRecords(4)
+            .expectedAmountOfTasksInResponse(6)
+            .expectedTotalRecords(6)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000036", "1623278362400036",
                     "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
@@ -516,12 +576,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(6)
-            .expectedTotalRecords(6)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
                     "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
                     "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000036", "1623278362400036",
                     "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
@@ -1290,7 +1352,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(20)
-            .expectedTotalRecords(22)
+            .expectedTotalRecords(24)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
@@ -1322,7 +1384,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(10)
-            .expectedTotalRecords(22)
+            .expectedTotalRecords(24)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
@@ -1344,7 +1406,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(2)
-            .expectedTotalRecords(22)
+            .expectedTotalRecords(24)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
@@ -1358,7 +1420,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(10)
-            .expectedTotalRecords(22)
+            .expectedTotalRecords(24)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
@@ -1380,7 +1442,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(5)
-            .expectedTotalRecords(22)
+            .expectedTotalRecords(24)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
@@ -1769,7 +1831,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000037", "1623278362400037"
                 )
             ).build();
 
