@@ -1,17 +1,16 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.QueryRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.request.AssigneeRequest;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class QueryRequestTest {
-
+class AssigneeRequestTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = QueryRequest.class;
+        final Class<?> classUnderTest = AssigneeRequest.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
@@ -21,4 +20,5 @@ class QueryRequestTest {
             .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
+
 }

@@ -1,16 +1,15 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda;
+package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.request.DmnRequest;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class DmnRequestTest {
+class MultipleQueryRequestTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = DmnRequest.class;
+        final Class<?> classUnderTest = MultipleQueryRequest.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

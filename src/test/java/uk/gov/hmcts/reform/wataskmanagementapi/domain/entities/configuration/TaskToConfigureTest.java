@@ -1,16 +1,15 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class UserIdamTokenGeneratorInfoTest {
+class TaskToConfigureTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = UserIdamTokenGeneratorInfo.class;
+        final Class<?> classUnderTest = TaskToConfigure.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

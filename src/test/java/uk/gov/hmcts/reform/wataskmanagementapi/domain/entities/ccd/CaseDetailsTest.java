@@ -1,16 +1,15 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.GenericDmnTableResult;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class GenericDmnTableResultTest {
+class CaseDetailsTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = GenericDmnTableResult.class;
+        final Class<?> classUnderTest = CaseDetails.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

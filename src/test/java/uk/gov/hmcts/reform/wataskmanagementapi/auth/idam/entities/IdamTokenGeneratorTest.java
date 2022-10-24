@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam;
+package uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -8,9 +8,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 
 import static org.junit.Assert.assertEquals;

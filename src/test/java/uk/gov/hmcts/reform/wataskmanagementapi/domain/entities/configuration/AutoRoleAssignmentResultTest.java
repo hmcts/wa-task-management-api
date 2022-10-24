@@ -1,16 +1,15 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.response.CamundaTask;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class CamundaTaskTest {
+class AutoRoleAssignmentResultTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = CamundaTask.class;
+        final Class<?> classUnderTest = AutoAssignmentResult.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
@@ -20,6 +19,5 @@ class CamundaTaskTest {
             .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
-
 
 }

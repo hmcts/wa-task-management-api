@@ -1,8 +1,7 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.request.DecisionTableRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

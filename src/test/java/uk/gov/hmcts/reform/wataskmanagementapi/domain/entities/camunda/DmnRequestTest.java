@@ -1,16 +1,16 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.AutoAssignmentResult;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.request.DmnRequest;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class AutoRoleAssignmentResultTest {
+class DmnRequestTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = AutoAssignmentResult.class;
+        final Class<?> classUnderTest = DmnRequest.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
