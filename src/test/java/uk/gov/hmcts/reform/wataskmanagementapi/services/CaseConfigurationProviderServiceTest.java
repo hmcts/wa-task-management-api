@@ -663,7 +663,7 @@ class CaseConfigurationProviderServiceTest {
     }
 
     @Test
-    void should_evaluate_task_configuration_dmn_and_return_empty_dmn_results_with_json_mapping_exception() throws Exception {
+    void should_evaluate_task_configuration_dmn_when_json_mapping_exception_return_empty_results() throws Exception {
         String someCaseId = "someCaseId";
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         when(objectMapper.writeValueAsString(anyMap())).thenThrow(JsonProcessingException.class);
