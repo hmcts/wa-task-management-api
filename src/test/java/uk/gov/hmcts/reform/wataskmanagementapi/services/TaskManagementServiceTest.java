@@ -184,9 +184,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
     private EntityManager entityManager;
 
     @Mock
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
-    @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     @Mock(extraInterfaces = Serializable.class)
     private CriteriaBuilderImpl builder;

@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
@@ -57,8 +56,6 @@ class ClaimTaskTest extends CamundaHelpers {
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
-    private MarkTaskReconfigurationService taskReconfigurationService;
-    @Mock
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
@@ -69,8 +66,6 @@ class ClaimTaskTest extends CamundaHelpers {
 
     @Mock
     private List<TaskOperationService> taskOperationServices;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
 
     @Test
