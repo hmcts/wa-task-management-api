@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.services;
+package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.apache.commons.io.FileUtils;
@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest {
 
     private static WireMockServer wireMockServer;
+
     @Autowired
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
 
@@ -206,7 +207,7 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
 
     private String loadFile(String fileName) throws IOException {
         return FileUtils.readFileToString(ResourceUtils.getFile(
-            "classpath:uk/gov/hmcts/reform/wataskmanagementapi/wataskconfigurationapi/variableextractors/"
+            "classpath:variableextractors/"
             + fileName), StandardCharsets.UTF_8);
     }
 

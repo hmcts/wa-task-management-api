@@ -1,17 +1,20 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.roleassignment;
+package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.json.JsonContent;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.MultipleQueryRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.QueryRequest;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -21,6 +24,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 @JsonTest
 class MultipleQueryRequestTest {
+
+    @Value("classpath:roleassignment/queryRequest.json")
+    private Resource resourceFile;
 
     @Autowired
     private JacksonTester<MultipleQueryRequest> jacksonTester;
@@ -37,7 +43,8 @@ class MultipleQueryRequestTest {
             .build();
 
         JsonContent<MultipleQueryRequest> queryRequestJsonContent = jacksonTester.write(multipleQueryRequest);
-
-        assertThat(queryRequestJsonContent).isEqualToJson("queryRequest.json");
+        assertThat(queryRequestJsonContent).isEqualToJson(
+            FileUtils.readFileToString(resourceFile.getFile(), StandardCharsets.UTF_8)
+        );
     }
 }

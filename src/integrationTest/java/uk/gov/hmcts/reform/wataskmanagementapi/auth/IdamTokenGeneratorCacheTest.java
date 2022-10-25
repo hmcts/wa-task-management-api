@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi;
+package uk.gov.hmcts.reform.wataskmanagementapi.auth;
 
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.google.common.testing.FakeTicker;
