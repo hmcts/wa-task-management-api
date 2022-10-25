@@ -1,13 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode
-@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class TaskTypesDmnResponse implements EvaluationResponse {
 
