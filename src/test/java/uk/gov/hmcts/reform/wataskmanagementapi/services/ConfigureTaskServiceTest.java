@@ -7,6 +7,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAtt
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
@@ -14,8 +16,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.configurators.TaskConfig
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,6 +30,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
@@ -105,6 +110,83 @@ class ConfigureTaskServiceTest {
 
         when(taskVariableExtractor.getConfigurationVariables(any()))
             .thenReturn(new TaskConfigurationResults(mappedValues));
+
+        configureTaskService.configureTask(TASK_TO_CONFIGURE.getId());
+
+        HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
+        modifications.put("key1", CamundaValue.stringValue("value1"));
+        modifications.put("key2", CamundaValue.stringValue("value2"));
+        modifications.put(TASK_TYPE.value(), CamundaValue.stringValue("taskTypeId"));
+        modifications.put(TASK_STATE.value(), CamundaValue.stringValue(CONFIGURED.value()));
+
+        verify(camundaService).addProcessVariables(
+            TASK_TO_CONFIGURE.getId(),
+            modifications
+        );
+
+        verify(taskVariableExtractor).getConfigurationVariables(any());
+    }
+
+    @Test
+    void can_configure_a_task_with_dmn_response() {
+
+        String processInstanceId = "processInstanceId";
+
+        CamundaTask camundaTask = new CamundaTask(
+            TASK_TO_CONFIGURE.getId(),
+            processInstanceId,
+            TASK_TO_CONFIGURE.getName()
+        );
+        when(camundaService.getTask(TASK_TO_CONFIGURE.getId())).thenReturn(camundaTask);
+
+        HashMap<String, CamundaVariable> processVariables = new HashMap<>();
+        processVariables.put(
+            CASE_ID.value(),
+            new CamundaVariable(TASK_TO_CONFIGURE.getCaseId(), "String")
+        );
+        processVariables.put(
+            TASK_STATE.value(),
+            new CamundaVariable(UNCONFIGURED.value(), "String")
+        );
+        processVariables.put(
+            TASK_ID.value(),
+            new CamundaVariable(TASK_TYPE.value(), "String")
+        );
+
+        doReturn(processVariables).when(camundaService).getTaskVariables(TASK_TO_CONFIGURE.getId());
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put("key1", "value1");
+        mappedValues.put("key2", "value2");
+        mappedValues.put(TASK_TYPE.value(), "taskTypeId");
+        mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
+
+        List<ConfigurationDmnEvaluationResponse> configDmnResponse = List.of(
+            new ConfigurationDmnEvaluationResponse(stringValue("key1"), stringValue("value1")),
+            new ConfigurationDmnEvaluationResponse(stringValue("key2"), stringValue("value2")));
+
+        List<PermissionsDmnEvaluationResponse> permissionDmnResponse = asList(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("tribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryA,categoryC")
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("seniorTribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryB,categoryD")
+            )
+        );
+        when(taskVariableExtractor.getConfigurationVariables(any()))
+            .thenReturn(new TaskConfigurationResults(mappedValues, configDmnResponse, permissionDmnResponse));
 
         configureTaskService.configureTask(TASK_TO_CONFIGURE.getId());
 
