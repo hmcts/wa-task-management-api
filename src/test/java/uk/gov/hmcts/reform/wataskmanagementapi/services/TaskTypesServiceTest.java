@@ -59,14 +59,7 @@ class TaskTypesServiceTest {
 
     @Test
     void should_return_all_task_types() {
-
-        final List<String> roleNames = singletonList("tribunal-caseworker");
-
-        Map<String, String> roleAttributes = new HashMap<>();
-        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
-
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
-
+        //given
         TaskTypesDmnResponse taskTypesDmnResponse = new TaskTypesDmnResponse(
             "wa-task-types-wa-wacasetype",
             "wa",
@@ -89,8 +82,15 @@ class TaskTypesServiceTest {
         when(dmnEvaluationService.evaluateTaskTypesDmn("wa", "wa-task-types-wa-wacasetype"))
             .thenReturn(taskTypesDmnEvaluationResponses);
 
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+        Map<String, String> roleAttributes = new HashMap<>();
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
+
+        //when
         List<TaskTypeResponse> response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
 
+        //then
         assertNotNull(response);
         assertEquals(1, response.size());
         assertEquals("processApplication", response.get(0).getTaskType().getTaskTypeId());
@@ -101,13 +101,7 @@ class TaskTypesServiceTest {
     @Test
     void should_return_all_task_types_with_first_record_and_without_duplicate() {
 
-        final List<String> roleNames = singletonList("tribunal-caseworker");
-
-        Map<String, String> roleAttributes = new HashMap<>();
-        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
-
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
-
+        //given
         TaskTypesDmnResponse taskTypesDmnResponse = new TaskTypesDmnResponse(
             "wa-task-types-wa-wacasetype",
             "wa",
@@ -168,8 +162,16 @@ class TaskTypesServiceTest {
         when(dmnEvaluationService.evaluateTaskTypesDmn("wa", "wa-task-types-wa-wacasetype"))
             .thenReturn(taskTypesDmnEvaluationResponses);
 
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
+
+        //when
         List<TaskTypeResponse> response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
 
+        //then
         assertNotNull(response);
         assertEquals(2, response.size());
         assertEquals("processApplication", response.get(0).getTaskType().getTaskTypeId());
