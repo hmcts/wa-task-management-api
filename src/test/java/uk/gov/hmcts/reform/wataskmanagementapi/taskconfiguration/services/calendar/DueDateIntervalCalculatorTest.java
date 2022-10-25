@@ -359,7 +359,7 @@ class DueDateIntervalCalculatorTest {
     }
 
     @Test
-    public void shouldCalculateWhenOnlyDueDateOriginAndTimeProvided() {
+    void shouldCalculateWhenOnlyDueDateOriginAndTimeProvided() {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()

@@ -1,10 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -19,7 +20,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class WorkingDayIndicatorTest {
 
     private static final LocalDate BANK_HOLIDAY = toDate("2017-05-29");
@@ -41,13 +42,13 @@ public class WorkingDayIndicatorTest {
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;
 
-    @Before
+    @BeforeEach
     public void setup() {
         service = new WorkingDayIndicator(publicHolidaysCollection);
     }
 
     @Test
-    public void shouldReturnTrueForWeekdays() {
+    void shouldReturnTrueForWeekdays() {
         when(publicHolidaysCollection.getPublicHolidays(URI)).thenReturn(Collections.emptySet());
 
         assertTrue(service.isWorkingDay(MONDAY, URI, List.of("SATURDAY", "SUNDAY")));
@@ -58,19 +59,19 @@ public class WorkingDayIndicatorTest {
     }
 
     @Test
-    public void shouldReturnFalseForProvidedNonworkingDays() {
+    void shouldReturnFalseForProvidedNonworkingDays() {
         assertFalse(service.isWorkingDay(SATURDAY, URI, List.of("SATURDAY", "SUNDAY")));
         assertFalse(service.isWorkingDay(SUNDAY, URI, List.of("SATURDAY", "SUNDAY")));
     }
 
     @Test
-    public void shouldReturnTrueWhenNonworkingDaysNotProvided() {
+    void shouldReturnTrueWhenNonworkingDaysNotProvided() {
         assertTrue(service.isWorkingDay(SATURDAY, URI, List.of()));
         assertTrue(service.isWorkingDay(SUNDAY, URI, List.of()));
     }
 
     @Test
-    public void shouldReturnFalseForOneBankHolidayWhenThereIsOneBankHolidayInCollection() {
+    void shouldReturnFalseForOneBankHolidayWhenThereIsOneBankHolidayInCollection() {
         LocalDate bankHoliday = BANK_HOLIDAY;
         when(publicHolidaysCollection.getPublicHolidays(URI))
             .thenReturn(new HashSet<>(Collections.singletonList(bankHoliday)));
@@ -80,7 +81,7 @@ public class WorkingDayIndicatorTest {
     }
 
     @Test
-    public void shouldReturnFalseForPublicHolidayWhenThereIsMoreDatesInPublicHolidaysCollection() {
+    void shouldReturnFalseForPublicHolidayWhenThereIsMoreDatesInPublicHolidaysCollection() {
         Set<LocalDate> publicHolidays = new HashSet<>(Arrays.asList(MONDAY, TUESDAY, WEDNESDAY, THURSDAY));
         when(publicHolidaysCollection.getPublicHolidays(URI)).thenReturn(publicHolidays);
 
@@ -93,21 +94,21 @@ public class WorkingDayIndicatorTest {
     }
 
     @Test
-    public void shouldReturnFollowingMondayForNextWorkingDayGivenASunday() {
+    void shouldReturnFollowingMondayForNextWorkingDayGivenASunday() {
         LocalDate nextWorkingDay = service.getNextWorkingDay(SUNDAY_WEEK_BEFORE, URI, List.of("SATURDAY", "SUNDAY"));
 
         assertEquals(MONDAY, nextWorkingDay);
     }
 
     @Test
-    public void shouldReturnFollowingMondayForNextWorkingDayGivenASaturday() {
+    void shouldReturnFollowingMondayForNextWorkingDayGivenASaturday() {
         LocalDate nextWorkingDay = service.getNextWorkingDay(SATURDAY_WEEK_BEFORE, URI, List.of("SATURDAY", "SUNDAY"));
 
         assertEquals(MONDAY, nextWorkingDay);
     }
 
     @Test
-    public void shouldReturnFollowingTuesdayForNextWorkingDayGivenABankHolidayFridayAndMonday() {
+    void shouldReturnFollowingTuesdayForNextWorkingDayGivenABankHolidayFridayAndMonday() {
         when(publicHolidaysCollection.getPublicHolidays(URI)).thenReturn(
             new HashSet<>(Collections.singletonList(BANK_HOLIDAY))
         );
