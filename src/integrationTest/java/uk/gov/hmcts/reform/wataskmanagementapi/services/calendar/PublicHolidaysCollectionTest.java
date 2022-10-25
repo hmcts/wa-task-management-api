@@ -21,13 +21,13 @@ class PublicHolidaysCollectionTest {
     private PublicHolidaysCollection publicHolidaysCollection;
 
     @Test
-    public void getAllBankHolidaysShouldBeOk() {
+    public void should_not_return_empty_bank_holidays() {
         Set<LocalDate> response = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
         assertThat(response).isNotEmpty();
     }
 
     @Test
-    public void externalApiShouldBeCalledOnlyOnce() {
+    public void should_call_external_api_only_once() {
         Set<LocalDate> resultFromApi = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
         Set<LocalDate> resultFromCache = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
         Set<LocalDate> resultFromCacheAgain = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);

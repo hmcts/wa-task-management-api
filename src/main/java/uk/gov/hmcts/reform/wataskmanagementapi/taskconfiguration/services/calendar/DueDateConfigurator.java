@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,9 +49,9 @@ public class DueDateConfigurator {
             .value(CamundaValue.stringValue(dueDate.get().format(DUE_DATE_TIME_FORMATTER)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> responsesWithoutDueDate = filterOutDueDate(configResponses);
-        responsesWithoutDueDate.add(dueDateResponse);
-        return responsesWithoutDueDate;
+        List<ConfigurationDmnEvaluationResponse> withoutDueDate = new ArrayList<>(filterOutDueDate(configResponses));
+        withoutDueDate.add(dueDateResponse);
+        return withoutDueDate;
     }
 
     private Optional<DateCalculator> getDueDateCalculator(List<ConfigurationDmnEvaluationResponse> configResponses) {
