@@ -42,7 +42,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.ArrayMatching.arrayContaining;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -193,17 +192,174 @@ class TaskConfigurationRoleAssignmentServiceTest {
         );
     }
 
-    @Test
-    void should_return_query_request_classifications_according_to_invalid_securityClassification() {
-        String securityClassificationInput = "UNKNOWN";
+    @ParameterizedTest
+    @CsvSource({
+        "PUBLIC, PUBLIC PRIVATE RESTRICTED",
+        "PRIVATE, PRIVATE RESTRICTED",
+        "RESTRICTED, RESTRICTED"
+    })
+    void should_return_query_request_classifications_when_auto_assignable_and_own_permissions_false(
+        String securityClassificationInput, String classificationInput) {
 
-        SecurityClassification mockSecurityClassification = SecurityClassification.valueOf(securityClassificationInput);
+        classifications = Arrays.stream(classificationInput.split(" "))
+            .map(Classification::valueOf)
+            .collect(Collectors.toList());
 
+        SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
+        TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", false);
+        taskRoleResource.setOwn(false);
         TaskResource taskResource = createTestTaskWithRoleResources(
-            mockSecurityClassification,
-            singleton(taskRoleResource("tribunal-caseworker", true))
+            securityClassification,
+            singleton(taskRoleResource)
         );
-        assertThrows(IllegalStateException.class, () -> roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource));
+
+        RoleAssignment roleAssignment = getRoleAssignment(Classification.valueOf(securityClassificationInput));
+
+        final RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
+            singletonList(roleAssignment)
+        );
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            any(MultipleQueryRequest.class)))
+            .thenReturn(roleAssignmentResource);
+
+        List<RoleAssignment> roleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
+
+        assertNotNull(roleAssignments);
+
+        verify(roleAssignmentServiceApi).queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            captor.capture()
+        );
+
+        MultipleQueryRequest queryRequests = captor.getValue();
+
+        assertThat(queryRequests).isNotNull();
+        assertThat(queryRequests.getQueryRequests()).isNotEmpty();
+        assertNotNull(queryRequests.getQueryRequests().get(0).getClassification());
+
+        assertThat(classifications.size())
+            .isEqualTo(queryRequests.getQueryRequests().get(0).getClassification().size());
+
+        arrayContaining(
+            classifications,
+            equalTo(queryRequests.getQueryRequests().get(0).getClassification())
+        );
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "PUBLIC, PUBLIC PRIVATE RESTRICTED",
+        "PRIVATE, PRIVATE RESTRICTED",
+        "RESTRICTED, RESTRICTED"
+    })
+    void should_return_query_request_classifications_when_auto_assignable_true_and_own_permissions_false(
+        String securityClassificationInput, String classificationInput) {
+
+        classifications = Arrays.stream(classificationInput.split(" "))
+            .map(Classification::valueOf)
+            .collect(Collectors.toList());
+
+        SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
+        TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
+        taskRoleResource.setOwn(false);
+        TaskResource taskResource = createTestTaskWithRoleResources(
+            securityClassification,
+            singleton(taskRoleResource)
+        );
+
+        RoleAssignment roleAssignment = getRoleAssignment(Classification.valueOf(securityClassificationInput));
+
+        final RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
+            singletonList(roleAssignment)
+        );
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            any(MultipleQueryRequest.class)))
+            .thenReturn(roleAssignmentResource);
+
+        List<RoleAssignment> roleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
+
+        assertNotNull(roleAssignments);
+
+        verify(roleAssignmentServiceApi).queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            captor.capture()
+        );
+
+        MultipleQueryRequest queryRequests = captor.getValue();
+
+        assertThat(queryRequests).isNotNull();
+        assertThat(queryRequests.getQueryRequests()).isNotEmpty();
+        assertNotNull(queryRequests.getQueryRequests().get(0).getClassification());
+
+        assertThat(classifications.size())
+            .isEqualTo(queryRequests.getQueryRequests().get(0).getClassification().size());
+
+        arrayContaining(
+            classifications,
+            equalTo(queryRequests.getQueryRequests().get(0).getClassification())
+        );
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "PUBLIC, PUBLIC PRIVATE RESTRICTED",
+        "PRIVATE, PRIVATE RESTRICTED",
+        "RESTRICTED, RESTRICTED"
+    })
+    void should_return_query_request_classifications_when_auto_assignable_false_and_own_permissions_true(
+        String securityClassificationInput, String classificationInput) {
+
+        classifications = Arrays.stream(classificationInput.split(" "))
+            .map(Classification::valueOf)
+            .collect(Collectors.toList());
+
+        SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
+        TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
+        TaskResource taskResource = createTestTaskWithRoleResources(
+            securityClassification,
+            singleton(taskRoleResource)
+        );
+
+        RoleAssignment roleAssignment = getRoleAssignment(Classification.valueOf(securityClassificationInput));
+
+        final RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
+            singletonList(roleAssignment)
+        );
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            any(MultipleQueryRequest.class)))
+            .thenReturn(roleAssignmentResource);
+
+        List<RoleAssignment> roleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
+
+        assertNotNull(roleAssignments);
+
+        verify(roleAssignmentServiceApi).queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            captor.capture()
+        );
+
+        MultipleQueryRequest queryRequests = captor.getValue();
+
+        assertThat(queryRequests).isNotNull();
+        assertThat(queryRequests.getQueryRequests()).isNotEmpty();
+        assertNotNull(queryRequests.getQueryRequests().get(0).getClassification());
+
+        assertThat(classifications.size())
+            .isEqualTo(queryRequests.getQueryRequests().get(0).getClassification().size());
+
+        arrayContaining(
+            classifications,
+            equalTo(queryRequests.getQueryRequests().get(0).getClassification())
+        );
     }
 
     private RoleAssignment getRoleAssignment() {
