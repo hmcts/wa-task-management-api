@@ -48,9 +48,7 @@ class ReconfigureTaskServiceTest {
         caseConfigurationProviderService = mock(CaseConfigurationProviderService.class);
         cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         configureTaskService = new ConfigureTaskService(
-            camundaService,
             Collections.singletonList(taskVariableExtractor),
-            autoAssignmentService,
             caseConfigurationProviderService,
             cftTaskMapper
         );
