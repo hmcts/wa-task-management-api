@@ -42,9 +42,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.ArrayMatching.arrayContaining;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,8 +82,8 @@ class TaskConfigurationRoleAssignmentServiceTest {
             idamTokenGenerator
         );
 
-        when(idamTokenGenerator.generate()).thenReturn(IDAM_USER_TOKEN);
-        when(serviceAuthTokenGenerator.generate()).thenReturn(S2S_TOKEN);
+        lenient().when(idamTokenGenerator.generate()).thenReturn(IDAM_USER_TOKEN);
+        lenient().when(serviceAuthTokenGenerator.generate()).thenReturn(S2S_TOKEN);
 
     }
 
@@ -189,6 +191,19 @@ class TaskConfigurationRoleAssignmentServiceTest {
             classifications,
             equalTo(queryRequests.getQueryRequests().get(0).getClassification())
         );
+    }
+
+    @Test
+    void should_return_query_request_classifications_according_to_invalid_securityClassification() {
+        String securityClassificationInput = "UNKNOWN";
+
+        SecurityClassification mockSecurityClassification = SecurityClassification.valueOf(securityClassificationInput);
+
+        TaskResource taskResource = createTestTaskWithRoleResources(
+            mockSecurityClassification,
+            singleton(taskRoleResource("tribunal-caseworker", true))
+        );
+        assertThrows(IllegalStateException.class, () -> roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource));
     }
 
     private RoleAssignment getRoleAssignment() {
