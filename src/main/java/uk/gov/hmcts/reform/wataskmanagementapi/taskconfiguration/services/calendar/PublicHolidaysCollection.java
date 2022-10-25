@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 @Component
 public class PublicHolidaysCollection {
 
-    public Decoder feignDecoder;
-    public Encoder feignEncoder;
+    public final Decoder feignDecoder;
+    public final Encoder feignEncoder;
 
     public PublicHolidaysCollection(Decoder feignDecoder, Encoder feignEncoder) {
         this.feignDecoder = feignDecoder;

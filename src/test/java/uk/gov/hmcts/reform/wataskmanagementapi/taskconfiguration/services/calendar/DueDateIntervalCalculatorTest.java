@@ -50,7 +50,7 @@ class DueDateIntervalCalculatorTest {
     }
 
     @Test
-    public void shouldCalculateWhenDefaultValueProvided() {
+    void shouldCalculateWhenDefaultValueProvided() {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
@@ -99,7 +99,7 @@ class DueDateIntervalCalculatorTest {
     }
 
     @Test
-    public void shouldCalculateWhenIntervalIsGreaterThan0() {
+    void shouldCalculateWhenIntervalIsGreaterThan0() {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
@@ -148,7 +148,7 @@ class DueDateIntervalCalculatorTest {
     }
 
     @Test
-    public void shouldCalculateWhenIntervalIsGreaterThan0AndGivenHolidays() {
+    void shouldCalculateWhenIntervalIsGreaterThan0AndGivenHolidays() {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
@@ -197,7 +197,7 @@ class DueDateIntervalCalculatorTest {
     }
 
     @Test
-    public void shouldCalculateWhenSkipNonWorkingDaysFalse() {
+    void shouldCalculateWhenSkipNonWorkingDaysFalse() {
         when(publicHolidaysCollection.getPublicHolidays(CALENDAR_URI))
             .thenReturn(Set.of(LocalDate.of(2022, 10, 18)));
 
@@ -249,7 +249,7 @@ class DueDateIntervalCalculatorTest {
     }
 
     @Test
-    public void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
+    void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
@@ -298,7 +298,7 @@ class DueDateIntervalCalculatorTest {
     }
 
     @Test
-    public void shouldCalculateWhenWithoutDueDateTime() {
+    void shouldCalculateWhenWithoutDueDateTime() {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
@@ -342,7 +342,7 @@ class DueDateIntervalCalculatorTest {
     }
 
     @Test
-    public void shouldCalculateWhenOnlyDueDateOriginProvided() {
+    void shouldCalculateWhenOnlyDueDateOriginProvided() {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()

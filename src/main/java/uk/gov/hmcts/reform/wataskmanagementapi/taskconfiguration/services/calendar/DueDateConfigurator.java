@@ -42,7 +42,7 @@ public class DueDateConfigurator {
 
         Optional<DateCalculator> dueDateCalculator = getDueDateCalculator(dueDateProperties);
         dueDateCalculator
-            .ifPresent((dateCalculator) -> dueDate.getAndSet(dateCalculator.calculateDueDate(dueDateProperties)));
+            .ifPresent(dateCalculator -> dueDate.getAndSet(dateCalculator.calculateDueDate(dueDateProperties)));
 
         ConfigurationDmnEvaluationResponse dueDateResponse = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue(DUE_DATE))
