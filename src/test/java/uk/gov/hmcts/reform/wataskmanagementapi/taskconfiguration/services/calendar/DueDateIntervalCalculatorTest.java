@@ -378,5 +378,58 @@ class DueDateIntervalCalculatorTest {
 
         Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
     }
+
+    @Test
+    void should_not_supports_when_responses_contains_due_date_origin_and_due_date() {
+        String expectedDueDate = GIVEN_DATE.plusDays(0)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOrigin"))
+            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDate"))
+            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDate);
+
+        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses)).isFalse();
+    }
+
+    @Test
+    void should_not_supports_when_responses_contains_only_due_date_time() {
+
+        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateTime"))
+            .value(CamundaValue.stringValue("16:00"))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
+
+        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses)).isFalse();
+    }
+
+    @Test
+    void should_supports_when_responses_only_contains_due_date_but_not_origin() {
+        String expectedDueDate = GIVEN_DATE.plusDays(0)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOrigin"))
+            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateTime"))
+            .value(CamundaValue.stringValue("16:00"))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDateTime);
+
+        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses)).isTrue();
+    }
 }
 

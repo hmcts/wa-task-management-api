@@ -28,7 +28,7 @@ public class WorkingDayIndicator {
                 && !isCustomNonWorkingDay(nonWorkingDaysOfWeek, date);
     }
 
-    public boolean isPublicHoliday(LocalDate date, String uri) {
+    private boolean isPublicHoliday(LocalDate date, String uri) {
         return publicHolidaysCollection.getPublicHolidays(uri).contains(date);
     }
 
@@ -41,7 +41,7 @@ public class WorkingDayIndicator {
             : getNextWorkingDay(updated, uri, nonWorkingDaysOfWeek);
     }
 
-    public boolean isCustomNonWorkingDay(List<String> nonWorkingDaysOfWeek, LocalDate localDate) {
+    private boolean isCustomNonWorkingDay(List<String> nonWorkingDaysOfWeek, LocalDate localDate) {
         if (nonWorkingDaysOfWeek == null || nonWorkingDaysOfWeek.isEmpty()) {
             return false;
         }

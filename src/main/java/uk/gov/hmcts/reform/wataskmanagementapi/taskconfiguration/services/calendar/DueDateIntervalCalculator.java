@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -61,12 +60,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
                 );
             }
         }
-
-        if (StringUtils.isNotBlank(dueDateIntervalData.getDueDateTime())) {
-            return localDate.atTime(LocalTime.parse(dueDateIntervalData.getDueDateTime()));
-        } else {
-            return localDate.atTime(dueDate.toLocalTime());
-        }
+        return localDate.atTime(LocalTime.parse(dueDateIntervalData.getDueDateTime()));
     }
 
     private DueDateIntervalData readDueDateOriginFields(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
