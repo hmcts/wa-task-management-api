@@ -403,6 +403,52 @@ class TaskAutoRoleAssignmentServiceTest {
     }
 
     @Test
+    void should_not_autoassign_task_to_other_user_when_autoassignable_false_and_current_user_has_valid_permissions() {
+
+        TaskResource taskResource = createTaskResource();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        //first role assignment set
+        RoleAssignment roleAssignmentResource1 = createRoleAssignment(
+            "someuser@test.com",
+            "tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+        roleAssignments.add(roleAssignmentResource1);
+
+        //second role assignment set
+        RoleAssignment roleAssignmentResource2 = createRoleAssignment(
+            "someotheruser@test.com",
+            "senior-tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+        roleAssignments.add(roleAssignmentResource2);
+
+        //set senior-tribunal-caseworker high prioritised user
+        Set<TaskRoleResource> taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", false, 2),
+            taskRoleResource("senior-tribunal-caseworker", false, 1),
+            taskRoleResource("caseworker", false, 3)
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+        taskResource.setAssignee(roleAssignmentResource1.getActorId());
+        taskResource.setState(CFTTaskState.ASSIGNED);
+
+        List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource1);
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignmentForAssignee);
+
+        TaskResource autoAssignCFTTaskResponse =
+            taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
+
+        assertThat(autoAssignCFTTaskResponse.getAssignee())
+            .isEqualTo(roleAssignmentResource1.getActorId());
+    }
+
+
+    @Test
     void should_not_reassign_task_to_other_user_when_current_user_have_own_execute_permissions() {
 
         TaskResource taskResource = createTaskResource();

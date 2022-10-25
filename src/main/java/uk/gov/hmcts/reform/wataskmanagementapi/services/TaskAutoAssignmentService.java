@@ -179,8 +179,7 @@ public class TaskAutoAssignmentService {
 
     private boolean isTaskRoleAutoAssignableWithNullOrEmptyAuthorisations(TaskRoleResource taskRoleResource) {
         return taskRoleResource.getAutoAssignable()
-               && (!isAuthorisationsValid(taskRoleResource)
-                   || taskRoleResource.getAuthorizations() == null);
+               && (taskRoleResource.getAuthorizations() == null || !isAuthorisationsValid(taskRoleResource));
     }
 
     private boolean hasTaskBeenAssigned(TaskResource taskResource, TaskRoleResource taskRoleResource) {

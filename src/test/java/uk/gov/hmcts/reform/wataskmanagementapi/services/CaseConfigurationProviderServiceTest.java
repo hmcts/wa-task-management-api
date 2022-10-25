@@ -29,6 +29,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -651,6 +652,21 @@ class CaseConfigurationProviderServiceTest {
     void should_evaluate_task_configuration_dmn_and_return_empty_dmn_results() {
         String someCaseId = "someCaseId";
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+            .thenReturn(List.of());
+
+        List<ConfigurationDmnEvaluationResponse> results = caseConfigurationProviderService
+            .evaluateConfigurationDmn(someCaseId, null);
+
+        Assertions.assertThat(results)
+            .isEmpty();
+    }
+
+    @Test
+    void should_evaluate_task_configuration_dmn_and_return_empty_dmn_results_with_json_mapping_exception() throws Exception {
+        String someCaseId = "someCaseId";
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(objectMapper.writeValueAsString(anyMap())).thenThrow(JsonProcessingException.class);
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
             .thenReturn(List.of());
 
