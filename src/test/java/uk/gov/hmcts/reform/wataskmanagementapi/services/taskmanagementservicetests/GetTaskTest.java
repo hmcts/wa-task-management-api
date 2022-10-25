@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -76,6 +77,7 @@ class GetTaskTest extends CamundaHelpers {
         taskId = UUID.randomUUID().toString();
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
         final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
@@ -91,8 +93,10 @@ class GetTaskTest extends CamundaHelpers {
     @Test
     void getTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-        List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+        RoleAssignment roleAssignment = mock(RoleAssignment.class);
+        when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+        List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
+        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
 
         TaskResource taskResource = spy(TaskResource.class);
         when(cftTaskDatabaseService.findByIdOnly(taskId))

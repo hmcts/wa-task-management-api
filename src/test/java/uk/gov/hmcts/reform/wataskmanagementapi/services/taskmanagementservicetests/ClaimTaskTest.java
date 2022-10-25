@@ -82,6 +82,7 @@ class ClaimTaskTest extends CamundaHelpers {
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         taskManagementService.claimTask(taskId, accessControlResponse);
 
