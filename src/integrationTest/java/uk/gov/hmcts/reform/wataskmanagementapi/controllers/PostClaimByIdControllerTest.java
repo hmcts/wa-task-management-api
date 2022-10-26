@@ -304,7 +304,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
-        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 
         mockServices.mockUserInfo();
         List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
@@ -551,6 +551,78 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                 + "The request failed the Role Assignment checks performed.")
         );
     }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "IA, Asylum",
+        "WA, WaCaseType"
+    })
+    public void user_should_not_claim_a_task_when_permission_not_satisfied_for_granular_permission(
+        String jurisdiction, String caseType)
+        throws Exception {
+
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId("claimCaseId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, false,
+            false, false, false, false, false, false
+        );
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
+
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+        )).thenReturn(true);
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().is4xxClientError(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
+            jsonPath("$.title").value("Role Assignment Verification"),
+            jsonPath("$.status").value(403),
+            jsonPath("$.detail").value(
+                "Role Assignment Verification: "
+                    + "The request failed the Role Assignment checks performed.")
+        );
+    }
+
 
     @ParameterizedTest
     @CsvSource(value = {
