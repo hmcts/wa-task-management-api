@@ -21,11 +21,10 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class WorkingDayIndicatorTest {
+class WorkingDayIndicatorTest {
 
     private static final LocalDate BANK_HOLIDAY = toDate("2017-05-29");
     private static final LocalDate NEXT_WORKING_DAY_AFTER_BANK_HOLIDAY = toDate("2017-05-30");
-    private static final LocalDate PREVIOUS_WORKING_DAY_BEFORE_BANK_HOLIDAY = toDate("2017-05-26");
     private static final LocalDate SATURDAY_WEEK_BEFORE = toDate("2017-06-03");
     private static final LocalDate SUNDAY_WEEK_BEFORE = toDate("2017-06-04");
     private static final LocalDate MONDAY = toDate("2017-06-05");
