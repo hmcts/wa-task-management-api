@@ -347,6 +347,43 @@ class TaskAutoRoleAssignmentServiceTest {
     }
 
     @Test
+    void auto_assign_should_not_assign_when_auto_assignable_is_true_and_not_matching_authorisation() {
+        TaskResource taskResource = createTaskResource();
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        //first role assignment set
+        RoleAssignment roleAssignmentResource1 = createRoleAssignment(
+            "lowPrioritisedUser",
+            "tribunal-caseworker",
+            List.of("DIVORCE", "PROBATE")
+        );
+
+        roleAssignments.add(roleAssignmentResource1);
+
+        //second role assignment set
+        RoleAssignment roleAssignmentResource2 = createRoleAssignment(
+            "highPrioritisedUser",
+            "senior-tribunal-caseworker",
+            List.of("DIVORCE", "PROBATE")
+        );
+        roleAssignments.add(roleAssignmentResource2);
+
+        Set<TaskRoleResource> taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 3, new String[]{"IA"}),
+            taskRoleResource("senior-tribunal-caseworker", true, 2, new String[]{"IA"})
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignments);
+
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        assertEquals(CFTTaskState.UNASSIGNED, autoAssignCFTTaskResponse.getState());
+    }
+
+    @Test
     void should_reassign_task_to_other_user_when_current_user_does_not_have_own_execute_permissions() {
 
         RoleAssignment roleAssignmentResource = createRoleAssignment(
