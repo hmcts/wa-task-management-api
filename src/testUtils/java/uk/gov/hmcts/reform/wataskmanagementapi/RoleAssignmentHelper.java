@@ -26,6 +26,11 @@ public abstract class RoleAssignmentHelper {
 
     protected static List<RoleAssignment> createRoleAssignment(List<RoleAssignment> roleAssignments,
                                                                RoleAssignmentRequest roleAssignmentRequest) {
+        return createRoleAssignment(roleAssignments, roleAssignmentRequest, RoleType.CASE);
+    }
+
+    protected static List<RoleAssignment> createRoleAssignment(List<RoleAssignment> roleAssignments,
+        RoleAssignmentRequest roleAssignmentRequest, RoleType roleType) {
 
         Map<String, String> attributes = createAttributes(roleAssignmentRequest.getRoleAssignmentAttribute());
 

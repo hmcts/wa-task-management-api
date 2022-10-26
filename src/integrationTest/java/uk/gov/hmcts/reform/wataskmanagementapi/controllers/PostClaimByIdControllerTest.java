@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
@@ -1559,9 +1560,102 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {
+        "IA, Asylum",
+        "WA, WaCaseType"
+    })
+    public void user_should_claim_task_with_case_role_on_one_task_only(
+        String jurisdiction, String caseType)
+        throws Exception {
+
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest1 = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId("claimCaseId1")
+                    .build()
+            )
+            .build();
+
+        RoleAssignmentRequest roleAssignmentRequest2 = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest1, RoleType.CASE);
+        createRoleAssignment(roleAssignments, roleAssignmentRequest2,RoleType.ORGANISATION);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+        String taskId1 = UUID.randomUUID().toString();
+        String taskId2 = UUID.randomUUID().toString();
+
+        TaskRoleResource taskRoleResource1 = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        TaskRoleResource taskRoleResource2 = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED.getRoleName(),
+            true, false, false, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(jurisdiction, caseType, taskId1, taskRoleResource1);
+        insertDummyTaskInDb(jurisdiction, caseType, taskId2, taskRoleResource2, UUID.randomUUID().toString());
+
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        String endpointBeingTested1 = String.format(ENDPOINT_PATH, taskId1);
+        String endpointBeingTested2 = String.format(ENDPOINT_PATH, taskId2);
+
+        mockMvc.perform(
+            post(endpointBeingTested1)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        mockMvc.perform(
+            post(endpointBeingTested2)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().is(HttpStatus.FORBIDDEN.value())
+        );
+    }
 
     private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId,
                                      TaskRoleResource taskRoleResource) {
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource, "claimCaseId1");
+    }
+
+    private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId,
+                                     TaskRoleResource taskRoleResource, String caseId) {
         TaskResource taskResource = new TaskResource(
             taskId,
             "someTaskName",
@@ -1576,7 +1670,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         taskResource.setLocation("765324");
         taskResource.setLocationName("Taylor House");
         taskResource.setRegion("TestRegion");
-        taskResource.setCaseId("claimCaseId1");
+        taskResource.setCaseId(caseId);
 
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
