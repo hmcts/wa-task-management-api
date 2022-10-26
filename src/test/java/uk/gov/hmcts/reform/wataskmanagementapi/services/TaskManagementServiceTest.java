@@ -557,6 +557,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
         void claimTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            RoleAssignment roleAssignment = mock(RoleAssignment.class);
+            when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+            List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
 
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);

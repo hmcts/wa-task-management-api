@@ -75,6 +75,7 @@ class UnclaimTaskTest extends CamundaHelpers {
         PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
         when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
             .thenReturn(Optional.of(taskResource));

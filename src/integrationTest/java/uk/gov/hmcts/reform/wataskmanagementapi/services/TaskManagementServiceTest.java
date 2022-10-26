@@ -242,8 +242,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         void cancelTask_should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+            RoleAssignment roleAssignment = mock(RoleAssignment.class);
+            when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+            List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
             when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
 
             when(camundaServiceApi.searchHistory(any(), any()))
@@ -375,8 +377,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+            RoleAssignment roleAssignment = mock(RoleAssignment.class);
+            when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+            List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
             when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
 
             createAndAssignTestTask(taskId);
@@ -400,8 +404,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda_complete() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+            RoleAssignment roleAssignment = mock(RoleAssignment.class);
+            when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+            List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
             when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
 
             createAndAssignTestTask(taskId);
@@ -436,8 +442,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
                 AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+                RoleAssignment roleAssignment = mock(RoleAssignment.class);
+                when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+                List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
+                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
                 when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
 
                 doThrow(FeignException.FeignServerException.class)
@@ -474,8 +482,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
                 AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+                RoleAssignment roleAssignment = mock(RoleAssignment.class);
+                when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+                List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
                 when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
 
                 doThrow(FeignException.FeignServerException.class)

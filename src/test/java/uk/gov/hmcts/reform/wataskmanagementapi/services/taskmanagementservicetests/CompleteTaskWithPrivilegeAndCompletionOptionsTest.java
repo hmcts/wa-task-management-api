@@ -306,7 +306,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
 
                 AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
                 RoleAssignment roleAssignment = mock(RoleAssignment.class);
-                    when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+                when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
                 List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
                 when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
                 final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
