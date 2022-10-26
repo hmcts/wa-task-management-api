@@ -173,8 +173,7 @@ public class TaskAutoAssignmentService {
     private boolean isTaskRoleNotAutoAssignableOrAuthorisationsNotMatching(RoleAssignment roleAssignment,
                                                                            TaskRoleResource taskRoleResource) {
         return !taskRoleResource.getAutoAssignable()
-               || taskRoleResource.getAutoAssignable()
-                  && isAuthorisationsValid(taskRoleResource)
+               || isAuthorisationsValid(taskRoleResource)
                   && !findMatchingRoleAssignment(taskRoleResource, roleAssignment);
     }
 
