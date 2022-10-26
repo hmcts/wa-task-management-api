@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.TaskConfigurationRoleAssignmentService;
@@ -179,7 +180,7 @@ public class TaskAutoAssignmentService {
 
     private boolean isTaskRoleAutoAssignableWithNullOrEmptyAuthorisations(TaskRoleResource taskRoleResource) {
         return taskRoleResource.getAutoAssignable()
-               && (!isAuthorisationsValid(taskRoleResource) || taskRoleResource.getAuthorizations() == null);
+               && !isAuthorisationsValid(taskRoleResource);
     }
 
     private boolean hasTaskBeenAssigned(TaskResource taskResource, TaskRoleResource taskRoleResource) {
@@ -189,8 +190,7 @@ public class TaskAutoAssignmentService {
     }
 
     private boolean isAuthorisationsValid(TaskRoleResource taskRoleResource) {
-        return taskRoleResource.getAuthorizations() != null
-               && taskRoleResource.getAuthorizations().length > 0;
+        return ArrayUtils.isNotEmpty(taskRoleResource.getAuthorizations());
     }
 
     private boolean findMatchingRoleAssignment(TaskRoleResource taskRoleResource, RoleAssignment roleAssignment) {
