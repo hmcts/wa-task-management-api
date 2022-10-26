@@ -63,7 +63,7 @@ public class ConfigureTaskService {
     private void combineResults(TaskConfigurationResults result,
                                 TaskConfigurationResults configurationResults) {
 
-        if (result.getProcessVariables() != null && configurationResults.getProcessVariables() != null) {
+        if (result.getProcessVariables() != null) {
             configurationResults.getProcessVariables().putAll(result.getProcessVariables());
         }
 

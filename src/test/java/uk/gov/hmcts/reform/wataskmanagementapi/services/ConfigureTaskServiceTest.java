@@ -69,7 +69,7 @@ class ConfigureTaskServiceTest {
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
 
         when(taskVariableExtractor.getConfigurationVariables(TASK_TO_CONFIGURE))
-            .thenReturn(new TaskConfigurationResults(mappedValues));
+            .thenReturn(new TaskConfigurationResults(mappedValues, null, null));
 
         when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(Map.of("taskType", "taskTypeId"));
 
