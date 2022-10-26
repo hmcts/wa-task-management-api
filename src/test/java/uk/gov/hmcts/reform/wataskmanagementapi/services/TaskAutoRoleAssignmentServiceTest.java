@@ -384,7 +384,7 @@ class TaskAutoRoleAssignmentServiceTest {
     }
 
     @Test
-    void auto_assign_should_not_assign_when_auto_assignable_is_true_and_role_assignment_with_no_authorisation() {
+    void auto_assign_should_not_assign_when_auto_assignable_is_true_and_role_assignment_with_null_authorisation() {
         TaskResource taskResource = createTaskResource();
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -393,7 +393,7 @@ class TaskAutoRoleAssignmentServiceTest {
         RoleAssignment roleAssignmentResource1 = createRoleAssignment(
             "lowPrioritisedUser",
             "tribunal-caseworker",
-            List.of()
+            null
         );
 
         roleAssignments.add(roleAssignmentResource1);
@@ -402,7 +402,7 @@ class TaskAutoRoleAssignmentServiceTest {
         RoleAssignment roleAssignmentResource2 = createRoleAssignment(
             "highPrioritisedUser",
             "senior-tribunal-caseworker",
-            List.of()
+            null
         );
         roleAssignments.add(roleAssignmentResource2);
 
