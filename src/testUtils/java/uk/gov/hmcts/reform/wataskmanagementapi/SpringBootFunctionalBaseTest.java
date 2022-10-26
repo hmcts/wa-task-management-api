@@ -45,10 +45,12 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
@@ -333,9 +335,34 @@ public abstract class SpringBootFunctionalBaseTest {
             authorizationProvider.getServiceAuthorizationHeadersOnly()
         );
 
-        response.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
+        assertResponse(response);
 
+    }
+
+    private void assertResponse(Response response) {
+        int statusCode = response.getStatusCode();
+        switch (statusCode) {
+            case 503:
+                log.info("Initiation failed due to Database Conflict Error, so handling gracefully, {}", statusCode);
+
+                response.then().assertThat()
+                    .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+                    .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+                    .body("type", equalTo(
+                        "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
+                    .body("title", equalTo("Database Conflict Error"))
+                    .body("status", equalTo(503))
+                    .body("detail", equalTo(
+                        "Database Conflict Error: The action could not be completed because "
+                            + "there was a conflict in the database."));
+                return;
+            case 201:
+                log.info("task Initiation got successfully with status, {}", statusCode);
+                return;
+            default:
+                log.info("task Initiation failed with status, {}", statusCode);
+                throw new RuntimeException("Invalid status received for task initiation " + statusCode);
+        }
     }
 
     protected String getAssigneeId(Headers headers) {
