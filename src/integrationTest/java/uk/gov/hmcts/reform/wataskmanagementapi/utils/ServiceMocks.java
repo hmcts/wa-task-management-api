@@ -122,23 +122,6 @@ public class ServiceMocks {
         return mockedUserInfo;
     }
 
-    public UserInfo mockGpUserInfo() {
-        UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID_GP).email(IDAM_USER_EMAIL_GP).build();
-        when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
-        return mockedUserInfo;
-    }
-
-    public void mockServiceAPIsGp() {
-
-        mockGpUserInfo();
-        mockRoleAssignments(roleAssignmentServiceApi);
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        mockVariables();
-    }
-
     public UserInfo mockGPUserInfo() {
         UserInfo mockedGPUserInfo = UserInfo.builder().uid(IDAM_USER_ID_GP).email(IDAM_USER_EMAIL_GP).build();
         when(idamWebApi.userInfo(any())).thenReturn(mockedGPUserInfo);
