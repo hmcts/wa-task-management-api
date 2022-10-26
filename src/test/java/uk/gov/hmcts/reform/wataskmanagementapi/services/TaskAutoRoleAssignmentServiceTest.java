@@ -1212,7 +1212,6 @@ class TaskAutoRoleAssignmentServiceTest {
     void should_not_reassign_task_to_other_user_when_current_user_have_own_execute_permissions() {
 
         TaskResource taskResource = createTaskResource();
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         //first role assignment set
         RoleAssignment roleAssignmentResource1 = createRoleAssignment(
@@ -1220,15 +1219,6 @@ class TaskAutoRoleAssignmentServiceTest {
             "tribunal-caseworker",
             List.of("IA", "DIVORCE", "PROBATE")
         );
-        roleAssignments.add(roleAssignmentResource1);
-
-        //second role assignment set
-        RoleAssignment roleAssignmentResource2 = createRoleAssignment(
-            "someotheruser@test.com",
-            "senior-tribunal-caseworker",
-            List.of("IA", "DIVORCE", "PROBATE")
-        );
-        roleAssignments.add(roleAssignmentResource2);
 
         //set senior-tribunal-caseworker high prioritised user
         Set<TaskRoleResource> taskRoleResources = Set.of(
@@ -1259,24 +1249,6 @@ class TaskAutoRoleAssignmentServiceTest {
     void should_not_reassign_task_when_task_is_unassigned() {
 
         TaskResource taskResource = createTaskResource();
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-        //first role assignment set
-        RoleAssignment roleAssignmentResource1 = createRoleAssignment(
-            "someuser@test.com",
-            "tribunal-caseworker",
-            List.of("IA", "DIVORCE", "PROBATE")
-        );
-
-        roleAssignments.add(roleAssignmentResource1);
-        List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource1);
-        //second role assignment set
-        RoleAssignment roleAssignmentResource2 = createRoleAssignment(
-            "someotheruser@test.com",
-            "senior-tribunal-caseworker",
-            List.of("IA", "DIVORCE", "PROBATE")
-        );
-        roleAssignments.add(roleAssignmentResource2);
 
         //set senior-tribunal-caseworker high prioritised user
         Set<TaskRoleResource> taskRoleResources = Set.of(
@@ -1293,7 +1265,7 @@ class TaskAutoRoleAssignmentServiceTest {
         assertEquals(CFTTaskState.UNASSIGNED, autoAssignCFTTaskResponse.getState());
 
         assertThat(autoAssignCFTTaskResponse.getAssignee())
-            .isEqualTo(null);
+            .isNull();
     }
 
     @Test

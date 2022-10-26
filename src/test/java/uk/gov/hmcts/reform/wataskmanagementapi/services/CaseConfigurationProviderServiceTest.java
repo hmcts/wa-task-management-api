@@ -30,7 +30,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -85,17 +84,17 @@ class CaseConfigurationProviderServiceTest {
         caseConfigurationProviderService.getCaseRelatedConfiguration("some case id", inputTaskAttributes);
 
         verify(dmnEvaluationService).evaluateTaskConfigurationDmn(
-            eq("IA"),
-            eq("Asylum"),
-            eq("{}"),
-            eq(expectedTaskAttributes)
+            "IA",
+            "Asylum",
+            "{}",
+            expectedTaskAttributes
         );
 
         verify(dmnEvaluationService).evaluateTaskPermissionsDmn(
-            eq("IA"),
-            eq("Asylum"),
-            eq("{}"),
-            eq(expectedTaskAttributes)
+            "IA",
+            "Asylum",
+            "{}",
+            expectedTaskAttributes
         );
     }
 

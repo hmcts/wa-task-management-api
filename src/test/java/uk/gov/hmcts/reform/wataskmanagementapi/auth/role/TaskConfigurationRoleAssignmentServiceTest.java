@@ -183,8 +183,8 @@ class TaskConfigurationRoleAssignmentServiceTest {
         assertThat(queryRequests.getQueryRequests()).isNotEmpty();
         assertNotNull(queryRequests.getQueryRequests().get(0).getClassification());
 
-        assertThat(classifications.size())
-            .isEqualTo(queryRequests.getQueryRequests().get(0).getClassification().size());
+        assertThat(classifications)
+            .hasSameSizeAs(queryRequests.getQueryRequests().get(0).getClassification());
 
         arrayContaining(
             classifications,
@@ -240,8 +240,8 @@ class TaskConfigurationRoleAssignmentServiceTest {
         assertThat(queryRequests.getQueryRequests()).isNotEmpty();
         assertNotNull(queryRequests.getQueryRequests().get(0).getClassification());
 
-        assertThat(classifications.size())
-            .isEqualTo(queryRequests.getQueryRequests().get(0).getClassification().size());
+        assertThat(classifications)
+            .hasSameSizeAs(queryRequests.getQueryRequests().get(0).getClassification());
 
         arrayContaining(
             classifications,
@@ -297,8 +297,8 @@ class TaskConfigurationRoleAssignmentServiceTest {
         assertThat(queryRequests.getQueryRequests()).isNotEmpty();
         assertNotNull(queryRequests.getQueryRequests().get(0).getClassification());
 
-        assertThat(classifications.size())
-            .isEqualTo(queryRequests.getQueryRequests().get(0).getClassification().size());
+        assertThat(classifications)
+            .hasSameSizeAs(queryRequests.getQueryRequests().get(0).getClassification());
 
         arrayContaining(
             classifications,
@@ -353,8 +353,8 @@ class TaskConfigurationRoleAssignmentServiceTest {
         assertThat(queryRequests.getQueryRequests()).isNotEmpty();
         assertNotNull(queryRequests.getQueryRequests().get(0).getClassification());
 
-        assertThat(classifications.size())
-            .isEqualTo(queryRequests.getQueryRequests().get(0).getClassification().size());
+        assertThat(classifications)
+            .hasSameSizeAs(queryRequests.getQueryRequests().get(0).getClassification());
 
         arrayContaining(
             classifications,

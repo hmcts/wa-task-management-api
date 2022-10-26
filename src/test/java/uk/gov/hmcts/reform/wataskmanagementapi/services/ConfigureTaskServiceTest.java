@@ -17,7 +17,6 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,7 +30,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 
 class ConfigureTaskServiceTest {
 
-    private static final String ASSIGNEE = "assignee1";
     private static final TaskToConfigure TASK_TO_CONFIGURE
         = new TaskToConfigure("taskId", "taskTypeId", "caseId", "taskName",
                               Map.of(
@@ -43,17 +41,15 @@ class ConfigureTaskServiceTest {
     );
     private ConfigureTaskService configureTaskService;
     private TaskConfigurator taskVariableExtractor;
-    private CaseConfigurationProviderService caseConfigurationProviderService;
     private CFTTaskMapper cftTaskMapper;
 
     @BeforeEach
     void setup() {
         taskVariableExtractor = mock(TaskConfigurator.class);
-        caseConfigurationProviderService = mock(CaseConfigurationProviderService.class);
         cftTaskMapper = mock(CFTTaskMapper.class);
         configureTaskService = new ConfigureTaskService(
             Collections.singletonList(taskVariableExtractor),
-            caseConfigurationProviderService,
+            mock(CaseConfigurationProviderService.class),
             cftTaskMapper
         );
 
@@ -77,7 +73,7 @@ class ConfigureTaskServiceTest {
 
         configureTaskService.configureCFTTask(skeletonMappedTask, TASK_TO_CONFIGURE);
 
-        verify(taskVariableExtractor).getConfigurationVariables(eq(TASK_TO_CONFIGURE));
+        verify(taskVariableExtractor).getConfigurationVariables(TASK_TO_CONFIGURE);
     }
 
     @Test
@@ -122,7 +118,7 @@ class ConfigureTaskServiceTest {
 
         configureTaskService.configureCFTTask(skeletonMappedTask, TASK_TO_CONFIGURE);
 
-        verify(taskVariableExtractor).getConfigurationVariables(eq(TASK_TO_CONFIGURE));
+        verify(taskVariableExtractor).getConfigurationVariables(TASK_TO_CONFIGURE);
     }
 
     @Test
@@ -161,6 +157,6 @@ class ConfigureTaskServiceTest {
 
         configureTaskService.configureCFTTask(skeletonMappedTask, TASK_TO_CONFIGURE);
 
-        verify(taskVariableExtractor).getConfigurationVariables(eq(TASK_TO_CONFIGURE));
+        verify(taskVariableExtractor).getConfigurationVariables(TASK_TO_CONFIGURE);
     }
 }
