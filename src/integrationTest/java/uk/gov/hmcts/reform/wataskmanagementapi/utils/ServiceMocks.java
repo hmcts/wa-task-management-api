@@ -43,6 +43,8 @@ public class ServiceMocks {
     public static final String IDAM_USER_ID = "IDAM_USER_ID";
     public static final String IDAM_OTHER_USER_ID = "IDAM_OTHER_USER_ID";
     public static final String IDAM_USER_EMAIL = "wa-ft-test@test.com";
+    public static final String IDAM_USER_ID_GP = "IDAM_USER_ID_GP";
+    public static final String IDAM_USER_EMAIL_GP = "wa-granular-permission-wa-ft-test@test.com";
     public static final String SECONDARY_IDAM_USER_ID = "SECONDARY_IDAM_USER_ID";
     public static final String THIRD_IDAM_USER_ID = "THIRD_IDAM_USER_ID";
     public static final String SECONDARY_IDAM_USER_EMAIL = "wa-ft-test@test.com";
@@ -69,6 +71,17 @@ public class ServiceMocks {
     public void mockServiceAPIs() {
 
         mockUserInfo();
+        mockRoleAssignments(roleAssignmentServiceApi);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        mockVariables();
+    }
+
+    public void mockServiceAPIsGp() {
+
+        mockGPUserInfo();
         mockRoleAssignments(roleAssignmentServiceApi);
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
@@ -107,6 +120,12 @@ public class ServiceMocks {
         UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
         return mockedUserInfo;
+    }
+
+    public UserInfo mockGPUserInfo() {
+        UserInfo mockedGPUserInfo = UserInfo.builder().uid(IDAM_USER_ID_GP).email(IDAM_USER_EMAIL_GP).build();
+        when(idamWebApi.userInfo(any())).thenReturn(mockedGPUserInfo);
+        return mockedGPUserInfo;
     }
 
     public UserInfo mockSecondaryUserInfo() {

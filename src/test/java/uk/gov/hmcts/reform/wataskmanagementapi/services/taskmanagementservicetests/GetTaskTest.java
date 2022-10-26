@@ -58,16 +58,14 @@ class GetTaskTest extends CamundaHelpers {
     CftQueryService cftQueryService;
     @Mock
     private List<TaskOperationService> taskOperationServices;
+    @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
     @Mock
     private EntityManager entityManager;
-
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
 
     @Test
     void getTask_should_succeed_and_return_mapped_task() {

@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
@@ -197,7 +198,19 @@ public class TaskManagementService {
      */
     @Transactional
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        final boolean granularPermissionFeatureEnabled = isGranularPermissionFeatureEnabled(
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail()
+            );
+
+        PermissionRequirements permissionsRequired;
+        if (granularPermissionFeatureEnabled) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
+        } else {
+            permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        }
+
         boolean taskHasUnassigned;
 
         TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
@@ -205,6 +218,14 @@ public class TaskManagementService {
         );
         String taskState = taskResource.getState().getValue();
         taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
+
+        String userId = accessControlResponse.getUserInfo().getUid();
+        if (granularPermissionFeatureEnabled
+            && taskResource.getAssignee() != null && !userId.equals(taskResource.getAssignee())
+            && !checkUserHasUnassignPermission(accessControlResponse.getRoleAssignments(),
+                                               taskResource.getTaskRoleResources())) {
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+        }
 
         unClaimTask(taskId, taskHasUnassigned);
     }
@@ -218,6 +239,20 @@ public class TaskManagementService {
         camundaService.unclaimTask(taskId, taskHasUnassigned);
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
+    }
+
+    private boolean checkUserHasUnassignPermission(List<RoleAssignment> roleAssignments,
+                                                   Set<TaskRoleResource> taskRoleResources) {
+        for (RoleAssignment roleAssignment: roleAssignments) {
+            String roleName = roleAssignment.getRoleName();
+            for (TaskRoleResource taskRoleResource: taskRoleResources) {
+                if (roleName.equals(taskRoleResource.getRoleName())
+                    && Boolean.TRUE.equals(taskRoleResource.getUnassign())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -939,5 +974,6 @@ public class TaskManagementService {
                 email
             );
     }
+
 
 }

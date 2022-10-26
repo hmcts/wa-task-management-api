@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -69,6 +70,8 @@ class UnclaimTaskTest extends CamundaHelpers {
     @Test
     void unclaimTask_should_succeed() {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
         TaskResource taskResource = spy(TaskResource.class);
         PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
@@ -85,8 +88,9 @@ class UnclaimTaskTest extends CamundaHelpers {
 
     @Test
     void unclaimTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
-
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
         TaskResource taskResource = spy(TaskResource.class);
         when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
