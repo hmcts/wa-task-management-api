@@ -10,11 +10,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
@@ -67,6 +71,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_ASSIGNMENT_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
@@ -90,6 +96,7 @@ public class TaskManagementService {
     private final CamundaService camundaService;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final ConfigureTaskService configureTaskService;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final List<TaskOperationService> taskOperationServices;
@@ -102,6 +109,7 @@ public class TaskManagementService {
     public TaskManagementService(CamundaService camundaService,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
                                  CFTTaskMapper cftTaskMapper,
+                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                  ConfigureTaskService configureTaskService,
                                  TaskAutoAssignmentService taskAutoAssignmentService,
                                  RoleAssignmentVerificationService roleAssignmentVerification,
@@ -110,6 +118,7 @@ public class TaskManagementService {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
         this.taskOperationServices = taskOperationServices;
@@ -190,7 +199,21 @@ public class TaskManagementService {
      */
     @Transactional
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        final boolean granularPermissionFeatureEnabled = launchDarklyFeatureFlagProvider
+            .getBooleanValue(
+                FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail()
+            );
+
+        PermissionRequirements permissionsRequired;
+        if (granularPermissionFeatureEnabled) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
+        } else {
+            permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        }
+
         boolean taskHasUnassigned;
 
         TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
@@ -198,6 +221,14 @@ public class TaskManagementService {
         );
         String taskState = taskResource.getState().getValue();
         taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
+
+        String userId = accessControlResponse.getUserInfo().getUid();
+        if (granularPermissionFeatureEnabled
+            && taskResource.getAssignee() != null && !userId.equals(taskResource.getAssignee())
+            && !checkUserHasUnassignPermission(accessControlResponse.getRoleAssignments(),
+                                               taskResource.getTaskRoleResources())) {
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+        }
 
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);
@@ -209,6 +240,20 @@ public class TaskManagementService {
         camundaService.unclaimTask(taskId, taskHasUnassigned);
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
+    }
+
+    private boolean checkUserHasUnassignPermission(List<RoleAssignment> roleAssignments,
+                                                   Set<TaskRoleResource> taskRoleResources) {
+        for (RoleAssignment roleAssignment: roleAssignments) {
+            String roleName = roleAssignment.getRoleName();
+            for (TaskRoleResource taskRoleResource: taskRoleResources) {
+                if (roleName.equals(taskRoleResource.getRoleName())
+                    && Boolean.TRUE.equals(taskRoleResource.getUnassign())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
