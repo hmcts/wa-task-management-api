@@ -347,7 +347,7 @@ class TaskAutoRoleAssignmentServiceTest {
     }
 
     @Test
-    void auto_assign_should_return_task_assignee_when_task_is_assigned_auto_assignable_is_false_and_matching_authorisations() {
+    void auto_assign_should_return_assignee_when_auto_assignable_is_false_and_matching_authorisations() {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
