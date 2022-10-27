@@ -121,43 +121,16 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
-
-        String roleAssignmentId = UUID.randomUUID().toString();
-        Map<String, String> additionalProperties = Map.of(
-            "roleAssignmentId", roleAssignmentId,
-            "key1", "value1",
-            "key2", "value2",
-            "key3", "value3",
-            "key4", "value4",
-            "key5", "value5",
-            "key6", "value6",
-            "key7", "value7",
-            "key8", "value8"
-        );
-
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            additionalProperties,
-            "requests/ccd/wa_case_data.json",
-            "reviewSpecificAccessRequestLegalOps"
-        );
-        initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
-
-        common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(),
-                                                 taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
-        );
-
-        CompletableTaskScenario scenario = new CompletableTaskScenario(
-            "reviewSpecificAccessRequestLegalOps",
-            "specificAccessRequest",
-            "access_requests",
-            "LEGAL_OPERATIONS",
-            true
-        );
+    public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication",
+                                                                       "process application");
+        initiateTask(testVariables, Jurisdiction.WA);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
-            taskVariables.getCaseId(),
-            scenario.eventId,
+            testVariables.getCaseId(),
+            "UnknownEvent",
             WA_JURISDICTION,
             WA_CASE_TYPE
         );
@@ -168,21 +141,97 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             caseworkerCredentials.getHeaders()
         );
 
-        Map<String, String> expectedAdditionalProperties = Map.of("roleAssignmentId", roleAssignmentId);
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
-            .body("task_required_for_event", is(scenario.taskRequiredForEvent))
-            .body("tasks.id", everyItem(is(equalTo(taskVariables.getTaskId()))))
-            .body("tasks.additional_properties", everyItem(equalToObject(
-                expectedAdditionalProperties
-            )));
+            .body("tasks.size()", lessThanOrEqualTo(0));
 
-        common.cleanUpTask(taskVariables.getTaskId());
-
+        common.cleanUpTask(testVariables.getTaskId());
     }
+
+    @Test
+    public void should_return_a_200_and_empty_list_when_caseId_match_not_found() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication",
+                                                                       "process application");
+        initiateTask(testVariables, Jurisdiction.WA);
+
+        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
+            "invalidCaseId",
+            "decideAnApplication",
+            WA_JURISDICTION,
+            WA_CASE_TYPE
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            decideAnApplicationSearchRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(0));
+
+        common.cleanUpTask(testVariables.getTaskId());
+    }
+
+    @Test
+    public void should_return_a_200_and_return_and_empty_list_when_dmn_jurisdiction_not_match() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication",
+                                                                       "process application");
+        initiateTask(testVariables, Jurisdiction.WA);
+
+        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
+            testVariables.getCaseId(),
+            "decideAnApplication",
+            "PROBATE",
+            WA_CASE_TYPE
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            decideAnApplicationSearchRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(0));
+
+        common.cleanUpTask(testVariables.getTaskId());
+    }
+
+    @Test
+    public void should_return_a_200_and_return_and_empty_list_when_dmn_case_type_not_match() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "processApplication",
+                                                                       "process application");
+        initiateTask(testVariables, Jurisdiction.WA);
+
+        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
+            testVariables.getCaseId(),
+            "decideAnApplication",
+            WA_JURISDICTION,
+            "GrantOfRepresentation"
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            decideAnApplicationSearchRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(0));
+
+        common.cleanUpTask(testVariables.getTaskId());
+    }
+
 
     private static Stream<CompletableTaskScenario> tasksToCompleteScenarios() {
         return Stream.of(
