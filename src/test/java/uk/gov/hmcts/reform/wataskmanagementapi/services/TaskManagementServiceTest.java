@@ -24,7 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -728,6 +727,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
             when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
             when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
@@ -763,6 +763,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
             when(taskResource.getAssignee()).thenReturn(null);
             when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
@@ -822,7 +823,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         RoleAssignment roleAssignment1 = new RoleAssignment(
             ActorIdType.IDAM,
             IDAM_USER_ID,
-            RoleType.CASE,
+            RoleType.ORGANISATION,
             "judge",
             Classification.PUBLIC,
             GrantType.SPECIFIC,
@@ -832,7 +833,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         RoleAssignment roleAssignment2 = new RoleAssignment(
             ActorIdType.IDAM,
             IDAM_USER_ID,
-            RoleType.CASE,
+            RoleType.ORGANISATION,
             "tribunal-caseworker",
             Classification.PUBLIC,
             GrantType.SPECIFIC,
@@ -846,6 +847,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
         when(cftQueryService.getTask(taskId, roleAssignmentList, requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
         when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
         when(taskResource.getAssignee()).thenReturn("wrongid");
@@ -908,7 +910,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         RoleAssignment roleAssignment = new RoleAssignment(
             ActorIdType.IDAM,
             IDAM_USER_ID,
-            RoleType.CASE,
+            RoleType.ORGANISATION,
             "tribunal-caseworker",
             Classification.PUBLIC,
             GrantType.SPECIFIC,
@@ -922,6 +924,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
         when(cftQueryService.getTask(taskId, roleAssignmentList, requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
         when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
         when(taskResource.getAssignee()).thenReturn("wrongid");
