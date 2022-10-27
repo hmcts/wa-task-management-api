@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
@@ -276,17 +275,6 @@ public class CamundaService {
 
     }
 
-    public List<CamundaTask> searchWithCriteriaAndNoPagination(CamundaSearchQuery query) {
-        try {
-            return camundaServiceApi.searchWithCriteriaAndNoPagination(
-                authTokenGenerator.generate(),
-                query.getQueries()
-            );
-        } catch (FeignException exp) {
-            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
-        }
-    }
-
     public CamundaTask performGetCamundaTaskAction(String id) {
         try {
             return camundaServiceApi.getTask(authTokenGenerator.generate(), id);
@@ -512,7 +500,7 @@ public class CamundaService {
      *
      * @throws CamundaTaskStateUpdateException if call fails when updating the task state.
      */
-    public void updateTaskStateTo(String taskId, TaskState newState) {
+    private void updateTaskStateTo(String taskId, TaskState newState) {
         Map<String, CamundaValue<String>> variable = Map.of(
             CamundaVariableDefinition.TASK_STATE.value(), CamundaValue.stringValue(newState.value())
         );

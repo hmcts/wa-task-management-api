@@ -34,12 +34,6 @@ public class CamundaTask {
         super();
     }
 
-    public CamundaTask(String id, String processInstanceId, String name) {
-        this.id = id;
-        this.processInstanceId = processInstanceId;
-        this.name = name;
-    }
-
     public CamundaTask(String id,
                        String name,
                        String assignee,
