@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -44,10 +43,11 @@ public class TaskResourceDao {
     }
 
     public List<Object[]> getTaskResourceSummary(int firstResult,
-                                                            int maxResults,
-                                                            SearchTaskRequest searchTaskRequest,
-                                                            List<RoleAssignment> roleAssignments,
-                                                            List<PermissionTypes> permissionsRequired) {
+                                                 int maxResults,
+                                                 SearchTaskRequest searchTaskRequest,
+                                                 List<RoleAssignment> roleAssignments,
+                                                 PermissionRequirements permissionsRequired,
+                                                 Boolean availableTasksOnly) {
         Pageable page = OffsetPageableRequest.of(firstResult, maxResults);
         TaskResourceSummaryQueryBuilder summaryQueryBuilder = new TaskResourceSummaryQueryBuilder(entityManager);
         CriteriaBuilder builder = summaryQueryBuilder.builder;
@@ -59,6 +59,7 @@ public class TaskResourceDao {
             searchTaskRequest,
             roleAssignments,
             permissionsRequired,
+            availableTasksOnly,
             builder,
             root
         );
@@ -114,7 +115,8 @@ public class TaskResourceDao {
 
     public Long getTotalCount(SearchTaskRequest searchTaskRequest,
                               List<RoleAssignment> roleAssignments,
-                              List<PermissionTypes> permissionsRequired) {
+                              PermissionRequirements permissionsRequired,
+                              boolean availableTasksOnly) {
 
         CountTaskResourceQueryBuilder countQueryBuilder = new CountTaskResourceQueryBuilder(entityManager)
             .createSubQuery()
@@ -124,6 +126,7 @@ public class TaskResourceDao {
             searchTaskRequest,
             roleAssignments,
             permissionsRequired,
+            availableTasksOnly,
             countQueryBuilder.builder,
             countQueryBuilder.subRoot
         );
@@ -157,7 +160,7 @@ public class TaskResourceDao {
 
     public List<TaskResource> getCompletableTaskResources(SearchEventAndCase searchEventAndCase,
                                                           List<RoleAssignment> roleAssignments,
-                                                          List<PermissionTypes> permissionsRequired,
+                                                          PermissionRequirements permissionsRequired,
                                                           List<String> taskTypes) {
         SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
 

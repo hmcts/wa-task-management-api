@@ -299,6 +299,10 @@ public class Common {
 
         String caseId = given.iCreateWACcdCase(resourceFileName);
 
+        return setupWATaskForGivenCaseAndRetrieveIds(caseId, taskType, taskName);
+    }
+
+    public TestVariables setupWATaskForGivenCaseAndRetrieveIds(String caseId, String taskType, String taskName) {
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, "WA", "WaCaseType", taskType, taskName)
             .and()
@@ -600,6 +604,39 @@ public class Common {
         createSeniorJudge(userInfo, headers, jurisdiction);
         createHearingPanelJudge(userInfo, headers, jurisdiction, caseType, caseId);
 
+    }
+
+    public void setupHearingPanelJudgeForStandardAccess(Headers headers, String jurisdiction, String caseType) {
+        log.info("Creating hearing-panel-judge organizational Role");
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "hearing-panel-judge",
+            toJsonString(
+                Map.of(
+                    "primaryLocation", "765324",
+                    "jurisdiction", jurisdiction,
+                    "caseType", caseType
+                )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.JUDICIAL.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
     }
 
     public void setupStandardCaseManager(Headers headers, String caseId, String jurisdiction, String caseType) {
