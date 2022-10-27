@@ -149,6 +149,13 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime priorityDate;
 
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime lastUpdatedTimestamp;
+
+    private String lastUpdatedUser;
+
+    private String lastUpdatedAction;
+
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
     }
@@ -471,5 +478,17 @@ public class TaskResource implements Serializable {
 
     public void setPriorityDate(OffsetDateTime priorityDate) {
         this.priorityDate = priorityDate;
+    }
+
+    public void setLastUpdatedTimestamp(OffsetDateTime lastUpdatedTimestamp) {
+        this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+    }
+
+    public void setLastUpdatedUser(String lastUpdatedUser) {
+        this.lastUpdatedUser = lastUpdatedUser;
+    }
+
+    public void setLastUpdatedAction(String lastUpdatedAction) {
+        this.lastUpdatedAction = lastUpdatedAction;
     }
 }
