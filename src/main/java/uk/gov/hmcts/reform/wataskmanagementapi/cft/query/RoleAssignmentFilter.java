@@ -141,7 +141,7 @@ public final class RoleAssignmentFilter {
                                                                CriteriaBuilder builder,
                                                                Join<TaskResource, TaskRoleResource> taskRoleResources) {
         PermissionRequirements nextRequirements = permissionsRequired;
-        PermissionJoin nextPermissionJoin = nextRequirements.getPermissionJoin();
+        PermissionJoin nextPermissionJoin = permissionsRequired.getPermissionJoin();
         Predicate permissionRequirementPredicate = null;
 
         List<Predicate> permissionPredicates = new ArrayList<>();
