@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 
 import java.time.LocalDateTime;
@@ -333,6 +334,55 @@ class RoleAssignmentServiceTest {
         List<RoleAssignment> roleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
 
         assertNotNull(roleAssignments);
+
+        verify(roleAssignmentServiceApi).queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            captor.capture()
+        );
+
+        MultipleQueryRequest queryRequests = captor.getValue();
+
+        assertThat(queryRequests).isNotNull();
+        assertThat(queryRequests.getQueryRequests()).isNotEmpty();
+        assertNotNull(queryRequests.getQueryRequests().get(0).getClassification());
+
+        assertThat(classifications)
+            .hasSameSizeAs(queryRequests.getQueryRequests().get(0).getClassification());
+
+        arrayContaining(
+            classifications,
+            equalTo(queryRequests.getQueryRequests().get(0).getClassification())
+        );
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "PUBLIC, PUBLIC PRIVATE RESTRICTED",
+        "PRIVATE, PRIVATE RESTRICTED",
+        "RESTRICTED, RESTRICTED"
+    })
+    void should_throw_server_error_exception_when_query_for_roles(
+        String securityClassificationInput, String classificationInput) {
+
+        classifications = Arrays.stream(classificationInput.split(" "))
+            .map(Classification::valueOf)
+            .collect(Collectors.toList());
+
+        SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
+        TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
+        TaskResource taskResource = createTestTaskWithRoleResources(
+            securityClassification,
+            singleton(taskRoleResource)
+        );
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            any(MultipleQueryRequest.class)))
+            .thenThrow(FeignException.class);
+
+        assertThrows(ServerErrorException.class,
+            () -> roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource));
 
         verify(roleAssignmentServiceApi).queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
