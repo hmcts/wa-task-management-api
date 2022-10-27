@@ -1573,7 +1573,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignmentRequest roleAssignmentRequest1 = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER)
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
@@ -1593,8 +1593,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest1, RoleType.CASE);
-        createRoleAssignment(roleAssignments, roleAssignmentRequest2,RoleType.ORGANISATION);
+        createRoleAssignment(roleAssignments, roleAssignmentRequest1);
+        createRoleAssignment(roleAssignments, roleAssignmentRequest2);
 
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 

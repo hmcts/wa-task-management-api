@@ -25,12 +25,7 @@ public abstract class RoleAssignmentHelper {
     protected static final String PRIMARY_LOCATION = "765324";
 
     protected static List<RoleAssignment> createRoleAssignment(List<RoleAssignment> roleAssignments,
-                                                               RoleAssignmentRequest roleAssignmentRequest) {
-        return createRoleAssignment(roleAssignments, roleAssignmentRequest, RoleType.CASE);
-    }
-
-    protected static List<RoleAssignment> createRoleAssignment(List<RoleAssignment> roleAssignments,
-        RoleAssignmentRequest roleAssignmentRequest, RoleType roleType) {
+        RoleAssignmentRequest roleAssignmentRequest) {
 
         Map<String, String> attributes = createAttributes(roleAssignmentRequest.getRoleAssignmentAttribute());
 

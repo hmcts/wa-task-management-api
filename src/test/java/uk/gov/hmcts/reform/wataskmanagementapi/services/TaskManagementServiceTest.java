@@ -535,6 +535,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .build();
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     GRANULAR_PERMISSION_FEATURE,
