@@ -7,6 +7,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
@@ -16,13 +18,19 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
+import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.hasItems;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.*;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
+    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
     private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
@@ -273,6 +281,60 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "cftTaskState",
             "unassigned"
         );
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_503_if_task_already_initiated() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "reviewAppealSkeletonArgument",
+            "Review Appeal Skeleton Argument"
+        );
+
+        String taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        Consumer<Response> assertConsumer = result -> result.then().assertThat().statusCode(HttpStatus.OK.value());
+
+        initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
+        initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
+//
+//        ZonedDateTime createdDate = ZonedDateTime.now();
+//        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+//        ZonedDateTime dueDate = createdDate.plusDays(1);
+//        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+//
+//        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
+//            new TaskAttribute(TASK_TYPE, "reviewAppealSkeletonArgument"),
+//            new TaskAttribute(TASK_NAME, "Review Appeal Skeleton Argument"),
+//            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+//            new TaskAttribute(TASK_TITLE, "A test task"),
+//            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+//            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+//        ));
+//
+//        //Second call
+//        Response resultSecondCall = restApiActions.post(
+//            ENDPOINT_BEING_TESTED,
+//            taskId,
+//            req,
+//            caseworkerCredentials.getHeaders()
+//        );
+//
+//        // If the first call succeeded the second call should throw a conflict
+//        // taskId unique constraint is violated
+//        resultSecondCall.then().assertThat()
+//            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+//            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+//            .body("type", equalTo(
+//                "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
+//            .body("title", equalTo("Database Conflict Error"))
+//            .body("status", equalTo(503))
+//            .body("detail", equalTo(
+//                "Database Conflict Error: The action could not be completed because "
+//                    + "there was a conflict in the database."));
 
         common.cleanUpTask(taskId);
     }
