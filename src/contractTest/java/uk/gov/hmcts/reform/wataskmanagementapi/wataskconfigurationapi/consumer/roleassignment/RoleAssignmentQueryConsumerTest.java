@@ -19,7 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.TaskConfigurationRoleAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.MultipleQueryRequest;
@@ -46,7 +46,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServ
 public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest {
 
     private final String assigneeId = "14a21569-eb80-4681-b62c-6ae2ed069e5f";
-    private final String caseId = "1212121212121213";
     private final LocalDateTime validAtDate = LocalDateTime.parse("2021-12-04T00:00:00");
     @Autowired
     protected ObjectMapper objectMapper;
@@ -56,14 +55,14 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     AuthTokenGenerator authTokenGenerator;
     @MockBean
     private IdamTokenGenerator idamTokenGenerator;
-    private TaskConfigurationRoleAssignmentService roleAssignmentService;
+    private RoleAssignmentService roleAssignmentService;
 
     @BeforeEach
     void setUp() {
         when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
         when(idamTokenGenerator.generate()).thenReturn(AUTH_TOKEN);
 
-        roleAssignmentService = new TaskConfigurationRoleAssignmentService(roleAssignmentApi, authTokenGenerator, idamTokenGenerator);
+        roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator, idamTokenGenerator);
     }
 
     @Pact(provider = "am_roleAssignment_queryAssignment", consumer = "wa_task_management_api")
@@ -104,6 +103,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     }
 
     private MultipleQueryRequest buildQueryRequest() {
+        String caseId = "1212121212121213";
         QueryRequest queryRequest = QueryRequest.builder()
             .roleType(singletonList(RoleType.CASE))
             .roleName(singletonList("tribunal-caseworker"))

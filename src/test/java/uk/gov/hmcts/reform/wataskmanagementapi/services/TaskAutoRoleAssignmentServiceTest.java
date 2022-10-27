@@ -9,7 +9,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.TaskConfigurationRoleAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -20,7 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.AutoAssignmentResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 
 import java.time.LocalDateTime;
@@ -43,22 +42,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.ParameterizedTest.ARGUMENTS_WITH_NAMES_PLACEHOLDER;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNCONFIGURED;
 
 @ExtendWith(MockitoExtension.class)
 class TaskAutoRoleAssignmentServiceTest {
 
     @Mock
-    private TaskConfigurationRoleAssignmentService roleAssignmentService;
-
-    @Mock
-    private CamundaService camundaService;
+    private RoleAssignmentService roleAssignmentService;
 
     @Mock
     private CftQueryService cftQueryService;
@@ -71,7 +63,6 @@ class TaskAutoRoleAssignmentServiceTest {
     void setUp() {
         taskAutoAssignmentService = new TaskAutoAssignmentService(
             roleAssignmentService,
-            camundaService,
             cftQueryService
         );
         testTaskToConfigure = new TaskToConfigure(
@@ -81,81 +72,6 @@ class TaskAutoRoleAssignmentServiceTest {
             "taskName"
         );
 
-    }
-
-    @Test
-    void getAutoAssignmentVariables_should_return_unassigned_task_state_and_null_assignee() {
-
-        when(roleAssignmentService.searchRolesByCaseId(testTaskToConfigure.getCaseId()))
-            .thenReturn(emptyList());
-
-
-        AutoAssignmentResult result = taskAutoAssignmentService.getAutoAssignmentVariables(testTaskToConfigure);
-
-        assertThat(result.getAssignee()).isNull();
-        assertThat(result.getTaskState()).isEqualTo(UNASSIGNED.value());
-
-    }
-
-    @Test
-    void getAutoAssignmentVariables_should_return_assigned_task_state_and_assignee() {
-
-        RoleAssignment roleAssignmentResource = RoleAssignment.builder()
-            .id("someId")
-            .actorIdType(ActorIdType.IDAM)
-            .actorId("someUserId")
-            .roleName("tribunal-caseworker")
-            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-            .roleType(RoleType.ORGANISATION)
-            .classification(Classification.PUBLIC)
-            .build();
-
-        when(roleAssignmentService.searchRolesByCaseId(testTaskToConfigure.getCaseId()))
-            .thenReturn(singletonList(roleAssignmentResource));
-
-
-        AutoAssignmentResult result = taskAutoAssignmentService.getAutoAssignmentVariables(testTaskToConfigure);
-
-        assertThat(result.getAssignee()).isEqualTo("someUserId");
-        assertThat(result.getTaskState()).isEqualTo(ASSIGNED.value());
-    }
-
-    @Test
-    void autoAssignTask_should_update_task_state_only_to_unassigned() {
-
-        when(roleAssignmentService.searchRolesByCaseId(testTaskToConfigure.getCaseId()))
-            .thenReturn(emptyList());
-
-        taskAutoAssignmentService.autoAssignTask(testTaskToConfigure, UNCONFIGURED.value());
-
-        verify(camundaService).updateTaskStateTo(
-            testTaskToConfigure.getId(),
-            UNASSIGNED
-        );
-    }
-
-    @Test
-    void autoAssignTask_should_update_auto_assign() {
-        RoleAssignment roleAssignmentResource = RoleAssignment.builder()
-            .id("someId")
-            .actorIdType(ActorIdType.IDAM)
-            .actorId("someUserId")
-            .roleName("tribunal-caseworker")
-            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-            .roleType(RoleType.ORGANISATION)
-            .classification(Classification.PUBLIC)
-            .build();
-
-        when(roleAssignmentService.searchRolesByCaseId(testTaskToConfigure.getCaseId()))
-            .thenReturn(singletonList(roleAssignmentResource));
-
-        taskAutoAssignmentService.autoAssignTask(testTaskToConfigure, UNCONFIGURED.value());
-
-        verify(camundaService).assignTask(
-            testTaskToConfigure.getId(),
-            "someUserId",
-            false
-        );
     }
 
     @Test

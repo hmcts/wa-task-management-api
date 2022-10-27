@@ -4,14 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.TaskConfigurationRoleAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.AutoAssignmentResult;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,43 +25,21 @@ import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class TaskAutoAssignmentService {
 
-    private final TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService;
-    private final CamundaService camundaService;
+    private final RoleAssignmentService roleAssignmentService;
     private final CftQueryService cftQueryService;
 
-    public TaskAutoAssignmentService(TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService,
-                                     CamundaService camundaService,
+    public TaskAutoAssignmentService(RoleAssignmentService roleAssignmentService,
                                      CftQueryService cftQueryService) {
-        this.taskConfigurationRoleAssignmentService = taskConfigurationRoleAssignmentService;
-        this.camundaService = camundaService;
+        this.roleAssignmentService = roleAssignmentService;
         this.cftQueryService = cftQueryService;
     }
 
-    public void autoAssignTask(TaskToConfigure taskToConfigure, String currentTaskState) {
-        updateTaskStateAndSetAssignee(taskToConfigure, currentTaskState);
-    }
-
-    public AutoAssignmentResult getAutoAssignmentVariables(TaskToConfigure task) {
-        List<RoleAssignment> roleAssignments =
-            taskConfigurationRoleAssignmentService.searchRolesByCaseId(task.getCaseId());
-
-        if (roleAssignments.isEmpty()) {
-            // the user did not have specific role assignment for this case
-            log.info("The case did not have specific users assigned, Setting task state to '{}'", UNASSIGNED);
-            return new AutoAssignmentResult(UNASSIGNED.value(), null);
-        } else {
-            log.info("The case contained specific users assigned, Setting task state to '{}'", ASSIGNED);
-            return new AutoAssignmentResult(ASSIGNED.value(), roleAssignments.get(0).getActorId());
-        }
-    }
 
     public TaskResource reAutoAssignCFTTask(TaskResource taskResource) {
 
@@ -72,7 +48,7 @@ public class TaskAutoAssignmentService {
 
             //get role assignments for the user
             List<RoleAssignment> roleAssignmentsForUser =
-                taskConfigurationRoleAssignmentService.getRolesByUserId(taskResource.getAssignee());
+                roleAssignmentService.getRolesByUserId(taskResource.getAssignee());
 
             //build and run the role assignment clause query with list of permissions required
             Optional<TaskResource> taskWithValidPermissions = cftQueryService
@@ -92,7 +68,7 @@ public class TaskAutoAssignmentService {
 
     public TaskResource autoAssignCFTTask(TaskResource taskResource) {
         List<RoleAssignment> roleAssignments =
-            taskConfigurationRoleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
+            roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
 
         //The query above may return multiple role assignments, and we must select the right one for auto-assignment.
         //
@@ -130,7 +106,7 @@ public class TaskAutoAssignmentService {
 
     public boolean checkAssigneeIsStillValid(TaskResource taskResource, String assignee) {
 
-        List<RoleAssignment> roleAssignments = taskConfigurationRoleAssignmentService.getRolesByUserId(assignee);
+        List<RoleAssignment> roleAssignments = roleAssignmentService.getRolesByUserId(assignee);
 
         Optional<RoleAssignment> match = runRoleAssignmentAutoAssignVerification(taskResource, roleAssignments);
         return match.isPresent();
@@ -216,34 +192,6 @@ public class TaskAutoAssignmentService {
             orderedRoleAssignments.addAll(filtered);
         });
         return orderedRoleAssignments;
-    }
-
-    @SuppressWarnings({"PMD.LawOfDemeter"})
-    private void updateTaskStateAndSetAssignee(TaskToConfigure taskToConfigure,
-                                               String currentTaskState) {
-
-        List<RoleAssignment> roleAssignments =
-            taskConfigurationRoleAssignmentService.searchRolesByCaseId(taskToConfigure.getCaseId());
-        log.info("Role assignments retrieved for caseId '{}'", taskToConfigure.getCaseId());
-        if (roleAssignments.isEmpty()) {
-            log.info("The case did not have specific users assigned, Setting task state to '{}'", UNASSIGNED);
-            camundaService.updateTaskStateTo(taskToConfigure.getId(), UNASSIGNED);
-        } else {
-            String assignee = roleAssignments.get(0).getActorId();
-            log.info(
-                "The case contained specific users assigned, Setting task state to '{}' ",
-                ASSIGNED
-            );
-
-            boolean taskStateIsAssignedAlready = ASSIGNED.value().equals(currentTaskState);
-
-            camundaService.assignTask(
-                taskToConfigure.getId(),
-                assignee,
-                taskStateIsAssignedAlready
-            );
-
-        }
     }
 
 }
