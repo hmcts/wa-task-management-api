@@ -7,8 +7,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
@@ -18,15 +16,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.hasItems;
-import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.*;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -48,7 +41,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_201_when_initiating_a_process_application_task_by_id() {
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
-                "processApplication", "Process Application");
+                                             "processApplication", "Process Application"
+            );
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -81,7 +75,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.work_type_label", equalTo("Hearing work"))
                 .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
                 .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                  + "trigger/decideAnApplication)"))
+                                                      + "trigger/decideAnApplication)"))
                 .body("task.permissions.values.size()", equalTo(5))
                 .body("task.permissions.values", hasItems("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"))
                 .body("task.additional_properties", equalToObject(Map.of(
@@ -108,13 +102,16 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_201_when_initiating_a_specific_access_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+            common.setupWATaskAndRetrieveIds(
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
                 "reviewSpecificAccessRequestJudiciary",
-                "additionalProperties_roleAssignmentId");
+                "additionalProperties_roleAssignmentId"
+            );
         String taskId = taskVariables.getTaskId();
         common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
-            taskVariables.getCaseId(),
-            WA_JURISDICTION, WA_CASE_TYPE);
+                                                            taskVariables.getCaseId(),
+                                                            WA_JURISDICTION, WA_CASE_TYPE
+        );
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -164,9 +161,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_priority_date_when_initiating_a_task_without_hearing_date() {
         TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
+            = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_no_hearing_date.json",
             "processApplication",
-            "process Application");
+            "process Application"
+        );
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -174,12 +173,16 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             //Note: this is the TaskResource.class
             result.prettyPrint();
 
-            ZonedDateTime dueDate = ZonedDateTime.parse(result.jsonPath().get("task.due_date"),
-                                                        ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
+            ZonedDateTime dueDate = ZonedDateTime.parse(
+                result.jsonPath().get("task.due_date"),
+                ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
+            );
             String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-            ZonedDateTime priorityDate = ZonedDateTime.parse(result.jsonPath().get("task.priority_date"),
-                                                              ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
+            ZonedDateTime priorityDate = ZonedDateTime.parse(
+                result.jsonPath().get("task.priority_date"),
+                ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
+            );
             String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
             Assert.assertEquals(formattedDueDate, formattedPriorityDate);
 
@@ -209,7 +212,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.work_type_label", equalTo("Hearing work"))
                 .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
                 .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                  + "trigger/decideAnApplication)"))
+                                                      + "trigger/decideAnApplication)"))
                 .body("task.permissions.values.size()", equalTo(5))
                 .body("task.permissions.values", hasItems("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"))
                 .body("task.additional_properties", equalToObject(Map.of(
@@ -229,9 +232,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_initiate_review_appeal_skeleton_argument_task_with_ctsc_category() {
         TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
+            = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_no_hearing_date.json",
             "reviewAppealSkeletonArgument",
-            "Review Appeal Skeleton Argument");
+            "Review Appeal Skeleton Argument"
+        );
         String taskId = taskVariables.getTaskId();
         common.setupCFTCtscRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
@@ -265,9 +270,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.work_type_label", equalTo("Hearing work"))
                 .body("task.role_category", equalTo("CTSC"))
                 .body("task.description", equalTo("[Request respondent review](/case/WA/WaCaseType"
-                                                  + "/${[CASE_REFERENCE]}/trigger/requestRespondentReview)<br />"
-                                                  + "[Request case edit](/case/WA/WaCaseType/${[CASE_REFERENCE]}"
-                                                  + "/trigger/requestCaseEdit)"))
+                                                      + "/${[CASE_REFERENCE]}/trigger/requestRespondentReview)<br />"
+                                                      + "[Request case edit](/case/WA/WaCaseType/${[CASE_REFERENCE]}"
+                                                      + "/trigger/requestCaseEdit)"))
                 .body("task.permissions.values.size()", equalTo(3))
                 .body("task.permissions.values", hasItems("Read", "Cancel", "Own"))
                 .body("task.minor_priority", equalTo(500))
@@ -286,56 +291,57 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_503_if_task_already_initiated() {
+    public void should_return_a_503_if_task_already_initiated_however_handled_gracefully() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "reviewAppealSkeletonArgument",
-            "Review Appeal Skeleton Argument"
+            "processApplication",
+            "process Application"
         );
 
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        Consumer<Response> assertConsumer = result -> result.then().assertThat().statusCode(HttpStatus.OK.value());
+        Consumer<Response> assertConsumer = result -> result.then()
+            .assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(taskId))
+            .body("task.name", equalTo("process Application"))
+            .body("task.type", equalTo("processApplication"))
+            .body("task.task_state", equalTo("unassigned"))
+            .body("task.task_system", equalTo("SELF"))
+            .body("task.security_classification", equalTo("PUBLIC"))
+            .body("task.task_title", equalTo("process Application"))
+            .body("task.created_date", notNullValue())
+            .body("task.due_date", notNullValue())
+            .body("task.auto_assigned", equalTo(false))
+            .body("task.warnings", equalTo(false))
+            .body("task.case_id", equalTo(taskVariables.getCaseId()))
+            .body("task.case_type_id", equalTo("WaCaseType"))
+            .body("task.case_category", equalTo("Protection"))
+            .body("task.jurisdiction", equalTo("WA"))
+            .body("task.region", equalTo("1"))
+            .body("task.location", equalTo("765324"))
+            .body("task.location_name", equalTo("Taylor House"))
+            .body("task.execution_type", equalTo("Case Management Task"))
+            .body("task.work_type_id", equalTo("hearing_work"))
+            .body("task.work_type_label", equalTo("Hearing work"))
+            .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                                  + "trigger/decideAnApplication)"))
+            .body("task.permissions.values.size()", equalTo(5))
+            .body("task.permissions.values", hasItems("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"))
+            .body("task.additional_properties", equalToObject(Map.of(
+                "key1", "value1",
+                "key2", "value2",
+                "key3", "value3",
+                "key4", "value4"
+            ))).body("task.minor_priority", equalTo(500))
+            .body("task.major_priority", equalTo(1000));
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
+        //Expect to get 503 for database conflict
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
-//
-//        ZonedDateTime createdDate = ZonedDateTime.now();
-//        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-//        ZonedDateTime dueDate = createdDate.plusDays(1);
-//        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-//
-//        InitiateTaskRequestAttributes req = new InitiateTaskRequestAttributes(INITIATION, asList(
-//            new TaskAttribute(TASK_TYPE, "reviewAppealSkeletonArgument"),
-//            new TaskAttribute(TASK_NAME, "Review Appeal Skeleton Argument"),
-//            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-//            new TaskAttribute(TASK_TITLE, "A test task"),
-//            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-//            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-//        ));
-//
-//        //Second call
-//        Response resultSecondCall = restApiActions.post(
-//            ENDPOINT_BEING_TESTED,
-//            taskId,
-//            req,
-//            caseworkerCredentials.getHeaders()
-//        );
-//
-//        // If the first call succeeded the second call should throw a conflict
-//        // taskId unique constraint is violated
-//        resultSecondCall.then().assertThat()
-//            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-//            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-//            .body("type", equalTo(
-//                "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
-//            .body("title", equalTo("Database Conflict Error"))
-//            .body("status", equalTo(503))
-//            .body("detail", equalTo(
-//                "Database Conflict Error: The action could not be completed because "
-//                    + "there was a conflict in the database."));
-
         common.cleanUpTask(taskId);
     }
 }
