@@ -61,6 +61,8 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
@@ -342,13 +344,17 @@ class TaskResourceDaoTest {
 
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
-        List<Object[]> taskResourceSummary
-            = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
+        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
+                                                                                    10,
+                                                                                    searchTaskRequest,
+                                                                                    roleAssignments,
+                                                                                    permissionsRequired,
+                                                                                    false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -370,13 +376,17 @@ class TaskResourceDaoTest {
 
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
-        List<Object[]> taskResourceSummary
-            = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
+        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
+                                                     10,
+                                                     searchTaskRequest,
+                                                     roleAssignments,
+                                                     permissionsRequired,
+                                                     false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -398,13 +408,17 @@ class TaskResourceDaoTest {
 
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
-        List<Object[]> taskResourceSummary
-            = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
+        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
+                                                                                    10,
+                                                                                    searchTaskRequest,
+                                                                                    roleAssignments,
+                                                                                    permissionsRequired,
+                                                                                    false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -445,8 +459,8 @@ class TaskResourceDaoTest {
             "Asylum"
         );
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
 
         when(query.getResultList()).thenReturn(List.of(createTaskResource()));
 
@@ -475,15 +489,16 @@ class TaskResourceDaoTest {
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         when(countQuery.getSingleResult()).thenReturn(1L);
 
         Long totalCount = taskResourceDao.getTotalCount(
             searchTaskRequest,
             roleAssignmentWithAllGrantTypes(),
-            permissionsRequired
+            permissionsRequired,
+            false
         );
 
         assertEquals(1, totalCount);
@@ -526,15 +541,16 @@ class TaskResourceDaoTest {
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         assertThatThrownBy(() -> taskResourceDao.getTaskResourceSummary(
             0,
             0,
             searchTaskRequest,
             roleAssignmentWithAllGrantTypes(),
-            permissionsRequired
+            permissionsRequired,
+            false
         ))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Limit must not be less than one");
@@ -553,15 +569,16 @@ class TaskResourceDaoTest {
             List.of()
         );
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         assertThatThrownBy(() -> taskResourceDao.getTaskResourceSummary(
             -1,
             25,
             searchTaskRequest,
             roleAssignmentWithAllGrantTypes(),
-            permissionsRequired
+            permissionsRequired,
+            false
         ))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Offset index must not be less than zero");
