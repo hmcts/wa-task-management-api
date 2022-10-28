@@ -21,6 +21,7 @@ class SearchParameterKeyTest {
         final String workTypeEnum = SearchParameterKey.WORK_TYPE.value();
         final String availableTasksOnlyEnum = SearchParameterKey.AVAILABLE_TASKS_ONLY.value();
         final String roleCategory = SearchParameterKey.ROLE_CATEGORY.value();
+        final String requestContext = SearchParameterKey.REQUEST_CONTEXT.value();
 
         assertEquals("location", locationEnum);
         assertEquals("user", userEnum);
@@ -32,12 +33,13 @@ class SearchParameterKeyTest {
         assertEquals("available_tasks_only", availableTasksOnlyEnum);
         assertEquals("work_type", workTypeEnum);
         assertEquals("role_category", roleCategory);
+        assertEquals("request_context", requestContext);
     }
 
     @Test
     void update_test_whenever_additions_to_assign_enum_are_made() {
         int assigneeEnumLength = SearchParameterKey.values().length;
-        assertEquals(10, assigneeEnumLength);
+        assertEquals(11, assigneeEnumLength);
     }
 
 
@@ -54,6 +56,7 @@ class SearchParameterKeyTest {
             "WORK_TYPE, work_type",
             "AVAILABLE_TASKS_ONLY, available_tasks_only",
             "ROLE_CATEGORY, role_category",
+            "REQUEST_CONTEXT, request_context"
         }
     )
     void should_return_id_when_toString_method_is_called(String input, String expected) {
