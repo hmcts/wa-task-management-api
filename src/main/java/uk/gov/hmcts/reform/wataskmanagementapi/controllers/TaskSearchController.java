@@ -21,26 +21,23 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
 @Slf4j
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
@@ -107,14 +104,11 @@ public class TaskSearchController extends BaseController {
 
         log.debug("Search request received '{}'", searchTaskRequest);
         //Release 2
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(READ);
         response = cftQueryService.searchForTasks(
             Optional.ofNullable(firstResult).orElse(0),
             Optional.ofNullable(maxResults).orElse(defaultMaxResults),
             searchTaskRequest,
-            accessControlResponse.getRoleAssignments(),
-            permissionsRequired
+            accessControlResponse
         );
 
         return ResponseEntity
@@ -154,7 +148,8 @@ public class TaskSearchController extends BaseController {
 
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
         response = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             accessControlResponse.getRoleAssignments(),
