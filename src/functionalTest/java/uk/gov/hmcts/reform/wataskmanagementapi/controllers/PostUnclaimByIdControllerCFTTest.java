@@ -6,9 +6,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
@@ -17,16 +15,12 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -126,27 +120,8 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
-
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.prettyPrint();
-
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("unassigned"))
-            .body("task.assignee", equalTo(null))
-            .body("task.last_updated_timestamp", notNullValue())
-            .body("task.last_updated_user", equalTo(userInfo.getUid()))
-            .body("task.last_updated_action", equalTo(UNCLAIM.getValue()));
+        assertions.taskStateWasUpdatedInDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", null, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -180,27 +155,8 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
-
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.prettyPrint();
-
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("unassigned"))
-            .body("task.assignee", equalTo(null))
-            .body("task.last_updated_timestamp", notNullValue())
-            .body("task.last_updated_user", equalTo(userInfo.getUid()))
-            .body("task.last_updated_action", equalTo(UNCLAIM.getValue()));
+        assertions.taskStateWasUpdatedInDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", null, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
