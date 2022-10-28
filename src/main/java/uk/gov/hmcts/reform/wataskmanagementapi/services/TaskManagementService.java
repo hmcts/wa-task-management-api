@@ -9,6 +9,7 @@ import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
@@ -63,10 +64,13 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
@@ -162,8 +166,23 @@ public class TaskManagementService {
                           AccessControlResponse accessControlResponse) {
         String userId = accessControlResponse.getUserInfo().getUid();
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        String email = accessControlResponse.getUserInfo().getEmail();
+
+        PermissionRequirements permissionsRequired;
+        if (isGranularPermissionFeatureEnabled(userId, email)) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(asList(CLAIM, OWN), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(CLAIM, EXECUTE), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(ASSIGN, EXECUTE), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(ASSIGN, OWN), PermissionJoin.AND)
+                .build();
+        } else {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+        }
 
         roleAssignmentVerification.verifyRoleAssignments(
             taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
@@ -172,7 +191,7 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
             throw new ConflictException("Task '" + task.getTaskId()
-                                        + "' is already claimed by someone else.", null);
+                                            + "' is already claimed by someone else.", null);
         }
         task.setState(CFTTaskState.ASSIGNED);
         task.setAssignee(userId);
@@ -862,5 +881,13 @@ public class TaskManagementService {
 
     }
 
+    private boolean isGranularPermissionFeatureEnabled(String userId, String email) {
+        return launchDarklyFeatureFlagProvider
+            .getBooleanValue(
+                FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+                userId,
+                email
+            );
+    }
 
 }
