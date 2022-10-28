@@ -80,8 +80,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_ASSIGNMENT_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 
@@ -191,12 +189,12 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
             throw new ConflictException("Task '" + task.getTaskId()
-                                            + "' is already claimed by someone else.", null);
+                                        + "' is already claimed by someone else.", null);
         }
         task.setState(CFTTaskState.ASSIGNED);
         task.setAssignee(userId);
-        setTaskActionAttributes(task, userId, CLAIM);
-        
+        setTaskActionAttributes(task, userId, TaskAction.CLAIM);
+
         camundaService.assignTask(taskId, userId, false);
 
         //Commit transaction
@@ -253,8 +251,7 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         task.setState(CFTTaskState.UNASSIGNED);
         task.setAssignee(null);
-        String userId = accessControlResponse.getUserInfo().getUid();
-        setTaskActionAttributes(task, userId, UNCLAIM);
+        setTaskActionAttributes(task, userId, TaskAction.UNCLAIM);
         //Perform Camunda updates
         camundaService.unclaimTask(taskId, taskHasUnassigned);
         //Commit transaction

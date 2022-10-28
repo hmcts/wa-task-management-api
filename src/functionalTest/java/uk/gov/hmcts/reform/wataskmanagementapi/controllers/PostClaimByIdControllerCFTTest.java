@@ -16,8 +16,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -25,7 +23,6 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -118,28 +115,15 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.prettyPrint();
-
+        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("assigned"))
-            .body("task.assignee", equalTo(userInfo.getUid()))
-            .body("task.last_updated_timestamp", notNullValue())
-            .body("task.last_updated_user", equalTo(userInfo.getUid()))
-            .body("task.last_updated_action", equalTo(CLAIM.getValue()));
-
+        assertions.taskFieldWasUpdatedInDatabase(
+            taskId,
+            "assignee",
+            userInfo.getUid(),
+            caseworkerCredentials.getHeaders()
+        );
         common.cleanUpTask(taskId);
 
     }
@@ -162,28 +146,15 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.prettyPrint();
-
+        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("assigned"))
-            .body("task.assignee", equalTo(userInfo.getUid()))
-            .body("task.last_updated_timestamp", notNullValue())
-            .body("task.last_updated_user", equalTo(userInfo.getUid()))
-            .body("task.last_updated_action", equalTo(CLAIM.getValue()));
-
+        assertions.taskFieldWasUpdatedInDatabase(
+            taskId,
+            "assignee",
+            userInfo.getUid(),
+            caseworkerCredentials.getHeaders()
+        );
         common.cleanUpTask(taskId);
 
     }
@@ -217,27 +188,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.prettyPrint();
-
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("assigned"))
-            .body("task.assignee", equalTo(userInfo.getUid()))
-            .body("task.last_updated_timestamp", notNullValue())
-            .body("task.last_updated_user", equalTo(userInfo.getUid()))
-            .body("task.last_updated_action", equalTo(CLAIM.getValue()));
+        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -311,26 +262,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.NO_CONTENT.value());
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.prettyPrint();
-
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("assigned"))
-            .body("task.assignee", equalTo(userInfo.getUid()))
-            .body("task.last_updated_timestamp", notNullValue())
-            .body("task.last_updated_user", equalTo(userInfo.getUid()))
-            .body("task.last_updated_action", equalTo(CLAIM.getValue()));
+        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
