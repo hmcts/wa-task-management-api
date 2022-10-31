@@ -299,6 +299,10 @@ public class Common {
 
         String caseId = given.iCreateWACcdCase(resourceFileName);
 
+        return setupWATaskForGivenCaseAndRetrieveIds(caseId, taskType, taskName);
+    }
+
+    public TestVariables setupWATaskForGivenCaseAndRetrieveIds(String caseId, String taskType, String taskName) {
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, "WA", "WaCaseType", taskType, taskName)
             .and()
@@ -602,6 +606,74 @@ public class Common {
 
     }
 
+    public void setupHearingPanelJudgeForStandardAccess(Headers headers, String jurisdiction, String caseType) {
+        log.info("Creating hearing-panel-judge organizational Role");
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "hearing-panel-judge",
+            toJsonString(
+                Map.of(
+                    "primaryLocation", "765324",
+                    "jurisdiction", jurisdiction,
+                    "caseType", caseType
+                )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.JUDICIAL.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupStandardCaseManager(Headers headers, String caseId, String jurisdiction, String caseType) {
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        log.info("Creating Case manager Organizational Role");
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "case-manager",
+            toJsonString(Map.of(
+                "primaryLocation", "765324",
+                "caseType", caseType,
+                "jurisdiction", jurisdiction
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
     public void setupCaseManagerForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -859,7 +931,7 @@ public class Common {
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
             "jurisdiction", "IA",
-            "workTypes", "hearing_work,upper_tribunal,routine_work"
+            "workTypes", "hearing_work,upper_tribunal,routine_work,review_case"
         );
 
         //Clean/Reset user

@@ -89,6 +89,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 
+
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
@@ -298,7 +299,11 @@ public class CFTTaskMapper {
             taskResource.getReconfigureRequestTime() == null ? null
                 : taskResource.getReconfigureRequestTime().toZonedDateTime(),
             taskResource.getLastReconfigurationTime() == null ? null
-                : taskResource.getLastReconfigurationTime().toZonedDateTime()
+                : taskResource.getLastReconfigurationTime().toZonedDateTime(),
+            taskResource.getLastUpdatedTimestamp() == null ? null
+                : taskResource.getLastUpdatedTimestamp().toZonedDateTime(),
+            taskResource.getLastUpdatedUser() == null ? null : taskResource.getLastUpdatedUser(),
+            taskResource.getLastUpdatedAction() == null ? null : taskResource.getLastUpdatedAction()
         );
     }
 

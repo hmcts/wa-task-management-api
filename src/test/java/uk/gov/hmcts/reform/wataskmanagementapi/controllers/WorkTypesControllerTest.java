@@ -205,7 +205,7 @@ class WorkTypesControllerTest {
     }
 
     @Test
-    void should_return_empty_list_when_role_assigment_is_empty() {
+    void should_return_empty_list_when_role_assignment_is_empty() {
 
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(mockedAccessControlResponse);

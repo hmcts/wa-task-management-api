@@ -154,6 +154,40 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .toPact();
     }
 
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeSearchQueryWithAvailableTasksOnlyContext200Test(PactDslWithProvider builder) {
+        return builder
+            .given("appropriate tasks are returned by criteria with work-type with warnings only")
+            .uponReceiving("Provider receives a POST /task request from a WA API")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchEventCaseWithAvailableTasksOnlyContext(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskWithWarnings())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeSearchQueryWithAllWorkContext200Test(PactDslWithProvider builder) {
+        return builder
+            .given("appropriate tasks are returned by criteria with work-type with warnings only")
+            .uponReceiving("Provider receives a POST /task request from a WA API")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchEventCaseWithAllWorkContext(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskWithWarnings())
+            .toPact();
+    }
+
     @Test
     @PactTestFor(pactMethod = "executeSearchQuery200", pactVersion = PactSpecVersion.V3)
     void testSearchQuery200Test(MockServer mockServer) {
@@ -240,6 +274,34 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
             .body(createSearchByRoleCategoryRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithAvailableTasksOnlyContext200Test",
+        pactVersion = PactSpecVersion.V3)
+    void testSearchQueryWithAvailableTasksOnlyContext200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithAvailableTasksOnlyContext())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithAllWorkContext200Test", pactVersion = PactSpecVersion.V3)
+    void testSearchQueryWithAllWorkContext200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithAllWorkContext())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -435,8 +497,11 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                + "                \"applications\",\n"
                + "                \"upper_tribunal\",\n"
                + "                \"priority\",\n"
+               + "                \"access_requests\",\n"
                + "                \"error_management\",\n"
-               + "                \"access_requests\"\n"
+               + "                \"review_case\",\n"
+               + "                \"evidence\",\n"
+               + "                \"follow_up\"\n"
                + "            ]\n"
                + "        }\n"
                + "    ]\n"
@@ -461,6 +526,46 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                + "        }\n"
                + "    ]\n"
                + "}";
+    }
+
+    private String createSearchEventCaseWithAvailableTasksOnlyContext() {
+
+        return "{\n"
+            + "    \"search_parameters\": [\n"
+            + "        {\n"
+            + "            \"key\": \"jurisdiction\",\n"
+            + "            \"operator\": \"IN\",\n"
+            + "            \"values\": [\n"
+            + "                \"IA\"\n"
+            + "            ]\n"
+            + "        },\n"
+            + "        {\n"
+            + "            \"key\": \"request_context\",\n"
+            + "            \"operator\": \"CONTEXT\",\n"
+            + "            \"value\": \"AVAILABLE_TASK_ONLY\""
+            + "        }\n"
+            + "    ]\n"
+            + "}";
+    }
+
+    private String createSearchEventCaseWithAllWorkContext() {
+
+        return "{\n"
+            + "    \"search_parameters\": [\n"
+            + "        {\n"
+            + "            \"key\": \"jurisdiction\",\n"
+            + "            \"operator\": \"IN\",\n"
+            + "            \"values\": [\n"
+            + "                \"IA\"\n"
+            + "            ]\n"
+            + "        },\n"
+            + "        {\n"
+            + "            \"key\": \"request_context\",\n"
+            + "            \"operator\": \"CONTEXT\",\n"
+            + "            \"value\": \"ALL_WORK\""
+            + "        }\n"
+            + "    ]\n"
+            + "}";
     }
 
     private String createSearchByRoleCategoryRequest() {

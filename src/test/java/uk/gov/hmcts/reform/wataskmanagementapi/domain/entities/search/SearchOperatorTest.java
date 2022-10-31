@@ -14,6 +14,12 @@ class SearchOperatorTest {
     }
 
     @Test
+    void testSearchOperatorReturnsCorrectValueForIs() {
+        SearchOperator result = SearchOperator.from("CONTEXT");
+        assertEquals(SearchOperator.CONTEXT, result);
+    }
+
+    @Test
     void testSearchOperatorReturnsCorrectValueForBetween() {
         SearchOperator result = SearchOperator.from("BETWEEN");
         assertEquals(SearchOperator.BETWEEN, result);
