@@ -6,14 +6,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -34,10 +36,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class MarkTaskReconfigurationServiceTest {
 
+    private static final String IDAM_SYSTEM_USER = "IDAM_SYSTEM_USER";
+
     @Mock
     CaseConfigurationProviderService caseConfigurationProviderService;
     @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
+    private IdamTokenGenerator idamTokenGenerator;
+    @Mock
+    private UserInfo userInfo;
     @InjectMocks
     private MarkTaskReconfigurationService markTaskReconfigurationService;
 
@@ -51,6 +59,9 @@ class MarkTaskReconfigurationServiceTest {
                     CamundaValue.booleanValue(true)
                 )
         ));
+        lenient().when(idamTokenGenerator.generate()).thenReturn("token");
+        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
+        lenient().when(userInfo.getUid()).thenReturn(IDAM_SYSTEM_USER);
     }
 
 
@@ -74,6 +85,9 @@ class MarkTaskReconfigurationServiceTest {
         taskResourcesMarked.forEach(taskResource -> {
             assertNotNull(taskResource.getReconfigureRequestTime());
             assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
+            assertEquals(IDAM_SYSTEM_USER, taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResource.getLastUpdatedAction());
         });
 
     }

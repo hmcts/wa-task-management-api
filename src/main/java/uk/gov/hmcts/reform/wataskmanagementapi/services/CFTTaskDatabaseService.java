@@ -65,4 +65,16 @@ public class CFTTaskDatabaseService {
     public Optional<TaskResource> findTaskBySpecification(Specification<TaskResource> specification) {
         return tasksRepository.findOne(specification);
     }
+
+    public Optional<String> findCaseId(String taskId) {
+        Optional<TaskResource> taskResource = findByIdOnly(taskId);
+        if (taskResource.isPresent() && taskResource.get().getCaseId() != null) {
+            return Optional.of(taskResource.get().getCaseId());
+        }
+        return Optional.empty();
+    }
+
+    public void cleanTasks() {
+        tasksRepository.deleteAll();
+    }
 }

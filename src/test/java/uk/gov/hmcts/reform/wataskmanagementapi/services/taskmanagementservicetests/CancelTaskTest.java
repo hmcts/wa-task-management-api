@@ -19,11 +19,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,11 +54,11 @@ class CancelTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
@@ -83,6 +83,7 @@ class CancelTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleType(CANCEL);
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
@@ -102,7 +103,7 @@ class CancelTaskTest extends CamundaHelpers {
         final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         TaskResource taskResource = spy(TaskResource.class);
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.cancelTask(
             taskId,

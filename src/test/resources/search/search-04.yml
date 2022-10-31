@@ -1,0 +1,20 @@
+---
+listFilters:
+  - key: state
+    operator: IN
+    values: [ASSIGNED,UNASSIGNED]
+  - key: jurisdiction
+    operator: IN
+    values: [IA]
+  - key: role_category
+    operator: IN
+    values: [LEGAL_OPERATIONS]
+  - key: caseId
+    operator: IN
+    values: [1651158394904755]
+pagination:
+  firstResult: 0
+  maxResults: 25
+sort:
+  - sortBy: due_date
+    sortOrder: desc

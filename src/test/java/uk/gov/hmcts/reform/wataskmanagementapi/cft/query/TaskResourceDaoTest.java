@@ -69,6 +69,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 
@@ -334,7 +335,8 @@ class TaskResourceDaoTest {
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of(
                 new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT),
@@ -350,11 +352,11 @@ class TaskResourceDaoTest {
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
         List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
-                                                                                    10,
-                                                                                    searchTaskRequest,
-                                                                                    roleAssignments,
-                                                                                    permissionsRequired,
-                                                                                    false);
+            10,
+            searchTaskRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -369,7 +371,8 @@ class TaskResourceDaoTest {
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of()
         );
@@ -382,11 +385,11 @@ class TaskResourceDaoTest {
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
         List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
-                                                     10,
-                                                     searchTaskRequest,
-                                                     roleAssignments,
-                                                     permissionsRequired,
-                                                     false);
+            10,
+            searchTaskRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -401,7 +404,8 @@ class TaskResourceDaoTest {
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, null))
         );
@@ -414,11 +418,11 @@ class TaskResourceDaoTest {
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
         List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
-                                                                                    10,
-                                                                                    searchTaskRequest,
-                                                                                    roleAssignments,
-                                                                                    permissionsRequired,
-                                                                                    false);
+            10,
+            searchTaskRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -433,7 +437,8 @@ class TaskResourceDaoTest {
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
@@ -484,7 +489,8 @@ class TaskResourceDaoTest {
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
@@ -536,7 +542,8 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003"))
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
@@ -564,7 +571,8 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003"))
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of()
         );

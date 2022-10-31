@@ -20,7 +20,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -151,13 +150,15 @@ public final class RoleAssignmentFilter {
             PermissionRequirement requirement = nextRequirements.getPermissionRequirement();
 
             for (PermissionTypes type : requirement.getPermissionTypes()) {
-                permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
+                permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.taskRoleResourceField())));
             }
             Predicate permissionPredicate;
             if (PermissionJoin.AND.equals(requirement.getPermissionJoin())) {
                 permissionPredicate = builder.and(permissionPredicates.toArray(predicates));
-            } else {
+            } else if (PermissionJoin.OR.equals(requirement.getPermissionJoin())) {
                 permissionPredicate = builder.or(permissionPredicates.toArray(predicates));
+            } else {
+                permissionPredicate = permissionPredicates.get(0);
             }
             permissionPredicates.clear();
 

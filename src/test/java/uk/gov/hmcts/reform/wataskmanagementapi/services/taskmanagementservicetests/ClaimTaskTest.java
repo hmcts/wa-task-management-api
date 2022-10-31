@@ -17,11 +17,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,11 +52,11 @@ class ClaimTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
@@ -82,6 +82,7 @@ class ClaimTaskTest extends CamundaHelpers {
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         taskManagementService.claimTask(taskId, accessControlResponse);
 
@@ -96,7 +97,7 @@ class ClaimTaskTest extends CamundaHelpers {
         when(accessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
         TaskResource taskResource = spy(TaskResource.class);
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.claimTask(
             taskId,

@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 @Provider("wa_task_management_api_assign_task_by_id")
 public class TaskManagerAssignTaskProviderTest extends SpringBootContractProviderBaseTest {
-    
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -36,7 +36,8 @@ public class TaskManagerAssignTaskProviderTest extends SpringBootContractProvide
             taskManagementService,
             accessControlService,
             systemDateProvider,
-            clientAccessControlService
+            clientAccessControlService,
+            launchDarklyFeatureFlagProvider
         ));
         if (context != null) {
             context.setTarget(testTarget);

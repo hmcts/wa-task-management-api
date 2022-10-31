@@ -10,8 +10,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 import javax.validation.constraints.NotNull;
 
 @Schema(
-    name = "SearchParameter",
-    description = "Search parameter containing the key, operator and a list of values"
+    name = "SearchParameterBoolean",
+    description = "Search parameter containing the key, operator and boolean values"
 )
 @EqualsAndHashCode
 @ToString
@@ -40,7 +40,9 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
     private final boolean values;
 
     @JsonCreator
-    public SearchParameterBoolean(SearchParameterKey key, SearchOperator operator, boolean values) {
+    public SearchParameterBoolean(@JsonProperty("key") SearchParameterKey key,
+                                  @JsonProperty("operator") SearchOperator operator,
+                                  @JsonProperty("value") boolean values) {
         this.key = key;
         this.operator = operator;
         this.values = values;

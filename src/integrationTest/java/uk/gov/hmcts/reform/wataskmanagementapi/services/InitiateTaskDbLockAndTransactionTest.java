@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,12 +22,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -50,17 +45,17 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 
 @Slf4j
 public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationBaseTest {
@@ -70,20 +65,17 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     public static final String SOME_ASSIGNEE = "someAssignee";
     public static final String SOME_CASE_ID = "someCaseId";
 
-    OffsetDateTime createdDate = OffsetDateTime.now();
-    OffsetDateTime dueDate = createdDate.plusDays(1);
-    String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+    private final OffsetDateTime dueDate = OffsetDateTime.now().plusDays(1);
+    private final String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+    private final Map<String, Object> taskAttributes = new HashMap<>(Map.of(
+        TASK_NAME.value(), A_TASK_NAME,
+        TASK_CASE_ID.value(), SOME_CASE_ID,
+        DUE_DATE.value(), formattedDueDate,
+        TASK_TYPE.value(), A_TASK_TYPE,
+        TASK_ASSIGNEE.value(), SOME_ASSIGNEE
+    ));
 
-    private final InitiateTaskRequestAttributes initiateTaskRequest = new InitiateTaskRequestAttributes(
-        InitiateTaskOperation.INITIATION,
-        List.of(
-            new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
-            new TaskAttribute(TASK_ASSIGNEE, SOME_ASSIGNEE),
-            new TaskAttribute(TASK_CASE_ID, SOME_CASE_ID),
-            new TaskAttribute(TASK_NAME, A_TASK_NAME),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        )
-    );
+    private final InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
@@ -120,8 +112,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private ArgumentCaptor<TaskResource> taskResourceCaptor;
     private TaskResource testTaskResource;
     private TaskResource assignedTask;
-
-    private Map<String, Object> taskAttributes;
     private RoleAssignmentVerificationService roleAssignmentVerification;
     @Mock
     private EntityManager entityManager;
@@ -154,12 +144,13 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
         testTaskResource.setCreated(OffsetDateTime.now());
+        testTaskResource.setPriorityDate(OffsetDateTime.now().plusDays(2));
         assignedTask = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED, SOME_CASE_ID, dueDate);
         assignedTask.setCreated(OffsetDateTime.now());
 
-        taskAttributes = getTaskAttributes(assignedTask);
-        when(cftTaskMapper.getTaskAttributes(testTaskResource)).thenReturn(taskAttributes);
-        when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
+        when(cftTaskMapper.mapToTaskResource(taskId, taskAttributes)).thenReturn(testTaskResource);
+
+        when(taskAutoAssignmentService.performAutoAssignment(any(), any(TaskResource.class)))
             .thenReturn(assignedTask);
 
         when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
@@ -184,12 +175,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             cftTaskDatabaseService
         );
 
-        inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
-        inOrder.verify(configureTaskService).configureCFTTask(
-            taskResourceCaptor.capture(),
-            eq(new TaskToConfigure(taskId, A_TASK_TYPE, SOME_CASE_ID, A_TASK_NAME, taskAttributes))
-        );
-        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class));
+        inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, taskAttributes);
+        inOrder.verify(taskAutoAssignmentService).performAutoAssignment(any(), any(TaskResource.class));
         inOrder.verify(camundaService).updateCftTaskState(any(), any());
         inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
 
@@ -272,8 +259,4 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         }).count() == expectedFailureCalls;
     }
 
-    private Map<String, Object> getTaskAttributes(TaskResource taskResource) {
-        return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
-        });
-    }
 }

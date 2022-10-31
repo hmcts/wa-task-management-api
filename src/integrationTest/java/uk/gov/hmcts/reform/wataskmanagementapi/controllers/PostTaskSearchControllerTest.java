@@ -1,18 +1,25 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import org.junit.FixMethodOrder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -23,9 +30,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -35,10 +45,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -57,19 +70,22 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_CLASS;
+import static org.springframework.test.annotation.DirtiesContext.HierarchyMode.EXHAUSTIVE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.BOOLEAN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION;
@@ -78,6 +94,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SuppressWarnings("checkstyle:LineLength")
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@DirtiesContext(classMode = BEFORE_CLASS, hierarchyMode = EXHAUSTIVE)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Order(value = 1)
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @MockBean
@@ -94,20 +116,27 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Autowired
+    private TaskResourceRepository tasksRepository;
+    @Autowired
+    private TaskManagementService taskManagementService;
     @SpyBean
     private CftQueryService cftQueryService;
     @Mock
     private UserInfo mockedUserInfo;
     @MockBean
     private ClientAccessControlService clientAccessControlService;
-    private String taskId;
     private ServiceMocks mockServices;
+
+    @Container
+    private static final PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:11.4")
+        .withDatabaseName("cft_task_db")
+        .withUsername("sa")
+        .withPassword("password");
 
 
     @BeforeEach
     void setUp() {
-        taskId = UUID.randomUUID().toString();
-
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         when(mockedUserInfo.getUid())
@@ -121,6 +150,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+
+        tasksRepository.deleteAll();
     }
 
     @ParameterizedTest
@@ -128,6 +159,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         "/task", "/task?first_result=0", "/task?max_results=1", "/task?first_result=0&max_results=1"
     })
     void should_return_a_200_when_restricted_role_is_given(String uri) throws Exception {
+        String taskId = UUID.randomUUID().toString();
 
         String caseId = "searchCriteriaCaseId1";
         mockServices.mockUserInfo();
@@ -191,6 +223,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_single_task_when_two_role_assignments_with_one_restricted_is_given() throws Exception {
         String caseId = "searchCriteriaCaseId2";
+        String taskId = UUID.randomUUID().toString();
+
         mockServices.mockUserInfo();
         // create role assignments with IA, Organisation and SCSS , Case
         List<RoleAssignment> roleAssignments = mockServices.createRoleAssignmentsWithSCSSandIA(caseId);
@@ -229,6 +263,354 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.tasks.length()").value(1),
             jsonPath("$.tasks[0].jurisdiction").value("SSCS")
         );
+    }
+
+    @Test
+    void should_return_a_200_with_search_results_and_warnings() throws Exception {
+        String caseId = "searchCriteriaCaseId3";
+
+        mockServices.mockUserInfo();
+
+        // Role attribute is IA
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            true, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+
+        String roleAssignmentId = UUID.randomUUID().toString();
+
+        String taskId = UUID.randomUUID().toString();
+        insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(caseId,
+                                                               taskId,
+                                                               "IA",
+                                                               "Asylum",
+                                                               roleAssignmentId,
+                                                               taskRoleResource);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
+        ));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchTaskRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isOk(),
+            jsonPath("total_records").value(1),
+            jsonPath("$.tasks").isNotEmpty(),
+            jsonPath("$.tasks.length()").value(1),
+            jsonPath("tasks[0].warning_list.values.size()").value(2),
+            jsonPath("tasks[0].warning_list.values[0].warningCode").value("Code1"),
+            jsonPath("tasks[0].warning_list.values[0].warningText").value("Text1"),
+            jsonPath("tasks[0].warning_list.values[1].warningCode").value("Code2"),
+            jsonPath("tasks[0].warning_list.values[1].warningText").value("Text2"),
+            jsonPath("tasks[0].additional_properties['roleAssignmentId']").value(roleAssignmentId)
+        );
+    }
+
+    @Test
+    void should_return_a_200_with_limited_tasks_with_pagination() throws Exception {
+        String caseId = "searchCriteriaCaseId4";
+        mockServices.mockUserInfo();
+
+        // Role attribute is IA
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            true, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+
+        insertDummyTaskInDb(caseId, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
+        insertDummyTaskInDb(caseId, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
+        insertDummyTaskInDb(caseId, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
+        ));
+
+        mockMvc.perform(
+            post("/task?first_result=0&max_results=2")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchTaskRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isOk(),
+            jsonPath("total_records").value(3),
+            jsonPath("$.tasks").isNotEmpty(),
+            jsonPath("$.tasks.length()").value(2)
+        );
+    }
+
+    @Test
+    void should_return_a_200_and_filter_tasks_by_case_id_camel_case() throws Exception {
+        mockServices.mockUserInfo();
+
+        // Role attribute is IA
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .build()
+            )
+            .build();
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            true, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+
+        String caseId1 = "searchCriteriaCaseId7";
+        String caseId2 = "searchCriteriaCaseId8";
+
+        insertDummyTaskInDb(caseId1, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
+        insertDummyTaskInDb(caseId1, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
+        insertDummyTaskInDb(caseId2, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
+        ));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchTaskRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isOk(),
+            jsonPath("total_records").value(3),
+            jsonPath("$.tasks").isNotEmpty(),
+            jsonPath("$.tasks.length()").value(3)
+        );
+
+        searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("IA")),
+            new SearchParameterList(CASE_ID, IN, singletonList(caseId1))
+        ));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchTaskRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isOk(),
+            jsonPath("total_records").value(2),
+            jsonPath("$.tasks").isNotEmpty(),
+            jsonPath("$.tasks.length()").value(2)
+        );
+
+        searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("IA")),
+            new SearchParameterList(CASE_ID_CAMEL_CASE, IN, singletonList(caseId1))
+        ));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchTaskRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isOk(),
+            jsonPath("total_records").value(2),
+            jsonPath("$.tasks").isNotEmpty(),
+            jsonPath("$.tasks.length()").value(2)
+        );
+    }
+
+    @Test
+    void should_return_task_with_old_permissions_when_granular_permission_flag_off() throws Exception {
+        String caseId = "searchCriteriaCaseId5";
+        String taskId = UUID.randomUUID().toString();
+
+        mockServices.mockUserInfo();
+        // create role assignments with IA, Organisation and SCSS , Case
+        List<RoleAssignment> roleAssignments = mockServices.createRoleAssignmentsWithSCSSandIA(caseId);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            true, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), true, true, true, true,
+            true, true, true, true, true, true
+        );
+
+        insertDummyTaskInDb(caseId, taskId, "SSCS", "Asylum", taskRoleResource);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("SSCS"))
+        ));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchTaskRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isOk(),
+            jsonPath("total_records").value(1),
+            jsonPath("$.tasks").isNotEmpty(),
+            jsonPath("$.tasks.length()").value(1),
+            jsonPath("$.tasks[0].jurisdiction").value("SSCS"),
+            jsonPath("$.tasks[0].permissions.values[0]").value("Read"),
+            jsonPath("$.tasks[0].permissions.values[1]").value("Own"),
+            jsonPath("$.tasks[0].permissions.values[2]").value("Execute"),
+            jsonPath("$.tasks[0].permissions.values.length()").value(3)
+        ).andReturn();
+
+    }
+
+    @Test
+    void should_return_task_with_granular_permissions_when_permission_flag_on() throws Exception {
+        String caseId = "searchCriteriaCaseId6";
+        String taskId = UUID.randomUUID().toString();
+
+        mockServices.mockUserInfo();
+        // create role assignments with IA, Organisation and SCSS , Case
+        List<RoleAssignment> roleAssignments = mockServices.createRoleAssignmentsWithSCSSandIA(caseId);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            true, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), true, true, true, true,
+            true, true, true, true, true, false
+        );
+
+        insertDummyTaskInDb(caseId, taskId, "SSCS", "Asylum", taskRoleResource);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("SSCS"))
+        ));
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
+            mockedUserInfo.getUid(),
+            mockedUserInfo.getEmail()
+        )).thenReturn(true);
+
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchTaskRequest))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andDo(MockMvcResultHandlers.print())
+            .andExpectAll(
+                status().isOk(),
+                jsonPath("total_records").value(1),
+                jsonPath("$.tasks").isNotEmpty(),
+                jsonPath("$.tasks.length()").value(1),
+                jsonPath("$.tasks[0].jurisdiction").value("SSCS"),
+                jsonPath("$.tasks[0].permissions.values[0]").value("Read"),
+                jsonPath("$.tasks[0].permissions.values[1]").value("Own"),
+                jsonPath("$.tasks[0].permissions.values[2]").value("Execute"),
+                jsonPath("$.tasks[0].permissions.values[3]").value("Complete"),
+                jsonPath("$.tasks[0].permissions.values[4]").value("CompleteOwn"),
+                jsonPath("$.tasks[0].permissions.values[5]").value("CancelOwn"),
+                jsonPath("$.tasks[0].permissions.values[6]").value("Claim"),
+                jsonPath("$.tasks[0].permissions.values[7]").value("Unclaim"),
+                jsonPath("$.tasks[0].permissions.values[8]").value("Assign"),
+                jsonPath("$.tasks[0].permissions.values[9]").value("Unassign"),
+                jsonPath("$.tasks[0].permissions.values[10]").value("UnclaimAssign"),
+                jsonPath("$.tasks[0].permissions.values[11]").value("UnassignClaim"),
+                jsonPath("$.tasks[0].permissions.values.length()").value(12)
+            ).andReturn();
     }
 
     @Test
@@ -719,6 +1101,74 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_return_400_bad_request_when_invalid_first_result_pagination_param_provided() throws Exception {
+        mockMvc.perform(
+                post("/task?first_result=-1&max_results=2")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                                 + "  \"search_parameters\": [\n"
+                                 + "    {\n"
+                                 + "      \"key\": \"jurisdiction\",\n"
+                                 + "      \"values\": [\"ia\"],\n"
+                                 + "      \"operator\": \"IN\"\n"
+                                 + "    }\n"
+                                 + "  ]\n"
+                                 + "}\n")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"
+                        ),
+                    jsonPath("$.title").value("Constraint Violation"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.violations.[0].field")
+                        .value("search_with_criteria.first_result"),
+                    jsonPath("$.violations.[0].message")
+                        .value("first_result must not be less than zero")
+                ));
+    }
+
+    @Test
+    void should_return_a_400_with_empty_search_results_with_negative_maxResults_pagination() throws Exception {
+        mockMvc.perform(
+                post("/task?first_result=0&max_results=-2")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                                 + "  \"search_parameters\": [\n"
+                                 + "    {\n"
+                                 + "      \"key\": \"jurisdiction\",\n"
+                                 + "      \"values\": [\"ia\"],\n"
+                                 + "      \"operator\": \"IN\"\n"
+                                 + "    }\n"
+                                 + "  ]\n"
+                                 + "}\n")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"
+                        ),
+                    jsonPath("$.title").value("Constraint Violation"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.violations.[0].field")
+                        .value("search_with_criteria.max_results"),
+                    jsonPath("$.violations.[0].message")
+                        .value("max_results must not be less than one")
+                ));
+    }
+
+    @Test
     void should_return_200_and_accept_Request_when_theres_at_least_one_value() throws Exception {
 
         UserInfo userInfo = mockServices.mockUserInfo();
@@ -965,12 +1415,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            accessControlResponse.getUserInfo().getUid(),
-            IDAM_USER_EMAIL
-        )).thenReturn(false);
-
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -1004,7 +1448,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             expectedReq,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
     }
 
@@ -1060,7 +1505,124 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             expectedReq,
-            accessControlResponse
+            accessControlResponse,
+            false
+        );
+    }
+
+    @Test
+    void should_return_200_given_sort_by_parameter_should_support_camelCase() throws Exception {
+        UserInfo userInfo = mockServices.mockUserInfo();
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content("{\n"
+                             + "  \"search_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"key\": \"available_tasks_only\",\n"
+                             + "      \"operator\": \"BOOLEAN\",\n"
+                             + "      \"value\": false\n"
+                             + "    }\n"
+                             + "  ],\n"
+                             + "  \"sorting_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"sort_by\": \"dueDate\",\n"
+                             + "      \"sort_order\": \"asc\"\n"
+                             + "    }\n"
+                             + "  ]\n"
+                             + "}\n")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(status().isOk());
+
+        SearchTaskRequest expectedReq = new SearchTaskRequest(
+            asList(
+                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, BOOLEAN, false)
+            ),
+            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
+        );
+
+        verify(cftQueryService, times(1)).searchForTasks(
+            0,
+            50,
+            expectedReq,
+            accessControlResponse,
+            false
+        );
+    }
+
+    @Test
+    void should_return_200_given_sort_by_parameter_should_support_snake_case() throws Exception {
+        UserInfo userInfo = mockServices.mockUserInfo();
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content("{\n"
+                             + "  \"search_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"key\": \"available_tasks_only\",\n"
+                             + "      \"operator\": \"BOOLEAN\",\n"
+                             + "      \"value\": false\n"
+                             + "    }\n"
+                             + "  ],\n"
+                             + "  \"sorting_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"sort_by\": \"due_date\",\n"
+                             + "      \"sort_order\": \"asc\"\n"
+                             + "    }\n"
+                             + "  ]\n"
+                             + "}\n")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(status().isOk());
+
+        SearchTaskRequest expectedReq = new SearchTaskRequest(
+            asList(
+                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, BOOLEAN, false)
+            ),
+            singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        verify(cftQueryService, times(1)).searchForTasks(
+            0,
+            50,
+            expectedReq,
+            accessControlResponse,
+            false
         );
     }
 
@@ -1090,12 +1652,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .content("{\n"
+                             + "  \"request_context\": \"" + context.toString() + "\",\n"
                              + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"request_context\",\n"
-                             + "      \"operator\": \"CONTEXT\",\n"
-                             + "      \"value\": \"" + context.toString() + "\"\n"
-                             + "    },\n"
                              + "    {\n"
                              + "      \"key\": \"jurisdiction\",\n"
                              + "      \"operator\": \"IN\",\n"
@@ -1107,8 +1665,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpect(status().isOk());
 
         SearchTaskRequest expectedReq = new SearchTaskRequest(
+            context,
             asList(
-                new SearchParameterRequestContext(REQUEST_CONTEXT, CONTEXT, context),
                 new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
             )
         );
@@ -1117,14 +1675,13 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             expectedReq,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
     }
 
     @Test
     void should_return_a_400_for_invalid_request_context() throws Exception {
-        UserInfo userInfo = mockServices.mockUserInfo();
-
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
         Map<String, String> roleAttributes = new HashMap<>();
@@ -1134,7 +1691,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> allTestRoles =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
@@ -1146,12 +1702,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .content("{\n"
+                             + "  \"request_context\": \"GENERAL_SEARCH\",\n"
                              + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"request_context\",\n"
-                             + "      \"operator\": \"CONTEXT\",\n"
-                             + "      \"value\": \"GENERAL_SEARCH\"\n"
-                             + "    },\n"
                              + "    {\n"
                              + "      \"key\": \"jurisdiction\",\n"
                              + "      \"operator\": \"IN\",\n"
@@ -1160,7 +1712,64 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                              + "  ]\n"
                              + "}\n")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpect(status().isBadRequest());
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isBadRequest(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type")
+                    .value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/bad-request"
+                    ),
+                jsonPath("$.title").value("Bad Request"),
+                jsonPath("$.status").value(400),
+                jsonPath("$.detail").value("Invalid request field: request_context")
+            ));
+    }
+
+    @Test
+    void should_return_a_400_for_empty_request_context() throws Exception {
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content("{\n"
+                             + "  \"request_context\": \"\",\n"
+                             + "  \"search_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"key\": \"jurisdiction\",\n"
+                             + "      \"operator\": \"IN\",\n"
+                             + "      \"values\": [ \"IA\" ]\n"
+                             + "    }\n"
+                             + "  ]\n"
+                             + "}\n")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isBadRequest(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type")
+                    .value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/bad-request"
+                    ),
+                jsonPath("$.title").value("Bad Request"),
+                jsonPath("$.status").value(400),
+                jsonPath("$.detail").value("Invalid request field: request_context")
+            ));
     }
 
     @Test
@@ -1245,7 +1854,46 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
+        TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
+        taskManagementService.updateTaskIndex(savedTask.getTaskId());
+    }
+
+    private void insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(String caseId, String taskId,
+                                                                        String jurisdiction, String caseType,
+                                                                        String roleAssignmentId,
+                                                                        TaskRoleResource taskRoleResource) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "aTaskName",
+            "reviewTheAppeal",
+            ASSIGNED
+        );
+
+        List<NoteResource> warnings = List.of(
+            new NoteResource("Code1","WARNING",null,"Text1"),
+            new NoteResource("Code2","WARNING",null,"Text2")
+        );
+
+        taskResource.setDescription("aDescription");
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setDueDateTime(OffsetDateTime.now());
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setCaseTypeId(caseType);
+        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+        taskResource.setLocation("765324");
+        taskResource.setLocationName("Taylor House");
+        taskResource.setRegion("TestRegion");
+        taskResource.setCaseId(caseId);
+        taskResource.setAssignee(IDAM_USER_ID);
+        taskResource.setWorkTypeResource(new WorkTypeResource("decision_making_work", "Decision Making work"));
+        taskResource.setNotes(warnings);
+        taskResource.setHasWarnings(true);
+        taskResource.setAdditionalProperties(Map.of("roleAssignmentId", roleAssignmentId));
+        taskRoleResource.setTaskId(taskId);
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+        taskResource.setTaskRoleResources(taskRoleResourceSet);
+        TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
+        taskManagementService.updateTaskIndex(savedTask.getTaskId());
     }
 }
 

@@ -12,18 +12,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,6 +51,8 @@ class UnclaimTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
@@ -63,12 +64,6 @@ class UnclaimTaskTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
-    @Mock
-    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
-
-    @Mock
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
 
     @Test
     void unclaimTask_should_succeed() {
@@ -80,6 +75,7 @@ class UnclaimTaskTest extends CamundaHelpers {
         PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
             .thenReturn(Optional.of(taskResource));
@@ -96,7 +92,7 @@ class UnclaimTaskTest extends CamundaHelpers {
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
         TaskResource taskResource = spy(TaskResource.class);
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.unclaimTask(
             taskId,

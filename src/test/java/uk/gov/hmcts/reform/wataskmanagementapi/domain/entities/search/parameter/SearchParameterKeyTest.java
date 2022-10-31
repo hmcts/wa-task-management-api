@@ -15,31 +15,29 @@ class SearchParameterKeyTest {
         final String userEnum = SearchParameterKey.USER.value();
         final String jurisdictionEnum = SearchParameterKey.JURISDICTION.value();
         final String stateEnum = SearchParameterKey.STATE.value();
-        final String taskIdEnum = SearchParameterKey.TASK_ID.value();
+        final String caseIdEnumCamelCase = SearchParameterKey.CASE_ID_CAMEL_CASE.value();
         final String taskTypeEnum = SearchParameterKey.TASK_TYPE.value();
         final String caseIdEnum = SearchParameterKey.CASE_ID.value();
         final String workTypeEnum = SearchParameterKey.WORK_TYPE.value();
         final String availableTasksOnlyEnum = SearchParameterKey.AVAILABLE_TASKS_ONLY.value();
         final String roleCategory = SearchParameterKey.ROLE_CATEGORY.value();
-        final String requestContext = SearchParameterKey.REQUEST_CONTEXT.value();
 
         assertEquals("location", locationEnum);
         assertEquals("user", userEnum);
         assertEquals("jurisdiction", jurisdictionEnum);
         assertEquals("state", stateEnum);
-        assertEquals("taskId", taskIdEnum);
-        assertEquals("taskType", taskTypeEnum);
-        assertEquals("caseId", caseIdEnum);
+        assertEquals("caseId", caseIdEnumCamelCase);
+        assertEquals("task_type", taskTypeEnum);
+        assertEquals("case_id", caseIdEnum);
         assertEquals("available_tasks_only", availableTasksOnlyEnum);
         assertEquals("work_type", workTypeEnum);
         assertEquals("role_category", roleCategory);
-        assertEquals("request_context", requestContext);
     }
 
     @Test
     void update_test_whenever_additions_to_assign_enum_are_made() {
         int assigneeEnumLength = SearchParameterKey.values().length;
-        assertEquals(11, assigneeEnumLength);
+        assertEquals(10, assigneeEnumLength);
     }
 
 
@@ -50,13 +48,12 @@ class SearchParameterKeyTest {
             "USER, user",
             "JURISDICTION, jurisdiction",
             "STATE, state",
-            "TASK_ID, taskId",
-            "TASK_TYPE, taskType",
-            "CASE_ID, caseId",
+            "CASE_ID_CAMEL_CASE, caseId",
+            "TASK_TYPE, task_type",
+            "CASE_ID, case_id",
             "WORK_TYPE, work_type",
             "AVAILABLE_TASKS_ONLY, available_tasks_only",
-            "ROLE_CATEGORY, role_category",
-            "REQUEST_CONTEXT, request_context"
+            "ROLE_CATEGORY, role_category"
         }
     )
     void should_return_id_when_toString_method_is_called(String input, String expected) {

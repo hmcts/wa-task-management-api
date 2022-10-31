@@ -29,8 +29,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
@@ -40,7 +38,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -59,12 +56,10 @@ import javax.persistence.EntityManager;
 import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 
@@ -89,9 +84,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
     private static final UserInfo granularPermissionUserInfo = UserInfo.builder()
         .email("granular_user@test.com")
@@ -101,20 +93,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
-                                              allowedJurisdictionConfiguration, launchDarklyFeatureFlagProvider
+            allowedJurisdictionConfiguration
         );
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            userInfo.getUid(),
-            userInfo.getEmail()
-        )).thenReturn(false);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            granularPermissionUserInfo.getUid(),
-            granularPermissionUserInfo.getEmail()
-        )).thenReturn(true);
     }
 
     @ParameterizedTest()
@@ -140,22 +120,23 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "secondaryTaskTitleSortedResultsDescScenario",
         "secondaryCaseCategorySortedResultsAscScenario",
         "secondaryCaseCategorySortedResultsDescScenario",
-        "grantTypeWithAvailableTasksOnlyOnRequestContextScenarioHappyPath",
-        "grantTypeWithAllWorkOnRequestContextScenarioHappyPath"
+        "grantTypeWithAllWorkOnRequestContextScenarioHappyPath",
+        "grantTypeWithAvailableTasksOnRequestContextScenarioHappyPath"
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
         log.info("Running scenario: {}", scenario.scenarioName);
 
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
-                                                                                scenario.roleAssignments);
+            scenario.roleAssignments);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
             scenario.searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
         //then
@@ -165,7 +146,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         Assertions.assertThat(allTasks.getTasks())
             .hasSize(scenario.expectedAmountOfTasksInResponse)
             .flatExtracting(Task::getId, Task::getCaseId, Task::getCaseName, Task::getLocationName,
-                            Task::getTaskTitle, Task::getCaseCategory)
+                Task::getTaskTitle, Task::getCaseCategory)
             .containsExactly(
                 scenario.expectedTaskDetails.toArray()
             );
@@ -202,7 +183,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResult, scenario.maxResults, scenario.searchTaskRequest,
-            accessControlResponse
+            accessControlResponse, false
         );
 
         //then
@@ -225,14 +206,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
         Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
-                -1, 1, searchTaskRequest, accessControlResponse
+                -1, 1, searchTaskRequest, accessControlResponse, false
             ))
             .hasNoCause()
             .hasMessage("Offset index must not be less than zero");
 
 
         Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
-                0, 0, searchTaskRequest, accessControlResponse
+                0, 0, searchTaskRequest, accessControlResponse, false
             ))
             .hasNoCause()
             .hasMessage("Limit must not be less than one");
@@ -256,8 +237,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(1)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                        "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
-                        "TestCase2", "Taylor House", "title", null
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null
                 )
             ).build();
 
@@ -969,13 +950,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyOnRequestContextScenarioHappyPath() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
-            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN,
-                                              RequestContext.AVAILABLE_TASK_ONLY)
-        ));
+    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnRequestContextScenarioHappyPath() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")))
+        );
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
             .scenarioName("available_tasks_only should return only unassigned and OWN and ClAIM permission and PUBLIC")
@@ -987,9 +968,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(1)
             .userInfo(granularPermissionUserInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
-                                     "TestCase2", "Taylor House", "title", null
-                                 )
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null
+                )
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
@@ -1002,16 +983,16 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(2)
             .userInfo(granularPermissionUserInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
-                                     "TestCase2", "Taylor House", "title", null,
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
-                                     "TestCase2", "Taylor House", "title", null
-                                 )
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null
+                )
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
             .scenarioName("available_tasks_only should return only unassigned and OWN and ClAIM permission "
-                              + "excluded_grant_type_with_classification_as_restricted")
+                          + "excluded_grant_type_with_classification_as_restricted")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
@@ -1020,13 +1001,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(3)
             .userInfo(granularPermissionUserInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
-                                     "TestCase3", "Taylor House", "title", null,
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
-                                     "TestCase2", "Taylor House", "title", null,
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
-                                     "TestCase2", "Taylor House", "title", null
-                                 )
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                    "TestCase2", "Taylor House", "title", null
+                )
             ).build();
 
         return Stream.of(
@@ -1037,11 +1018,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     }
 
     private static Stream<TaskQueryScenario> grantTypeWithAllWorkOnRequestContextScenarioHappyPath() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
-            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN, RequestContext.ALL_WORK)
-        ));
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.ALL_WORK,
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")))
+        );
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
             .scenarioName("all_work should return only unassigned and MANAGE permission and PUBLIC")
@@ -1053,9 +1035,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(1)
             .userInfo(granularPermissionUserInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
-                                     "TestCase2", "Taylor House", "title", null
-                                 )
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null
+                )
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
@@ -1068,16 +1050,16 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(2)
             .userInfo(granularPermissionUserInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
-                                     "TestCase2", "Taylor House", "title", null,
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
-                                     "TestCase2", "Taylor House", "title", null
-                                 )
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null
+                )
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
             .scenarioName("all_work should return only unassigned and MANAGE permission "
-                              + "excluded_grant_type_with_classification_as_restricted")
+                          + "excluded_grant_type_with_classification_as_restricted")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
@@ -1086,13 +1068,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(3)
             .userInfo(granularPermissionUserInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
-                                     "TestCase3", "Taylor House", "title", null,
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
-                                     "TestCase2", "Taylor House", "title", null,
-                                     "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
-                                     "TestCase2", "Taylor House", "title", null
-                                 )
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                    "TestCase3", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                    "TestCase2", "Taylor House", "title", null,
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                    "TestCase2", "Taylor House", "title", null
+                )
             ).build();
 
         return Stream.of(
@@ -1167,37 +1149,37 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(14)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3",
-                    "Taylor House", "title", null,
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3",
-                    "Taylor House", "title", null,
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004", "TestCase2",
-                    "Taylor House", "title", null,
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2",
-                    "Taylor House", "title", null,
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2",
-                    "Taylor House", "title", null,
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2",
-                    "Taylor House", "title", null,
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007", "TestCase4",
-                    "Taylor House", "title", null,
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111008", "1623278362431008", "TestCase4",
-                    "Taylor House", "title", null,
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111009", "1623278362431009", "TestCase4",
-                    "Taylor House", "title", null,
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006", "TestCase",
-                    "Taylor House", "title", null
+                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3",
+                "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025", "TestCase3",
+                "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004", "TestCase2",
+                "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2",
+                "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2",
+                "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2",
+                "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007", "TestCase4",
+                "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111008", "1623278362431008", "TestCase4",
+                "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111009", "1623278362431009", "TestCase4",
+                "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006", "TestCase",
+                "Taylor House", "title", null
             ))
             .expectedDueDates(newArrayList(ZonedDateTime.parse("2022-10-09T20:15:45.345875+01:00"),
-                                           ZonedDateTime.parse("2022-10-09T20:15:45.345875+01:00"),
-                                           ZonedDateTime.parse("2022-09-09T20:15:45.345875+01:00"),
-                                           ZonedDateTime.parse("2022-09-09T20:15:45.345875+01:00"),
-                                           ZonedDateTime.parse("2022-08-09T20:15:45.345875+01:00"),
-                                           ZonedDateTime.parse("2022-08-09T20:15:45.345875+01:00"),
-                                           ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                                           ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                                           ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                                           ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+                ZonedDateTime.parse("2022-10-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-09-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-09-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-08-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-08-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00")
             ))
             .build();
 
@@ -1388,8 +1370,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(22)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House", "title", null,
-                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase", "Taylor House", "title", null
+                    "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000", "TestCase4", "Taylor House",
+                    "title", null, "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001", "TestCase",
+                    "Taylor House", "title", null
                 )
             ).build();
 
@@ -1473,23 +1456,23 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(8)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                                 "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
-                                 "TestCase4", "Taylor House", "title", "Protection",
-                                 "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
-                                 "TestCase4", "Taylor House", "title", "Protection",
-                                 "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
-                                 "TestCase4", "Taylor House", "title", "appealType",
-                                 "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
-                                 "TestCase4", "Taylor House", "title", "Protection",
-                                 "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
-                                 "TestCase4", "Taylor House", "aaa", "Protection",
-                                 "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
-                                 "TestCase1", "Cardiff Crown Court", "title", "Protection",
-                                 "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
-                                 "TestCase4", "Taylor House", "title", "Protection",
-                                 "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
-                                 "TestCase4", "Taylor House", "title", "Protection"
-                                 )
+                    "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
+                    "TestCase4", "Taylor House", "title", "Protection",
+                    "8d6cc5cf-c973-11eb-bdba-0242ac222001", "1623278362222001",
+                    "TestCase4", "Taylor House", "title", "Protection",
+                    "8d6cc5cf-c973-11eb-bdba-0242ac222002", "1623278362222002",
+                    "TestCase4", "Taylor House", "title", "appealType",
+                    "8d6cc5cf-c973-11eb-bdba-0242ac222003", "1623278362222003",
+                    "TestCase4", "Taylor House", "title", "Protection",
+                    "8d6cc5cf-c973-11eb-bdba-0242ac222004", "1623278362222004",
+                    "TestCase4", "Taylor House", "aaa", "Protection",
+                    "8d6cc5cf-c973-11eb-bdba-0242ac222005", "1623278362222005",
+                    "TestCase1", "Cardiff Crown Court", "title", "Protection",
+                    "8d6cc5cf-c973-11eb-bdba-0242ac222006", "1623278362222006",
+                    "TestCase4", "Taylor House", "title", "Protection",
+                    "8d6cc5cf-c973-11eb-bdba-0242ac222007", "1623278362222007",
+                    "TestCase4", "Taylor House", "title", "Protection"
+                )
             ).build();
 
         return Stream.of(
@@ -1648,13 +1631,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 "Taylor House", "title", "Protection"
             ))
             .expectedDueDates(newArrayList(ZonedDateTime.parse("2022-05-08T20:15:45.345875+01:00"),
-                              ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                              ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                              ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                              ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                              ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                              ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                              ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00")))
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                ZonedDateTime.parse("2022-05-09T20:15:45.345875+01:00")))
             .build();
 
         return Stream.of(

@@ -12,11 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 
+import javax.persistence.LockModeType;
+import javax.persistence.QueryHint;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.LockModeType;
-import javax.persistence.QueryHint;
 
 public interface TaskResourceRepository extends CrudRepository<TaskResource, String>,
     JpaSpecificationExecutor<TaskResource> {
@@ -49,7 +49,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     })
     @Query(
         value =
-            "INSERT INTO {h-schema}tasks (task_id, created, due_date_time, priority_date) "
+            "INSERT INTO {h-schema}tasks "
+                + "(task_id, created, due_date_time, priority_date) "
                 + "VALUES (:task_id, :created, :due_date_time, :priority_date)",
         nativeQuery = true)
     @Transactional
@@ -59,5 +60,15 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
         @Param("due_date_time") OffsetDateTime dueDate,
         @Param("priority_date") OffsetDateTime priorityDate
     );
+
+    @Query(value = "SELECT t.task_id " +
+        "FROM {h-schema}tasks t " +
+        "WHERE indexed " +
+        "AND state IN ('ASSIGNED','UNASSIGNED') " +
+        "AND {h-schema}filter_signatures(t.task_id) && :filter_signature " +
+        "AND {h-schema}role_signatures(t.task_id) && :role_signature", nativeQuery = true)
+    @Transactional
+    List<String> searchTasks(@Param("filter_signature") String[] filterSignature,
+                                   @Param("role_signature") String[] roleSignature);
 
 }

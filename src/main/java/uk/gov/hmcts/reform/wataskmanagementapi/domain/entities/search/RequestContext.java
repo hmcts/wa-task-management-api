@@ -1,31 +1,23 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 
 @JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum RequestContext {
-    @JsonProperty("ALL_WORK")
-    ALL_WORK,
-    @JsonProperty("AVAILABLE_TASK_ONLY")
-    AVAILABLE_TASK_ONLY;
+    ALL_WORK("ALL_WORK"),
+    AVAILABLE_TASKS("AVAILABLE_TASKS");
 
-    private static final Map<String, RequestContext> FORMAT_MAP = Stream
-        .of(values())
-        .collect(Collectors.toMap(Enum::toString, Function.identity()));
+    @JsonValue
+    private final String id;
 
-    @JsonCreator
-    public static RequestContext fromString(String string) {
-        return Optional
-            .ofNullable(FORMAT_MAP.get(string))
-            .orElseThrow(() -> new IllegalArgumentException(string));
+    RequestContext(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public String toString() {
+        return id;
     }
 }

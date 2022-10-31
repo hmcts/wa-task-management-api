@@ -10,8 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Exec
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskExecuteReconfigurationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -114,26 +112,24 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
                                           OffsetDateTime endTimer) {
         List<String> failedTaskIds = new ArrayList<>();
         if (endTimer.isAfter(OffsetDateTime.now())) {
-            taskIds.stream()
-                .forEach(taskId -> {
+            taskIds.forEach(taskId -> {
+                try {
+                    Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
+                        .findByIdAndObtainPessimisticWriteLock(taskId);
 
-                    try {
-                        Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
-                            .findByIdAndObtainPessimisticWriteLock(taskId);
-
-                        if (optionalTaskResource.isPresent()) {
-                            TaskResource taskResource = optionalTaskResource.get();
-                            taskResource = configureTaskService.reconfigureCFTTask(taskResource);
-                            taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
-                            taskResource.setReconfigureRequestTime(null);
-                            taskResource.setLastReconfigurationTime(OffsetDateTime.now());
-                            successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
-                        }
-                    } catch (Exception e) {
-                        log.error("Error configuring task (id={}) ", taskId, e);
-                        failedTaskIds.add(taskId);
+                    if (optionalTaskResource.isPresent()) {
+                        TaskResource taskResource = optionalTaskResource.get();
+                        taskResource = configureTaskService.reconfigureCFTTask(taskResource);
+                        taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+                        taskResource.setReconfigureRequestTime(null);
+                        taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+                        successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
                     }
-                });
+                } catch (Exception e) {
+                    log.error("Error configuring task (id={}) ", taskId, e);
+                    failedTaskIds.add(taskId);
+                }
+            });
         }
 
         return failedTaskIds;

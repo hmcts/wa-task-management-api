@@ -6,9 +6,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -18,11 +20,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +53,8 @@ class GetTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
@@ -58,9 +62,6 @@ class GetTaskTest extends CamundaHelpers {
     CftQueryService cftQueryService;
     @Mock
     private List<TaskOperationService> taskOperationServices;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
@@ -72,11 +73,13 @@ class GetTaskTest extends CamundaHelpers {
 
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         TaskResource taskResource = spy(TaskResource.class);
-        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(READ);
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(READ);
         taskId = UUID.randomUUID().toString();
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
         Task mockedMappedTask = mock(Task.class);
         when(cftTaskMapper.mapToTaskWithPermissions(any(), any()))
@@ -90,12 +93,13 @@ class GetTaskTest extends CamundaHelpers {
     @Test
     void getTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-        List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+        RoleAssignment roleAssignment = mock(RoleAssignment.class);
+        when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+        List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
+        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
 
         TaskResource taskResource = spy(TaskResource.class);
-        when(cftTaskDatabaseService.findByIdOnly(taskId))
-            .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.getTask(taskId, accessControlResponse))
             .isInstanceOf(RoleAssignmentVerificationException.class)
