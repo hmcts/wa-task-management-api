@@ -57,14 +57,15 @@ class CancelTaskTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
     @Mock
     private EntityManager entityManager;
+
+    @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Mock
     private List<TaskOperationService> taskOperationServices;

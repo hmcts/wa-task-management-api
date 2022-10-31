@@ -19,6 +19,12 @@ public class PermissionRequirement {
         this.permissionJoin = permissionJoin;
     }
 
+    PermissionRequirement(PermissionTypes permissionType) {
+        requireNonNull(permissionType);
+        this.permissionTypes = List.of(permissionType);
+        this.permissionJoin = PermissionJoin.NONE;
+    }
+
     public List<PermissionTypes> getPermissionTypes() {
         return permissionTypes;
     }

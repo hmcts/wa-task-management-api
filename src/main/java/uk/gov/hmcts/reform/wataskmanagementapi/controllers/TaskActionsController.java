@@ -163,10 +163,10 @@ public class TaskActionsController extends BaseController {
                                            @RequestBody AssignTaskRequest assignTaskRequest) {
 
         AccessControlResponse assignerAccessControlResponse = accessControlService.getRoles(assignerAuthToken);
-        AccessControlResponse assigneeAccessControlResponse = accessControlService.getRolesGivenUserId(
-            assignTaskRequest.getUserId(),
-            assignerAuthToken
-        );
+        Optional<AccessControlResponse> assigneeAccessControlResponse = assignTaskRequest.getUserId() == null
+            ? Optional.empty()
+            : Optional.ofNullable(accessControlService.getRolesGivenUserId(assignTaskRequest.getUserId(),
+                                                                           assignerAuthToken));
 
         taskManagementService.assignTask(
             taskId,
