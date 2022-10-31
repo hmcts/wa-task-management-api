@@ -62,7 +62,6 @@ class TerminateTaskTest extends CamundaHelpers {
     @Mock
     private EntityManager entityManager;
 
-
     @BeforeEach
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(

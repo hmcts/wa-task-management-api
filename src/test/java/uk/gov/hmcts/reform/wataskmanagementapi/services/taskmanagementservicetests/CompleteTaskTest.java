@@ -65,8 +65,6 @@ class CompleteTaskTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
 
@@ -74,6 +72,9 @@ class CompleteTaskTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
+
+    @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Mock
     private List<TaskOperationService> taskOperationServices;
