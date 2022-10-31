@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
@@ -68,6 +67,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.AND;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
@@ -174,13 +174,13 @@ public class TaskManagementService {
         PermissionRequirements permissionsRequired;
         if (isGranularPermissionFeatureEnabled(userId, email)) {
             permissionsRequired = PermissionRequirementBuilder.builder()
-                .initPermissionRequirement(asList(CLAIM, OWN), PermissionJoin.AND)
-                .joinPermissionRequirement(PermissionJoin.OR)
-                .nextPermissionRequirement(asList(CLAIM, EXECUTE), PermissionJoin.AND)
-                .joinPermissionRequirement(PermissionJoin.OR)
-                .nextPermissionRequirement(asList(ASSIGN, EXECUTE), PermissionJoin.AND)
-                .joinPermissionRequirement(PermissionJoin.OR)
-                .nextPermissionRequirement(asList(ASSIGN, OWN), PermissionJoin.AND)
+                .initPermissionRequirement(asList(CLAIM, OWN), AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(CLAIM, EXECUTE), AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(ASSIGN, EXECUTE), AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(ASSIGN, OWN), AND)
                 .build();
         } else {
             permissionsRequired = PermissionRequirementBuilder.builder()
@@ -389,11 +389,11 @@ public class TaskManagementService {
             return PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(UNASSIGN_CLAIM)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(List.of(UNASSIGN, CLAIM), PermissionJoin.AND)
+                .nextPermissionRequirement(List.of(UNASSIGN, CLAIM), AND)
                 .joinPermissionRequirement(OR)
                 .nextPermissionRequirement(UNASSIGN_ASSIGN)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), PermissionJoin.AND)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
                 .build();
         } else if (assigner.getUid().equals(currentAssignee)
             && !assigner.getUid().equals(assigneeUid)) {
@@ -401,11 +401,11 @@ public class TaskManagementService {
             return PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(UNCLAIM_ASSIGN)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(List.of(UNCLAIM, ASSIGN), PermissionJoin.AND)
+                .nextPermissionRequirement(List.of(UNCLAIM, ASSIGN), AND)
                 .joinPermissionRequirement(OR)
                 .nextPermissionRequirement(UNASSIGN_ASSIGN)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), PermissionJoin.AND)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
                 .build();
         } else {
             //When assigner tries to assign own task again themselves, it will be filtered out before come here.
@@ -413,7 +413,7 @@ public class TaskManagementService {
             return PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(UNASSIGN_ASSIGN)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), PermissionJoin.AND)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
                 .build();
         }
     }
