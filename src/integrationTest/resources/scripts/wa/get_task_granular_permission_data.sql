@@ -323,7 +323,7 @@ INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
                                     authorizations, assignment_priority, auto_assignable, role_category, task_id, created,
                                     complete, complete_own, cancel_own, claim, unclaim, assign, unassign, unclaim_assign,
                                     unassign_claim, unassign_assign)
-VALUES ('8d6cc5cf-c973-11eb-bdba-0242ac115019', 'challenged-access-admin',
+VALUES ('8d6cc5cf-c973-11eb-bdba-0242ac115119', 'challenged-access-admin',
         false, false, false, false, false, false,
         '{"DIVORCE", "373"}',0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111019', '2021-05-09T20:15:45.345875+01:00',
         false, false, false, false, false, false, true, true, false, false);
