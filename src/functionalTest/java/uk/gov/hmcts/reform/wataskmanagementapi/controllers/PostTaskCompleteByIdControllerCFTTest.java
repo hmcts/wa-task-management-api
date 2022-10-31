@@ -675,7 +675,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_204_when_completing_a_task_by_id_granular_permission() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "r1");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
 
