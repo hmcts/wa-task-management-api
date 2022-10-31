@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
-import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
@@ -53,7 +52,7 @@ public class GivensBuilder {
     private final AuthorizationProvider authorizationProvider;
     private final DocumentManagementFiles documentManagementFiles;
 
-    private final CoreCaseDataApi coreCaseDataApi;
+    private final CcdRetryableClient ccdRetryableClient;
 
 
     private Map<String, CamundaValue<?>> taskVariables;
@@ -61,14 +60,14 @@ public class GivensBuilder {
     public GivensBuilder(RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
                          AuthorizationProvider authorizationProvider,
-                         CoreCaseDataApi coreCaseDataApi,
+                         CcdRetryableClient ccdRetryableClient,
                          DocumentManagementFiles documentManagementFiles,
                          RestApiActions workflowApiActions
     ) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationProvider = authorizationProvider;
-        this.coreCaseDataApi = coreCaseDataApi;
+        this.ccdRetryableClient = ccdRetryableClient;
         this.documentManagementFiles = documentManagementFiles;
         this.workflowApiActions = workflowApiActions;
 
@@ -386,7 +385,7 @@ public class GivensBuilder {
 
         Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, credentials);
 
-        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
+        StartEventResponse startCase = ccdRetryableClient.startForCaseworker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -436,7 +435,7 @@ public class GivensBuilder {
             .build();
 
         //Fire submit event
-        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
+        CaseDetails caseDetails = ccdRetryableClient.submitForCaseworker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -448,7 +447,7 @@ public class GivensBuilder {
 
         log.info("Created case [" + caseDetails.getId() + "]");
 
-        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
+        StartEventResponse submitCase = ccdRetryableClient.startEventForCaseWorker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -468,7 +467,7 @@ public class GivensBuilder {
             .data(data)
             .build();
 
-        coreCaseDataApi.submitEventForCaseWorker(
+        ccdRetryableClient.submitEventForCaseWorker(
             userToken,
             serviceToken,
             userInfo.getUid(),
