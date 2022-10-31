@@ -244,6 +244,7 @@ class AssignTaskTest extends CamundaHelpers {
         when(cftQueryService.getTask(
             taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
         ).thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,
