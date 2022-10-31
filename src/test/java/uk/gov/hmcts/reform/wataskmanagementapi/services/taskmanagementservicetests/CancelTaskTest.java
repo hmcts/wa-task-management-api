@@ -67,9 +67,6 @@ class CancelTaskTest extends CamundaHelpers {
     private EntityManager entityManager;
 
     @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
-    @Mock
     private List<TaskOperationService> taskOperationServices;
 
 

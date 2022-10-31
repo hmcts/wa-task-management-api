@@ -79,10 +79,6 @@ class CompleteTaskTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
-
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
     @Mock
     private List<TaskOperationService> taskOperationServices;
 

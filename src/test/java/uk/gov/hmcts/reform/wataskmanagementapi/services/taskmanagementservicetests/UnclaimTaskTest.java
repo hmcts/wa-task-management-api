@@ -64,9 +64,6 @@ class UnclaimTaskTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
 
     @Test
     void unclaimTask_should_succeed() {
