@@ -72,8 +72,7 @@ class GetTaskTest extends CamundaHelpers {
 
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         TaskResource taskResource = spy(TaskResource.class);
-        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(READ);
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(READ);
         taskId = UUID.randomUUID().toString();
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
