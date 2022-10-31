@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import org.springframework.
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
@@ -15,25 +16,28 @@ public class CcdRetryableClient {
         this.coreCaseDataApi = coreCaseDataApi;
     }
 
-    @Retryable(value = Exception.class, maxAttempts = 2, backoff = @Backoff(delay = 100))
+    @Retryable(value = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public CaseDetails submitForCaseworker(String authorisation, String serviceAuthorisation, String userId,
         String jurisdictionId, String caseType, boolean ignoreWarning, CaseDataContent caseDataContent) {
         return coreCaseDataApi.submitForCaseworker(authorisation, serviceAuthorisation, userId, jurisdictionId,
             caseType, ignoreWarning, caseDataContent);
     }
 
+    @Retryable(value = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public StartEventResponse startForCaseworker(String authorisation, String serviceAuthorization,
         String userId, String jurisdictionId, String caseType, String eventId) {
         return coreCaseDataApi.startForCaseworker(authorisation, serviceAuthorization,
             userId, jurisdictionId, caseType, eventId);
     }
 
+    @Retryable(value = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public StartEventResponse startEventForCaseWorker(String authorisation, String serviceAuthorization,
         String userId, String jurisdictionId, String caseType, String caseId, String eventId) {
         return coreCaseDataApi.startEventForCaseWorker(authorisation, serviceAuthorization,
             userId, jurisdictionId, caseType, caseId, eventId);
     }
 
+    @Retryable(value = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public CaseDetails submitEventForCaseWorker(String authorisation, String serviceAuthorisation,
         String userId, String jurisdictionId, String caseType, String caseId, boolean ignoreWarning,
         CaseDataContent caseDataContent) {
