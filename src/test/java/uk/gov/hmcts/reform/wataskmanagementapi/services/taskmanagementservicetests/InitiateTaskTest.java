@@ -10,7 +10,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
@@ -91,9 +90,6 @@ class InitiateTaskTest extends CamundaHelpers {
     private InitiateTaskRequestAttributes initiateTaskRequest;
     @Mock
     private EntityManager entityManager;
-
-    @Mock
-    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
     @Mock
     private List<TaskOperationService> taskOperationServices;

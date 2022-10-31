@@ -64,6 +64,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
@@ -168,8 +169,23 @@ public class TaskManagementService {
                           AccessControlResponse accessControlResponse) {
         String userId = accessControlResponse.getUserInfo().getUid();
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        String email = accessControlResponse.getUserInfo().getEmail();
+
+        PermissionRequirements permissionsRequired;
+        if (isGranularPermissionFeatureEnabled(userId, email)) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(asList(CLAIM, OWN), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(CLAIM, EXECUTE), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(ASSIGN, EXECUTE), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(ASSIGN, OWN), PermissionJoin.AND)
+                .build();
+        } else {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+        }
 
         roleAssignmentVerification.verifyRoleAssignments(
             taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
