@@ -43,7 +43,10 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -164,7 +167,32 @@ class TaskActionsControllerTest {
         );
 
         verify(taskManagementService, times(1))
-            .assignTask(taskId, mockAccessControlResponse, mockedAssigneeAccessControlResponse);
+            .assignTask(taskId, mockAccessControlResponse, Optional.of(mockedAssigneeAccessControlResponse));
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    void should_succeed_and_return_a_204_no_content_when_unassigning_task() {
+        AssignTaskRequest assignTaskRequest = new AssignTaskRequest(null);
+
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(mockAccessControlResponse);
+
+
+        ResponseEntity<Void> response = taskActionsController.assignTask(
+            IDAM_AUTH_TOKEN,
+            taskId,
+            assignTaskRequest
+        );
+
+        verify(accessControlService, never()).getRolesGivenUserId(anyString(), eq(IDAM_AUTH_TOKEN));
+
+        verify(taskManagementService, times(1))
+            .assignTask(taskId, mockAccessControlResponse, Optional.empty());
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
