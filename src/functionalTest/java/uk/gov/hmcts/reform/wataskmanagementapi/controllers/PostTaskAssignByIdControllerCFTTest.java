@@ -55,10 +55,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
-            .body("title", equalTo("Task Not Found Error"))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-            .body("detail", equalTo("Task Not Found Error: The task could not be found."));
+            .body("detail", equalTo(TASK_NOT_FOUND_ERROR));
     }
 
     @Test
