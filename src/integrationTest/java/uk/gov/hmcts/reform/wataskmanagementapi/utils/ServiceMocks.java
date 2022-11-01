@@ -46,6 +46,7 @@ public class ServiceMocks {
     public static final String IDAM_USER_ID_GP = "IDAM_USER_ID_GP";
     public static final String IDAM_USER_EMAIL_GP = "wa-granular-permission-wa-ft-test@test.com";
     public static final String SECONDARY_IDAM_USER_ID = "SECONDARY_IDAM_USER_ID";
+    public static final String THIRD_IDAM_USER_ID = "THIRD_IDAM_USER_ID";
     public static final String SECONDARY_IDAM_USER_EMAIL = "wa-ft-test@test.com";
     public static final String IDAM_AUTHORIZATION_TOKEN = "Bearer IDAM_AUTH_TOKEN";
     public static final String IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION = "Bearer IDAM_AUTH_TOKEN_FOR_EXCEPTION";
