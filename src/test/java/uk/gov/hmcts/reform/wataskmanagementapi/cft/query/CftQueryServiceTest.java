@@ -177,7 +177,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 false,
                 false,
                 false,
-                false,
                 new String[]{"SPECIFIC", "STANDARD"},
                 0,
                 false,

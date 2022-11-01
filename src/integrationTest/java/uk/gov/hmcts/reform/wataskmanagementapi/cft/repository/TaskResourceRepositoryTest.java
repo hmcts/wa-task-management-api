@@ -255,7 +255,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 false,
                 false,
                 false,
-                false,
                 new String[]{"SPECIFIC", "STANDARD"},
                 0,
                 false,

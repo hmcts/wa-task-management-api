@@ -9,7 +9,6 @@ import static java.util.Arrays.stream;
 public enum PermissionTypes {
 
     READ("Read", "read"),
-    REFER("Refer", "refer"),
     OWN("Own", "own"),
     MANAGE("Manage", "manage"),
     EXECUTE("Execute", "execute"),

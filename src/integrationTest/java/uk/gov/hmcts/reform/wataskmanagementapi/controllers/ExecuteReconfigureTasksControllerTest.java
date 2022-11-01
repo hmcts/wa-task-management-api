@@ -356,7 +356,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         //assigner permission : manage, own, cancel
         TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
-            false, true, true, true, true, false,
+            false, true, true, true, true,
             new String[]{}, 1, false,
             TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
         );
@@ -384,7 +384,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         return asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -393,7 +393,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,

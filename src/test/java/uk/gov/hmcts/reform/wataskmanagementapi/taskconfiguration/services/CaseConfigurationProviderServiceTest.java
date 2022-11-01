@@ -107,7 +107,7 @@ class CaseConfigurationProviderServiceTest {
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunalCaseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Own,Manage,Cancel"),
                     null,
                     null,
                     null,
@@ -116,7 +116,7 @@ class CaseConfigurationProviderServiceTest {
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("seniorTribunalCaseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Own,Manage,Cancel"),
                     null,
                     null,
                     null,
@@ -126,8 +126,8 @@ class CaseConfigurationProviderServiceTest {
             ));
 
         Map<String, Object> expectedMappedData = new HashMap<>();
-        expectedMappedData.put("tribunalCaseworker", "Read,Refer,Own,Manage,Cancel");
-        expectedMappedData.put("seniorTribunalCaseworker", "Read,Refer,Own,Manage,Cancel");
+        expectedMappedData.put("tribunalCaseworker", "Read,Own,Manage,Cancel");
+        expectedMappedData.put("seniorTribunalCaseworker", "Read,Own,Manage,Cancel");
         expectedMappedData.put("securityClassification", "PUBLIC");
         expectedMappedData.put("jurisdiction", "IA");
         expectedMappedData.put("caseTypeId", "Asylum");
@@ -176,7 +176,7 @@ class CaseConfigurationProviderServiceTest {
         List<PermissionsDmnEvaluationResponse> permissions = asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -185,7 +185,7 @@ class CaseConfigurationProviderServiceTest {
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -214,7 +214,7 @@ class CaseConfigurationProviderServiceTest {
         List<PermissionsDmnEvaluationResponse> permissions = asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -223,7 +223,7 @@ class CaseConfigurationProviderServiceTest {
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -252,7 +252,7 @@ class CaseConfigurationProviderServiceTest {
         List<PermissionsDmnEvaluationResponse> permissions = asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -261,7 +261,7 @@ class CaseConfigurationProviderServiceTest {
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -290,7 +290,7 @@ class CaseConfigurationProviderServiceTest {
         List<PermissionsDmnEvaluationResponse> permissions = asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -299,7 +299,7 @@ class CaseConfigurationProviderServiceTest {
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -327,7 +327,7 @@ class CaseConfigurationProviderServiceTest {
         List<PermissionsDmnEvaluationResponse> permissions = asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -336,7 +336,7 @@ class CaseConfigurationProviderServiceTest {
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -365,7 +365,7 @@ class CaseConfigurationProviderServiceTest {
         List<PermissionsDmnEvaluationResponse> permissions = asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -374,7 +374,7 @@ class CaseConfigurationProviderServiceTest {
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -407,7 +407,7 @@ class CaseConfigurationProviderServiceTest {
         List<PermissionsDmnEvaluationResponse> permissions = asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -416,7 +416,7 @@ class CaseConfigurationProviderServiceTest {
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -485,7 +485,7 @@ class CaseConfigurationProviderServiceTest {
         List<PermissionsDmnEvaluationResponse> permissions = List.of(
             new PermissionsDmnEvaluationResponse(
                 stringValue("reviewSpecificAccessRequestJudiciary"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -537,7 +537,7 @@ class CaseConfigurationProviderServiceTest {
         List<PermissionsDmnEvaluationResponse> permissions = List.of(
             new PermissionsDmnEvaluationResponse(
                 stringValue("reviewSpecificAccessRequestJudiciary"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -583,7 +583,7 @@ class CaseConfigurationProviderServiceTest {
         List<PermissionsDmnEvaluationResponse> permissions = List.of(
             new PermissionsDmnEvaluationResponse(
                 stringValue("reviewSpecificAccessRequestJudiciary"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,

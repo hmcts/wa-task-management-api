@@ -126,7 +126,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -185,7 +185,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -253,7 +253,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -300,7 +300,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -371,7 +371,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -430,7 +430,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, false, false, false, false,
+            false, true, false, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
             taskId, OffsetDateTime.now(), false, false, false, true,
@@ -495,7 +495,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -504,7 +504,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         //Excluded role
         taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleName(),
-            true, true, true, true, true, true,
+            true, true, true, true, true,
             new String[]{}, 1, false,
             TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleCategory().name()
         );
@@ -581,7 +581,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
             taskId, OffsetDateTime.now(), false, false, false, false,
@@ -653,7 +653,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name()
         );
@@ -708,7 +708,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleName(),
-            false, false, true, false, false, false,
+            false, false, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name(),
             taskId, OffsetDateTime.now(), false, false, false, true,
@@ -769,7 +769,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name()
         );
@@ -778,7 +778,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         //Excluded role
         taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleName(),
-            false, false, false, false, false, false,
+            false, false, false, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleCategory().name()
         );
@@ -855,7 +855,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleCategory().name()
         );
@@ -911,7 +911,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleName(),
-            false, false, true, false, false, false,
+            false, false, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleCategory().name(),
             taskId, OffsetDateTime.now(), false, false, false, false,
@@ -974,7 +974,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleCategory().name()
         );
@@ -983,7 +983,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         //Excluded role
         taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleName(),
-            false, false, false, false, false, false,
+            false, false, false, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleCategory().name()
         );
@@ -1052,7 +1052,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         //Excluded role
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleName(),
-            false, true, false, false, false, false,
+            false, true, false, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleCategory().name(),
             taskId, OffsetDateTime.now(), false, false, false, false,
@@ -1063,7 +1063,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         //Excluded role
         taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleName(),
-            false, true, false, false, false, false,
+            false, true, false, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleCategory().name(),
             taskId, OffsetDateTime.now(), false, false, false, false,

@@ -143,7 +143,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-                false, true, true, false, false, false,
+                false, true, true, false, false,
                 new String[]{}, 1, false,
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
             );
@@ -199,7 +199,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-                false, true, true, false, false, false,
+                false, true, true, false, false,
                 new String[]{}, 1, false,
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
             );
@@ -237,7 +237,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-                false, true, true, false, false, false,
+                false, true, true, false, false,
                 new String[]{}, 1, false,
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
             );
@@ -284,7 +284,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-                false, true, true, false, false, false,
+                false, true, true, false, false,
                 new String[]{}, 1, false,
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
             );

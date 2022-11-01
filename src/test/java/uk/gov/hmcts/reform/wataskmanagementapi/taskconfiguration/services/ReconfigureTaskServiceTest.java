@@ -165,7 +165,7 @@ class ReconfigureTaskServiceTest {
         return asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -174,7 +174,7 @@ class ReconfigureTaskServiceTest {
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,

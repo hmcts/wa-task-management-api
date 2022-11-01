@@ -126,7 +126,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
     public void should_return_a_200_and_empty_list_when_task_does_not_have_required_permissions() {
 
         // The UnknownEvent event is used to test so that permissions table is matched only to
-        // "Read,Refer,Manage,Cancel" Rest of the events has either Own or Execute
+        // "Read,Manage,Cancel" Rest of the events has either Own or Execute
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
@@ -171,7 +171,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         // create 2 tasks for caseId
         // The UnknownEvent event is used to test so that permissions table is matched only to
-        // "Read,Refer,Manage,Cancel" Rest of the events has either Own or Execute
+        // "Read,Manage,Cancel" Rest of the events has either Own or Execute
         TestVariables taskVariables1 = sendMessage(caseId, "UnknownEvent", 1);
         TestVariables taskVariables2 = sendMessage(caseId, "reviewTheAppeal", 2);
 
@@ -277,7 +277,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         final String taskId1 = taskVariables1.getTaskId();
 
         // The UnknownEvent event is used to test so that permissions table is matched only to
-        // "Read,Refer,Manage,Cancel" Rest of the events has either Own or Execute
+        // "Read,Manage,Cancel" Rest of the events has either Own or Execute
         initiateTask(taskVariables1, Jurisdiction.IA);
 
         final String taskId2 = taskVariables2.getTaskId();
@@ -341,7 +341,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         // create 2 tasks for caseId
         // The UnknownEvent event is used to test so that permissions table is matched only to
-        // "Read,Refer,Manage,Cancel" Rest of the events has either Own or Execute
+        // "Read,Manage,Cancel" Rest of the events has either Own or Execute
         TestVariables taskVariables1 = sendMessageWithWarnings(caseId, "UnknownEvent", 1);
         TestVariables taskVariables2 = sendMessageWithWarnings(caseId, "reviewTheAppeal", 2);
 

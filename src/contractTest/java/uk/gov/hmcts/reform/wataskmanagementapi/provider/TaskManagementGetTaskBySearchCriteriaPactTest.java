@@ -106,8 +106,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
                 PermissionTypes.OWN,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE,
-                PermissionTypes.REFER
+                PermissionTypes.MANAGE
             )
         );
 
@@ -156,8 +155,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
                 PermissionTypes.OWN,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE,
-                PermissionTypes.REFER
+                PermissionTypes.MANAGE
             )
         );
 
@@ -207,8 +205,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
                 PermissionTypes.READ,
-                PermissionTypes.EXECUTE,
-                PermissionTypes.REFER
+                PermissionTypes.EXECUTE
             )
         );
 
@@ -257,8 +254,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
                 PermissionTypes.OWN,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE,
-                PermissionTypes.REFER
+                PermissionTypes.MANAGE
             )
         );
 

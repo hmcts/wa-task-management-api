@@ -413,9 +413,6 @@ public class CFTTaskMapper {
         if (taskRoleResource.getOwn()) {
             accumulator.add(PermissionTypes.OWN);
         }
-        if (taskRoleResource.getRefer()) {
-            accumulator.add(PermissionTypes.REFER);
-        }
         if (taskRoleResource.getClaim()) {
             accumulator.add(PermissionTypes.CLAIM);
         }
@@ -516,7 +513,6 @@ public class CFTTaskMapper {
                     permissionsFound.contains(PermissionTypes.EXECUTE),
                     permissionsFound.contains(PermissionTypes.MANAGE),
                     permissionsFound.contains(PermissionTypes.CANCEL),
-                    permissionsFound.contains(PermissionTypes.REFER),
                     authorisations.toArray(new String[0]),
                     assignmentPriority,
                     autoAssignable,

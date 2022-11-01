@@ -52,7 +52,7 @@ class DmnEvaluationServiceTest {
         List<PermissionsDmnEvaluationResponse> mockedResponse = asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunal-caseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -61,7 +61,7 @@ class DmnEvaluationServiceTest {
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("senior-tribunal-caseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -89,13 +89,13 @@ class DmnEvaluationServiceTest {
         assertThat(response.size(), is(2));
 
         assertThat(response.get(0).getName(), is(stringValue("tribunal-caseworker")));
-        assertThat(response.get(0).getValue(), is(stringValue("Read,Refer,Own,Manage,Cancel")));
+        assertThat(response.get(0).getValue(), is(stringValue("Read,Own,Manage,Cancel")));
         assertNull(response.get(0).getAutoAssignable());
         assertNull(response.get(0).getAuthorisations());
         assertNull(response.get(0).getAssignmentPriority());
 
         assertThat(response.get(1).getName(), is(stringValue("senior-tribunal-caseworker")));
-        assertThat(response.get(1).getValue(), is(stringValue("Read,Refer,Own,Manage,Cancel")));
+        assertThat(response.get(1).getValue(), is(stringValue("Read,Own,Manage,Cancel")));
         assertNull(response.get(1).getAutoAssignable());
         assertNull(response.get(1).getAuthorisations());
         assertNull(response.get(1).getAssignmentPriority());

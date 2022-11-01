@@ -130,9 +130,9 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             .body("configuration_variables.caseId", equalTo(caseId))
             .body("configuration_variables.securityClassification", equalTo("PUBLIC"))
             .body("configuration_variables.autoAssigned", equalTo(false))
-            .body("configuration_variables.tribunal-caseworker", equalTo("Read,Refer,Own,Manage,Cancel"))
+            .body("configuration_variables.tribunal-caseworker", equalTo("Read,Own,Manage,Cancel"))
             .body("configuration_variables.senior-tribunal-caseworker",
-                equalTo("Read,Refer,Own,Manage,Cancel"))
+                equalTo("Read,Own,Manage,Cancel"))
             .body("configuration_variables.taskSystem", equalTo("SELF"));
     }
 

@@ -54,8 +54,6 @@ public class TaskRoleResource implements Serializable {
     private Boolean manage;
     @Column(columnDefinition = "boolean default false")
     private Boolean cancel;
-    @Column(columnDefinition = "boolean default false")
-    private Boolean refer;
 
     @Column(columnDefinition = "boolean default false")
     private Boolean complete;
@@ -112,7 +110,6 @@ public class TaskRoleResource implements Serializable {
                             Boolean execute,
                             Boolean manage,
                             Boolean cancel,
-                            Boolean refer,
                             String[] authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable) {
@@ -122,7 +119,6 @@ public class TaskRoleResource implements Serializable {
              execute,
              manage,
              cancel,
-             refer,
              authorizations,
              assignmentPriority,
              autoAssignable,
@@ -137,7 +133,6 @@ public class TaskRoleResource implements Serializable {
                             Boolean execute,
                             Boolean manage,
                             Boolean cancel,
-                            Boolean refer,
                             String[] authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable,
@@ -148,7 +143,6 @@ public class TaskRoleResource implements Serializable {
              execute,
              manage,
              cancel,
-             refer,
              authorizations,
              assignmentPriority,
              autoAssignable,
@@ -164,7 +158,6 @@ public class TaskRoleResource implements Serializable {
                             Boolean execute,
                             Boolean manage,
                             Boolean cancel,
-                            Boolean refer,
                             String[] authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable,
@@ -178,7 +171,6 @@ public class TaskRoleResource implements Serializable {
             execute,
             manage,
             cancel,
-            refer,
             authorizations,
             assignmentPriority,
             autoAssignable,
@@ -205,7 +197,6 @@ public class TaskRoleResource implements Serializable {
                             Boolean execute,
                             Boolean manage,
                             Boolean cancel,
-                            Boolean refer,
                             String[] authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable,
@@ -228,7 +219,6 @@ public class TaskRoleResource implements Serializable {
         this.execute = execute;
         this.manage = manage;
         this.cancel = cancel;
-        this.refer = refer;
         this.authorizations = authorizations == null ? new String[]{} : authorizations.clone();
         this.assignmentPriority = assignmentPriority;
         this.autoAssignable = autoAssignable;
@@ -273,10 +263,6 @@ public class TaskRoleResource implements Serializable {
 
     public void setCancel(Boolean cancel) {
         this.cancel = cancel;
-    }
-
-    public void setRefer(Boolean refer) {
-        this.refer = refer;
     }
 
     public void setAuthorizations(String[] authorizations) {

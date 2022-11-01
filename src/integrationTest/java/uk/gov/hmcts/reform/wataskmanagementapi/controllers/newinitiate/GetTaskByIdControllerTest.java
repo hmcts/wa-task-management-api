@@ -338,7 +338,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
         //assigner permission : manage, own, cancel
         TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
-            false, true, true, true, true, false,
+            false, true, true, true, true,
             new String[]{}, 1, false,
             TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
         );

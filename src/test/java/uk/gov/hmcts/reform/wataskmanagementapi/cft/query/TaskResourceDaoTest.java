@@ -238,7 +238,6 @@ class TaskResourceDaoTest {
                 false,
                 false,
                 false,
-                false,
                 new String[]{"SPECIFIC", "STANDARD"},
                 0,
                 false,
