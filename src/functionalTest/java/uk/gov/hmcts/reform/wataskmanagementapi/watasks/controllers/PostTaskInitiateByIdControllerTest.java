@@ -481,6 +481,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.location_name", equalTo("Taylor House"))
                 .body("task.execution_type", equalTo("Case Management Task"))
                 .body("task.case_management_category", equalTo("Protection"))
+                .body("task.description", equalTo(""))
                 .body("task.permissions.values.size()", equalTo(2))
                 .body("task.permissions.values", hasItems("Read", "Execute"))
                 .body("task.additional_properties", equalToObject(Map.of(

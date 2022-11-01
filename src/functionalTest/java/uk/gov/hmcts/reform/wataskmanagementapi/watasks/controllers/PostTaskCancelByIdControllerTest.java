@@ -9,8 +9,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 
 import static org.hamcrest.Matchers.equalTo;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -82,6 +84,9 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
+        // verify cftTaskState does not exist in Camunda history table before termination
+        assertions.variableShouldNotExistInCamundaHistoryTable(taskId, CFT_TASK_STATE);
 
         common.cleanUpTask(taskId);
     }

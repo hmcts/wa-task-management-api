@@ -2,19 +2,25 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.hamcrest.CoreMatchers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
 import java.util.Map;
 
+import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 
 public class Assertions {
+    private static final String TASK_ENDPOINT_BEING_TESTED = "task/{task-id}";
+    private static final String CAMUNDA_SEARCH_HISTORY_ENDPOINT = "/history/variable-instance";
 
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
@@ -35,7 +41,7 @@ public class Assertions {
         );
 
         Response result = camundaApiActions.post(
-            "/history/variable-instance",
+            CAMUNDA_SEARCH_HISTORY_ENDPOINT,
             request,
             authorizationProvider.getServiceAuthorizationHeader()
         );
@@ -52,7 +58,7 @@ public class Assertions {
     public void taskStateWasUpdatedInDatabase(String taskId, String value, Headers authenticationHeaders) {
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            TASK_ENDPOINT_BEING_TESTED,
             taskId,
             authenticationHeaders
         );
@@ -69,7 +75,7 @@ public class Assertions {
                                               Headers authenticationHeaders) {
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            TASK_ENDPOINT_BEING_TESTED,
             taskId,
             authenticationHeaders
         );
@@ -80,5 +86,21 @@ public class Assertions {
             .and().body("task.id", equalTo(taskId))
             .body("task." + fieldName, equalTo(value))
             .log();
+    }
+
+    public void variableShouldNotExistInCamundaHistoryTable(String taskId,
+                                                                        CamundaVariableDefinition variable) {
+        Map<String, Object> body = Map.of(
+            "variableName", variable.value(),
+            "taskIdIn", singleton(taskId)
+        );
+        Response camundaHistoryResponse = camundaApiActions.post(
+            CAMUNDA_SEARCH_HISTORY_ENDPOINT,
+            body,
+            authorizationProvider.getServiceAuthorizationHeadersOnly()
+        );
+        camundaHistoryResponse.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("size()", CoreMatchers.is(0));
     }
 }
