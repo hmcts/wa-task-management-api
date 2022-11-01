@@ -166,7 +166,7 @@ public class TaskActionsController extends BaseController {
         Optional<AccessControlResponse> assigneeAccessControlResponse = assignTaskRequest.getUserId() == null
             ? Optional.empty()
             : Optional.ofNullable(accessControlService.getRolesGivenUserId(assignTaskRequest.getUserId(),
-                                                                           assignerAuthToken));
+            assignerAuthToken));
 
         taskManagementService.assignTask(
             taskId,
@@ -233,7 +233,10 @@ public class TaskActionsController extends BaseController {
     public ResponseEntity<Void> cancelTask(@RequestHeader(AUTHORIZATION) String authToken,
                                            @PathVariable(TASK_ID) String taskId) {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
-
+        //todo: remove
+        if (accessControlResponse == null) {
+            throw new RuntimeException("remove here");
+        }
         taskManagementService.cancelTask(taskId, accessControlResponse);
 
         return ResponseEntity
@@ -284,7 +287,7 @@ public class TaskActionsController extends BaseController {
     @Operation(description = "Retrieve the role permissions information for the task identified by the given task-id.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
-                schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
+            schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
