@@ -528,6 +528,7 @@ public class TaskManagementService {
         if (!taskHasCompleted) {
             //scenario, task not completed anywhere
             task.setState(CFTTaskState.COMPLETED);
+            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
 
             //check the state, if not complete, complete
             boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
@@ -565,7 +566,8 @@ public class TaskManagementService {
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
                                                               AccessControlResponse accessControlResponse,
                                                               CompletionOptions completionOptions) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        String userId = accessControlResponse.getUserInfo().getUid();
+        requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         boolean taskStateIsAssignedAlready;
@@ -583,10 +585,11 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.COMPLETED);
+            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
             //Perform Camunda updates
             camundaService.assignAndCompleteTask(
                 taskId,
-                accessControlResponse.getUserInfo().getUid(),
+                userId,
                 taskStateIsAssignedAlready
             );
             //Commit transaction
