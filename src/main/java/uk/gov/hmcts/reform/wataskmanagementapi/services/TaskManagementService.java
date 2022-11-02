@@ -297,11 +297,11 @@ public class TaskManagementService {
         Optional<UserInfo> assignee = assigneeAccessControlResponse.map(AccessControlResponse::getUserInfo);
 
         if (currentAssignee.isPresent()) {
-            log.debug("currentAssignee " + currentAssignee.get());
+            log.info("currentAssignee " + currentAssignee.get());
         }
-        log.debug("assigner " + assigner.getUid());
+        log.info("assigner " + assigner.getUid());
         if (assignee.isPresent()) {
-            log.debug("assignee " + assignee.get().getUid());
+            log.info("assignee " + assignee.get().getUid());
         }
 
         if (verifyActionRequired(currentAssignee, assignee)) {
