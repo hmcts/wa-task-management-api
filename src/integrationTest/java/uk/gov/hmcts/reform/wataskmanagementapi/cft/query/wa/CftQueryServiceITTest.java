@@ -59,7 +59,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
@@ -333,7 +333,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         String caseId = "1623278362400007";
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
-            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, singletonList(caseId))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
         ));
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -409,7 +409,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         String caseId = "1623278362400015";
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
-            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, singletonList(caseId))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
         ));
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -487,7 +487,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         String caseId = "1623278362400013";
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
-            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, singletonList(caseId))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
         ));
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -727,7 +727,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static Stream<TaskQueryScenario> grantTypeSpecificScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
-            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, singletonList("1623278362400013"))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("1623278362400013"))
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
@@ -2017,7 +2017,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     private static SearchTaskRequest invalidCaseId() {
         return new SearchTaskRequest(List.of(
-            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("000000", "", null))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, asList("000000", "", null))
         ));
     }
 

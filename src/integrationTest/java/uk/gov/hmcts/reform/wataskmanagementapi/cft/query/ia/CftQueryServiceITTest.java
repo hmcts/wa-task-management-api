@@ -61,7 +61,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
@@ -242,7 +242,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static Stream<TaskQueryScenario> grantTypeSpecificScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
-            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, List.of(
+            new SearchParameterList(CASE_ID, SearchOperator.IN, List.of(
                 "1623278362431003"
             ))
         ));
@@ -1971,7 +1971,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of(location)),
             new SearchParameterList(STATE, SearchOperator.IN, List.of(state)),
             new SearchParameterList(USER, SearchOperator.IN, List.of(assignee)),
-            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, List.of(assignee))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, List.of(assignee))
         ));
         return searchTaskRequest;
     }
@@ -2324,7 +2324,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     private static SearchTaskRequest invalidCaseId() {
         return new SearchTaskRequest(List.of(
-            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("000000", "", null))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, asList("000000", "", null))
         ));
     }
 

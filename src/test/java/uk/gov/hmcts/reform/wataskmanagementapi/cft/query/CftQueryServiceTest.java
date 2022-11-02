@@ -88,7 +88,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
@@ -322,7 +322,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003")),
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
                     new SearchParameterList(WORK_TYPE, SearchOperator.IN, asList("hearing_work"))
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
@@ -362,7 +362,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003"))
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
             );
@@ -398,7 +398,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003")),
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
                     new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
@@ -437,7 +437,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003")),
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
                     new SearchParameterList(WORK_TYPE, SearchOperator.IN, asList("unknown"))
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
@@ -466,7 +466,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003"))
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
             );
@@ -507,7 +507,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003"))
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
             );
@@ -549,7 +549,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003")),
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
                     new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT,
                         RequestContext.AVAILABLE_TASK_ONLY)
                 ),
@@ -590,7 +590,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003")),
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
                     new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK)
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
@@ -630,7 +630,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003"))
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
             );
@@ -668,7 +668,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003")),
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
                     new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))

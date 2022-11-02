@@ -65,7 +65,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
@@ -333,7 +333,7 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
                 new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
             ),
             List.of(
@@ -368,7 +368,7 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
                 new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
             ),
             List.of()
@@ -400,7 +400,7 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
                 new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, null))
@@ -432,7 +432,7 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
                 new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
@@ -483,7 +483,7 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
                 new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
@@ -536,7 +536,7 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, List.of("1623278362431003"))
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
@@ -564,7 +564,7 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, List.of("1623278362431003"))
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003"))
             ),
             List.of()
         );

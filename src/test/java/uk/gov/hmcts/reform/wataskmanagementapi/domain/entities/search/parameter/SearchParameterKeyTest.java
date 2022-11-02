@@ -15,9 +15,12 @@ class SearchParameterKeyTest {
         final String userEnum = SearchParameterKey.USER.value();
         final String jurisdictionEnum = SearchParameterKey.JURISDICTION.value();
         final String stateEnum = SearchParameterKey.STATE.value();
-        final String taskIdEnum = SearchParameterKey.TASK_ID_CAMEL_CASE.value();
-        final String taskTypeEnum = SearchParameterKey.TASK_TYPE_CAMEL_CASE.value();
-        final String caseIdEnum = SearchParameterKey.CASE_ID_CAMEL_CASE.value();
+        final String taskIdEnumCamelCase = SearchParameterKey.TASK_ID_CAMEL_CASE.value();
+        final String taskTypeEnumCamelCase = SearchParameterKey.TASK_TYPE_CAMEL_CASE.value();
+        final String caseIdEnumCamelCase = SearchParameterKey.CASE_ID_CAMEL_CASE.value();
+        final String taskIdEnum = SearchParameterKey.TASK_ID.value();
+        final String taskTypeEnum = SearchParameterKey.TASK_TYPE.value();
+        final String caseIdEnum = SearchParameterKey.CASE_ID.value();
         final String workTypeEnum = SearchParameterKey.WORK_TYPE.value();
         final String availableTasksOnlyEnum = SearchParameterKey.AVAILABLE_TASKS_ONLY.value();
         final String roleCategory = SearchParameterKey.ROLE_CATEGORY.value();
@@ -27,9 +30,12 @@ class SearchParameterKeyTest {
         assertEquals("user", userEnum);
         assertEquals("jurisdiction", jurisdictionEnum);
         assertEquals("state", stateEnum);
-        assertEquals("taskId", taskIdEnum);
-        assertEquals("taskType", taskTypeEnum);
-        assertEquals("caseId", caseIdEnum);
+        assertEquals("taskId", taskIdEnumCamelCase);
+        assertEquals("taskType", taskTypeEnumCamelCase);
+        assertEquals("caseId", caseIdEnumCamelCase);
+        assertEquals("task_id", taskIdEnum);
+        assertEquals("task_type", taskTypeEnum);
+        assertEquals("case_id", caseIdEnum);
         assertEquals("available_tasks_only", availableTasksOnlyEnum);
         assertEquals("work_type", workTypeEnum);
         assertEquals("role_category", roleCategory);
@@ -39,7 +45,7 @@ class SearchParameterKeyTest {
     @Test
     void update_test_whenever_additions_to_assign_enum_are_made() {
         int assigneeEnumLength = SearchParameterKey.values().length;
-        assertEquals(11, assigneeEnumLength);
+        assertEquals(14, assigneeEnumLength);
     }
 
 
@@ -53,6 +59,9 @@ class SearchParameterKeyTest {
             "TASK_ID_CAMEL_CASE, taskId",
             "TASK_TYPE_CAMEL_CASE, taskType",
             "CASE_ID_CAMEL_CASE, caseId",
+            "TASK_ID, task_id",
+            "TASK_TYPE, task_type",
+            "CASE_ID, case_id",
             "WORK_TYPE, work_type",
             "AVAILABLE_TASKS_ONLY, available_tasks_only",
             "ROLE_CATEGORY, role_category",
