@@ -35,7 +35,7 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
@@ -84,8 +84,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
-            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
+            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, caseIds)
         ));
 
         Response result = restApiActions.post(
@@ -146,8 +146,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication",
-                                                                       "process application");
+            "processApplication",
+            "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
@@ -158,8 +158,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         initiateTask(taskVariables);
 
         common.setupHearingPanelJudgeForStandardAccess(granularPermissionCaseworkerCredentials.getHeaders(),
-                                                       "WA",
-                                                       "WaCaseType"
+            "WA",
+            "WaCaseType"
         );
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
@@ -169,7 +169,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
             new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
-            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, caseIds)
         ));
 
         Response result = restApiActions.post(
@@ -257,8 +257,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
-            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, caseIds)
         ));
 
         Response result = restApiActions.post(
@@ -307,12 +307,15 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
 
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
-            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
-            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
-        ));
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+                new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, caseIds)
+            ),
+            List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
@@ -353,8 +356,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             asList(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-                new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+                new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, caseIds)
             ),
             List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
@@ -396,7 +399,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("CTSC")),
-            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, caseIds)
         ));
 
         Response result = restApiActions.post(

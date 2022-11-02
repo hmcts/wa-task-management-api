@@ -34,7 +34,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByWorkType;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
@@ -155,7 +155,7 @@ public final class TaskSearchQueryBuilder {
         }
         SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
         SearchParameterList locationParam = keyMap.get(LOCATION);
-        SearchParameterList caseIdParam = keyMap.get(CASE_ID);
+        SearchParameterList caseIdParam = keyMap.get(CASE_ID_CAMEL_CASE);
         SearchParameterList userParam = keyMap.get(USER);
         SearchParameterList workTypeParam = keyMap.get(WORK_TYPE);
         SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
@@ -222,9 +222,6 @@ public final class TaskSearchQueryBuilder {
 
         return map;
     }
-
-
-
 
 
 }

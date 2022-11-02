@@ -15,9 +15,9 @@ class SearchParameterKeyTest {
         final String userEnum = SearchParameterKey.USER.value();
         final String jurisdictionEnum = SearchParameterKey.JURISDICTION.value();
         final String stateEnum = SearchParameterKey.STATE.value();
-        final String taskIdEnum = SearchParameterKey.TASK_ID.value();
-        final String taskTypeEnum = SearchParameterKey.TASK_TYPE.value();
-        final String caseIdEnum = SearchParameterKey.CASE_ID.value();
+        final String taskIdEnum = SearchParameterKey.TASK_ID_CAMEL_CASE.value();
+        final String taskTypeEnum = SearchParameterKey.TASK_TYPE_CAMEL_CASE.value();
+        final String caseIdEnum = SearchParameterKey.CASE_ID_CAMEL_CASE.value();
         final String workTypeEnum = SearchParameterKey.WORK_TYPE.value();
         final String availableTasksOnlyEnum = SearchParameterKey.AVAILABLE_TASKS_ONLY.value();
         final String roleCategory = SearchParameterKey.ROLE_CATEGORY.value();
@@ -50,9 +50,9 @@ class SearchParameterKeyTest {
             "USER, user",
             "JURISDICTION, jurisdiction",
             "STATE, state",
-            "TASK_ID, taskId",
-            "TASK_TYPE, taskType",
-            "CASE_ID, caseId",
+            "TASK_ID_CAMEL_CASE, taskId",
+            "TASK_TYPE_CAMEL_CASE, taskType",
+            "CASE_ID_CAMEL_CASE, caseId",
             "WORK_TYPE, work_type",
             "AVAILABLE_TASKS_ONLY, available_tasks_only",
             "ROLE_CATEGORY, role_category",
