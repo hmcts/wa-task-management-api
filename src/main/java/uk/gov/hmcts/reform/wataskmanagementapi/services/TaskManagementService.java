@@ -41,6 +41,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestExcep
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTaskCompleteException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTaskStateUpdateException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
@@ -521,13 +523,24 @@ public class TaskManagementService {
             task.setState(CFTTaskState.COMPLETED);
 
             //check the state, if not complete, complete
-            boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
-            if (!isTaskCompleted) {
-                //Perform Camunda updates
-                camundaService.completeTask(taskId, taskHasCompleted);
-            }
+            completeCamundaTask(taskId, taskHasCompleted);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
+        }
+    }
+
+    private void completeCamundaTask(String taskId, boolean taskHasCompleted) {
+        try {
+            //Perform Camunda updates
+            camundaService.completeTask(taskId, taskHasCompleted);
+        } catch (CamundaTaskCompleteException | CamundaTaskStateUpdateException e) {
+            boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
+            log.error(
+                "Task Completion failed for task ({}) as {}.",
+                taskId,
+                isTaskCompleted ? "task is already complete" : e.getMessage()
+            );
+            throw e;
         }
     }
 
