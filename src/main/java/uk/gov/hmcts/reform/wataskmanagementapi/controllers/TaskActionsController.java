@@ -235,7 +235,10 @@ public class TaskActionsController extends BaseController {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
         //todo: remove
         if (accessControlResponse == null) {
-            throw new RuntimeException("remove here");
+            return ResponseEntity
+                .noContent()
+                .cacheControl(CacheControl.noCache())
+                .build();
         }
         taskManagementService.cancelTask(taskId, accessControlResponse);
 
@@ -286,8 +289,9 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "Retrieve the role permissions information for the task identified by the given task-id.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
-            schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
+        @ApiResponse(responseCode = "200", description = OK, content = {
+            @Content(mediaType = "application/json",
+                schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
