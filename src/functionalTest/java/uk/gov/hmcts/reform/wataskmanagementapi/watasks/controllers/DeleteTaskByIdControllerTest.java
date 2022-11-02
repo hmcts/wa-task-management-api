@@ -122,7 +122,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     private TestVariables claimAndCancelTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             caseworkerCredentials.getHeaders(),
@@ -143,7 +143,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private TestVariables claimAndCompleteTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             caseworkerCredentials.getHeaders(),

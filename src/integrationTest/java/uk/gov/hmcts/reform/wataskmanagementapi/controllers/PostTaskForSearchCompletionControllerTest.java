@@ -257,7 +257,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
     @Test
     void should_return_a_200_and_task_list_with_warnings_and_additional_properties() throws Exception {
-        String caseId = "searchForCompletableCaseId1";
+        String caseId = "searchForCompletableCaseId2";
         searchEventAndCase = new SearchEventAndCase(
             caseId,
             "decideAnApplication",
@@ -331,7 +331,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
     @Test
     void should_return_a_200_and_empty_list_when_task_does_not_have_required_permissions() throws Exception {
-        String caseId = "searchForCompletableCaseId1";
+        String caseId = "searchForCompletableCaseId3";
         searchEventAndCase = new SearchEventAndCase(
             caseId,
             "decideAnAppllication",
@@ -386,7 +386,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     @Test
     void should_return_a_200_and_retrieve_single_task_when_one_of_the_task_does_not_have_required_permissions()
         throws Exception {
-        String caseId = "searchForCompletableCaseId2";
+        String caseId = "searchForCompletableCaseId4";
         searchEventAndCase = new SearchEventAndCase(
             caseId,
             "decideAnApplication",
@@ -463,7 +463,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     @Test
     void should_return_a_200_with_empty_list_when_the_user_did_not_have_any_roles() throws Exception {
 
-        String caseId = "searchForCompletableCaseId2";
+        String caseId = "searchForCompletableCaseId5";
         searchEventAndCase = new SearchEventAndCase(
             caseId,
             "decideAnApplication",

@@ -45,9 +45,10 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
     @Test
     public void given_a_task_with_note_when_new_note_is_added_then_return_all_notes() {
-        TestVariables taskVariables = common.setupWATaskWithWarningsAndRetrieveIds("followUpOverdueReasonsForAppeal");
+        TestVariables taskVariables = common.setupWATaskWithWarningsAndRetrieveIds("processApplication",
+                                                                                   "process application");
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         String notesRequest = addNotes();
 
@@ -64,7 +65,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
-                "jurisdiction", "IA"
+                "jurisdiction", "WA"
             )
         );
         // validate the notes
@@ -95,9 +96,9 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
     @Test
     public void given_a_task_when_new_note_is_added_then_return_all_notes() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "process application");
+                                                                       "Process Application");
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         String notesRequest = addNotes();
 
@@ -114,7 +115,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
-                "jurisdiction", "IA"
+                "jurisdiction", "WA"
             )
         );
         // validate the notes

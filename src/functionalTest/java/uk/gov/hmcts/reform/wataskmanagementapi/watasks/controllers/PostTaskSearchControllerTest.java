@@ -151,11 +151,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
 
-        taskVariables = common.setupWATaskAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
 
@@ -193,11 +193,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "Review Specific Access Request LegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, Jurisdiction.WA);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "Review Specific Access Request LegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, Jurisdiction.WA);
 

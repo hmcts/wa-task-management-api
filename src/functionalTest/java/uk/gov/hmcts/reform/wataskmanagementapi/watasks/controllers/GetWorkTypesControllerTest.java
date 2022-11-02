@@ -58,8 +58,7 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
         List<Map<String, String>> expectedWarnings = Lists.list(
             Map.of("id", "hearing_work", "label", "Hearing work"),
             Map.of("id", "upper_tribunal", "label", "Upper Tribunal"),
-            Map.of("id", "routine_work", "label", "Routine work"),
-            Map.of("id", "review_case", "label", "Review Case")
+            Map.of("id", "routine_work", "label", "Routine work")
         );
         Assertions.assertEquals(expectedWarnings, workTypes);
 

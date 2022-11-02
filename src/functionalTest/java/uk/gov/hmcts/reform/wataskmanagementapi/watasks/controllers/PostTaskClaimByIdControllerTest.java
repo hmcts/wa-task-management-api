@@ -40,8 +40,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_not_claim_task_when_role_assignment_verification_failed() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
@@ -69,8 +69,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_role_assignment_verification_passed() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
                                                  WA_JURISDICTION, WA_CASE_TYPE);
@@ -105,8 +105,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
 
         common.setupCaseManagerForSpecificAccess(currentCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
                                                  WA_JURISDICTION, WA_CASE_TYPE);

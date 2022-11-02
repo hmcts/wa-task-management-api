@@ -48,7 +48,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 public class Common {
 
     public static final String DEFAULT_TASK_TYPE = "reviewTheAppeal";
-    public static final String DEFAULT_TASK_NAME = "reviewTheAppeal";
+    public static final String DEFAULT_TASK_NAME = "A Task";
     public static final WarningValues DEFAULT_WARNINGS = new WarningValues();
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
@@ -214,7 +214,6 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
     }
 
-
     public TestVariables setupWATaskAndRetrieveIds() {
         return setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data.json",
@@ -223,27 +222,8 @@ public class Common {
         );
     }
 
-    public TestVariables setupWATaskAndRetrieveIds(Map<String, String> additionalProperties, String resourceFileName, String taskType) {
-        String caseId = given.iCreateWACcdCase(resourceFileName);
-
-        Map<String, CamundaValue<?>> processVariables =
-            given.createDefaultTaskVariables(caseId, "WA", "WaCaseType", taskType, DEFAULT_TASK_NAME, additionalProperties);
-
-        List<CamundaTask> response = given
-            .iCreateATaskWithCustomVariables(processVariables)
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
-
-    }
-
-    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName, String taskType) {
-        return setupWATaskAndRetrieveIds(resourceFileName, taskType, DEFAULT_TASK_NAME);
+    public TestVariables setupWATaskAndRetrieveIds(String taskType, String taskName) {
+        return setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", taskType, taskName);
     }
 
     public TestVariables setupWATaskAndRetrieveIds(String resourceFileName, String taskType, String taskName) {
@@ -278,13 +258,28 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
-    public TestVariables setupWATaskWithWarningsAndRetrieveIds() {
-        return setupWATaskWithWarningsAndRetrieveIds(DEFAULT_TASK_TYPE);
+    public TestVariables setupWATaskWithAdditionalPropertiesAndRetrieveIds(Map<String, String> additionalProperties, String resourceFileName, String taskType) {
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        Map<String, CamundaValue<?>> processVariables =
+            given.createDefaultTaskVariables(caseId, "WA", "WaCaseType", taskType, DEFAULT_TASK_NAME, additionalProperties);
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
+
     }
 
-    public TestVariables setupWATaskWithWarningsAndRetrieveIds(String taskType) {
+    public TestVariables setupWATaskWithWarningsAndRetrieveIds(String taskType, String taskName) {
 
-        String caseId = given.iCreateACcdCase();
+        String caseId = given.iCreateWACcdCase("requests/ccd/wa_case_data.json");
         WarningValues warnings = new WarningValues(
             asList(
                 new Warning("Code1", "Text1"),
@@ -299,7 +294,7 @@ public class Common {
         }
 
         List<CamundaTask> response = given
-            .iCreateATaskWithWarnings(caseId, "WA", "WaCaseType", taskType, DEFAULT_TASK_NAME, warningString)
+            .iCreateATaskWithWarnings(caseId, "WA", "WaCaseType", taskType, taskName, warningString)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -404,7 +399,6 @@ public class Common {
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
-        //Creates an organizational role for jurisdiction IA
         log.info("Creating Organizational Role");
         postRoleAssignment(
             null,
@@ -436,8 +430,7 @@ public class Common {
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
-        createCaseAllocator(userInfo, headers, "IA");
-        //Creates an organizational role for jurisdiction IA
+        createCaseAllocator(userInfo, headers, "WA");
         log.info("Creating Organizational Role");
         postRoleAssignment(
             null,
@@ -447,7 +440,7 @@ public class Common {
             roleName,
             toJsonString(Map.of(
                 "primaryLocation", "765324",
-                "jurisdiction", "IA"
+                "jurisdiction", "WA"
             )),
             R2_ROLE_ASSIGNMENT_REQUEST,
             GrantType.STANDARD.name(),

@@ -206,7 +206,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "key8", "value8"
         );
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(
             additionalProperties,
             "requests/ccd/wa_case_data.json",
             "reviewSpecificAccessRequestJudiciary"
@@ -302,7 +302,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_task_warnings() {
 
-        TestVariables taskVariables = common.setupWATaskWithWarningsAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskWithWarningsAndRetrieveIds("processApplication",
+                                                                                   "process application");
         String taskId = taskVariables.getTaskId();
 
         initiateTask(taskVariables, Jurisdiction.WA);
@@ -327,7 +328,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .and().body("task.id", equalTo(taskId))
             .body("task.warnings", is(true))
             .body("task.permissions.values.size()", equalTo(5))
-            .body("task.permissions.values", hasItems("Read", "Own", "Manage", "Cancel"));
+            .body("task.permissions.values", hasItems("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "task.warning_list.values");

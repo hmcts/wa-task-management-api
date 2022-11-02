@@ -36,10 +36,11 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id() {
-        TestVariables taskVariables = setupScenario("followUpOverdueReasonsForAppeal");
+        TestVariables taskVariables = setupScenario("processApplication",
+                                                    "process application");
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         Response result = restApiActions.post(
             CLAIM_ENDPOINT,
@@ -72,9 +73,10 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
 
-        TestVariables taskVariables = setupScenario("followUpOverdueReasonsForAppeal");
+        TestVariables taskVariables = setupScenario("processApplication",
+                                                    "process application");
 
-        initiateTask(taskVariables, Jurisdiction.IA);
+        initiateTask(taskVariables, Jurisdiction.WA);
 
         common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(REGION, "1"));
 
@@ -105,11 +107,11 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         common.cleanUpTask(taskId);
     }
 
-    private TestVariables setupScenario(String taskType) {
+    private TestVariables setupScenario(String taskType, String taskName) {
         TestVariables taskVariables
             = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                taskType,
-                                               taskType);
+                                               taskName);
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         return taskVariables;
     }

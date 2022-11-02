@@ -49,7 +49,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_should_not_assign_a_task_to_assignee_when_role_assignment_verification_failed() {
         //assigner role : manage
         //assignee role : read
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -80,7 +80,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_should_assign_a_task_to_assignee_when_role_assignment_verification_pass() {
         //assigner role : manage
         //assignee role : own
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -100,7 +100,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void assigner_has_grant_type_specific_and_permission_manage_can_assign_other_already_assigned_task() {
         //assigner role : manage
         //assignee role : execute
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -123,7 +123,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         //assigner role : manage, own
         //assignee role : manage, execute
         //second assignee role : read, manage, cancel
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestJudiciary");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestJudiciary",
+                                                                       "Review Specific Access Request Judiciary");
         taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
