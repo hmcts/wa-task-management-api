@@ -43,6 +43,8 @@ public class RoleAssignmentVerificationService {
                                               List<RoleAssignment> roleAssignments,
                                               PermissionRequirements permissionsRequired,
                                               ErrorMessages customErrorMessage) {
+        System.out.println("verifyRoleAssignments");
+        log.debug("There are " + roleAssignments.size() + " role assignments");
         for (RoleAssignment role: roleAssignments) {
             log.debug("roleAssignment name " + role.getRoleName());
             log.debug("roleAssignment type " + role.getRoleType());
