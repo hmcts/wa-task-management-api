@@ -12,8 +12,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -195,8 +193,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
                 false, true, true, false, false, false,
@@ -226,6 +222,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .build();
 
             createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
             when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
@@ -535,7 +533,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        void should_not_succeed_and_return_403_and_update_cft_task_state_with_grant_type_standard_and_excluded() throws Exception {
+        void should_not_succeed_and_return_403_and_update_cft_task_state_with_grant_type_standard_and_excluded()
+            throws Exception {
 
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -552,8 +551,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .build();
 
             createRoleAssignment(roleAssignments, roleAssignmentRequest);
-
-            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
@@ -584,6 +581,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .build();
 
             createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
             when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
@@ -832,7 +831,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.status").value(403),
                 jsonPath("$.message").value(
                     "Could not complete task with id: " + taskId + " as task was not previously assigned")
-            );
+                );
 
         }
 

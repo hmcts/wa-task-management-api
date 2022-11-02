@@ -128,7 +128,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         Assertions.assertThat(allTasks.getTotalRecords())
             .isEqualTo(scenario.expectedTotalRecords);
         //then
-        if(scenario.expectedTotalRecords > 0) {
+        if (scenario.expectedTotalRecords > 0) {
             Assertions.assertThat(allTasks.getTasks())
                 .hasSize(scenario.expectedAmountOfTasksInResponse)
                 .flatExtracting(Task::getId, Task::getCaseId)

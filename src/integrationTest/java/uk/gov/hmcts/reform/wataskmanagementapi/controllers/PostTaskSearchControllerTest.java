@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
@@ -57,9 +56,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -236,7 +233,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_a_200_with_search_results_and_warnings() throws Exception {
         String caseId = "searchCriteriaCaseId3";
-        String roleAssignmentId = UUID.randomUUID().toString();
         mockServices.mockUserInfo();
 
         // Role attribute is IA
@@ -267,6 +263,9 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
+
+        String roleAssignmentId = UUID.randomUUID().toString();
+
         insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(caseId,
                                                                taskId,
                                                                "IA",

@@ -384,7 +384,8 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     }
 
     @Test
-    void should_return_a_200_and_retrieve_single_task_when_one_of_the_task_does_not_have_required_permissions() throws Exception {
+    void should_return_a_200_and_retrieve_single_task_when_one_of_the_task_does_not_have_required_permissions()
+        throws Exception {
         String caseId = "searchForCompletableCaseId2";
         searchEventAndCase = new SearchEventAndCase(
             caseId,

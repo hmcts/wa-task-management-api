@@ -41,7 +41,8 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_work_types_when_user_has_work_types() {
-        common.setupWAOrganisationalRoleAssignmentWithWorkTypes(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
+        common.setupWAOrganisationalRoleAssignmentWithWorkTypes(caseworkerCredentials.getHeaders(),
+                                                                "tribunal-caseworker");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED + "/?filter-by-user=true",

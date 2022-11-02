@@ -15,8 +15,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -28,7 +26,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
@@ -60,7 +57,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SECONDARY_IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @ExtendWith(MockitoExtension.class)
@@ -487,9 +483,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             throws Exception {
 
             mockServices.mockUserInfo();
-//            List<RoleAssignment> roleAssignments = new ArrayList<>();
-//            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-//                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -518,9 +511,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             throws Exception {
 
             mockServices.mockUserInfo();
-//            List<RoleAssignment> roleAssignments = new ArrayList<>();
-//            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-//                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -548,9 +538,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             throws Exception {
 
             mockServices.mockUserInfo();
-//            List<RoleAssignment> roleAssignments = new ArrayList<>();
-//            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-//                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -845,19 +832,20 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
             String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
             mockMvc.perform(
-                post(String.format(ENDPOINT_PATH, nonExistentTaskId))
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-            ).andExpectAll(
-                status().is4xxClientError(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
-                jsonPath("$.title").value("Task Not Found Error"),
-                jsonPath("$.status").value(404),
-                jsonPath("$.detail").value(
-                    "Task Not Found Error: The task could not be found.")
-            );
+                    post(String.format(ENDPOINT_PATH, nonExistentTaskId))
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                )
+                .andExpectAll(
+                    status().is4xxClientError(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
+                    jsonPath("$.title").value("Task Not Found Error"),
+                    jsonPath("$.status").value(404),
+                    jsonPath("$.detail").value(
+                        "Task Not Found Error: The task could not be found.")
+                );
         }
 
         @Test

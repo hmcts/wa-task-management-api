@@ -25,9 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
@@ -408,7 +405,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         roleAttributes.put(RoleAttributeDefinition.REGION.value(), "InvalidTestRegion");
 
         List<RoleAssignment> roleAssignments =
-            mockServices.createTestRoleAssignmentsWithRoleAttributes(singletonList("tribunal-caseworker"), roleAttributes);
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(singletonList("tribunal-caseworker"),
+                                                                     roleAttributes);
 
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -459,7 +457,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         roleAttributes.put(RoleAttributeDefinition.BASE_LOCATION.value(), "InvalidLocation");
 
         List<RoleAssignment> roleAssignments =
-            mockServices.createTestRoleAssignmentsWithRoleAttributes(singletonList("tribunal-caseworker"), roleAttributes);
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(singletonList("tribunal-caseworker"),
+                                                                     roleAttributes);
 
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
