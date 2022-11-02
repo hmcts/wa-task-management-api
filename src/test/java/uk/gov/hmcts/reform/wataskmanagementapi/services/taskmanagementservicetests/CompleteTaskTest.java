@@ -18,7 +18,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
@@ -40,6 +42,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -125,6 +129,64 @@ class CompleteTaskTest extends CamundaHelpers {
         assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         //verify(camundaService, times(0)).completeTask(taskId, taskStateIsCompletedAlready);
+    }
+
+    @Test
+    void completeTask_should_succeed_when_camunda_task_completion_fails_as_task_is_already_complete() {
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+        doThrow(new TaskCompleteException(ErrorMessages.TASK_COMPLETE_UNABLE_TO_COMPLETE))
+            .when(camundaService).completeTask(anyString(), anyBoolean());
+
+        TaskResource taskResource = spy(TaskResource.class);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            .thenReturn(Optional.of(taskResource));
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+            .thenReturn(Optional.of(taskResource));
+        when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+        when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(true);
+        Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+        taskManagementService.completeTask(taskId, accessControlResponse);
+        boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
+        assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+        verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+        verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
+    }
+
+    @Test
+    void completeTask_should_succeed_when_camunda_task_completion_fails_as_task_status_cannot_be_updated() {
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+        doThrow(new TaskCompleteException(ErrorMessages.TASK_COMPLETE_UNABLE_TO_UPDATE_STATE))
+            .when(camundaService).completeTask(anyString(), anyBoolean());
+
+        TaskResource taskResource = spy(TaskResource.class);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            .thenReturn(Optional.of(taskResource));
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+            .thenReturn(Optional.of(taskResource));
+        when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(false);
+        Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+        assertThatThrownBy(() -> taskManagementService.completeTask(
+            taskId,
+            accessControlResponse
+        ))
+            .isInstanceOf(TaskCompleteException.class)
+            .hasNoCause()
+            .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
+
+        verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+        verify(camundaService, times(1)).completeTask(taskId, false);
     }
 
     @Test
