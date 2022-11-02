@@ -34,6 +34,11 @@ public class PermissionRequirementBuilderTest {
             builder.nextPermissionRequirement(List.of(), PermissionJoin.AND);
         });
         assertEquals(exception.getMessage(), NOT_INITIATED_ERROR);
+
+        exception = assertThrows(IllegalStateException.class, () -> {
+            builder.nextPermissionRequirement(OWN);
+        });
+        assertEquals(exception.getMessage(), NOT_INITIATED_ERROR);
     }
 
     @Test
@@ -54,6 +59,11 @@ public class PermissionRequirementBuilderTest {
 
         Exception exception = assertThrows(IllegalStateException.class, () -> {
             builder.nextPermissionRequirement(List.of(MANAGE), PermissionJoin.AND);
+        });
+        assertEquals(exception.getMessage(), NOT_JOINED_ERROR);
+
+        exception = assertThrows(IllegalStateException.class, () -> {
+            builder.nextPermissionRequirement(MANAGE);
         });
         assertEquals(exception.getMessage(), NOT_JOINED_ERROR);
     }
@@ -82,6 +92,23 @@ public class PermissionRequirementBuilderTest {
     }
 
     @Test
+    public void should_initiate_with_valid_single_permission_requirement() {
+        PermissionRequirementBuilder builder =  new PermissionRequirementBuilder();
+
+        Exception exception = assertThrows(NullPointerException.class, () -> {
+            builder.initPermissionRequirement(null);
+        });
+
+        assertEquals(exception.getMessage(), NULL_PERMISSION_TYPES_ERROR);
+
+        PermissionRequirements requirements = builder.initPermissionRequirement(MANAGE).build();
+        assertEquals(List.of(MANAGE), requirements.getPermissionRequirement().getPermissionTypes());
+        assertEquals(PermissionJoin.NONE, requirements.getPermissionRequirement().getPermissionJoin());
+        assertNull(requirements.getPermissionJoin());
+        assertNull(requirements.getNextPermissionRequirements());
+    }
+
+    @Test
     public void should_add_valid_next_permission_requirement() {
         PermissionRequirementBuilder builder =  new PermissionRequirementBuilder()
             .initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND)
@@ -104,6 +131,25 @@ public class PermissionRequirementBuilderTest {
         });
 
         assertEquals(exception.getMessage(), NULL_PERMISSION_JOIN_ERROR);
+    }
+
+    @Test
+    public void should_add_valid_next_single_permission_requirement() {
+        PermissionRequirementBuilder builder =  new PermissionRequirementBuilder()
+            .initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND)
+            .joinPermissionRequirement(PermissionJoin.AND);
+
+        PermissionRequirements requirements = builder.nextPermissionRequirement(MANAGE).build();
+
+        assertEquals(List.of(OWN, EXECUTE), requirements.getPermissionRequirement().getPermissionTypes());
+        assertEquals(PermissionJoin.AND, requirements.getPermissionRequirement().getPermissionJoin());
+        assertEquals(PermissionJoin.AND, requirements.getPermissionJoin());
+
+        PermissionRequirements nextRequirements = requirements.getNextPermissionRequirements();
+        assertEquals(List.of(MANAGE), nextRequirements.getPermissionRequirement().getPermissionTypes());
+        assertEquals(PermissionJoin.NONE, nextRequirements.getPermissionRequirement().getPermissionJoin());
+        assertNull(nextRequirements.getPermissionJoin());
+        assertNull(nextRequirements.getNextPermissionRequirements());
     }
 
     @Test
@@ -143,7 +189,7 @@ public class PermissionRequirementBuilderTest {
     public void should_build_permission_requirement_for_single_type() {
         PermissionRequirements requirements = new PermissionRequirementBuilder().buildSingleType(CLAIM);
         assertEquals(List.of(CLAIM), requirements.getPermissionRequirement().getPermissionTypes());
-        assertEquals(PermissionJoin.OR, requirements.getPermissionRequirement().getPermissionJoin());
+        assertEquals(PermissionJoin.NONE, requirements.getPermissionRequirement().getPermissionJoin());
         assertNull(requirements.getPermissionJoin());
         assertNull(requirements.getNextPermissionRequirements());
     }
