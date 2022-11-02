@@ -38,10 +38,16 @@ public class RoleAssignmentVerificationService {
         return verifyRoleAssignments(taskId, roleAssignments, permissionsRequired, null);
     }
 
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public TaskResource verifyRoleAssignments(String taskId,
                                               List<RoleAssignment> roleAssignments,
                                               PermissionRequirements permissionsRequired,
                                               ErrorMessages customErrorMessage) {
+        for (RoleAssignment role: roleAssignments) {
+            log.debug("roleAssignment name " + role.getRoleName());
+            log.debug("roleAssignment type " + role.getRoleType());
+        }
+        log.debug("permissionsRequired " + permissionsRequired);
         Optional<TaskResource> optionalTaskResource = cftQueryService.getTask(
             taskId, roleAssignments, permissionsRequired
         );
