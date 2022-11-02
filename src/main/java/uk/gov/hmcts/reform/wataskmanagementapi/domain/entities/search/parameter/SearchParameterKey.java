@@ -8,8 +8,6 @@ public enum SearchParameterKey {
     USER("user"),
     JURISDICTION("jurisdiction"),
     STATE("state"),
-    TASK_ID_CAMEL_CASE("taskId"),
-    TASK_ID("task_id"),
     TASK_TYPE_CAMEL_CASE("taskType"),
     TASK_TYPE("task_type"),
     CASE_ID_CAMEL_CASE("caseId"),
