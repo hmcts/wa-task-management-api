@@ -10,9 +10,9 @@ VALUES ('8d6cc5cf-c973-11eb-bdba-0242ac222001', 'SELF', '2022-05-09T20:15:45.345
         '2022-05-09T20:15:45.345875+01:00', '2022-10-18T10:19:45.345875+01:00', '2022-05-09T20:15:45.345875+01:00');
 
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-                                    "read", own, "execute", manage, cancel, refer,
+                                    "read", own, "execute", manage, cancel,
                                     authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac122001', 'tribunal-caseworker',
-        true, false, false, false, false, false,
+        true, false, false, false, false,
         null, 0, false, 'LEGAL_OPERATIONS', '8d6cc5cf-c973-11eb-bdba-0242ac222001', '2021-05-09T20:15:45.345875+01:00');
 

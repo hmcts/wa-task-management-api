@@ -157,7 +157,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             accessControlResponse,
             false
         );
-
+        
         //then
         Assertions.assertThat(allTasks.getTotalRecords())
             .isEqualTo(scenario.expectedTotalRecords);
