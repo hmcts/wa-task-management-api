@@ -149,7 +149,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            true, true, true, false, false, false,
+            true, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -203,7 +203,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            true, true, true, false, false, false,
+            true, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );

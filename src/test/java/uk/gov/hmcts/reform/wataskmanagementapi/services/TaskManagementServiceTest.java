@@ -131,7 +131,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.REFER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_CLAIM;
@@ -826,7 +825,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
             false,
             false,
             false,
-            false,
             new String[]{"SPECIFIC", "STANDARD"},
             0,
             false,
@@ -898,7 +896,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             "tribunal-caseworker",
             true,
-            false,
             false,
             false,
             false,
@@ -2971,17 +2968,17 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             TaskRoleResource tribunalResource = new TaskRoleResource(
                 "tribunal-caseworker", true, true, true, true, true,
-                true, new String[]{"Divorce"}, 1, false, "LegalOperations"
+                new String[]{"Divorce"}, 1, false, "LegalOperations"
             );
 
             TaskRoleResource caseManagerResource = new TaskRoleResource(
                 "case-manager", true, true, true, true, true,
-                true, new String[]{"Divorce"}, 1, false, "roleCategory"
+                new String[]{"Divorce"}, 1, false, "roleCategory"
             );
 
             TaskRoleResource withOutRead = new TaskRoleResource(
                 "senior-tribunal", false, true, true, true, true,
-                true, new String[]{"Divorce"}, 1, false, "roleCategory"
+                new String[]{"Divorce"}, 1, false, "roleCategory"
             );
 
             Set<TaskRoleResource> taskRoleResourceSet = Set.of(tribunalResource, caseManagerResource, withOutRead);
@@ -3001,7 +2998,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             // first index
             TaskRolePermissions expectedRolePermission = taskRolePermissions.get(0);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
-                List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, REFER)
+                List.of(MANAGE, CANCEL, EXECUTE, OWN, READ)
             ));
             assertTrue(expectedRolePermission.getAuthorisations().contains(
                 "Divorce"
@@ -3012,7 +3009,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             // second index
             expectedRolePermission = taskRolePermissions.get(1);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
-                List.of(MANAGE, CANCEL, EXECUTE, OWN, REFER)
+                List.of(MANAGE, CANCEL, EXECUTE, OWN)
             ));
             assertTrue(expectedRolePermission.getAuthorisations().contains(
                 "Divorce"
@@ -3023,7 +3020,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             // third index
             expectedRolePermission = taskRolePermissions.get(2);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
-                List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, REFER)
+                List.of(MANAGE, CANCEL, EXECUTE, OWN, READ)
             ));
             assertTrue(expectedRolePermission.getAuthorisations().contains(
                 "Divorce"
@@ -3075,7 +3072,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             TaskResource taskResource = spy(TaskResource.class);
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 "roleName", true, true, true, true, true,
-                true, new String[]{"Divorce"}, 1, false, "roleCategory"
+                new String[]{"Divorce"}, 1, false, "roleCategory"
             );
 
             Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);

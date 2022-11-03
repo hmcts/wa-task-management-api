@@ -79,7 +79,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.work_type_id", equalTo("hearing_work"))
                 .body("task.work_type_label", equalTo("Hearing work"))
                 .body("task.permissions.values.size()", equalTo(5))
-                .body("task.permissions.values", hasItems("Read", "Refer", "Manage", "Execute", "Cancel"));
+                .body("task.permissions.values", hasItems("Read", "Manage", "Execute", "Cancel"));
         };
 
         initiateTask(taskVariables, Jurisdiction.IA, assertConsumer);
@@ -127,7 +127,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.work_type_id", equalTo("hearing_work"))
                 .body("task.work_type_label", equalTo("Hearing work"))
                 .body("task.permissions.values.size()", equalTo(5))
-                .body("task.permissions.values", hasItems("Read", "Refer", "Execute", "Manage", "Cancel"));
+                .body("task.permissions.values", hasItems("Read", "Execute", "Manage", "Cancel"));
         };
 
         initiateTask(taskVariables, Jurisdiction.IA, assertConsumer);
@@ -176,7 +176,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.work_type_id", equalTo("routine_work"))
                 .body("task.work_type_label", equalTo("Routine work"))
                 .body("task.permissions.values.size()", equalTo(5))
-                .body("task.permissions.values", hasItems("Read", "Refer", "Execute", "Manage", "Cancel"));
+                .body("task.permissions.values", hasItems("Read", "Execute", "Manage", "Cancel"));
         };
 
         initiateTask(taskVariables, Jurisdiction.IA, assertConsumer);
@@ -222,7 +222,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 .body("task.location_name", equalTo("Taylor House"))
                 .body("task.execution_type", equalTo("Case Management Task"))
                 .body("task.permissions.values.size()", equalTo(5))
-                .body("task.permissions.values", hasItems("Read", "Refer", "Execute", "Manage", "Cancel"));
+                .body("task.permissions.values", hasItems("Read", "Execute", "Manage", "Cancel"));
         };
 
         initiateTask(taskVariables, Jurisdiction.IA, assertConsumer);

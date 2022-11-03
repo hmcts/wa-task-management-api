@@ -241,7 +241,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
+            false, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -380,7 +380,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 taskId
             ),
             new CamundaVariableInstance(
-                "Read,Refer,Own,Manager,Cancel",
+                "Read,Own,Manager,Cancel",
                 "String",
                 "tribunal-caseworker",
                 processInstanceId,

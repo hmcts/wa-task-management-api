@@ -240,7 +240,6 @@ class TaskConfigurationRoleAssignmentServiceTest {
             false,
             true,
             true,
-            true,
             new String[]{"IA"},
             0,
             autoAssign

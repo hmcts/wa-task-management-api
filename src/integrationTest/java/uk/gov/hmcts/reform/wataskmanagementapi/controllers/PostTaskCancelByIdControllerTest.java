@@ -214,7 +214,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource tribunalResource = new TaskRoleResource(
             "tribunal-caseworker", true, false, false, false, true,
-            true, new String[]{}, 1, false, "LegalOperations"
+            new String[]{}, 1, false, "LegalOperations"
         );
         tribunalResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(tribunalResource);

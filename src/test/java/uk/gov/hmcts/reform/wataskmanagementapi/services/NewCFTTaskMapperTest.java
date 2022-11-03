@@ -269,8 +269,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -425,7 +424,7 @@ class NewCFTTaskMapperTest {
             asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Own,Manage,Cancel"),
                     stringValue("IA,WA"),
                     null,
                     null,
@@ -434,7 +433,7 @@ class NewCFTTaskMapperTest {
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Own,Manage,Cancel"),
                     null,
                     null,
                     null,
@@ -491,7 +490,6 @@ class NewCFTTaskMapperTest {
         assertEquals(false, roleResourcesList.get(0).getExecute());
         assertEquals(true, roleResourcesList.get(0).getManage());
         assertEquals(true, roleResourcesList.get(0).getCancel());
-        assertEquals(true, roleResourcesList.get(0).getRefer());
         assertArrayEquals(new String[]{}, roleResourcesList.get(0).getAuthorizations());
         assertEquals("tribunal-caseworker", roleResourcesList.get(1).getRoleName());
         assertEquals(true, roleResourcesList.get(1).getRead());
@@ -499,7 +497,6 @@ class NewCFTTaskMapperTest {
         assertEquals(false, roleResourcesList.get(1).getExecute());
         assertEquals(true, roleResourcesList.get(1).getManage());
         assertEquals(true, roleResourcesList.get(1).getCancel());
-        assertEquals(true, roleResourcesList.get(1).getRefer());
         assertArrayEquals(new String[]{"IA", "WA"}, roleResourcesList.get(1).getAuthorizations());
         assertNull(taskResource.getNextHearingId());
         assertNull(taskResource.getNextHearingDate());
@@ -527,7 +524,7 @@ class NewCFTTaskMapperTest {
             asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Own,Manage,Cancel"),
                     stringValue("IA,WA"),
                     integerValue(2),
                     booleanValue(true),
@@ -536,7 +533,7 @@ class NewCFTTaskMapperTest {
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Own,Manage,Cancel"),
                     null,
                     integerValue(1),
                     booleanValue(false),
@@ -770,8 +767,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -799,8 +795,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -830,8 +825,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -862,8 +856,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -895,8 +888,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -925,8 +917,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -963,8 +954,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
 
@@ -991,8 +981,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion))
@@ -1004,7 +993,6 @@ class NewCFTTaskMapperTest {
 
         TaskRoleResource roleResource = new TaskRoleResource(
             "tribunal-caseworker",
-            false,
             false,
             false,
             false,
@@ -1064,7 +1052,6 @@ class NewCFTTaskMapperTest {
             true,
             true,
             true,
-            true,
             new String[]{"SPECIFIC", "STANDARD"},
             0,
             false,
@@ -1080,7 +1067,6 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER,
                 PermissionTypes.COMPLETE,
                 PermissionTypes.COMPLETE_OWN,
                 PermissionTypes.CANCEL_OWN,
@@ -1126,7 +1112,6 @@ class NewCFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.MANAGE));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.EXECUTE));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL));
-        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.REFER));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.COMPLETE));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.COMPLETE_OWN));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL_OWN));
@@ -1158,8 +1143,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -1214,8 +1198,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -1244,8 +1227,7 @@ class NewCFTTaskMapperTest {
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.CANCEL
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -1280,7 +1262,6 @@ class NewCFTTaskMapperTest {
             true,
             true,
             true,
-            true,
             new String[]{},
             0,
             true
@@ -1297,7 +1278,6 @@ class NewCFTTaskMapperTest {
         assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     @Test
@@ -1311,7 +1291,6 @@ class NewCFTTaskMapperTest {
             false,
             false,
             false,
-            false,
             new String[]{},
             0,
             true
@@ -1321,7 +1300,6 @@ class NewCFTTaskMapperTest {
             false,
             true,
             false,
-            true,
             true,
             true,
             new String[]{},
@@ -1384,7 +1362,6 @@ class NewCFTTaskMapperTest {
         assertFalse(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertFalse(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     @Test
@@ -1393,7 +1370,6 @@ class NewCFTTaskMapperTest {
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             "tribunal-caseworker",
             false,
-            true,
             true,
             true,
             true,
@@ -1414,7 +1390,6 @@ class NewCFTTaskMapperTest {
         assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     @Test
@@ -1424,7 +1399,6 @@ class NewCFTTaskMapperTest {
             "tribunal-caseworker",
             true,
             false,
-            true,
             true,
             true,
             true,
@@ -1444,7 +1418,6 @@ class NewCFTTaskMapperTest {
         assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     @Test
@@ -1455,7 +1428,6 @@ class NewCFTTaskMapperTest {
             true,
             true,
             false,
-            true,
             true,
             true,
             new String[]{},
@@ -1474,7 +1446,6 @@ class NewCFTTaskMapperTest {
         assertFalse(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     @Test
@@ -1486,7 +1457,6 @@ class NewCFTTaskMapperTest {
             true,
             true,
             false,
-            true,
             true,
             new String[]{},
             0,
@@ -1504,7 +1474,6 @@ class NewCFTTaskMapperTest {
         assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     @Test
@@ -1517,7 +1486,6 @@ class NewCFTTaskMapperTest {
             true,
             true,
             false,
-            true,
             new String[]{},
             0,
             true
@@ -1534,37 +1502,6 @@ class NewCFTTaskMapperTest {
         assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
-    }
-
-    @Test
-    void should_extract_permission_union_refer_false() {
-
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            "tribunal-caseworker",
-            true,
-            true,
-            true,
-            true,
-            true,
-            false,
-            new String[]{},
-            0,
-            true
-        );
-        Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
-
-        Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
-
-        assertFalse(permissionsUnion.isEmpty());
-        assertTrue(permissionsUnion.contains(PermissionTypes.READ));
-        assertTrue(permissionsUnion.contains(PermissionTypes.OWN));
-        assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
-        assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
-        assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertFalse(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     @Test
@@ -1577,7 +1514,6 @@ class NewCFTTaskMapperTest {
             false,
             false,
             false,
-            false,
             new String[]{},
             0,
             true
@@ -1587,7 +1523,6 @@ class NewCFTTaskMapperTest {
             false,
             true,
             false,
-            true,
             true,
             true,
             new String[]{},
@@ -1610,7 +1545,6 @@ class NewCFTTaskMapperTest {
         assertFalse(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertFalse(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     @Test
@@ -1623,7 +1557,6 @@ class NewCFTTaskMapperTest {
             false,
             false,
             false,
-            false,
             new String[]{},
             0,
             true
@@ -1633,7 +1566,6 @@ class NewCFTTaskMapperTest {
             false,
             true,
             false,
-            true,
             true,
             true,
             new String[]{},
@@ -1650,20 +1582,18 @@ class NewCFTTaskMapperTest {
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
-        assertEquals(5, permissionsUnion.size());
+        assertEquals(4, permissionsUnion.size());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
         assertTrue(permissionsUnion.contains(PermissionTypes.OWN));
         assertFalse(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     @Test
     void should_map_task_role_permissions() {
         TaskRoleResource roleResource = new TaskRoleResource(
             "tribunal-caseworker",
-            true,
             true,
             true,
             true,
@@ -1688,7 +1618,6 @@ class NewCFTTaskMapperTest {
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.MANAGE));
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
-        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
 
         assertFalse(taskRolePermissions.getAuthorisations().isEmpty());
         assertTrue(taskRolePermissions.getAuthorisations().contains("SPECIFIC"));
@@ -1699,7 +1628,6 @@ class NewCFTTaskMapperTest {
     void should_map_task_role_permissions_when_authorisations_are_empty() {
         TaskRoleResource roleResource = new TaskRoleResource(
             "tribunal-caseworker",
-            true,
             true,
             true,
             true,
@@ -1724,7 +1652,6 @@ class NewCFTTaskMapperTest {
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.MANAGE));
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
-        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
         assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE));
         assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE_OWN));
         assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL_OWN));
@@ -1743,7 +1670,6 @@ class NewCFTTaskMapperTest {
     void should_map_task_role_permissions_when_authorisations_are_null() {
         TaskRoleResource roleResource = new TaskRoleResource(
             "tribunal-caseworker",
-            true,
             true,
             true,
             true,
@@ -1769,7 +1695,6 @@ class NewCFTTaskMapperTest {
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.MANAGE));
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
         assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
-        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
         assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE));
         assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE_OWN));
         assertFalse(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL_OWN));
@@ -2005,7 +1930,7 @@ class NewCFTTaskMapperTest {
         return asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,
@@ -2014,7 +1939,7 @@ class NewCFTTaskMapperTest {
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
+                stringValue("Read,Own,Manage,Cancel"),
                 null,
                 null,
                 null,

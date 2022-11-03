@@ -142,7 +142,7 @@ public class ServiceMocks {
     public void mockVariables() {
         Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
 
-        processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "string"));
+        processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Own,Manager,Cancel", "string"));
         processVariables.put("securityClassification", new CamundaVariable("PUBLIC", "string"));
 
         when(camundaServiceApi.getVariables(any(), any()))

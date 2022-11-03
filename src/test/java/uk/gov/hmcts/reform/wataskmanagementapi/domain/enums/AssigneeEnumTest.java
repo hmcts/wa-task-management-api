@@ -15,7 +15,6 @@ class AssigneeEnumTest {
         final String configured = TaskState.CONFIGURED.value();
         final String unassigned = TaskState.UNASSIGNED.value();
         final String unconfigured = TaskState.UNCONFIGURED.value();
-        final String referred = TaskState.REFERRED.value();
 
         assertEquals("assigned", assigned);
         assertEquals("cancelled", cancelled);
@@ -23,8 +22,6 @@ class AssigneeEnumTest {
         assertEquals("configured", configured);
         assertEquals("unassigned", unassigned);
         assertEquals("unconfigured", unconfigured);
-        assertEquals("referred", referred);
-        assertEquals("referred", TaskState.REFERRED.toString());
     }
 
     @Test

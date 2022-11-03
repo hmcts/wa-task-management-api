@@ -130,7 +130,7 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, true, false, false,
+            false, true, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -184,7 +184,7 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, true, false, false,
+            false, true, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -244,7 +244,7 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, true, false, false,
+            false, true, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -310,7 +310,7 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, false, false, true, false, false,
+            false, false, false, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -381,7 +381,7 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, false, false, false, false, false,
+            false, false, false, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
             taskId, OffsetDateTime.now(),
@@ -459,7 +459,7 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            true, true, true, false, false, false,
+            true, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
             taskId, OffsetDateTime.now(),
