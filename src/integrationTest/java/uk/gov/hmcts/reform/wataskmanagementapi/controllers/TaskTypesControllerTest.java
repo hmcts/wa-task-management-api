@@ -71,7 +71,7 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_all_work_types_when_filter_is_not_provided() throws Exception {
+    void should_return_all_task_types_when_filter_is_not_provided() throws Exception {
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
         List<RoleAssignment> allTestRoles = mockServices.createTestRoleAssignments(roleNames);
