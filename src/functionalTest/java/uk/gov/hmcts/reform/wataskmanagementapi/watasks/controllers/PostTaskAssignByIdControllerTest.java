@@ -521,10 +521,10 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
         taskId = taskVariables.getTaskId();
 
+        initiateTask(taskVariables, Jurisdiction.WA);
         common.setupChallengedAccessAdmin(granularPermissionCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         common.setupChallengedAccessLegalOps(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(taskVariables, Jurisdiction.WA);
 
         String assigneeId = getAssigneeId(assigneeCredentials.getHeaders());
 
