@@ -226,7 +226,28 @@ dependencyManagement {
   dependencies {
     dependency group: 'commons-io', name: 'commons-io', version: '2.8.0'
 
-    dependency group: 'org.springframework.security', name: 'spring-security-core', version: '5.7.5'
+    dependencySet( group: 'org.springframework.security', version: '5.7.5'){
+      entry 'spring-security-core'
+      entry 'spring-security-acl'
+      entry 'spring-security-aspects'
+      entry 'spring-security-cas'
+      entry 'spring-security-config'
+      entry 'spring-security-crypto'
+      entry 'spring-security-data'
+      entry 'spring-security-ldap'
+      entry 'spring-security-messaging'
+      entry 'spring-security-oauth2-client'
+      entry 'spring-security-oauth2-core'
+      entry 'spring-security-oauth2-jose'
+      entry 'spring-security-oauth2-resource-server'
+      entry 'spring-security-openid'
+      entry 'spring-security-remoting'
+      entry 'spring-security-rsocket'
+      entry 'spring-security-saml2-service-provider'
+      entry 'spring-security-taglibs'
+      entry 'spring-security-test'
+      entry 'spring-security-web'
+    }
 
     dependencySet(group: 'org.seleniumhq.selenium', version: '4.2.2') {
       entry 'selenium-java'
