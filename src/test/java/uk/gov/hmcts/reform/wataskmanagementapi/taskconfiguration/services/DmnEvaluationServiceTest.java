@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DmnRequest;
@@ -18,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.TaskTypesDmnResponse;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -55,7 +59,9 @@ class DmnEvaluationServiceTest {
 
     @BeforeEach
     void setUp() {
-        dmnEvaluationService = new DmnEvaluationService(camundaServiceApi, authTokenGenerator);
+        dmnEvaluationService = new DmnEvaluationService(camundaServiceApi,
+            authTokenGenerator,
+            new CamundaObjectMapper());
     }
 
     @Test
@@ -232,9 +238,17 @@ class DmnEvaluationServiceTest {
     }
 
     @Test
-    void should_throw_exception_when_retrieving_dmn_list() {
+    void should_throw_502_exception_when_camunda_service_throws_an_exception() {
+        Request request = Request.create(Request.HttpMethod.GET, "url",
+            new HashMap<>(), null, new RequestTemplate());
 
-        doThrow(FeignException.class)
+        FeignException exception = new FeignException.BadRequest(
+            "Downstream Dependency Error",
+            request,
+            null,
+            null);
+
+        doThrow(exception)
             .when(camundaServiceApi)
             .getTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
@@ -247,9 +261,36 @@ class DmnEvaluationServiceTest {
         assertThatThrownBy(() -> dmnEvaluationService
             .getTaskTypesDmn("wa", DMN_NAME)
         )
-            .isInstanceOf(IllegalStateException.class)
-            .hasCauseInstanceOf(FeignException.class)
-            .hasMessage(String.format("Could not get %s from camunda for %s", DMN_NAME, "wa"));
+            .isInstanceOf(FeignException.BadRequest.class)
+            .hasMessage("Downstream Dependency Error");
+    }
+
+    @Test
+    void should_throw_503_exception_when_camunda_service_unavailable() {
+        Request request = Request.create(Request.HttpMethod.GET, "url",
+            new HashMap<>(), null, new RequestTemplate());
+
+        FeignException exception = new FeignException.ServiceUnavailable(
+            "Service unavailable",
+            request,
+            null,
+            null);
+
+        doThrow(exception)
+            .when(camundaServiceApi)
+            .getTaskTypesDmnTable(
+                BEARER_SERVICE_TOKEN,
+                "wa",
+                DMN_NAME
+            );
+
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
+
+        assertThatThrownBy(() -> dmnEvaluationService
+            .getTaskTypesDmn("wa", DMN_NAME)
+        )
+            .isInstanceOf(FeignException.class)
+            .hasMessage("Service unavailable");
     }
 
     @Test

@@ -38,6 +38,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfiguration
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomizedConstraintViolationException;
 
 import java.net.URI;
 import java.util.List;
@@ -60,14 +61,12 @@ import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 })
 @RequestMapping(produces = APPLICATION_PROBLEM_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-    "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter", "PMD.CouplingBetweenObjects"})
+    "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter", "PMD.CouplingBetweenObjects",
+    "PMD.TooManyMethods"})
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice implements ValidationAdviceTrait {
 
     @ExceptionHandler({
-        FeignException.ServiceUnavailable.class,
-        FeignException.FeignServerException.class,
-        FeignException.GatewayTimeout.class,
-        FeignException.BadRequest.class,
+        FeignException.class,
         ServerErrorException.class,
     })
     public ResponseEntity<ThrowableProblem> handleFeignAndServerException(FeignException ex) {
@@ -77,6 +76,28 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         URI type = URI.create("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error");
         String title = "Downstream Dependency Error";
         ErrorMessages detail = ErrorMessages.DOWNSTREAM_DEPENDENCY_ERROR;
+
+        return ResponseEntity.status(statusType.getStatusCode())
+            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+            .body(Problem.builder()
+                .withType(type)
+                .withTitle(title)
+                .withDetail(detail.getDetail())
+                .withStatus(statusType)
+                .build());
+    }
+
+    @ExceptionHandler({
+        FeignException.ServiceUnavailable.class,
+        FeignException.GatewayTimeout.class
+    })
+    public ResponseEntity<ThrowableProblem> handleServiceUnavailableException(FeignException ex) {
+        log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
+
+        Status statusType = SERVICE_UNAVAILABLE; //503
+        URI type = URI.create("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable");
+        String title = "Service Unavailable";
+        ErrorMessages detail = ErrorMessages.SERVICE_UNAVAILABLE;
 
         return ResponseEntity.status(statusType.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
@@ -126,8 +147,11 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
 
     }
 
-    @ExceptionHandler(CustomConstraintViolationException.class)
-    public ResponseEntity<Problem> handleCustomConstraintViolation(CustomConstraintViolationException ex) {
+    @ExceptionHandler({
+        CustomConstraintViolationException.class,
+        CustomizedConstraintViolationException.class
+    })
+    public ResponseEntity<Problem> handleConstraintViolation(ConstraintViolationProblem ex) {
 
         return ResponseEntity.status(ex.getStatus().getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
@@ -135,6 +159,27 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
                 ex.getType(),
                 ex.getStatus(),
                 ex.getViolations())
+            );
+    }
+
+    @Override
+    @ExceptionHandler({ConstraintViolationException.class})
+    public ResponseEntity<Problem> handleConstraintViolation(
+        ConstraintViolationException ex,
+        NativeWebRequest request) {
+        Status status = BAD_REQUEST; //400
+        URI type = URI.create("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
+
+        final List<Violation> violations = ex.getConstraintViolations().stream()
+            .map(this::createViolation)
+            .collect(toList());
+
+        return ResponseEntity.status(status.getStatusCode())
+            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+            .body(new ConstraintViolationProblem(
+                type,
+                status,
+                violations)
             );
     }
 
@@ -165,27 +210,6 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
                 violations)
             );
 
-    }
-
-    @Override
-    @ExceptionHandler({ConstraintViolationException.class})
-    public ResponseEntity<Problem> handleConstraintViolation(
-        ConstraintViolationException ex,
-        NativeWebRequest request) {
-        Status status = BAD_REQUEST; //400
-        URI type = URI.create("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
-
-        final List<Violation> violations = ex.getConstraintViolations().stream()
-            .map(this::createViolation)
-            .collect(toList());
-
-        return ResponseEntity.status(status.getStatusCode())
-            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(new ConstraintViolationProblem(
-                type,
-                status,
-                violations)
-            );
     }
 
     @ExceptionHandler({

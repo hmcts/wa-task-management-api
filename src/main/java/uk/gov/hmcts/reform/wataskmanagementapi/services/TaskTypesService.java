@@ -8,7 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskTypeResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomizedConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.TaskTypesDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.TaskTypesDmnResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.DmnEvaluationService;
@@ -103,7 +103,7 @@ public class TaskTypesService {
                 "jurisdiction",
                 "A jurisdiction parameter key and value is required."
             );
-            throw new CustomConstraintViolationException(singletonList(violation));
+            throw new CustomizedConstraintViolationException(singletonList(violation));
         }
     }
 

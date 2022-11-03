@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -32,14 +31,14 @@ public class DmnEvaluationService {
 
     private final CamundaServiceApi camundaServiceApi;
     private final AuthTokenGenerator serviceAuthTokenGenerator;
-
-    @Autowired
-    private CamundaObjectMapper camundaObjectMapper;
+    private final CamundaObjectMapper camundaObjectMapper;
 
     public DmnEvaluationService(CamundaServiceApi camundaServiceApi,
-                                AuthTokenGenerator serviceAuthTokenGenerator) {
+                                AuthTokenGenerator serviceAuthTokenGenerator,
+                                CamundaObjectMapper camundaObjectMapper) {
         this.camundaServiceApi = camundaServiceApi;
         this.serviceAuthTokenGenerator = serviceAuthTokenGenerator;
+        this.camundaObjectMapper = camundaObjectMapper;
     }
 
     public List<PermissionsDmnEvaluationResponse> evaluateTaskPermissionsDmn(String jurisdiction,
@@ -139,7 +138,7 @@ public class DmnEvaluationService {
             );
 
             return new HashSet<>(taskTypesDmnResponseList);
-        } catch (FeignException.ServiceUnavailable ex) {
+        } catch (FeignException.ServiceUnavailable | FeignException.GatewayTimeout ex) {
             log.error("An error occurred when evaluating task-type dmn, service unavailable. "
                       + "Could not get {} from camunda for '{}'", dmnNameField, jurisdiction);
             throw ex;
@@ -157,7 +156,6 @@ public class DmnEvaluationService {
 
             throw ex;
         }
-
     }
 
     private List<TaskTypesDmnEvaluationResponse> performEvaluateTaskTypesDmnAction(

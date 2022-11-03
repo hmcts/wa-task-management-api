@@ -24,7 +24,6 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -89,41 +88,11 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andDo(mvcResult -> {
-            log.info("task_types: {}", mvcResult.getResponse().getContentAsString());
-        }).andExpectAll(
+        ).andDo(
+            mvcResult -> log.info("task_types: {}", mvcResult.getResponse().getContentAsString())
+        ).andExpectAll(
             status().isOk(),
-            content().contentType(APPLICATION_JSON_VALUE),
-            jsonPath("$.task_types").isNotEmpty(),
-            jsonPath("$.task_types.length()").value(7),
-            jsonPath("$.task_types[0].task_type.task_type_id")
-                .value("processApplication"),
-            jsonPath("$.task_types[0]..task_type.task_type_name")
-                .value("Process Application"),
-            jsonPath("$.task_types[1].task_type.task_type_id")
-                .value("reviewAppealSkeletonArgument"),
-            jsonPath("$.task_types[1]..task_type.task_type_name")
-                .value("Review Appeal Skeleton Argument"),
-            jsonPath("$.task_types[2].task_type.task_type_id")
-                .value("decideOnTimeExtension"),
-            jsonPath("$.task_types[2]..task_type.task_type_name")
-                .value("Decide On Time Extension"),
-            jsonPath("$.task_types[3].task_type.task_type_id")
-                .value("followUpOverdueCaseBuilding"),
-            jsonPath("$.task_types[3]..task_type.task_type_name")
-                .value("Follow-up overdue case building"),
-            jsonPath("$.task_types[4].task_type.task_type_id")
-                .value("attendCma"),
-            jsonPath("$.task_types[4]..task_type.task_type_name")
-                .value("Attend Cma"),
-            jsonPath("$.task_types[5].task_type.task_type_id")
-                .value("reviewRespondentResponse"),
-            jsonPath("$.task_types[5]..task_type.task_type_name")
-                .value("Review Respondent Response"),
-            jsonPath("$.task_types[6].task_type.task_type_id")
-                .value("followUpOverdueRespondentEvidence"),
-            jsonPath("$.task_types[6]..task_type.task_type_name")
-                .value("Follow-up overdue respondent evidence")
+            content().contentType(APPLICATION_JSON_VALUE)
         );
     }
 
@@ -144,8 +113,8 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isBadRequest(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-            //jsonPath("$.type")
-            //    .value("https://github.com/hmcts/wa-task-management-api/problem/constraint-violation"),
+            jsonPath("$.type")
+                .value("https://github.com/hmcts/wa-task-management-api/problem/constraint-violation"),
             jsonPath("$.title")
                 .value("Constraint Violation"),
             jsonPath("$.status")
@@ -200,6 +169,39 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_return_502_with_application_problem_response_when_camunda_api_throws_an_exception() throws Exception {
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+        List<RoleAssignment> allTestRoles = mockServices.createTestRoleAssignments(roleNames);
+
+        when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
+            .thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(camundaServiceApi.getTaskTypesDmnTable(
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenThrow(FeignException.FeignServerException.class);
+
+        mockMvc.perform(
+            get(ENDPOINT_PATH + "?jurisdiction=some_jurisdiction")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isBadGateway(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type")
+                .value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
+            jsonPath("$.title")
+                .value("Downstream Dependency Error"),
+            jsonPath("$.status")
+                .value(502),
+            jsonPath("$.detail")
+                .value("Downstream dependency did not respond as expected and the request could not be completed.")
+        );
+    }
+
+    @Test
     void should_return_503_with_application_problem_response_when_camunda_api_is_not_available() throws Exception {
         final List<String> roleNames = singletonList("tribunal-caseworker");
         List<RoleAssignment> allTestRoles = mockServices.createTestRoleAssignments(roleNames);
@@ -207,23 +209,26 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
 
-        doThrow(FeignException.FeignClientException.class)
-            .when(camundaServiceApi).getTaskTypesDmnTable(any(), anyString(), anyString());
+        when(camundaServiceApi.getTaskTypesDmnTable(
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenThrow(FeignException.ServiceUnavailable.class);
 
         mockMvc.perform(
-            get(ENDPOINT_PATH + "?jurisdiction=wa")
+            get(ENDPOINT_PATH + "?jurisdiction=sscs")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
-            status().is5xxServerError(),
+            status().isServiceUnavailable(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
             jsonPath("$.type")
                 .value("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable"),
             jsonPath("$.title").value("Service Unavailable"),
             jsonPath("$.status").value(503),
             jsonPath("$.detail").value(
-                "Database is unavailable.")
+                "Service unavailable.")
         );
     }
 }
