@@ -92,12 +92,7 @@ public class TaskAutoAssignmentService {
     public TaskResource autoAssignCFTTask(TaskResource taskResource) {
         List<RoleAssignment> roleAssignments =
             taskConfigurationRoleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
-
-        for (RoleAssignment role: roleAssignments) {
-            log.info("autoAssignCFTTask roleAssignment name " + role.getRoleName());
-            log.info(" autoAssignCFTTaskroleAssignment type " + role.getRoleType());
-        }
-
+        
         //The query above may return multiple role assignments, and we must select the right one for auto-assignment.
         //
         //    Sort the list of role assignments returned by assignment priority (from the task permissions data).
@@ -121,13 +116,11 @@ public class TaskAutoAssignmentService {
                 taskResource.setAssignee(match.get().getActorId());
                 taskResource.setState(CFTTaskState.ASSIGNED);
                 taskResource.setAutoAssigned(true);
-                log.info("Task has been autoassigned to " + match.get().getActorId());
             } else {
                 //If stage above produces an empty result of matching role assignment, then the task is
                 //to be left unassigned.
                 taskResource.setAssignee(null);
                 taskResource.setState(CFTTaskState.UNASSIGNED);
-                log.info("Task has not been autoassigned");
             }
         }
 

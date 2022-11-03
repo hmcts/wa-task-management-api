@@ -296,14 +296,6 @@ public class TaskManagementService {
             .map(TaskResource::getAssignee);
         Optional<UserInfo> assignee = assigneeAccessControlResponse.map(AccessControlResponse::getUserInfo);
 
-        if (currentAssignee.isPresent()) {
-            log.info("currentAssignee " + currentAssignee.get());
-        }
-        log.info("assigner " + assigner.getUid());
-        if (assignee.isPresent()) {
-            log.info("assignee " + assignee.get().getUid());
-        }
-
         if (verifyActionRequired(currentAssignee, assignee)) {
             final boolean granularPermissionEnabled = isGranularPermissionFeatureEnabled(
                 assignerAccessControlResponse.getUserInfo().getUid(),

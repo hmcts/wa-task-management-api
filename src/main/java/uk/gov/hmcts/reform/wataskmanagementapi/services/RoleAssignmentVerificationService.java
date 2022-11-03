@@ -43,12 +43,6 @@ public class RoleAssignmentVerificationService {
                                               List<RoleAssignment> roleAssignments,
                                               PermissionRequirements permissionsRequired,
                                               ErrorMessages customErrorMessage) {
-        log.info("There are " + roleAssignments.size() + " role assignments");
-        for (RoleAssignment role: roleAssignments) {
-            log.info("roleAssignment name " + role.getRoleName());
-            log.info("roleAssignment type " + role.getRoleType());
-        }
-        log.info("permissionsRequired " + permissionsRequired);
         Optional<TaskResource> optionalTaskResource = cftQueryService.getTask(
             taskId, roleAssignments, permissionsRequired
         );
