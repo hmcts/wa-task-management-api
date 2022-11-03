@@ -21,14 +21,20 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
@@ -72,6 +78,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -116,13 +123,22 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.REFER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.GRANULAR_PERMISSION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
@@ -149,6 +165,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Spy
     CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
     @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
@@ -167,9 +185,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
-
-    @Mock
-    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
     @Mock(extraInterfaces = Serializable.class)
     private CriteriaBuilderImpl builder;
@@ -265,6 +280,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
+            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
@@ -484,6 +500,41 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
+        void claimTask_should_succeed_for_granular_permission() {
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(asList(CLAIM, OWN), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(CLAIM, EXECUTE), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(ASSIGN, EXECUTE), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(ASSIGN, OWN), PermissionJoin.AND)
+                .build();
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+                .thenReturn(Optional.of(taskResource));
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            taskManagementService.claimTask(taskId, accessControlResponse);
+
+            verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
+
+        }
+
+        @Test
         void claimTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
@@ -496,6 +547,45 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+
+            assertThatThrownBy(() -> taskManagementService.claimTask(
+                taskId,
+                accessControlResponse
+            ))
+                .isInstanceOf(RoleAssignmentVerificationException.class)
+                .hasNoCause()
+                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+
+            verify(camundaService, times(0)).claimTask(any(), any());
+        }
+
+        @Test
+        void claimTask_should_throw_role_assignment_verification_exception_when_granular_permission_access_fail() {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+            TaskResource taskResource = spy(TaskResource.class);
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(asList(CLAIM, OWN), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(CLAIM, EXECUTE), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(ASSIGN, EXECUTE), PermissionJoin.AND)
+                .joinPermissionRequirement(PermissionJoin.OR)
+                .nextPermissionRequirement(asList(ASSIGN, OWN), PermissionJoin.AND)
+                .build();
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+                .thenReturn(Optional.empty());
+            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.claimTask(
                 taskId,
@@ -568,6 +658,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Test
         void unclaimTask_should_succeed() {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
             PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
@@ -589,9 +681,80 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void unclaimTask_succeed_when_task_assignee_differs_from_user_and_role_is_senior_tribunal_caseworker() {
-
+        void unclaimTask_should_succeed_gp_flag_on() {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+                .thenReturn(Optional.of(taskResource));
+
+            when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+            when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            boolean taskHasUnassigned = taskResource
+                .getState().getValue()
+                .equals(CFTTaskState.UNASSIGNED.getValue());
+            taskManagementService.unclaimTask(taskId, accessControlResponse);
+
+            verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
+        }
+
+        @Test
+        void unclaimTask_should_succeed_assignee_null_gp_flag_on() {
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
+                .thenReturn(Optional.of(taskResource));
+
+            when(taskResource.getAssignee()).thenReturn(null);
+            when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            boolean taskHasUnassigned = taskResource
+                .getState().getValue()
+                .equals(CFTTaskState.UNASSIGNED.getValue());
+            taskManagementService.unclaimTask(taskId, accessControlResponse);
+
+            verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
+        }
+
+        @Test
+        void unclaimTask_succeed_when_task_assignee_differs_from_user_and_role_is_senior_tribunal_caseworker() {
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
             PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
@@ -609,6 +772,170 @@ class TaskManagementServiceTest extends CamundaHelpers {
             verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
         }
 
+    }
+
+    @Test
+    void unclaimTask_succeed_when_task_assignee_differs_from_user_and_has_unassign_gp_flag_on() {
+
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                 GRANULAR_PERMISSION_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
+        ).thenReturn(true);
+
+        RoleAssignment roleAssignment1 = new RoleAssignment(
+            ActorIdType.IDAM,
+            IDAM_USER_ID,
+            RoleType.CASE,
+            "judge",
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.JUDICIAL,
+            false,
+            Map.of("workTypes", "hearing_work"));
+        RoleAssignment roleAssignment2 = new RoleAssignment(
+            ActorIdType.IDAM,
+            IDAM_USER_ID,
+            RoleType.CASE,
+            "tribunal-caseworker",
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.JUDICIAL,
+            false,
+            Map.of("workTypes", "hearing_work"));
+        List<RoleAssignment> roleAssignmentList = asList(roleAssignment1, roleAssignment2);
+
+        TaskResource taskResource = spy(TaskResource.class);
+        PermissionRequirements requirements
+            = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM,UNASSIGN);
+        when(cftQueryService.getTask(taskId, roleAssignmentList, requirements))
+            .thenReturn(Optional.of(taskResource));
+
+        when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+        when(taskResource.getAssignee()).thenReturn("wrongid");
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            new String[]{"SPECIFIC", "STANDARD"},
+            0,
+            false,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+        );
+        Set<TaskRoleResource> taskRoleResources = new HashSet<>();
+        taskRoleResources.add(taskRoleResource);
+        when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+
+        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
+
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+
+        boolean taskHasUnassigned = taskResource.getState().getValue().equals(CFTTaskState.UNASSIGNED.getValue());
+        taskManagementService.unclaimTask(taskId, accessControlResponse);
+        verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
+    }
+
+    @Test
+    void unclaimTask_throw_403_when_task_assignee_differs_from_user_and_no_unassign_gp_flag_on() {
+
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                 GRANULAR_PERMISSION_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
+        ).thenReturn(true);
+
+        RoleAssignment roleAssignment = new RoleAssignment(
+            ActorIdType.IDAM,
+            IDAM_USER_ID,
+            RoleType.CASE,
+            "tribunal-caseworker",
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.JUDICIAL,
+            false,
+            Map.of("workTypes", "hearing_work"));
+        List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
+
+        TaskResource taskResource = spy(TaskResource.class);
+        PermissionRequirements requirements
+            = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM,UNASSIGN);
+        when(cftQueryService.getTask(taskId, roleAssignmentList, requirements))
+            .thenReturn(Optional.of(taskResource));
+
+        when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+        when(taskResource.getAssignee()).thenReturn("wrongid");
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            new String[]{"SPECIFIC", "STANDARD"},
+            0,
+            false,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        );
+        Set<TaskRoleResource> taskRoleResources = new HashSet<>();
+        taskRoleResources.add(taskRoleResource);
+        when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+
+        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
+
+        assertThatThrownBy(() -> taskManagementService.unclaimTask(
+            taskId,
+            accessControlResponse
+        ))
+            .isInstanceOf(RoleAssignmentVerificationException.class)
+            .hasNoCause()
+            .hasMessage("Role Assignment Verification: "
+                            + "The request failed the Role Assignment checks performed.");
+
+        verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
     }
 
     @Nested
@@ -646,11 +973,48 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
 
-            taskManagementService.assignTask(taskId, assignerAccessControlResponse, assigneeAccessControlResponse);
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse,
+                                             Optional.of(assigneeAccessControlResponse));
 
             boolean isTaskAssigned = taskResource.getState().getValue().equals(CFTTaskState.ASSIGNED.getValue());
             assertEquals(SECONDARY_IDAM_USER_ID, taskResource.getAssignee());
             verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, isTaskAssigned);
+        }
+
+        @Test
+        void unAssignTask_should_succeed() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(false);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+            when(cftQueryService.getTask(
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            ).thenReturn(Optional.of(taskResource));
+
+
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+            when(taskResource.getAssignee()).thenReturn(SECONDARY_IDAM_USER_ID);
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse, Optional.empty());
+
+            verify(taskResource).setAssignee(null);
+            verify(camundaService, times(1)).unclaimTask(taskId, false);
         }
 
         @Test
@@ -685,7 +1049,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             assertThatThrownBy(() -> taskManagementService.assignTask(
                 taskId,
                 assignerAccessControlResponse,
-                assigneeAccessControlResponse
+                Optional.of(assigneeAccessControlResponse)
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
@@ -721,7 +1085,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             assertThatThrownBy(() -> taskManagementService.assignTask(
                 taskId,
                 assignerAccessControlResponse,
-                assigneeAccessControlResponse
+                Optional.of(assigneeAccessControlResponse)
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
@@ -734,33 +1098,485 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Test
         void assignTask_should_throw_exception_when_missing_required_arguments() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            when(assignerAccessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(null).build());
+            UserInfo userInfo = UserInfo.builder().uid(null).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
 
             assertThatThrownBy(() -> taskManagementService.assignTask(
                 taskId,
                 assignerAccessControlResponse,
-                assigneeAccessControlResponse
+                Optional.of(assigneeAccessControlResponse)
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
                 .hasMessage("Assigner userId cannot be null");
 
             when(assignerAccessControlResponse.getUserInfo())
-                .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
+                .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
             when(assigneeAccessControlResponse.getUserInfo())
                 .thenReturn(UserInfo.builder().uid(null).build());
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+            when(cftQueryService.getTask(
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            ).thenReturn(Optional.of(taskResource));
 
             assertThatThrownBy(() -> taskManagementService.assignTask(
                 taskId,
                 assignerAccessControlResponse,
-                assigneeAccessControlResponse
+                Optional.of(assigneeAccessControlResponse)
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
                 .hasMessage("Assignee userId cannot be null");
+        }
 
+        @Test
+        void assignTask_should_throw_exception_when_missing_required_arguments_with_granular_permission() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(userInfo);
+
+            AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
+            when(assigneeAccessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(null).build());
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(ASSIGN);
+            when(cftQueryService.getTask(
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            assertThatThrownBy(() -> taskManagementService.assignTask(
+                taskId,
+                assignerAccessControlResponse,
+                Optional.of(assigneeAccessControlResponse)
+            ))
+                .isInstanceOf(NullPointerException.class)
+                .hasNoCause()
+                .hasMessage("Assignee userId cannot be null");
+        }
+
+        @Test
+        void assignTask_should_throw_role_assignment_verification_exception_when_requester_does_not_have_permission() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(userInfo);
+
+            AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assigneeAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(ASSIGN);
+            when(cftQueryService.getTask(
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            ).thenReturn(Optional.empty());
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId))
+                .thenReturn(Optional.of(taskResource));
+
+            assertThatThrownBy(() -> taskManagementService.assignTask(
+                taskId,
+                assignerAccessControlResponse,
+                Optional.of(assigneeAccessControlResponse)
+            ))
+                .isInstanceOf(RoleAssignmentVerificationException.class)
+                .hasNoCause()
+                .hasMessage("Role Assignment Verification: "
+                                + "The user assigning the Task has failed the Role Assignment checks performed.");
+
+            verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
+        }
+
+        @Test
+        void task_is_unassigned_and_requester_tries_to_assign_to_someone_should_succeed() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(userInfo);
+
+            AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assigneeAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(ASSIGN);
+            when(cftQueryService.getTask(
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(
+                taskId, assigneeAccessControlResponse.getRoleAssignments(), otherRequirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse,
+                                             Optional.of(assigneeAccessControlResponse));
+
+            verify(taskResource).setAssignee(IDAM_USER_ID);
+            verify(taskResource).setState(CFTTaskState.ASSIGNED);
+            verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
+        }
+
+        @Test
+        void task_is_unassigned_and_requester_tries_to_assign_to_themselves_should_succeed() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(userInfo);
+
+            AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assigneeAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(CLAIM).build();
+            when(cftQueryService.getTask(
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(
+                taskId, assigneeAccessControlResponse.getRoleAssignments(), otherRequirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse,
+                                             Optional.of(assigneeAccessControlResponse));
+
+            verify(taskResource).setAssignee(SECONDARY_IDAM_USER_ID);
+            verify(taskResource).setState(CFTTaskState.ASSIGNED);
+            verify(camundaService, times(1)).assignTask(taskId, SECONDARY_IDAM_USER_ID, false);
+        }
+
+        @Test
+        void task_is_assigned_to_someone_and_requester_tries_to_assign_to_themselves_should_succeed() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(userInfo);
+
+            AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assigneeAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNASSIGN_CLAIM)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, CLAIM), PermissionJoin.AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), PermissionJoin.AND).build();
+            when(cftQueryService.getTask(
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(
+                taskId, assigneeAccessControlResponse.getRoleAssignments(), otherRequirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            when(taskResource.getAssignee()).thenReturn(THIRD_IDAM_USER_ID);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse,
+                                             Optional.of(assigneeAccessControlResponse));
+
+            verify(taskResource).setAssignee(SECONDARY_IDAM_USER_ID);
+            verify(taskResource).setState(CFTTaskState.ASSIGNED);
+            verify(camundaService, times(1)).assignTask(taskId, SECONDARY_IDAM_USER_ID, false);
+        }
+
+        @Test
+        void task_is_assigned_to_someone_and_requester_tries_to_assign_to_someone_new_should_succeed() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(userInfo);
+
+            AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assigneeAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), PermissionJoin.AND).build();
+            when(cftQueryService.getTask(
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(
+                taskId, assigneeAccessControlResponse.getRoleAssignments(), otherRequirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            when(taskResource.getAssignee()).thenReturn(THIRD_IDAM_USER_ID);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse,
+                                             Optional.of(assigneeAccessControlResponse));
+
+            verify(taskResource).setAssignee(IDAM_USER_ID);
+            verify(taskResource).setState(CFTTaskState.ASSIGNED);
+            verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
+        }
+
+        @Test
+        void task_is_assigned_to_requester_tries_to_assign_to_someone_new_should_succeed() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(userInfo);
+
+            AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assigneeAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNCLAIM_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNCLAIM, ASSIGN), PermissionJoin.AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), PermissionJoin.AND).build();
+            when(cftQueryService.getTask(
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+            when(cftQueryService.getTask(
+                taskId, assigneeAccessControlResponse.getRoleAssignments(), otherRequirements)
+            ).thenReturn(Optional.of(taskResource));
+
+            when(taskResource.getAssignee()).thenReturn(SECONDARY_IDAM_USER_ID);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse,
+                                             Optional.of(assigneeAccessControlResponse));
+
+            verify(taskResource).setAssignee(IDAM_USER_ID);
+            verify(taskResource).setState(CFTTaskState.ASSIGNED);
+            verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
+        }
+
+        @Test
+        void unAssignTask_should_succeed_with_granular_permission() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                     GRANULAR_PERMISSION_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
+            ).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(UNASSIGN, UNCLAIM);
+            when(cftQueryService.getTask(
+                taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            ).thenReturn(Optional.of(taskResource));
+
+
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+            when(taskResource.getAssignee()).thenReturn(SECONDARY_IDAM_USER_ID);
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse, Optional.empty());
+
+            verify(taskResource).setAssignee(null);
+            verify(camundaService, times(1)).unclaimTask(taskId, false);
+        }
+
+        @Test
+        void task_is_assigned_to_requester_tries_to_assign_to_themselves_should_succeed() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(userInfo);
+
+            AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assigneeAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            TaskResource taskResource = spy(TaskResource.class);
+            when(taskResource.getAssignee()).thenReturn(SECONDARY_IDAM_USER_ID);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId))
+                .thenReturn(Optional.of(taskResource));
+
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse,
+                                             Optional.of(assigneeAccessControlResponse));
+
+            verify(taskResource, never()).setAssignee(any());
+            verify(taskResource, never()).setState(any());
+            verify(cftTaskDatabaseService, never()).findByIdAndObtainPessimisticWriteLock(taskId);
+            verify(cftTaskDatabaseService, never()).saveTask(taskResource);
+            verify(camundaService, never()).assignTask(eq(taskId), anyString(), eq(false));
+        }
+
+        @Test
+        void task_is_assigned_to_someone_and_tries_to_assign_to_same_assignee_should_succeed() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(userInfo);
+
+            AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assigneeAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            TaskResource taskResource = spy(TaskResource.class);
+            when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
+            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId))
+                .thenReturn(Optional.of(taskResource));
+
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse,
+                                             Optional.of(assigneeAccessControlResponse));
+
+            verify(taskResource, never()).setAssignee(any());
+            verify(taskResource, never()).setState(any());
+            verify(cftTaskDatabaseService, never()).findByIdAndObtainPessimisticWriteLock(taskId);
+            verify(cftTaskDatabaseService, never()).saveTask(taskResource);
+            verify(camundaService, never()).assignTask(eq(taskId), anyString(), eq(false));
+        }
+
+        @Test
+        void task_is_unassigned_and_tries_to_unassign_should_succeed() {
+            AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
+            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(userInfo);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId))
+                .thenReturn(Optional.of(taskResource));
+
+            taskManagementService.assignTask(taskId, assignerAccessControlResponse, Optional.empty());
+
+            verify(taskResource, never()).setAssignee(any());
+            verify(taskResource, never()).setState(any());
+            verify(cftTaskDatabaseService, never()).findByIdAndObtainPessimisticWriteLock(taskId);
+            verify(cftTaskDatabaseService, never()).saveTask(taskResource);
+            verify(camundaService, never()).assignTask(eq(taskId), anyString(), eq(false));
         }
     }
 

@@ -79,7 +79,9 @@ public abstract class SpringBootFunctionalBaseTest {
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED =
         "Role Assignment Verification: The request failed the Role Assignment checks performed.";
-
+    protected static String ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER =
+        "Role Assignment Verification: The user assigning the Task has failed the Role Assignment checks performed.";
+    protected static String TASK_NOT_FOUND_ERROR = "Task Not Found Error: The task could not be found.";
     protected GivensBuilder given;
     protected Assertions assertions;
     protected Common common;
