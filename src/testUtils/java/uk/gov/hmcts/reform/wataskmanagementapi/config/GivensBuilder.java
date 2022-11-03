@@ -372,7 +372,7 @@ public class GivensBuilder {
         );
     }
 
-    private String createCCDCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
+    public String createCCDCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
                                                                     String caseType,
                                                                     String startEventId,
                                                                     String submitEventId,
