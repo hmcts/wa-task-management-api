@@ -467,8 +467,6 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, false, false, false, false, false,
@@ -484,6 +482,8 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             assignee = "otheruserid";
         }
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource, assignee);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
         when(idamWebApi.userInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
@@ -545,8 +545,6 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             true, true, true, false, false, false,
@@ -562,6 +560,8 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             assignee = "otheruserid";
         }
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource, assignee);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
         when(idamWebApi.userInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
         when(roleAssignmentServiceApi.getRolesForUser(
