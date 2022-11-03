@@ -1976,13 +1976,15 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(20)
             .roleAssignments(pagination(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(4)
-            .expectedTotalRecords(4)
+            .expectedAmountOfTasksInResponse(5)
+            .expectedTotalRecords(5)
+            .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
                                  )
             ).build();
 
@@ -2001,6 +2003,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(0)
             .expectedTotalRecords(0)
+            .userInfo(userInfo)
             .build();
 
         searchTaskRequest = new SearchTaskRequest(
@@ -2018,6 +2021,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(0)
             .expectedTotalRecords(0)
+            .userInfo(userInfo)
             .build();
 
         return Stream.of(allTasks, emptyJurisdictionTasks, emptyLocationTasks);
@@ -2039,6 +2043,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
+            .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032"
                                  )
@@ -2059,6 +2064,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(0)
             .expectedTotalRecords(0)
+            .userInfo(userInfo)
             .build();
 
         return Stream.of(allTasks, emptyTasks);
@@ -2080,6 +2086,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
+            .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000029", "1623278362400029"
                                  )
@@ -2100,6 +2107,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
+            .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000029", "1623278362400029",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000030", "1623278362400030"
@@ -2121,6 +2129,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(0)
             .expectedTotalRecords(0)
+            .userInfo(userInfo)
             .build();
 
         return Stream.of(allTasks, multipleTasks, emptyTasks);
@@ -2142,6 +2151,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
+            .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
                                  )
@@ -2162,6 +2172,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(0)
             .expectedTotalRecords(0)
+            .userInfo(userInfo)
             .build();
 
         return Stream.of(allTasks, emptyTasks);
@@ -2185,6 +2196,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
+            .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000031", "1623278362400031",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032"
@@ -2237,6 +2249,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
+            .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032",
                                      "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035"
@@ -2261,6 +2274,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(0)
             .expectedTotalRecords(0)
+            .userInfo(userInfo)
             .build();
 
         return Stream.of(allTasks, multipleWorkType, emptyWorkType);

@@ -152,9 +152,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
                                                                        "processApplication");
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCaseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -179,7 +179,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupStandardCaseManager(granularPermissionCaseworkerCredentials.getHeaders(),
                                         taskVariables.getCaseId(), "WA", "WaCaseType");
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

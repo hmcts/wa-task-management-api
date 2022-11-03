@@ -598,6 +598,78 @@ public class Common {
         );
     }
 
+    public void setupChallengedAccessLegalOps(Headers headers, String caseId, String jurisdiction, String caseType) {
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        log.info("Creating challenged-access-legal-ops Role");
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "challenged-access-legal-ops",
+            toJsonString(Map.of(
+                "caseId", caseId,
+                "caseType", caseType,
+                "jurisdiction", jurisdiction,
+                "substantive", "F"
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.CHALLENGED.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            RoleType.CASE.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupChallengedAccessAdmin(Headers headers, String caseId, String jurisdiction, String caseType) {
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        log.info("Creating challenged-access-admin Role");
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "challenged-access-admin",
+            toJsonString(Map.of(
+                "caseId", caseId,
+                "caseType", caseType,
+                "jurisdiction", jurisdiction,
+                "substantive", "F"
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.CHALLENGED.name(),
+            RoleCategory.ADMIN.name(),
+            toJsonString(List.of()),
+            RoleType.CASE.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
     private void createStandardTribunalCaseworker(UserInfo userInfo, Headers headers,
                                                   String jurisdiction, String caseType) {
         log.info("Creating Standard Tribunal caseworker organizational Role");
