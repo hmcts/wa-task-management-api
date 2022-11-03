@@ -1577,7 +1577,8 @@ public class Common {
                 log.info("Orphaned Restricted role assignments were found.");
                 log.info("Creating a temporary role assignment to perform cleanup");
                 //Create a temporary organisational role
-                setupOrganisationalRoleAssignment(headers);
+                UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
+                createCaseAllocator(userInfo, headers, "WA");
                 //Recursive
                 clearAllRoleAssignments(headers);
             }

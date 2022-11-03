@@ -149,7 +149,6 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void user_should_assign_a_task_when_granular_permission_satisfied() {
-        testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
         taskId = taskVariables.getTaskId();
 
