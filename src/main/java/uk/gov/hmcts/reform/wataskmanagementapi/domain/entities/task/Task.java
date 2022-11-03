@@ -188,6 +188,20 @@ public class Task {
     )
     private ZonedDateTime lastReconfigurationTime;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @JsonFormat(pattern = DATE_TIME_FORMAT)
+    @Schema(
+        example = SAMPLE_ISO_DATE_TIME,
+        description = "Optional last updated action time"
+    )
+    private ZonedDateTime lastUpdatedTimestamp;
+
+    @Schema(description = "Optional Last updated user")
+    private String lastUpdatedUser;
+
+    @Schema(description = "Optional Last updated action")
+    private String lastUpdatedAction;
+
     public Task(String id,
                 String name,
                 String type,
@@ -295,7 +309,10 @@ public class Task {
                 Integer majorPriority,
                 ZonedDateTime priorityDate,
                 ZonedDateTime reconfigureRequestTime,
-                ZonedDateTime lastReconfigurationTime) {
+                ZonedDateTime lastReconfigurationTime,
+                ZonedDateTime lastUpdatedTimestamp,
+                String lastUpdatedUser,
+                String lastUpdatedAction) {
         this(id,
             name,
             type,
@@ -333,6 +350,9 @@ public class Task {
         );
         this.reconfigureRequestTime = reconfigureRequestTime;
         this.lastReconfigurationTime = lastReconfigurationTime;
+        this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+        this.lastUpdatedUser = lastUpdatedUser;
+        this.lastUpdatedAction = lastUpdatedAction;
     }
 
     public String getId() {
@@ -477,6 +497,18 @@ public class Task {
 
     public ZonedDateTime getLastReconfigurationTime() {
         return lastReconfigurationTime;
+    }
+
+    public ZonedDateTime getLastUpdatedTimestamp() {
+        return lastUpdatedTimestamp;
+    }
+
+    public String getLastUpdatedUser() {
+        return lastUpdatedUser;
+    }
+
+    public String getLastUpdatedAction() {
+        return lastUpdatedAction;
     }
 
 }

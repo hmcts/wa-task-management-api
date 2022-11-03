@@ -129,6 +129,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
+            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
