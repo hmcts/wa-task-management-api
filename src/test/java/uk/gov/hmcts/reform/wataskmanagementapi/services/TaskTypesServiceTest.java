@@ -12,8 +12,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskTypeResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.TaskTypesDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.TaskTypesDmnResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.DmnEvaluationService;
@@ -30,6 +30,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,10 +51,10 @@ class TaskTypesServiceTest {
     void should_return_empty_list_if_role_assignments_is_empty() {
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, emptyList());
-        List<TaskTypeResponse> response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
+        GetTaskTypesResponse response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
 
         assertNotNull(response);
-        assertEquals(emptyList(), response);
+        assertNull(response.getTaskTypeResponses());
     }
 
 
@@ -88,13 +89,14 @@ class TaskTypesServiceTest {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
 
         //when
-        List<TaskTypeResponse> response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
+        GetTaskTypesResponse response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
 
         //then
         assertNotNull(response);
-        assertEquals(1, response.size());
-        assertEquals("processApplication", response.get(0).getTaskType().getTaskTypeId());
-        assertEquals("Process Application", response.get(0).getTaskType().getTaskTypeName());
+        assertNotNull(response.getTaskTypeResponses());
+        assertEquals(1, response.getTaskTypeResponses().size());
+        assertEquals("processApplication", response.getTaskTypeResponses().get(0).getTaskType().getTaskTypeId());
+        assertEquals("Process Application", response.getTaskTypeResponses().get(0).getTaskType().getTaskTypeName());
 
     }
 
@@ -169,15 +171,20 @@ class TaskTypesServiceTest {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
 
         //when
-        List<TaskTypeResponse> response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
+        GetTaskTypesResponse response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
 
         //then
         assertNotNull(response);
-        assertEquals(2, response.size());
-        assertEquals("processApplication", response.get(0).getTaskType().getTaskTypeId());
-        assertEquals("Process Application", response.get(0).getTaskType().getTaskTypeName());
-        assertEquals("reviewAppealSkeletonArgument", response.get(1).getTaskType().getTaskTypeId());
-        assertEquals("Review Appeal Skeleton Argument", response.get(1).getTaskType().getTaskTypeName());
+        assertNotNull(response.getTaskTypeResponses());
+        assertEquals(2, response.getTaskTypeResponses().size());
+        assertEquals("processApplication",
+            response.getTaskTypeResponses().get(0).getTaskType().getTaskTypeId());
+        assertEquals("Process Application",
+            response.getTaskTypeResponses().get(0).getTaskType().getTaskTypeName());
+        assertEquals("reviewAppealSkeletonArgument",
+            response.getTaskTypeResponses().get(1).getTaskType().getTaskTypeId());
+        assertEquals("Review Appeal Skeleton Argument",
+            response.getTaskTypeResponses().get(1).getTaskType().getTaskTypeName());
     }
 
     private List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames,

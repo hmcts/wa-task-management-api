@@ -2,9 +2,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DmnRequest;
@@ -29,6 +32,9 @@ public class DmnEvaluationService {
 
     private final CamundaServiceApi camundaServiceApi;
     private final AuthTokenGenerator serviceAuthTokenGenerator;
+
+    @Autowired
+    private CamundaObjectMapper camundaObjectMapper;
 
     public DmnEvaluationService(CamundaServiceApi camundaServiceApi,
                                 AuthTokenGenerator serviceAuthTokenGenerator) {
@@ -133,13 +139,25 @@ public class DmnEvaluationService {
             );
 
             return new HashSet<>(taskTypesDmnResponseList);
-        } catch (FeignException e) {
-            log.error("Could not get {} from camunda for '{}'", dmnNameField, jurisdiction);
-            throw new IllegalStateException(
-                String.format("Could not get %s from camunda for %s", dmnNameField, jurisdiction),
-                e
-            );
+        } catch (FeignException.ServiceUnavailable ex) {
+            log.error("An error occurred when evaluating task-type dmn, service unavailable. "
+                      + "Could not get {} from camunda for '{}'", dmnNameField, jurisdiction);
+            throw ex;
+        } catch (FeignException ex) {
+            log.error("An error occurred when evaluating task-type dmn. "
+                      + "Could not get {} from camunda for '{}'", dmnNameField, jurisdiction);
+
+            CamundaExceptionMessage camundaException =
+                camundaObjectMapper.readValue(ex.contentUTF8(), CamundaExceptionMessage.class);
+
+            if (camundaException != null) {
+                log.error("An error occurred when evaluating task-type dmn. CamundaException type: {} message: {}",
+                    camundaException.getType(), camundaException.getMessage());
+            }
+
+            throw ex;
         }
+
     }
 
     private List<TaskTypesDmnEvaluationResponse> performEvaluateTaskTypesDmnAction(
