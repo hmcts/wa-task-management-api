@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import static org.hamcrest.Matchers.equalTo;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -45,7 +44,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         String taskId = taskVariables.getTaskId();
         Response result = restApiActions.post(
@@ -72,10 +71,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
                                                                        "Process Application");
 
-        common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+        initiateTask(taskVariables);
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         String taskId = taskVariables.getTaskId();
         Response result = restApiActions.post(
@@ -111,7 +109,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.setupCaseManagerForSpecificAccess(currentCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
                                                  WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         String taskId = taskVariables.getTaskId();
         Response result = restApiActions.post(
@@ -138,7 +136,5 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(taskId);
     }
 
-    // RoleAssignmentVerification scenarios are covered in CftQueryServiceClaimTaskTest
-    // and PostClaimByIdControllerTest integration tests
 }
 

@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import static org.hamcrest.Matchers.equalTo;
 
@@ -53,7 +52,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         common.setupLeadJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
@@ -84,7 +83,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
@@ -92,11 +91,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
-    // RoleAssignmentVerification scenarios are covered in CftQueryServiceAssignTaskTest
-    // and PostTaskAssignByIdControllerTest integration tests
-
     @Test
-    //TODO: Remove, there is nothing specifically done in assigning an already assigned tasks
     public void assigner_has_grant_type_specific_and_permission_manage_can_assign_other_already_assigned_task() {
         //assigner role : manage
         //assignee role : execute
@@ -104,7 +99,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         taskId = taskVariables.getTaskId();
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         //first assign
         common.setupFtpaJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -118,7 +113,6 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     }
 
     @Test
-    //TODO: Remove, there is nothing specifically done in assigning an already assigned tasks
     public void assigner_has_grant_type_specific_and_permission_manage_own_can_assign_other_already_assigned_task() {
         //assigner role : manage, own
         //assignee role : manage, execute
@@ -128,7 +122,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupWAOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), "judge");
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 

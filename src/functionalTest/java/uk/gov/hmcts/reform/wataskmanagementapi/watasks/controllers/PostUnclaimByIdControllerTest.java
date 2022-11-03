@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.Map;
 
@@ -40,7 +39,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
                                                     "process application");
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         Response result = restApiActions.post(
             CLAIM_ENDPOINT,
@@ -51,7 +50,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -76,15 +75,15 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = setupScenario("processApplication",
                                                     "process application");
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(REGION, "1"));
 
-        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+        common.setupWAOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
-                "jurisdiction", "IA",
+                "jurisdiction", "WA",
                 "region", "2"
             )
         );

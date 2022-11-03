@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +44,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_200_with_appropriate_task_to_complete() {
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Stream<CompletableTaskScenario> scenarios = tasksToCompleteScenarios();
         scenarios.forEach(scenario -> {
@@ -53,7 +52,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                                            "processApplication",
                                                                            "process application");
-            initiateTask(testVariables, Jurisdiction.WA);
+            initiateTask(testVariables);
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
                 testVariables.getCaseId(),
@@ -120,11 +119,11 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                                        "processApplication",
                                                                        "process application");
-        initiateTask(testVariables, Jurisdiction.WA);
+        initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),
@@ -148,11 +147,11 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_empty_list_when_caseId_match_not_found() {
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                                        "processApplication",
                                                                        "process application");
-        initiateTask(testVariables, Jurisdiction.WA);
+        initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             "invalidCaseId",
@@ -176,11 +175,11 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_dmn_jurisdiction_not_match() {
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                                        "processApplication",
                                                                        "process application");
-        initiateTask(testVariables, Jurisdiction.WA);
+        initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),
@@ -204,11 +203,11 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_dmn_case_type_not_match() {
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                                        "processApplication",
                                                                        "process application");
-        initiateTask(testVariables, Jurisdiction.WA);
+        initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),

@@ -8,10 +8,8 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import static org.hamcrest.Matchers.equalTo;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -44,7 +42,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -70,7 +68,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
                                                                        "Review Specific Access Request Judiciary");
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
-        common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupWAOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), "judge");
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
@@ -84,14 +82,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        // verify cftTaskState does not exist in Camunda history table before termination
-        //assertions.variableShouldNotExistInCamundaHistoryTable(taskId, CFT_TASK_STATE);
-
         common.cleanUpTask(taskId);
     }
-
-    // RoleAssignmentVerification scenarios are covered in CftQueryServiceCancelTaskTest,
-    // PostTaskCancelByIdControllerTest and PostTaskCancelByIdControllerFailureTest integration tests
-
 }
 

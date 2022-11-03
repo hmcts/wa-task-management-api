@@ -2,16 +2,13 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
-import org.hamcrest.CoreMatchers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
 import java.util.Map;
 
-import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
@@ -85,21 +82,5 @@ public class Assertions {
             .and().body("task.id", equalTo(taskId))
             .body("task." + fieldName, equalTo(value))
             .log();
-    }
-
-    public void variableShouldNotExistInCamundaHistoryTable(String taskId,
-                                                                        CamundaVariableDefinition variable) {
-        Map<String, Object> body = Map.of(
-            "variableName", variable.value(),
-            "taskIdIn", singleton(taskId)
-        );
-        Response camundaHistoryResponse = camundaApiActions.post(
-            CAMUNDA_SEARCH_HISTORY_ENDPOINT,
-            body,
-            authorizationProvider.getServiceAuthorizationHeadersOnly()
-        );
-        camundaHistoryResponse.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("size()", CoreMatchers.is(0));
     }
 }

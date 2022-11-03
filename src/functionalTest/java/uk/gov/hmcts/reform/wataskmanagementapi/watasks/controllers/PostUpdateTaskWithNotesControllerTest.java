@@ -14,7 +14,6 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.List;
 import java.util.Map;
@@ -48,7 +47,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupWATaskWithWarningsAndRetrieveIds("processApplication",
                                                                                    "process application");
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         String notesRequest = addNotes();
 
@@ -61,7 +60,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
         result.then().assertThat().statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+        common.setupWAOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
@@ -98,7 +97,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
                                                                        "Process Application");
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         String notesRequest = addNotes();
 
@@ -111,7 +110,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
         result.then().assertThat().statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+        common.setupWAOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",

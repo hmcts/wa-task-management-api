@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -45,7 +44,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                 "processApplication", "Process Application");
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -89,7 +88,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
         };
 
-        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
+        initiateTask(taskVariables, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -149,9 +148,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "reviewSpecificAccessRequestJudiciary",
                 "additionalProperties_roleAssignmentId");
         String taskId = taskVariables.getTaskId();
-        common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
-            taskVariables.getCaseId(),
-            WA_JURISDICTION, WA_CASE_TYPE);
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "judge");
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -297,7 +295,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(5000));
         };
 
-        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
+        initiateTask(taskVariables, assertConsumer);
 
         common.cleanUpTask(taskId);
     }
@@ -359,7 +357,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", notNullValue());
         };
 
-        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
+        initiateTask(taskVariables, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -453,7 +451,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                              "followUpOverdue",
                                              "Follow Up Overdue");
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {

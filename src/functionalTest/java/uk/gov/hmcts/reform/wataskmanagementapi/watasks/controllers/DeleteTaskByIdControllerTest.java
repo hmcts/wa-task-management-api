@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTask
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.Map;
 
@@ -38,7 +37,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_succeed_when_terminate_reason_is_cancelled() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
@@ -65,7 +64,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_succeed_when_terminate_reason_is_completed() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 

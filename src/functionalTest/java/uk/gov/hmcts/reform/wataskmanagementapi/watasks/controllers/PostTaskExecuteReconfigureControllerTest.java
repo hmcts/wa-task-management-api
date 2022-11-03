@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -61,11 +60,10 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
-        common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
-            WA_JURISDICTION, WA_CASE_TYPE
-        );
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
+
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
 
         Response result = restApiActions.post(
@@ -172,7 +170,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.setupCFTOrganisationalRoleAssignment(assignerCredentials.getHeaders(),
-            WA_JURISDICTION, WA_CASE_TYPE
+                                                    WA_JURISDICTION, WA_CASE_TYPE
         );
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
