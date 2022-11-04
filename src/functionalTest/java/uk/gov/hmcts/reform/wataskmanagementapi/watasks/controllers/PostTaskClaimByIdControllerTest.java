@@ -148,8 +148,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_claim_task_when_granular_permission_satisfied() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
         String taskId = taskVariables.getTaskId();
 
         common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders());
@@ -172,8 +172,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void user_should_not_claim_a_task_when_granular_permission_not_satisfied() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
         String taskId = taskVariables.getTaskId();
 
         common.setupStandardCaseManager(granularPermissionCaseworkerCredentials.getHeaders(),

@@ -114,8 +114,8 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id_gp_flag_on() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
 
@@ -150,8 +150,8 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
     @Test
     public void should_return_a_204_when_unassigning_a_task_by_id_with_different_user_credentials_gp_flag_on() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
 
@@ -187,7 +187,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     @Test
     public void should_return_a_403_when_unassign_a_task_different_user_without_un_assign_permission_gp_flag_on() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json", "processApplication");
+            "processApplication", "Process Application");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
                                                     "WA", "WaCaseType");
