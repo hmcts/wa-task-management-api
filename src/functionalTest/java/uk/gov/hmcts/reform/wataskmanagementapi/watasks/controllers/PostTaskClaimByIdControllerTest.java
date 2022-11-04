@@ -92,7 +92,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -130,7 +130,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(CLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -169,7 +169,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -208,7 +208,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -246,7 +246,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -285,7 +285,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(CLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -324,7 +324,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(CLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -361,7 +361,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -397,7 +397,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(CLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -434,7 +434,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(CLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -485,7 +485,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_action", equalTo(CLAIM.getValue())
         );
 
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, currentCaseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, currentCaseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -522,7 +522,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -561,7 +561,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(CLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -600,7 +600,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -638,7 +638,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -675,7 +675,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(CLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -712,7 +712,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(CLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -753,7 +753,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -795,7 +795,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -833,7 +833,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -873,7 +873,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }

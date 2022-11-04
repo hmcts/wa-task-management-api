@@ -645,7 +645,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             "task.last_updated_action", nullValue()
         );
 
-        assertions.taskValuesWasUpdatedInDatabase(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -687,7 +687,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             "task.last_updated_action", nullValue()
         );
 
-        assertions.taskValuesWasUpdatedInDatabase(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -719,7 +719,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             "task.last_updated_action", nullValue()
         );
 
-        assertions.taskValuesWasUpdatedInDatabase(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
     }
 

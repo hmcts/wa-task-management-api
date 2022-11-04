@@ -86,7 +86,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(TaskAction.UNCLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, unassignUser.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, unassignUser.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -133,7 +133,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(TaskAction.UNCLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, unassignUser.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, unassignUser.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -182,7 +182,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
             "task.last_updated_user", equalTo(userInfo.getUid()),
             "task.last_updated_action", equalTo(CLAIM.getValue())
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }

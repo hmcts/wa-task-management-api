@@ -71,8 +71,8 @@ public class Assertions {
             .log();
     }
 
-    public void taskValuesWasUpdatedInDatabase(String taskId, Map<String, Matcher<?>> fieldValueMap,
-                                               Headers authenticationHeaders) {
+    public void taskAttributesVerifier(String taskId, Map<String, Matcher<?>> fieldValueMap,
+                                       Headers authenticationHeaders) {
 
         Response result = restApiActions.get(
             "task/{task-id}",
@@ -103,7 +103,7 @@ public class Assertions {
             "task.last_updated_action", equalTo(taskAction.getValue())
         );
 
-        taskValuesWasUpdatedInDatabase(taskId, taskValueMap, taskRetrieveCredentials.getHeaders());
+        taskAttributesVerifier(taskId, taskValueMap, taskRetrieveCredentials.getHeaders());
     }
 
     public void nullTaskActionAttributesUpdatedInDatabase(String taskId, String taskState,
@@ -118,7 +118,7 @@ public class Assertions {
             "task.last_updated_action", nullValue()
         );
 
-        taskValuesWasUpdatedInDatabase(taskId, taskValueMap, taskRetrieveCredentials.getHeaders());
+        taskAttributesVerifier(taskId, taskValueMap, taskRetrieveCredentials.getHeaders());
     }
 
 
