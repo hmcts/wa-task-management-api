@@ -1335,7 +1335,7 @@ class CFTTaskMapperTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         List<TaskAttribute> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate,
-                                                              null);
+            null);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         taskResource.setPriorityDate(null);
@@ -1465,7 +1465,7 @@ class CFTTaskMapperTest {
             taskRoleResources,
             "caseCategory",
             EXPECTED_ADDITIONAL_PROPERTIES,
-                "nextHearingId",
+            "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
@@ -1857,7 +1857,7 @@ class CFTTaskMapperTest {
             "taskId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             false, false, false, false, false, false, false, false, false, false
-            );
+        );
 
         final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
 
@@ -2287,7 +2287,7 @@ class CFTTaskMapperTest {
             singleton(roleResource),
             "caseCategory",
             EXPECTED_ADDITIONAL_PROPERTIES,
-                "nextHearingId",
+            "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
@@ -2331,7 +2331,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES),
             new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_ID, "nextHearingId"),
             new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_DATE,
-                              CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
+                CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
         );
     }
 
@@ -2408,7 +2408,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES),
             new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_ID, "nextHearingId"),
             new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_DATE,
-                              CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
+                CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
         );
     }
 
@@ -2449,7 +2449,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES),
             new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_ID, "nextHearingId"),
             new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_DATE,
-                              CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
+                CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
         );
     }
 
@@ -2489,7 +2489,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES),
             new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_ID, "nextHearingId"),
             new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_DATE,
-                              CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
+                CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
         );
     }
 
@@ -2533,7 +2533,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES),
             new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_ID, "nextHearingId"),
             new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_DATE,
-                              CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
+                CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
         );
 
     }
