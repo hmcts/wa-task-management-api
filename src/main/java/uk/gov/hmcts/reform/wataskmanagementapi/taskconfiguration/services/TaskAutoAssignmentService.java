@@ -92,7 +92,7 @@ public class TaskAutoAssignmentService {
     public TaskResource autoAssignCFTTask(TaskResource taskResource) {
         List<RoleAssignment> roleAssignments =
             taskConfigurationRoleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
-
+        
         //The query above may return multiple role assignments, and we must select the right one for auto-assignment.
         //
         //    Sort the list of role assignments returned by assignment priority (from the task permissions data).
