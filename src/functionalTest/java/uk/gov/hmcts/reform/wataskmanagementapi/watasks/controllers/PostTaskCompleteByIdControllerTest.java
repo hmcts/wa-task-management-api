@@ -438,7 +438,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, assigneeId,
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, null,
             "completed", userInfo.getUid(), COMPLETED);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
