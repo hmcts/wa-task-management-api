@@ -307,6 +307,8 @@ dependencies {
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.4'
 
+  implementation('org.springframework.retry:spring-retry')
+
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
 
   implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook

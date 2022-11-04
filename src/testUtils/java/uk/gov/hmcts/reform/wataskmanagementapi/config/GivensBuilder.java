@@ -1,31 +1,19 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.ResourceUtils;
-import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
-import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
-import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
-import uk.gov.hmcts.reform.ccd.client.model.Event;
-import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.request.SendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 
-import java.io.IOException;
-import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,12 +25,9 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.DocumentNames.NOTICE_OF_APPEAL_PDF;
 
 @Slf4j
 public class GivensBuilder {
@@ -53,7 +38,7 @@ public class GivensBuilder {
     private final AuthorizationProvider authorizationProvider;
     private final DocumentManagementFiles documentManagementFiles;
 
-    private final CoreCaseDataApi coreCaseDataApi;
+    private final CcdRetryClient ccdRetryClient;
 
 
     private Map<String, CamundaValue<?>> taskVariables;
@@ -61,14 +46,14 @@ public class GivensBuilder {
     public GivensBuilder(RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
                          AuthorizationProvider authorizationProvider,
-                         CoreCaseDataApi coreCaseDataApi,
+                         CcdRetryClient ccdRetryClient,
                          DocumentManagementFiles documentManagementFiles,
                          RestApiActions workflowApiActions
     ) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationProvider = authorizationProvider;
-        this.coreCaseDataApi = coreCaseDataApi;
+        this.ccdRetryClient = ccdRetryClient;
         this.documentManagementFiles = documentManagementFiles;
         this.workflowApiActions = workflowApiActions;
 
@@ -350,7 +335,7 @@ public class GivensBuilder {
     public String iCreateACcdCase() {
         TestAuthenticationCredentials lawFirmCredentials =
             authorizationProvider.getNewTribunalCaseworker("wa-ft-r2-");
-        return createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
+        return ccdRetryClient.createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
             "IA",
             "Asylum",
             "startAppeal",
@@ -363,7 +348,7 @@ public class GivensBuilder {
     public String iCreateWACcdCase(String resourceFileName) {
         TestAuthenticationCredentials lawFirmCredentials =
             authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
-        return createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
+        return ccdRetryClient.createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
             "WA",
             "WaCaseType",
             "CREATE",
@@ -373,117 +358,6 @@ public class GivensBuilder {
         );
     }
 
-    private String createCCDCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
-                                                                    String caseType,
-                                                                    String startEventId,
-                                                                    String submitEventId,
-                                                                    TestAuthenticationCredentials credentials,
-                                                                    String resourceFilename) {
-
-        String userToken = credentials.getHeaders().getValue(AUTHORIZATION);
-        String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
-
-        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, credentials);
-
-        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            startEventId
-        );
-
-        Map data = null;
-        try {
-            String caseDataString = FileUtils.readFileToString(
-                ResourceUtils.getFile("classpath:" + resourceFilename),
-                "UTF-8"
-            );
-
-            caseDataString = caseDataString.replace(
-                "{NEXT_HEARING_DATE}",
-                OffsetDateTime.now().toString()
-            );
-
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-                document.getDocumentUrl()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-                document.getDocumentFilename()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-                document.getDocumentBinaryUrl()
-            );
-
-            data = new ObjectMapper().readValue(caseDataString, Map.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        CaseDataContent caseDataContent = CaseDataContent.builder()
-            .eventToken(startCase.getToken())
-            .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
-
-        //Fire submit event
-        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            true,
-            caseDataContent
-        );
-
-        log.info("Created case [" + caseDetails.getId() + "]");
-
-        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            caseDetails.getId().toString(),
-            submitEventId
-        );
-
-        CaseDataContent submitCaseDataContent = CaseDataContent.builder()
-            .eventToken(submitCase.getToken())
-            .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
-
-        coreCaseDataApi.submitEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            caseDetails.getId().toString(),
-            true,
-            submitCaseDataContent
-        );
-        log.info("Submitted case [" + caseDetails.getId() + "]");
-
-        authorizationProvider.deleteAccount(credentials.getAccount().getUsername());
-
-        return caseDetails.getId().toString();
-    }
 
     public Map<String, DmnValue<?>> standaloneProcessVariables(String caseId,
                                                                String jurisdiction,
