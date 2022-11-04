@@ -15,12 +15,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdictio
 
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskAttributesForAssertion;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -122,15 +121,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -159,17 +152,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -277,15 +264,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -316,15 +297,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -389,15 +364,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -426,15 +395,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -476,16 +439,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = currentCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-
-        assertions.taskAttributesVerifier(taskId, valueMap, currentCaseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -553,15 +509,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -667,15 +617,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -704,15 +648,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -785,17 +723,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -823,17 +755,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = granularPermissionCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }

@@ -11,17 +11,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
-import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.UNCLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskAttributesForAssertion;
 
 public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -78,15 +76,9 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         String serviceToken = unassignUser.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("unassigned"),
-            "task.assignee", nullValue(),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(TaskAction.UNCLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, unassignUser.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, null,
+            "unassigned", userInfo.getUid(), UNCLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, unassignUser.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -125,15 +117,9 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         String serviceToken = unassignUser.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("unassigned"),
-            "task.assignee", nullValue(),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(TaskAction.UNCLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, unassignUser.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, null,
+            "unassigned", userInfo.getUid(), UNCLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, unassignUser.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -174,15 +160,9 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
