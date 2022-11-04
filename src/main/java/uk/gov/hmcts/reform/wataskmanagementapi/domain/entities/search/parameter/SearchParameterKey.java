@@ -2,13 +2,16 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
+/**
+ * If adding a new field please ensure they are added as snake_case only and not camelCase.
+ * The camelCase format is deprecated and will be removed.
+ */
 public enum SearchParameterKey {
 
     LOCATION("location"),
     USER("user"),
     JURISDICTION("jurisdiction"),
     STATE("state"),
-    TASK_TYPE_CAMEL_CASE("taskType"),
     TASK_TYPE("task_type"),
     CASE_ID_CAMEL_CASE("caseId"),
     CASE_ID("case_id"),

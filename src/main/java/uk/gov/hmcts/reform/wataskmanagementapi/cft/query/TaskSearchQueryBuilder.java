@@ -35,6 +35,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByWorkType;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
@@ -129,7 +130,6 @@ public final class TaskSearchQueryBuilder {
         predicates.add(searchByCaseId(searchEventAndCase.getCaseId(), builder, root));
         predicates.add(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), builder, root));
         predicates.add(searchByTaskTypes(taskTypes, builder, root));
-        //.and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
         predicates.add(buildRoleAssignmentConstraints(
             permissionsRequired,
             roleAssignments,
@@ -139,6 +139,7 @@ public final class TaskSearchQueryBuilder {
         return builder.and(predicates.toArray(new Predicate[0]));
     }
 
+    @SuppressWarnings("PMD.NPathComplexity")
     private static Predicate buildApplicationConstraints(SearchTaskRequest searchTaskRequest,
                                                          boolean availableTasksOnly,
                                                          CriteriaBuilder builder,
@@ -153,13 +154,15 @@ public final class TaskSearchQueryBuilder {
             SearchParameterList stateParam = keyMap.get(STATE);
             cftTaskStates = getCftTaskStates(stateParam);
         }
-        SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
-        SearchParameterList locationParam = keyMap.get(LOCATION);
+        final SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
+        final SearchParameterList locationParam = keyMap.get(LOCATION);
         SearchParameterList caseIdParam = keyMap.get(CASE_ID);
-        SearchParameterList userParam = keyMap.get(USER);
-        SearchParameterList workTypeParam = keyMap.get(WORK_TYPE);
-        SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
-
+        if (caseIdParam == null) {
+            caseIdParam = keyMap.get(CASE_ID_CAMEL_CASE);
+        }
+        final SearchParameterList userParam = keyMap.get(USER);
+        final SearchParameterList workTypeParam = keyMap.get(WORK_TYPE);
+        final SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
         ArrayList<Predicate> predicates = new ArrayList<>();
         predicates.add(searchByJurisdiction(
             jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues(),

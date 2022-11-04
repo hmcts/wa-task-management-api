@@ -15,7 +15,6 @@ class SearchParameterKeyTest {
         final String userEnum = SearchParameterKey.USER.value();
         final String jurisdictionEnum = SearchParameterKey.JURISDICTION.value();
         final String stateEnum = SearchParameterKey.STATE.value();
-        final String taskTypeEnumCamelCase = SearchParameterKey.TASK_TYPE_CAMEL_CASE.value();
         final String caseIdEnumCamelCase = SearchParameterKey.CASE_ID_CAMEL_CASE.value();
         final String taskTypeEnum = SearchParameterKey.TASK_TYPE.value();
         final String caseIdEnum = SearchParameterKey.CASE_ID.value();
@@ -28,7 +27,6 @@ class SearchParameterKeyTest {
         assertEquals("user", userEnum);
         assertEquals("jurisdiction", jurisdictionEnum);
         assertEquals("state", stateEnum);
-        assertEquals("taskType", taskTypeEnumCamelCase);
         assertEquals("caseId", caseIdEnumCamelCase);
         assertEquals("task_type", taskTypeEnum);
         assertEquals("case_id", caseIdEnum);
@@ -41,7 +39,7 @@ class SearchParameterKeyTest {
     @Test
     void update_test_whenever_additions_to_assign_enum_are_made() {
         int assigneeEnumLength = SearchParameterKey.values().length;
-        assertEquals(12, assigneeEnumLength);
+        assertEquals(11, assigneeEnumLength);
     }
 
 
@@ -52,7 +50,6 @@ class SearchParameterKeyTest {
             "USER, user",
             "JURISDICTION, jurisdiction",
             "STATE, state",
-            "TASK_TYPE_CAMEL_CASE, taskType",
             "CASE_ID_CAMEL_CASE, caseId",
             "TASK_TYPE, task_type",
             "CASE_ID, case_id",

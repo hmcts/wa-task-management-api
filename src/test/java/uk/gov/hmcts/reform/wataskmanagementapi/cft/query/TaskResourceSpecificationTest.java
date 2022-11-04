@@ -49,6 +49,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTe
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithSpecificGrantTypeOnly;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
@@ -227,6 +228,28 @@ public class TaskResourceSpecificationTest {
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("location")),
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("case_id")),
+            new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser")),
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS")),
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
+        ));
+
+
+        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
+            searchTaskRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readPermissionsRequired, false,
+            criteriaBuilder, root
+        );
+
+        verify(criteriaBuilder, times(7)).equal(any(), anyString());
+    }
+
+    @Test
+    void should_build_task_query_with_all_parameters_with_camel_case() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("location")),
+            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, singletonList("caseId")),
             new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser")),
             new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS")),
