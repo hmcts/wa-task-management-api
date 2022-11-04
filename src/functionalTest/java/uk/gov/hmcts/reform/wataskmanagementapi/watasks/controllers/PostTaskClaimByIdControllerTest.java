@@ -15,12 +15,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdictio
 
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskAttributesForAssertion;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -65,7 +64,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_task_when_grant_type_specific_and_permission_read() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+            "processApplication");
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
@@ -92,7 +91,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -102,10 +101,10 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_specific_and_permission_own() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+            "processApplication");
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -122,15 +121,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -139,10 +132,10 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_specific_and_permission_execute() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+            "processApplication");
 
         common.setupFtpaJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                               WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -159,17 +152,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -178,10 +165,10 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_task_when_grant_type_specific_and_permission_manage() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+            "processApplication");
 
         common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                       WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -208,7 +195,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -217,11 +204,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_task_when_grant_type_specific_and_permission_cancel() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestJudiciary");
+            "reviewSpecificAccessRequestJudiciary");
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
         common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
-                                                            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
@@ -246,7 +233,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -255,12 +242,12 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_specific_and_permissions_own_manage() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestJudiciary");
+            "reviewSpecificAccessRequestJudiciary");
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
         common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
-                                                            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
@@ -277,15 +264,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -294,12 +275,12 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_specific_and_permissions_execute_manage() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestJudiciary");
+            "reviewSpecificAccessRequestJudiciary");
 
         common.setupFtpaJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                               WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
         common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
-                                                            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
@@ -316,15 +297,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -333,10 +308,10 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_task_when_grant_type_specific_and_permissions_read_manage_cancel() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestJudiciary");
+            "reviewSpecificAccessRequestJudiciary");
 
         common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(),
-                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders());
 
@@ -361,7 +336,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -370,7 +345,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_specific_and_permissions_execute_read_manage_own_cancel() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestLegalOps");
+            "reviewSpecificAccessRequestLegalOps");
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
@@ -389,15 +364,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -406,10 +375,10 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_specific_and_permissions_execute_read_manage_execute_cancel() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestLegalOps");
+            "reviewSpecificAccessRequestLegalOps");
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -426,15 +395,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -443,10 +406,10 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+            "processApplication");
 
         common.setupCaseManagerForSpecificAccess(currentCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -461,7 +424,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -476,16 +439,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = currentCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, currentCaseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -494,10 +450,10 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_task_when_grant_type_challenged_and_permission_read() {
         testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+            "processApplication");
 
         common.setupChallengedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                              WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -522,7 +478,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -531,12 +487,12 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_challenged_and_permissions_execute_assign() {
         testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestJudiciary");
+            "reviewSpecificAccessRequestJudiciary");
 
         common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                          WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
         common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
-                                                            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
@@ -553,15 +509,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -570,12 +520,12 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_task_when_grant_type_challenged_and_permission_cancel() {
         testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestJudiciary");
+            "reviewSpecificAccessRequestJudiciary");
 
         common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                             WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
         common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
-                                                            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
@@ -600,7 +550,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -610,10 +560,10 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_task_when_grant_type_challenged_and_permission_read_manage_cancel() {
         testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestLegalOps");
+            "reviewSpecificAccessRequestLegalOps");
 
         common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                             WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -638,7 +588,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -647,11 +597,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_challenged_and_permissions_read_manage_own_cancel() {
         testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestLegalOps");
+            "reviewSpecificAccessRequestLegalOps");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                          WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -667,15 +617,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -684,11 +628,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_challenged_and_permissions_read_manage_execute_cancel() {
         testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestAdmin");
+            "reviewSpecificAccessRequestAdmin");
         String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                              WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders());
 
@@ -704,15 +648,9 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -721,14 +659,14 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_task_when_grant_type_challenged_and_excluded() {
         testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestJudiciary");
+            "reviewSpecificAccessRequestJudiciary");
 
         common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                          WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
         common.setupExcludedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                            WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
         common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
-                                                            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
         String taskId = taskVariables.getTaskId();
@@ -753,7 +691,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "task.last_updated_user", nullValue(),
             "task.last_updated_action", nullValue()
         );
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -762,13 +700,13 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_specific_and_excluded() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+            "processApplication");
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         common.setupExcludedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                            WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -785,17 +723,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -804,7 +736,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_granular_permission_satisfied() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+            "processApplication");
         String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCaseworkerCredentials.getHeaders());
@@ -823,17 +755,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = granularPermissionCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", notNullValue(),
-            "task.last_updated_user", equalTo(userInfo.getUid()),
-            "task.last_updated_action", equalTo(CLAIM.getValue())
-        );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -843,11 +769,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_a_task_when_granular_permission_not_satisfied() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication");
+            "processApplication");
         String taskId = taskVariables.getTaskId();
 
         common.setupStandardCaseManager(granularPermissionCaseworkerCredentials.getHeaders(),
-                                                 taskVariables.getCaseId(), "WA", "WaCaseType");
+            taskVariables.getCaseId(), "WA", "WaCaseType");
 
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -873,9 +799,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         );
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
-        assertions.taskValuesWasUpdatedInDatabase(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
 }
-

@@ -66,8 +66,8 @@ public class Assertions {
             .log();
     }
 
-    public void taskValuesWasUpdatedInDatabase(String taskId, Map<String, Matcher<?>> fieldValueMap,
-                                               Headers authenticationHeaders) {
+    public void taskAttributesVerifier(String taskId, Map<String, Matcher<?>> fieldValueMap,
+                                       Headers authenticationHeaders) {
 
         Response result = restApiActions.get(
             "task/{task-id}",
@@ -79,7 +79,7 @@ public class Assertions {
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE).log();
 
-        fieldValueMap.entrySet().stream().forEach(
+        fieldValueMap.entrySet().forEach(
             entry -> result.then().assertThat()
                 .body(entry.getKey(), entry.getValue()).log()
         );
