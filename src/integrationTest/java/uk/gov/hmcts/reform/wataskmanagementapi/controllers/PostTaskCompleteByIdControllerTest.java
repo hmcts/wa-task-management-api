@@ -5,6 +5,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +60,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_OTHER_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL_GP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID_GP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @ExtendWith(MockitoExtension.class)
@@ -280,13 +284,16 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_tru() throws Exception {
+        void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_true() throws Exception {
 
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
                 false, true, true, false, false, false,
                 new String[]{}, 1, false,
-                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+                taskId, OffsetDateTime.now(),
+                false, false, false, false, false, false,
+                false, false, false, false
             );
             insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
@@ -329,8 +336,162 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
     }
 
+    @Nested
+    @DisplayName("without privileged access")
+    class CompleteTaskWithoutPrivilegedAccess {
+
+        @BeforeEach
+        void beforeEach() {
+
+            when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+                .thenReturn(false);
+
+        }
+
+        @ParameterizedTest
+        @CsvSource(value = {
+            "true, false, false, false, IDAM_USER_ID_GP",
+            "false, true, false, false, IDAM_USER_ID_GP",
+            "false, false, true, false,  IDAM_USER_ID",
+            "false, false, true, false,  IDAM_USER_ID_GP",
+            "false, false, true, false, null",
+            "false, false, false, true,  IDAM_USER_ID_GP",
+        })
+        void should_succeed_and_return_204_and_update_cft_task_state_gp_flag_on(boolean ownPermission,
+            boolean executePermission, boolean completePermission, boolean completeOwnPermission, String assignee) throws Exception {
+            if (assignee.equals("null")) {
+                assignee = null;
+            }
+
+            mockServices.mockServiceAPIsGp();
+            when(mockedUserInfo.getUid())
+                .thenReturn(IDAM_USER_ID_GP);
+            when(mockedUserInfo.getEmail())
+                .thenReturn(IDAM_USER_EMAIL_GP);
+
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+                .roleAssignmentAttribute(
+                    RoleAssignmentAttribute.builder()
+                        .jurisdiction("WA")
+                        .caseType("WaCaseType")
+                        .caseId("completeCaseId1")
+                        .build()
+                )
+                .build();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, ownPermission, executePermission, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+                taskId, OffsetDateTime.now(),
+                completePermission, completeOwnPermission, false, false, false, false,
+                false, false, false, false
+            );
+            insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource, assignee);
+
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+            when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+            mockMvc.perform(
+                    post(ENDPOINT_BEING_TESTED)
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(APPLICATION_JSON_VALUE)
+                )
+                .andExpect(status().isNoContent());
+
+            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(COMPLETED, taskResource.get().getState());
+        }
+
+        @ParameterizedTest
+        @CsvSource(value = {
+            "false, false, false, false, IDAM_USER_ID_GP",
+            "true, false, false, false, IDAM_USER_ID",
+            "false, true, false, false, IDAM_USER_ID",
+            "false, false, false, true,  IDAM_USER_ID",
+        })
+        void should_succeed_and_return_403_when_no_perms_or_not_assignee_gp_flag_on(boolean ownPermission,
+                                                                                boolean executePermission, boolean completePermission, boolean completeOwnPermission, String assignee) throws Exception {
+
+            mockServices.mockServiceAPIsGp();
+            when(mockedUserInfo.getUid())
+                .thenReturn(IDAM_USER_ID_GP);
+            when(mockedUserInfo.getEmail())
+                .thenReturn(IDAM_USER_EMAIL_GP);
+
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+                .roleAssignmentAttribute(
+                    RoleAssignmentAttribute.builder()
+                        .jurisdiction("WA")
+                        .caseType("WaCaseType")
+                        .caseId("completeCaseId1")
+                        .build()
+                )
+                .build();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, ownPermission, executePermission, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+                taskId, OffsetDateTime.now(),
+                completePermission, completeOwnPermission, false, false, false, false,
+                false, false, false, false
+            );
+            insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource, assignee);
+
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+            when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+            mockMvc.perform(
+                    post(ENDPOINT_BEING_TESTED)
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(APPLICATION_JSON_VALUE)
+                )
+                .andExpect(status().isForbidden());
+        }
+
+    }
 
     private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId, TaskRoleResource taskRoleResource) {
+        insertDummyTaskInDb(jurisdiction,caseType, taskId, taskRoleResource, IDAM_USER_ID);
+    }
+
+    private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId, TaskRoleResource taskRoleResource,
+                                     String assignee) {
         TaskResource taskResource = new TaskResource(
             taskId,
             "someTaskName",
@@ -346,7 +507,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         taskResource.setLocationName("Taylor House");
         taskResource.setRegion("TestRegion");
         taskResource.setCaseId("completeCaseId1");
-        taskResource.setAssignee(IDAM_USER_ID);
+        taskResource.setAssignee(assignee);
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
