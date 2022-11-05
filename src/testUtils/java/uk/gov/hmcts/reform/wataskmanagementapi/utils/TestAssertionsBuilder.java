@@ -16,9 +16,11 @@ public class TestAssertionsBuilder {
     private TestAssertionsBuilder() {
     }
 
-    public static Map<String, Matcher<?>> buildTaskAttributesForAssertion(String taskId, String assigneeId,
-                                                                          String taskState, String lastUpdatedUserId,
-                                                                          TaskAction taskAction) {
+    public static Map<String, Matcher<?>> buildTaskActionAttributesForAssertion(String taskId,
+                                                                                String assigneeId,
+                                                                                String taskState,
+                                                                                String lastUpdatedUserId,
+                                                                                TaskAction taskAction) {
 
         Matcher<?> assigneeMatcher = Optional.ofNullable(assigneeId)
             .map(id -> equalTo((Object) assigneeId))
@@ -35,7 +37,8 @@ public class TestAssertionsBuilder {
 
     }
 
-    public static Map<String, Matcher<?>> buildNullTaskAttributesForAssertion(String taskId, String taskState) {
+    public static Map<String, Matcher<?>> buildNullTaskActionAttributesForAssertion(String taskId,
+                                                                                    String taskState) {
 
         return Map.of(
             "task.id", equalTo(taskId),
