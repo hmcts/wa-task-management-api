@@ -50,7 +50,7 @@ public class TaskTypesService {
 
         //get task-type-dmn(s) for jurisdiction
         Set<TaskTypesDmnResponse> taskTypesDmnResponse =
-            dmnEvaluationService.getTaskTypesDmn(jurisdiction, DMN_NAME);
+            dmnEvaluationService.retrieveTaskTypesDmn(jurisdiction, DMN_NAME);
 
         List<TaskTypesDmnEvaluationResponse> taskTypesDmnEvaluationResponses = new ArrayList<>();
 

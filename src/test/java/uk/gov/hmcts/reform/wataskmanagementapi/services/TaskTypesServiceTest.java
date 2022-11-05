@@ -68,7 +68,7 @@ class TaskTypesServiceTest {
         );
         Set<TaskTypesDmnResponse> taskTypesDmnResponses = Set.of(taskTypesDmnResponse);
 
-        when(dmnEvaluationService.getTaskTypesDmn("wa", "Task Types DMN"))
+        when(dmnEvaluationService.retrieveTaskTypesDmn("wa", "Task Types DMN"))
             .thenReturn(taskTypesDmnResponses);
 
 
@@ -111,7 +111,7 @@ class TaskTypesServiceTest {
         );
         Set<TaskTypesDmnResponse> taskTypesDmnResponses = Set.of(taskTypesDmnResponse);
 
-        when(dmnEvaluationService.getTaskTypesDmn("wa", "Task Types DMN"))
+        when(dmnEvaluationService.retrieveTaskTypesDmn("wa", "Task Types DMN"))
             .thenReturn(taskTypesDmnResponses);
 
 

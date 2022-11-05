@@ -35,15 +35,15 @@ public class DmnEvaluationServiceTest {
         when(serviceAuthTokenGenerator.generate())
             .thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        dmnEvaluationService.getTaskTypesDmn("wa", dmnName);
-        dmnEvaluationService.getTaskTypesDmn("wa", dmnName);
-        dmnEvaluationService.getTaskTypesDmn("wa", dmnName);
-        dmnEvaluationService.getTaskTypesDmn("wa", dmnName);
-        dmnEvaluationService.getTaskTypesDmn("ia", dmnName);
-        dmnEvaluationService.getTaskTypesDmn("ia", dmnName);
-        dmnEvaluationService.getTaskTypesDmn("ia", dmnName);
-        dmnEvaluationService.getTaskTypesDmn("ia", dmnName);
-        dmnEvaluationService.getTaskTypesDmn("ia", dmnName);
+        dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnName);
+        dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnName);
+        dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnName);
+        dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnName);
+        dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName);
+        dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName);
+        dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName);
+        dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName);
+        dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName);
 
         verify(camundaServiceApi, times(1))
             .getTaskTypesDmnTable(
