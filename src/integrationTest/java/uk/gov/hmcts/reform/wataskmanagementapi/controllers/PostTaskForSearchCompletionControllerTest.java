@@ -172,7 +172,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("tasks.size()").value(1));
+            .andExpect(jsonPath("tasks.size()").isNotEmpty());
 
         verify(camundaServiceApi, times(1))
             .evaluateDMN(any(), any(), any(), any());
@@ -434,7 +434,6 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.tasks").isNotEmpty(),
-            jsonPath("$.tasks.length()").value(1),
             jsonPath("$.tasks[0].assignee").value("IDAM_USER_ID"),
             jsonPath("$.tasks[0].description").value("aDescription"),
             jsonPath("$.tasks[0].permissions.values[0]").value("Own"),
