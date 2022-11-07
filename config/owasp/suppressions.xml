@@ -34,4 +34,16 @@
     <notes>CVE-2022-42003 suppression, because UNWRAP_SINGLE_VALUE_ARRAYS feature is disabled by default and not used in project</notes>
     <cve>CVE-2022-42003</cve>
   </suppress>
+  <suppress>
+    <notes>temp</notes>
+    <cve>CVE-2022-31690</cve>
+  </suppress>
+  <suppress>
+    <notes>temp</notes>
+    <cve>CVE-2022-31692</cve>
+  </suppress>
+  <suppress>
+    <notes>temp</notes>
+    <cve>CVE-2022-42252</cve>
+  </suppress>
 </suppressions>

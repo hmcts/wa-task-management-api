@@ -72,6 +72,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE_OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
@@ -500,17 +502,18 @@ public class TaskManagementService {
     public void completeTask(String taskId, AccessControlResponse accessControlResponse) {
 
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(OWN, EXECUTE);
-        boolean taskHasCompleted = false;
         final String userId = accessControlResponse.getUserInfo().getUid();
+        final String userEmail = accessControlResponse.getUserInfo().getEmail();
 
-        TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
-            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        final boolean isGranularPermissionFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+            userId,
+            userEmail
         );
 
-        //Safe-guard
-        checkAssignee(taskResource.getAssignee(), userId, taskId);
+        boolean taskHasCompleted = false;
+
+        checkCompletePermissions(taskId, accessControlResponse, isGranularPermissionFeatureEnabled, userId);
 
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);
@@ -542,7 +545,54 @@ public class TaskManagementService {
         }
     }
 
-    protected void checkAssignee(String taskAssignee, String userId, String taskId) {
+    private void checkCompletePermissions(String taskId, AccessControlResponse accessControlResponse,
+                                          boolean isGranularPermissionFeatureEnabled, String userId) {
+        PermissionRequirements permissionsRequired;
+        if (isGranularPermissionFeatureEnabled) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(asList(OWN, EXECUTE), OR)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(COMPLETE), OR)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+                .build();
+        } else {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+        }
+
+        TaskResource taskResource;
+        taskResource = roleAssignmentVerification.verifyRoleAssignments(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
+
+        //Safe-guard
+        if (isGranularPermissionFeatureEnabled) {
+            checkAssignee(taskResource, userId, taskId,
+                          accessControlResponse.getRoleAssignments());
+        } else {
+            checkAssignee(taskResource.getAssignee(), userId, taskId);
+        }
+    }
+
+    private void checkAssignee(TaskResource taskResource, String userId, String taskId,
+                               List<RoleAssignment> roleAssignments) {
+        if (!checkUserHasCompletePermission(roleAssignments, taskResource.getTaskRoleResources())) {
+            if (taskResource.getAssignee() == null) {
+                throw new TaskStateIncorrectException(
+                    String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
+                );
+            } else if (!userId.equals(taskResource.getAssignee())) {
+                throw new TaskStateIncorrectException(
+                    String.format("Could not complete task with id: %s as task was assigned to other user %s",
+                                  taskId, taskResource.getAssignee()
+                    )
+                );
+            }
+        }
+    }
+
+    private void checkAssignee(String taskAssignee, String userId, String taskId) {
         if (taskAssignee == null) {
             throw new TaskStateIncorrectException(
                 String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
@@ -554,6 +604,26 @@ public class TaskManagementService {
             );
         }
     }
+
+    private boolean checkUserHasCompletePermission(List<RoleAssignment> roleAssignments,
+                                                   Set<TaskRoleResource> taskRoleResources) {
+        if (roleAssignments != null) {
+            for (RoleAssignment roleAssignment : roleAssignments) {
+                String roleName = roleAssignment.getRoleName();
+                if (taskRoleResources != null) {
+                    for (TaskRoleResource taskRoleResource : taskRoleResources) {
+                        if (roleName.equals(taskRoleResource.getRoleName())
+                            && Boolean.TRUE.equals(taskRoleResource.getComplete())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
 
     /**
      * This method is only used by privileged clients allowing them to set a predefined options for completion.
