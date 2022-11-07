@@ -32,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -200,11 +201,18 @@ public class TaskManagementService {
         }
         task.setState(CFTTaskState.ASSIGNED);
         task.setAssignee(userId);
+        setTaskActionAttributes(task, userId, TaskAction.CLAIM);
 
         camundaService.assignTask(taskId, userId, false);
 
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
+    }
+
+    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
+        task.setLastUpdatedTimestamp(OffsetDateTime.now());
+        task.setLastUpdatedUser(userId);
+        task.setLastUpdatedAction(action.getValue());
     }
 
     /**
@@ -245,14 +253,15 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
-        unClaimTask(taskId, taskHasUnassigned);
+        unclaimTask(taskId, userId, taskHasUnassigned);
     }
 
-    private void unClaimTask(String taskId, boolean taskHasUnassigned) {
+    private void unclaimTask(String taskId, String userId, boolean taskHasUnassigned) {
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);
         task.setState(CFTTaskState.UNASSIGNED);
         task.setAssignee(null);
+        setTaskActionAttributes(task, userId, TaskAction.UNCLAIM);
         //Perform Camunda updates
         camundaService.unclaimTask(taskId, taskHasUnassigned);
         //Commit transaction
@@ -318,7 +327,7 @@ public class TaskManagementService {
             if (assignee.isEmpty()) {
                 String taskState = taskResource.getState().getValue();
                 boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
-                unClaimTask(taskId, taskHasUnassigned);
+                unclaimTask(taskId, assigner.getUid(), taskHasUnassigned);
             } else {
                 requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
 
@@ -522,6 +531,7 @@ public class TaskManagementService {
         if (!taskHasCompleted) {
             //scenario, task not completed anywhere
             task.setState(CFTTaskState.COMPLETED);
+            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
 
             //check the state, if not complete, complete
             boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
@@ -626,7 +636,8 @@ public class TaskManagementService {
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
                                                               AccessControlResponse accessControlResponse,
                                                               CompletionOptions completionOptions) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        String userId = accessControlResponse.getUserInfo().getUid();
+        requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         boolean taskStateIsAssignedAlready;
@@ -644,10 +655,11 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.COMPLETED);
+            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
             //Perform Camunda updates
             camundaService.assignAndCompleteTask(
                 taskId,
-                accessControlResponse.getUserInfo().getUid(),
+                userId,
                 taskStateIsAssignedAlready
             );
             //Commit transaction
