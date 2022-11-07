@@ -51,6 +51,8 @@ class UnclaimTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
@@ -62,9 +64,6 @@ class UnclaimTaskTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
 
     @Test
     void unclaimTask_should_succeed() {
