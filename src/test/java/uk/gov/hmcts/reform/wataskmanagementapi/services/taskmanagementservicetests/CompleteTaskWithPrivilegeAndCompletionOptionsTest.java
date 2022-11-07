@@ -144,8 +144,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
-                when(cftTaskDatabaseService.findByIdOnly(taskId))
-                    .thenReturn(Optional.of(taskResource));
+                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
                 when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
@@ -175,8 +174,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
-                when(cftTaskDatabaseService.findByIdOnly(taskId))
-                    .thenReturn(Optional.of(taskResource));
+                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
@@ -199,8 +197,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
 
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
-                when(cftTaskDatabaseService.findByIdOnly(taskId))
-                    .thenReturn(Optional.empty());
+                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.empty());
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
@@ -239,6 +236,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .joinPermissionRequirement(OR)
                     .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                     .build();
+                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
                 when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
 
@@ -278,8 +276,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
-                when(cftTaskDatabaseService.findByIdOnly(taskId))
-                    .thenReturn(Optional.of(taskResource));
+                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                          GRANULAR_PERMISSION_FEATURE,
@@ -313,8 +310,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
-                when(cftTaskDatabaseService.findByIdOnly(taskId))
-                    .thenReturn(Optional.of(taskResource));
+                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                          GRANULAR_PERMISSION_FEATURE,
@@ -340,14 +336,15 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
             void should_throw_role_assignment_verification_exception_when_has_access_returns_false_gp_flag_off() {
 
                 AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+                RoleAssignment roleAssignment = mock(RoleAssignment.class);
+                when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+                List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
+                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
                 final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
-                when(cftTaskDatabaseService.findByIdOnly(taskId))
-                    .thenReturn(Optional.of(taskResource));
+                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                          GRANULAR_PERMISSION_FEATURE,
@@ -385,6 +382,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .joinPermissionRequirement(OR)
                     .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
                     .build();
+                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
 
@@ -422,7 +420,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
-                when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                          GRANULAR_PERMISSION_FEATURE,

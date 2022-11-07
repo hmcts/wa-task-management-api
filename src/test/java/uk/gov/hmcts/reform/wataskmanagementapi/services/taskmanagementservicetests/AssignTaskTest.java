@@ -117,7 +117,7 @@ class AssignTaskTest extends CamundaHelpers {
         when(cftQueryService.getTask(
             taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
         ).thenReturn(Optional.of(taskResource));
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
@@ -155,8 +155,7 @@ class AssignTaskTest extends CamundaHelpers {
             assignerAccessControlResponse.getRoleAssignments(),
             requirements
         )).thenReturn(Optional.empty());
-        when(cftTaskDatabaseService.findByIdOnly(taskId))
-            .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.assignTask(
                 taskId,
@@ -192,6 +191,7 @@ class AssignTaskTest extends CamundaHelpers {
         TaskResource taskResource = spy(TaskResource.class);
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleType(MANAGE);
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(
             taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
         ).thenReturn(Optional.of(taskResource));
@@ -244,7 +244,7 @@ class AssignTaskTest extends CamundaHelpers {
         when(cftQueryService.getTask(
             taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
         ).thenReturn(Optional.of(taskResource));
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,

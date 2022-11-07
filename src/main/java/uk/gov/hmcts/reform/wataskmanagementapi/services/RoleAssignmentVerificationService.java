@@ -46,12 +46,11 @@ public class RoleAssignmentVerificationService {
                                               List<RoleAssignment> roleAssignments,
                                               PermissionRequirements permissionsRequired,
                                               ErrorMessages customErrorMessage) {
-        Optional<TaskResource> optionalTask = cftTaskDatabaseService.findByIdOnly(taskId);
-        if (optionalTask.isEmpty()) {
+        Optional<String> optionalCaseId = cftTaskDatabaseService.findCaseId(taskId);
+        if (optionalCaseId.isEmpty()) {
             throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
         } else {
-            TaskResource task = optionalTask.get();
-            String caseId = task.getCaseId();
+            String caseId = optionalCaseId.get();
 
             List<RoleAssignment> filteredRoleAssignments = roleAssignments.stream()
                 .filter(ra -> !ra.getRoleType().equals(RoleType.CASE) || ra.getAttributes() != null

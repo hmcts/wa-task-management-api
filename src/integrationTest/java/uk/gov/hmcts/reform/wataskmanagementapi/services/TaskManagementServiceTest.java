@@ -215,6 +215,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             );
             taskResource.setCreated(OffsetDateTime.now());
             taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
+            taskResource.setCaseId("CASE_ID");
             taskResourceRepository.save(taskResource);
         });
     }
@@ -231,6 +232,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             taskResource.setAssignee(IDAM_USER_ID);
             taskResource.setCreated(OffsetDateTime.now());
             taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
+            taskResource.setCaseId("CASE_ID");
             taskResourceRepository.save(taskResource);
         });
     }
@@ -353,6 +355,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 UNASSIGNED,
                 OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
             ));
+
             when(cftQueryService.getTask(any(), any(), any(PermissionRequirements.class)))
                 .thenReturn(taskResource);
 
@@ -485,6 +488,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 RoleAssignment roleAssignment = mock(RoleAssignment.class);
                 when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
                 List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
+                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
                 when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
 
                 doThrow(FeignException.FeignServerException.class)
