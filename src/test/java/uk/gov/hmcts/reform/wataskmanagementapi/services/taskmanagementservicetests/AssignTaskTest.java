@@ -56,12 +56,11 @@ class AssignTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
@@ -70,6 +69,28 @@ class AssignTaskTest extends CamundaHelpers {
 
     @Mock
     private List<TaskOperationService> taskOperationServices;
+
+    @BeforeEach
+    public void setUp() {
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            cftTaskDatabaseService,
+            cftQueryService
+        );
+        taskManagementService = new TaskManagementService(
+            camundaService,
+            cftTaskDatabaseService,
+            cftTaskMapper,
+            launchDarklyFeatureFlagProvider,
+            configureTaskService,
+            taskAutoAssignmentService,
+            roleAssignmentVerification,
+            taskOperationServices,
+            entityManager
+        );
+
+
+        taskId = UUID.randomUUID().toString();
+    }
 
     @Test
     void assignTask_should_succeed() {
@@ -102,7 +123,8 @@ class AssignTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
-        taskManagementService.assignTask(taskId, assignerAccessControlResponse, assigneeAccessControlResponse);
+        taskManagementService.assignTask(taskId, assignerAccessControlResponse,
+                                         Optional.of(assigneeAccessControlResponse));
         verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
     }
 
@@ -129,9 +151,9 @@ class AssignTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
 
         assertThatThrownBy(() -> taskManagementService.assignTask(
-            taskId,
-            assignerAccessControlResponse,
-            assigneeAccessControlResponse
+                taskId,
+                assignerAccessControlResponse,
+                Optional.of(assigneeAccessControlResponse)
         ))
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
@@ -173,7 +195,7 @@ class AssignTaskTest extends CamundaHelpers {
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,
             assignerAccessControlResponse,
-            assigneeAccessControlResponse
+            Optional.of(assigneeAccessControlResponse)
         ))
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
@@ -193,7 +215,7 @@ class AssignTaskTest extends CamundaHelpers {
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,
             assignerAccessControlResponse,
-            assigneeAccessControlResponse
+            Optional.of(assigneeAccessControlResponse)
         ))
             .isInstanceOf(NullPointerException.class)
             .hasNoCause()
@@ -204,10 +226,17 @@ class AssignTaskTest extends CamundaHelpers {
         when(assigneeAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(null).build());
 
+        TaskResource taskResource = spy(TaskResource.class);
+
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        when(cftQueryService.getTask(
+            taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+        ).thenReturn(Optional.of(taskResource));
+
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,
             assignerAccessControlResponse,
-            assigneeAccessControlResponse
+            Optional.of(assigneeAccessControlResponse)
         ))
             .isInstanceOf(NullPointerException.class)
             .hasNoCause()
@@ -215,26 +244,6 @@ class AssignTaskTest extends CamundaHelpers {
 
     }
 
-    @BeforeEach
-    public void setUp() {
-        roleAssignmentVerification = new RoleAssignmentVerificationService(
-            cftTaskDatabaseService,
-            cftQueryService
-        );
-        taskManagementService = new TaskManagementService(
-            camundaService,
-            cftTaskDatabaseService,
-            cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
-            configureTaskService,
-            taskAutoAssignmentService,
-            roleAssignmentVerification,
-            taskOperationServices,
-            entityManager
-        );
 
-
-        taskId = UUID.randomUUID().toString();
-    }
 }
 

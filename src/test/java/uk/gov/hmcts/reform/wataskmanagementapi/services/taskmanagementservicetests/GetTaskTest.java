@@ -51,6 +51,8 @@ class GetTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
@@ -58,9 +60,6 @@ class GetTaskTest extends CamundaHelpers {
     CftQueryService cftQueryService;
     @Mock
     private List<TaskOperationService> taskOperationServices;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
@@ -72,8 +71,7 @@ class GetTaskTest extends CamundaHelpers {
 
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         TaskResource taskResource = spy(TaskResource.class);
-        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(READ);
+        PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(READ);
         taskId = UUID.randomUUID().toString();
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
