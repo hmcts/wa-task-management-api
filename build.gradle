@@ -5,7 +5,7 @@ plugins {
   id 'pmd'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.0.13.RELEASE'
-  id 'org.springframework.boot' version '2.7.4'
+  id 'org.springframework.boot' version '2.7.5'
   id 'org.owasp.dependencycheck' version '7.2.1'
   id 'com.github.ben-manes.versions' version '0.42.0'
   id 'org.sonarqube' version '3.2.0'
@@ -226,6 +226,29 @@ dependencyManagement {
   dependencies {
     dependency group: 'commons-io', name: 'commons-io', version: '2.8.0'
 
+    dependencySet( group: 'org.springframework.security', version: '5.7.5'){
+      entry 'spring-security-core'
+      entry 'spring-security-acl'
+      entry 'spring-security-aspects'
+      entry 'spring-security-cas'
+      entry 'spring-security-config'
+      entry 'spring-security-crypto'
+      entry 'spring-security-data'
+      entry 'spring-security-ldap'
+      entry 'spring-security-messaging'
+      entry 'spring-security-oauth2-client'
+      entry 'spring-security-oauth2-core'
+      entry 'spring-security-oauth2-jose'
+      entry 'spring-security-oauth2-resource-server'
+      entry 'spring-security-openid'
+      entry 'spring-security-remoting'
+      entry 'spring-security-rsocket'
+      entry 'spring-security-saml2-service-provider'
+      entry 'spring-security-taglibs'
+      entry 'spring-security-test'
+      entry 'spring-security-web'
+    }
+
     dependencySet(group: 'org.seleniumhq.selenium', version: '4.2.2') {
       entry 'selenium-java'
       entry 'selenium-remote-driver'
@@ -249,7 +272,7 @@ def versions = [
   junit         : '5.9.0',
   junitPlatform : '1.9.1',
   reformLogging : '5.1.9',
-  springDoc     : '1.6.6',
+  springDoc     : '1.6.12',
   serenity      : '3.1.20',
   gradlePitest  : '1.9.0',
   pitest        : '1.9.5',
@@ -279,7 +302,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
 
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: '2.7.5'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.4'
@@ -304,8 +327,8 @@ dependencies {
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.19.0'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.19.0'
 
-  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.64'
-  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.64'
+  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.68'
+  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.68'
 
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.2'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.1'
