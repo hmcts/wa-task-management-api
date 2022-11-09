@@ -33,10 +33,13 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
 
     private TestAuthenticationCredentials caseworkerCredentials;
+    private TestAuthenticationCredentials granularPermissionCredentials;
 
     @Before
     public void setUp() {
+
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        granularPermissionCredentials = authorizationProvider.getNewTribunalCaseworker("wa-granular-permission");
     }
 
     @After
@@ -97,7 +100,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                 .body("tasks.case_management_category", everyItem(equalTo("Protection")))
                 .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
                 .body("tasks.permissions.values",
-                      everyItem(equalToObject(List.of("Read", "Own", "CompleteOwn","CancelOwn","Claim"))))
+                      everyItem(equalToObject(List.of("Read", "Own"))))
                 .body(
                     "tasks.description",
                     everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
@@ -115,6 +118,48 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                 .body("tasks.priority_date", everyItem(notNullValue()))
                 .body("tasks.minor_priority", everyItem(equalTo(500)))
                 .body("tasks.major_priority", everyItem(equalTo(1000)));
+
+            common.cleanUpTask(testVariables.getTaskId());
+        });
+    }
+
+    @Test
+    public void should_return_200_with_appropriate_task_to_complete_and_granular_permissions() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCredentials.getHeaders());
+
+        Stream<CompletableTaskScenario> scenarios = tasksToCompleteScenarios();
+        scenarios.forEach(scenario -> {
+
+            TestVariables testVariables = common.setupWATaskAndRetrieveIds(
+                "requests/ccd/wa_case_data.json",
+                "processApplication",
+                "process application"
+            );
+            initiateTask(testVariables, Jurisdiction.WA);
+
+            SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
+                testVariables.getCaseId(),
+                scenario.eventId,
+                WA_JURISDICTION,
+                WA_CASE_TYPE
+            );
+
+            Response result = restApiActions.post(
+                ENDPOINT_BEING_TESTED,
+                decideAnApplicationSearchRequest,
+                granularPermissionCredentials.getHeaders()
+            );
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .body("task_required_for_event", is(scenario.taskRequiredForEvent))
+                .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+                .body("tasks.id", everyItem(is(equalTo(testVariables.getTaskId()))))
+                .body("tasks.name", everyItem(equalTo("process application")))
+                .body("tasks.case_management_category", everyItem(equalTo("Protection")))
+                .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
+                .body("tasks.permissions.values",
+                      everyItem(equalToObject(List.of("Read", "Own", "CompleteOwn","CancelOwn","Claim"))));
 
             common.cleanUpTask(testVariables.getTaskId());
         });
