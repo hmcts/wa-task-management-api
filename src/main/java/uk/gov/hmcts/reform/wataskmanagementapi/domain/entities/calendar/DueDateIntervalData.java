@@ -14,6 +14,16 @@ public class DueDateIntervalData {
     private String dueDateNonWorkingCalendar;
     private List<String> dueDateNonWorkingDaysOfWeek;
     private boolean dueDateSkipNonWorkingDays;
-    private boolean dueDateMustBeWorkingDay;
+    private String dueDateMustBeWorkingDay;
+    public static final String DUE_DATE_MUST_BE_WORKING_DAY_NEXT = "Next";
+    public static final String DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS = "Previous";
+    public static final String DUE_DATE_MUST_BE_WORKING_DAY_NO = "No";
     private String dueDateTime;
+
+    public boolean dueDateMustBeWorkingDayBoolean() {
+        return dueDateMustBeWorkingDay.isEmpty()
+            || "Next".equalsIgnoreCase(dueDateMustBeWorkingDay)
+            || "Previous".equalsIgnoreCase(dueDateMustBeWorkingDay);
+
+    }
 }
