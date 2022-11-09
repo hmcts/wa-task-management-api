@@ -2,13 +2,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -24,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
 
@@ -58,19 +55,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-    private static final String SYSTEM_USER_IDAM_ID = "SYSTEM_USER_IDAM_ID";
 
     @MockBean
     private ClientAccessControlService clientAccessControlService;
 
     @MockBean
     private CaseConfigurationProviderService caseConfigurationProviderService;
-
-    @MockBean
-    protected IdamTokenGenerator idamTokenGenerator;
-
-    @Mock
-    protected UserInfo userInfo;
 
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
@@ -92,9 +82,6 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
                 CamundaValue.booleanValue(true)
             )
         ));
-        lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
-        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
-        lenient().when(userInfo.getUid()).thenReturn(SYSTEM_USER_IDAM_ID);
     }
 
     @Test
