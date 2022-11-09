@@ -249,7 +249,10 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
-
+        String systemUserToken = "Token" + UUID.randomUUID();
+        when(idamWebApi.token(any())).thenReturn(new Token(systemUserToken, "Scope"));
+        when(idamWebApi.userInfo("Bearer " + systemUserToken))
+            .thenReturn(UserInfo.builder().uid("system_user1").build());
         mockServices.mockUserInfo();
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
