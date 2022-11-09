@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
@@ -17,9 +17,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,28 +31,29 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class TaskReconfigurationControllerTest {
 
-    private static final String IDAM_AUTH_TOKEN = "IDAM_AUTH_TOKEN";
+    private static final String SYSTEM_USER_IDAM_ID = "SYSTEM_USER_IDAM_ID";
     private static final String SERVICE_AUTHORIZATION_TOKEN = "SERVICE_AUTHORIZATION_TOKEN";
     @Mock
     private TaskManagementService taskManagementService;
     @Mock
     private ClientAccessControlService clientAccessControlService;
     @Mock
-    private IdamService idamService;
+    private IdamTokenGenerator idamTokenGenerator;
+    @Mock
+    private UserInfo userInfo;
 
     private TaskReconfigurationController taskReconfigurationController;
-    private String taskId;
 
     @BeforeEach
     void setUp() {
-        taskId = UUID.randomUUID().toString();
         taskReconfigurationController = new TaskReconfigurationController(
             taskManagementService,
             clientAccessControlService,
-            idamService
+            idamTokenGenerator
         );
-        lenient().when(idamService.getUserId(any())).thenReturn("SYSTEM_USER_IDAM_ID");
-
+        lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
+        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
+        lenient().when(userInfo.getUid()).thenReturn(SYSTEM_USER_IDAM_ID);
     }
 
     @Test

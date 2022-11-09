@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 
 import java.util.Map;
 import java.util.UUID;
@@ -48,7 +49,9 @@ class ExclusiveTaskActionsControllerTest {
     @Mock
     private ClientAccessControlService clientAccessControlService;
     @Mock
-    private IdamService idamService;
+    private IdamTokenGenerator idamTokenGenerator;
+    @Mock
+    private UserInfo userInfo;
 
     private ExclusiveTaskActionsController exclusiveTaskActionsController;
     private String taskId;
@@ -59,10 +62,12 @@ class ExclusiveTaskActionsControllerTest {
         exclusiveTaskActionsController = new ExclusiveTaskActionsController(
             clientAccessControlService,
             taskManagementService,
-            idamService
+            idamTokenGenerator
         );
-        lenient().when(idamService.getUserId(any())).thenReturn(SYSTEM_USER_IDAM_ID);
-
+        lenient().when(idamTokenGenerator.generate()).thenReturn("IDAM_SYS_TOKEN");
+        lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
+        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
+        lenient().when(userInfo.getUid()).thenReturn("SYSTEM_USER_IDAM_ID");
     }
 
     @Nested

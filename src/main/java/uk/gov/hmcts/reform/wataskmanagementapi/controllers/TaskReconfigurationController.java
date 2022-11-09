@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -32,16 +32,16 @@ public class TaskReconfigurationController extends BaseController {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;
-    private final IdamService idamService;
+    private final IdamTokenGenerator idamTokenGenerator;
 
     @Autowired
     public TaskReconfigurationController(TaskManagementService taskManagementService,
                                          ClientAccessControlService clientAccessControlService,
-                                         IdamService idamService) {
+                                         IdamTokenGenerator idamTokenGenerator) {
         super();
         this.taskManagementService = taskManagementService;
         this.clientAccessControlService = clientAccessControlService;
-        this.idamService = idamService;
+        this.idamTokenGenerator = idamTokenGenerator;
     }
 
     @Operation(description = "performs specified operation like marking tasks to reconfigure and execute reconfigure.")
@@ -62,8 +62,10 @@ public class TaskReconfigurationController extends BaseController {
         boolean hasExclusiveAccessRequest =
             clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
 
-        String systemUserId = idamService.getUserId(serviceAuthToken);
         if (hasExclusiveAccessRequest) {
+            String systemUserToken = idamTokenGenerator.generate();
+            String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
+
             taskManagementService.performOperation(
                 taskOperationRequest,
                 systemUserId

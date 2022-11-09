@@ -16,6 +16,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @Provider("wa_task_management_api_reconfigure_task_by_case_id")
@@ -35,7 +36,7 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
         testTarget.setControllers(new TaskReconfigurationController(
             taskManagementService,
             clientAccessControlService,
-            idamService
+            idamTokenGenerator
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -60,5 +61,8 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
     private void setInitMock() {
         when(clientAccessControlService.hasExclusiveAccess(anyString())).thenReturn(true);
         when(taskManagementService.performOperation(any(), any())).thenReturn(List.of());
+        lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
+        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
+        lenient().when(userInfo.getUid()).thenReturn("SYSTEM_USER_IDAM_ID");
     }
 }

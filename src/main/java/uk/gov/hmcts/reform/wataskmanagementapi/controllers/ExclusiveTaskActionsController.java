@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
@@ -26,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -39,15 +39,16 @@ public class ExclusiveTaskActionsController extends BaseController {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;
-    private final IdamService idamService;
+    private final IdamTokenGenerator idamTokenGenerator;
 
     @Autowired
     public ExclusiveTaskActionsController(ClientAccessControlService clientAccessControlService,
-                                          TaskManagementService taskManagementService, IdamService idamService) {
+                                          TaskManagementService taskManagementService,
+                                          IdamTokenGenerator idamTokenGenerator) {
         super();
         this.clientAccessControlService = clientAccessControlService;
         this.taskManagementService = taskManagementService;
-        this.idamService = idamService;
+        this.idamTokenGenerator = idamTokenGenerator;
     }
 
     @Operation(description = "Exclusive access only: Initiate a Task identified by an id.")
@@ -72,7 +73,9 @@ public class ExclusiveTaskActionsController extends BaseController {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
 
-        String systemUserId = idamService.getUserId(serviceAuthToken);
+        String systemUserToken = idamTokenGenerator.generate();
+        String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
+
         TaskResource savedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest, systemUserId);
 
         return ResponseEntity
@@ -102,7 +105,8 @@ public class ExclusiveTaskActionsController extends BaseController {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
 
-        String systemUserId = idamService.getUserId(serviceAuthToken);
+        String systemUserToken = idamTokenGenerator.generate();
+        String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
 
         TaskResource savedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest, systemUserId);
 
