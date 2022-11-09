@@ -2,16 +2,20 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
@@ -23,6 +27,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
@@ -77,7 +83,17 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
+    @MockBean(name = "systemUserIdamInfo")
+    UserIdamTokenGeneratorInfo systemUserIdamInfo;
+
+    @MockBean
+    private IdamWebApi idamWebApi;
+
+    @Autowired
+    private IdamTokenGenerator systemUserIdamToken;
+
     private String taskId;
+    private String bearerAccessToken1;
 
     @BeforeEach
     void setUp() {
@@ -95,7 +111,9 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 CamundaValue.booleanValue(true)
             )
         ));
-
+        bearerAccessToken1 = "Token" + UUID.randomUUID();
+        when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
+        when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid("system_user1").build());
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any(), any())).thenAnswer(i -> i.getArguments()[0]);
     }
 
