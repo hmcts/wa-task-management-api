@@ -24,6 +24,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -49,6 +51,7 @@ public class TaskSearchController extends BaseController {
     private static final Logger LOG = getLogger(TaskSearchController.class);
     private final AccessControlService accessControlService;
     private final CftQueryService cftQueryService;
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Value("${config.search.defaultMaxResults}")
     private int defaultMaxResults;
@@ -56,11 +59,13 @@ public class TaskSearchController extends BaseController {
 
     @Autowired
     public TaskSearchController(AccessControlService accessControlService,
-                                CftQueryService cftQueryService
+                                CftQueryService cftQueryService,
+                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider
     ) {
         super();
         this.accessControlService = accessControlService;
         this.cftQueryService = cftQueryService;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     @Operation(description = "Retrieve a list of Task resources identified by set of search criteria.")
@@ -104,11 +109,19 @@ public class TaskSearchController extends BaseController {
 
         log.debug("Search request received '{}'", searchTaskRequest);
         //Release 2
+
+        boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+
         response = cftQueryService.searchForTasks(
             Optional.ofNullable(firstResult).orElse(0),
             Optional.ofNullable(maxResults).orElse(defaultMaxResults),
             searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            granularPermissionResponseFeature
         );
 
         return ResponseEntity
@@ -150,10 +163,18 @@ public class TaskSearchController extends BaseController {
 
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
+
+        boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+
         response = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             accessControlResponse.getRoleAssignments(),
-            permissionsRequired
+            permissionsRequired,
+            granularPermissionResponseFeature
         );
 
         return ResponseEntity

@@ -5,7 +5,7 @@ VALUES('f60400a8-d2ba-11ec-a1e4-0242ac110001', 'process application', 'processAp
 
     INSERT INTO cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations, assignment_priority, auto_assignable, role_category, task_id, created, complete, complete_own, cancel_own, claim, unclaim, assign, unassign, unclaim_assign, unassign_claim, unassign_assign)
     VALUES('b8b7e6f3-cfa8-423b-860c-241c19eb4e01'::uuid, 'tribunal-caseworker',
-    true, true, true, false, false, true, '{}', 2, false, 'LEGAL_OPERATIONS', 'f60400a8-d2ba-11ec-a1e4-0242ac110001', '2022-05-13 13:48:19.808', FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+    true, true, true, false, false, true, '{}', 2, false, 'LEGAL_OPERATIONS', 'f60400a8-d2ba-11ec-a1e4-0242ac110001', '2022-05-13 13:48:19.808', FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE);
 
 
 --GRANT_TYPE : CHALLENGED

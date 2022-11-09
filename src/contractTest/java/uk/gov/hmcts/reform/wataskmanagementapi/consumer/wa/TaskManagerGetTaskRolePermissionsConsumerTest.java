@@ -79,7 +79,10 @@ public class TaskManagerGetTaskRolePermissionsConsumerTest extends SpringBootCon
                             permission -> permission
                                 .stringType(PermissionTypes.READ.value())
                                 .stringType(PermissionTypes.MANAGE.value())
-                                .stringType(PermissionTypes.EXECUTE.value()))
+                                .stringType(PermissionTypes.EXECUTE.value())
+                                .stringType(PermissionTypes.COMPLETE_OWN.value())
+                                .stringType(PermissionTypes.ASSIGN.value())
+                                .stringType(PermissionTypes.UNCLAIM.value()))
                         .array("authorisations",
                             authorisation -> authorisation
                                 .stringType("373")
