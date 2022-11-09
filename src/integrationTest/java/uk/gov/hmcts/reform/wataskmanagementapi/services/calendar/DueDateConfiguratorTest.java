@@ -329,12 +329,13 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "true,true,6,6",
+        "true,true,6,8",
         "true,true,8,8",
         "true,false,6,6",
         "false,true,6,6",
         "false,true,2,2",
-        "false,false,6,6"
+        "false,false,6,6",
+        "false,Previous,2,1"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvidedAndNonWorkingDayNotConsidered(
         String dueDateSkipNonWorkingDaysFlag,
