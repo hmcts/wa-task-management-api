@@ -150,10 +150,18 @@ public class TaskManagementService {
         TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
             taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
         );
+
+        boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+
         Set<PermissionTypes> permissionsUnionForUser =
             cftTaskMapper.extractUnionOfPermissionsForUser(
                 taskResource.getTaskRoleResources(),
-                accessControlResponse.getRoleAssignments()
+                accessControlResponse.getRoleAssignments(),
+                granularPermissionResponseFeature
             );
 
         return cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
@@ -772,6 +780,7 @@ public class TaskManagementService {
      */
     public List<TaskRolePermissions> getTaskRolePermissions(String taskId,
                                                             AccessControlResponse accessControlResponse) {
+        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
         final Optional<TaskResource> taskResource = getTaskById(taskId);
         if (taskResource.isEmpty()) {
             throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
@@ -799,8 +808,14 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
+        boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+
         return taskResourceQueryResult.get().getTaskRoleResources().stream()
-            .map(cftTaskMapper::mapToTaskRolePermissions)
+            .map(r -> cftTaskMapper.mapToTaskRolePermissions(r, granularPermissionResponseFeature))
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
             );

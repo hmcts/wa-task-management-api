@@ -3,6 +3,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config.features;
 public enum FeatureFlag {
 
     GRANULAR_PERMISSION_FEATURE("wa-task-management-granular-permission-feature"),
+
+    RELEASE_4_GRANULAR_PERMISSION_RESPONSE("wa-r4-granular-permission-response"),
+
     //Features
     PRIVILEGED_ACCESS_FEATURE("wa-task-management-privileged-access-feature"),
 

@@ -215,7 +215,10 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                             value.unorderedArray("values", (p) -> p
                                 .stringValue(PermissionTypes.READ.value())
                                 .stringValue(PermissionTypes.EXECUTE.value())
-                                .stringValue(PermissionTypes.REFER.value()));
+                                .stringValue(PermissionTypes.REFER.value())
+                                .stringValue(PermissionTypes.COMPLETE.value())
+                                .stringValue(PermissionTypes.ASSIGN.value())
+                                .stringValue(PermissionTypes.UNCLAIM.value()));
                         })
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")

@@ -82,7 +82,8 @@ public class CftQueryService {
         int firstResult,
         int maxResults,
         SearchTaskRequest searchTaskRequest,
-        AccessControlResponse accessControlResponse
+        AccessControlResponse accessControlResponse,
+        boolean granularPermissionResponseFeature
     ) {
         boolean isGranularPermissionEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(
@@ -121,10 +122,11 @@ public class CftQueryService {
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
-                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    roleAssignments
-                )
+                     cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                         taskResource,
+                         roleAssignments,
+                         granularPermissionResponseFeature
+                     )
             )
             .collect(Collectors.toList());
 
@@ -134,7 +136,8 @@ public class CftQueryService {
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(
         SearchEventAndCase searchEventAndCase,
         List<RoleAssignment> roleAssignments,
-        PermissionRequirements permissionsRequired
+        PermissionRequirements permissionsRequired,
+        boolean granularPermissionResponseFeature
     ) {
 
         //Safe-guard against unsupported Jurisdictions.
@@ -164,7 +167,8 @@ public class CftQueryService {
             taskTypes
         );
 
-        final List<Task> tasks = mapTasksWithPermissionsUnion(roleAssignments, taskResources);
+        final List<Task> tasks = mapTasksWithPermissionsUnion(roleAssignments, taskResources,
+                                                              granularPermissionResponseFeature);
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
 
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
@@ -261,16 +265,18 @@ public class CftQueryService {
     }
 
     private List<Task> mapTasksWithPermissionsUnion(List<RoleAssignment> roleAssignments,
-                                                    List<TaskResource> taskResources) {
+                                                    List<TaskResource> taskResources,
+                                                    boolean granularPermissionResponseFeature) {
         if (taskResources.isEmpty()) {
             return emptyList();
         }
 
         return taskResources.stream()
             .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    roleAssignments
-                )
+                     taskResource,
+                     roleAssignments,
+                     granularPermissionResponseFeature
+                 )
             )
             .collect(Collectors.toList());
     }

@@ -29,6 +29,7 @@ import java.util.Set;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,7 +50,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new TaskSearchController(
             accessControlService,
-            cftQueryService
+            cftQueryService,
+            launchDarklyFeatureFlagProvider
         ));
 
         if (context != null) {
@@ -134,7 +136,10 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
             Set.of(
                 PermissionTypes.READ,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.REFER
+                PermissionTypes.REFER,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.ASSIGN,
+                PermissionTypes.UNCLAIM
             )
         );
 
@@ -242,7 +247,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForCompletableTasks(any(), any(), any()))
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any(), anyBoolean()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createTasks()));
 
     }
@@ -255,7 +260,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForCompletableTasks(any(), any(), any()))
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any(), anyBoolean()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createWaTasks()));
     }
 
@@ -268,7 +273,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
 
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForCompletableTasks(any(), any(), any()))
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any(), anyBoolean()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createTasksWithWarnings()));
     }
 
