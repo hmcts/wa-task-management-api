@@ -717,17 +717,19 @@ public class TaskManagementService {
      *
      * @param taskId              the task id.
      * @param initiateTaskRequest Additional data to define how a task should be initiated.
+     * @param systemUserId        IDAM System User Id
      * @return The updated entity {@link TaskResource}
      */
     @Transactional(rollbackFor = Exception.class)
-    public TaskResource initiateTask(String taskId, InitiateTaskRequestAttributes initiateTaskRequest) {
+    public TaskResource initiateTask(String taskId, InitiateTaskRequestAttributes initiateTaskRequest,
+                                     String systemUserId) {
         //Get DueDatetime or throw exception
         List<TaskAttribute> taskAttributes = initiateTaskRequest.getTaskAttributes();
 
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
         lockTaskId(taskId, dueDate);
-        return initiateTaskProcess(taskId, initiateTaskRequest);
+        return initiateTaskProcess(taskId, initiateTaskRequest, systemUserId);
     }
 
     /**
@@ -736,10 +738,11 @@ public class TaskManagementService {
      *
      * @param taskId              the task id.
      * @param initiateTaskRequest Additional data to define how a task should be initiated.
+     * @param systemUserId        IDAM System User Id
      * @return The updated entity {@link TaskResource}
      */
     @Transactional(rollbackFor = Exception.class)
-    public TaskResource initiateTask(String taskId, InitiateTaskRequestMap initiateTaskRequest) {
+    public TaskResource initiateTask(String taskId, InitiateTaskRequestMap initiateTaskRequest, String systemUserId) {
         //Get DueDatetime or throw exception
         Map<String, Object> taskAttributes = new ConcurrentHashMap<>(initiateTaskRequest.getTaskAttributes());
         taskAttributes.put("taskId", taskId);
@@ -747,7 +750,7 @@ public class TaskManagementService {
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
         lockTaskId(taskId, dueDate);
-        return initiateTaskProcess(taskId, taskAttributes);
+        return initiateTaskProcess(taskId, taskAttributes, systemUserId);
     }
 
     @Transactional
@@ -824,9 +827,10 @@ public class TaskManagementService {
             );
     }
 
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
+    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest, String systemUserId) {
         return taskOperationServices.stream()
-            .flatMap(taskOperationService -> taskOperationService.performOperation(taskOperationRequest).stream())
+            .flatMap(taskOperationService -> taskOperationService
+                .performOperation(taskOperationRequest, systemUserId).stream())
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -884,7 +888,7 @@ public class TaskManagementService {
 
     @SuppressWarnings("PMD.PreserveStackTrace")
     private TaskResource initiateTaskProcess(String taskId,
-                                             InitiateTaskRequestAttributes initiateTaskRequest) {
+                                             InitiateTaskRequestAttributes initiateTaskRequest, String systemUserId) {
         try {
             TaskResource taskResource = cftTaskMapper.mapToTaskResource(
                 taskId,
@@ -914,7 +918,7 @@ public class TaskManagementService {
                 }
                 log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
                 //Otherwise attempt auto-assignment
-                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource, systemUserId);
             }
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);
@@ -926,7 +930,7 @@ public class TaskManagementService {
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")
-    private TaskResource initiateTaskProcess(String taskId, Map<String, Object> taskAttributes) {
+    private TaskResource initiateTaskProcess(String taskId, Map<String, Object> taskAttributes, String systemUserId) {
         try {
             TaskResource taskResource = cftTaskMapper.mapToTaskResource(
                 taskId,
@@ -949,15 +953,19 @@ public class TaskManagementService {
                 log.info("Task '{}' had previous assignee, and was valid, keeping assignee.", taskId);
                 //Keep old assignee from skeleton task and change state
                 taskResource.setState(CFTTaskState.ASSIGNED);
+                setTaskActionAttributes(taskResource, systemUserId, TaskAction.CONFIGURE);
             } else {
                 log.info("Task '{}' has an invalid assignee, unassign it before auto-assigning.", taskId);
-                if (taskResource.getAssignee() != null) {
+                if (taskResource.getAssignee() == null) {
+                    setTaskActionAttributes(taskResource, systemUserId, TaskAction.CONFIGURE);
+                } else {
                     taskResource.setAssignee(null);
                     taskResource.setState(CFTTaskState.UNASSIGNED);
+                    setTaskActionAttributes(taskResource, systemUserId, TaskAction.AUTO_UNASSIGN);
                 }
                 log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
                 //Otherwise attempt auto-assignment
-                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource, systemUserId);
             }
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);

@@ -8,10 +8,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -28,6 +30,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_UNASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_UNASSIGN_ASSIGN;
 
 @Slf4j
 @Component
@@ -64,7 +69,7 @@ public class TaskAutoAssignmentService {
         }
     }
 
-    public TaskResource reAutoAssignCFTTask(TaskResource taskResource) {
+    public TaskResource reAutoAssignCFTTask(TaskResource taskResource, String systemUserId) {
 
         //if task is found and assigned
         if (StringUtils.isNotBlank(taskResource.getAssignee())) {
@@ -81,15 +86,20 @@ public class TaskAutoAssignmentService {
             if (taskWithValidPermissions.isEmpty()) {
                 taskResource.setAssignee(null);
                 taskResource.setState(CFTTaskState.UNASSIGNED);
-                return autoAssignCFTTask(taskResource);
+                return autoAssignCFTTask(taskResource, systemUserId);
             }
             return taskResource;
         }
-        return autoAssignCFTTask(taskResource);
+        return autoAssignCFTTask(taskResource, systemUserId);
     }
 
+    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
+        task.setLastUpdatedTimestamp(OffsetDateTime.now());
+        task.setLastUpdatedUser(userId);
+        task.setLastUpdatedAction(action.getValue());
+    }
 
-    public TaskResource autoAssignCFTTask(TaskResource taskResource) {
+    public TaskResource autoAssignCFTTask(TaskResource taskResource, String systemUserId) {
         List<RoleAssignment> roleAssignments =
             taskConfigurationRoleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
         
@@ -116,6 +126,11 @@ public class TaskAutoAssignmentService {
                 taskResource.setAssignee(match.get().getActorId());
                 taskResource.setState(CFTTaskState.ASSIGNED);
                 taskResource.setAutoAssigned(true);
+                if (AUTO_UNASSIGN.getValue().equals(taskResource.getLastUpdatedAction())) {
+                    setTaskActionAttributes(taskResource, systemUserId, AUTO_UNASSIGN_ASSIGN);
+                } else {
+                    setTaskActionAttributes(taskResource, systemUserId, AUTO_ASSIGN);
+                }
             } else {
                 //If stage above produces an empty result of matching role assignment, then the task is
                 //to be left unassigned.

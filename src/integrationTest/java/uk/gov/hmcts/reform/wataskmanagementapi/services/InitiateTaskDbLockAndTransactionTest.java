@@ -69,6 +69,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String SOME_ASSIGNEE = "someAssignee";
     public static final String SOME_CASE_ID = "someCaseId";
+    public static final String SYS_USER_IDAM_ID = "SYS_USER_IDAM_ID";
 
     OffsetDateTime createdDate = OffsetDateTime.now();
     OffsetDateTime dueDate = createdDate.plusDays(1);
@@ -159,7 +160,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
         taskAttributes = getTaskAttributes(assignedTask);
         when(cftTaskMapper.getTaskAttributes(testTaskResource)).thenReturn(taskAttributes);
-        when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
+        when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class), SYS_USER_IDAM_ID))
             .thenReturn(assignedTask);
 
         when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
@@ -173,7 +174,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
     @Test
     void given_task_is_not_locked_when_initiated_task_is_called_then_it_succeeds() {
-        taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID);
 
         InOrder inOrder = inOrder(
             cftTaskMapper,
@@ -189,7 +190,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             taskResourceCaptor.capture(),
             eq(new TaskToConfigure(taskId, A_TASK_TYPE, SOME_CASE_ID, A_TASK_NAME, taskAttributes))
         );
-        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class));
+        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class), SYS_USER_IDAM_ID);
         inOrder.verify(camundaService).updateCftTaskState(any(), any());
         inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
 
@@ -211,13 +212,15 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         transactionHelper.doInNewTransaction(
             () -> future1.set(executorService.submit(() -> taskManagementService.initiateTask(
                 taskId,
-                initiateTaskRequest
+                initiateTaskRequest,
+                SYS_USER_IDAM_ID
             ))));
 
         transactionHelper.doInNewTransaction(
             () -> future2.set(executorService.submit(() -> taskManagementService.initiateTask(
                 taskId,
-                initiateTaskRequest
+                initiateTaskRequest,
+                SYS_USER_IDAM_ID
             ))));
 
         List<Future<TaskResource>> futureResults = List.of(

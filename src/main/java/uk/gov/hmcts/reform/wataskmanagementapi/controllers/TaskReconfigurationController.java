@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
@@ -31,13 +32,16 @@ public class TaskReconfigurationController extends BaseController {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;
+    private final IdamService idamService;
 
     @Autowired
     public TaskReconfigurationController(TaskManagementService taskManagementService,
-                                         ClientAccessControlService clientAccessControlService) {
+                                         ClientAccessControlService clientAccessControlService,
+                                         IdamService idamService) {
         super();
         this.taskManagementService = taskManagementService;
         this.clientAccessControlService = clientAccessControlService;
+        this.idamService = idamService;
     }
 
     @Operation(description = "performs specified operation like marking tasks to reconfigure and execute reconfigure.")
@@ -58,9 +62,11 @@ public class TaskReconfigurationController extends BaseController {
         boolean hasExclusiveAccessRequest =
             clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
 
+        String systemUserId = idamService.getUserId(serviceAuthToken);
         if (hasExclusiveAccessRequest) {
             taskManagementService.performOperation(
-                taskOperationRequest
+                taskOperationRequest,
+                systemUserId
             );
         } else {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);

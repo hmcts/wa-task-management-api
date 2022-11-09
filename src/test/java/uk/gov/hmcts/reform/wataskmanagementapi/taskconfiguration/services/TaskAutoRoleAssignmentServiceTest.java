@@ -166,7 +166,7 @@ class TaskAutoRoleAssignmentServiceTest {
             .thenReturn(emptyList());
 
 
-        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
 
         assertNull(result.getAssignee());
@@ -200,7 +200,7 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(roleAssignments);
 
-        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertNull(result.getAssignee());
         assertEquals(CFTTaskState.UNASSIGNED, result.getState());
@@ -223,7 +223,7 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(singletonList(roleAssignmentResource));
 
-        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertNull(result.getAssignee());
         assertEquals(CFTTaskState.UNASSIGNED, result.getState());
@@ -262,7 +262,8 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(roleAssignments);
 
-        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService
+            .autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
         assertNotNull(autoAssignCFTTaskResponse.getAssignee());
@@ -280,7 +281,7 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(roleAssignments);
 
-        autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
 
@@ -297,7 +298,7 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(roleAssignments);
 
-        autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
 
@@ -338,7 +339,8 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(roleAssignments);
 
-        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService
+            .autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
 
@@ -394,7 +396,7 @@ class TaskAutoRoleAssignmentServiceTest {
             .thenReturn(roleAssignments);
 
         TaskResource autoAssignCFTTaskResponse =
-            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
 
@@ -441,7 +443,7 @@ class TaskAutoRoleAssignmentServiceTest {
             .thenReturn(Optional.of(taskResource));
 
         TaskResource autoAssignCFTTaskResponse =
-            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
 
@@ -482,7 +484,7 @@ class TaskAutoRoleAssignmentServiceTest {
         taskResource.setState(CFTTaskState.UNASSIGNED);
 
         TaskResource autoAssignCFTTaskResponse =
-            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals(CFTTaskState.UNASSIGNED, autoAssignCFTTaskResponse.getState());
 
@@ -514,7 +516,8 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(roleAssignments);
 
-        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService
+            .autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
 
@@ -546,7 +549,8 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(roleAssignments);
 
-        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService
+            .autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals(CFTTaskState.UNASSIGNED, autoAssignCFTTaskResponse.getState());
         assertNull(autoAssignCFTTaskResponse.getAssignee());
@@ -562,7 +566,7 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(roleAssignments);
 
-        autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals(CFTTaskState.UNASSIGNED, autoAssignCFTTaskResponse.getState());
 
@@ -588,7 +592,7 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(singletonList(roleAssignmentResource));
 
-        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertNull(result.getAssignee());
         assertEquals(CFTTaskState.UNASSIGNED, result.getState());
@@ -625,7 +629,7 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(singletonList(roleAssignmentResource));
 
-        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertNull(result.getAssignee());
         assertEquals(CFTTaskState.UNASSIGNED, result.getState());
@@ -662,7 +666,7 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(singletonList(roleAssignmentResource));
 
-        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertThat(result.getAssignee())
             .isEqualTo(roleAssignmentResource.getActorId());
@@ -702,7 +706,7 @@ class TaskAutoRoleAssignmentServiceTest {
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(singletonList(roleAssignmentResource));
 
-        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource, "SYS_USER_IDAM_ID");
 
         assertEquals("someUserId", result.getAssignee());
         assertEquals(CFTTaskState.ASSIGNED, result.getState());

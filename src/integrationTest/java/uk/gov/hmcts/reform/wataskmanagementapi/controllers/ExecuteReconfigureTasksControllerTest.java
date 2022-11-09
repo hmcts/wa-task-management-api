@@ -96,7 +96,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             )
         ));
 
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any())).thenAnswer(i -> i.getArguments()[0]);
+        when(taskAutoAssignmentService.reAutoAssignCFTTask(any(), any())).thenAnswer(i -> i.getArguments()[0]);
     }
 
     @Test

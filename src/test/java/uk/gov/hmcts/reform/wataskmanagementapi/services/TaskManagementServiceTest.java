@@ -159,6 +159,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
     public static final String SOME_ROLE_ASSIGNMENT_ID = "someRoleAssignmentId";
+    public static final String SYS_USER_IDAM_ID = "SYS_USER_IDAM_ID";
 
     @Mock
     CamundaService camundaService;
@@ -228,7 +229,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             .thenReturn(taskResources.get(1));
 
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+        List<TaskResource> taskResourcesMarked = taskManagementService
+            .performOperation(taskOperationRequest, SYS_USER_IDAM_ID);
 
         taskResourcesMarked.forEach(taskResource -> {
             assertNotNull(taskResource.getReconfigureRequestTime());
@@ -244,7 +246,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(taskResources);
 
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+        List<TaskResource> taskResourcesMarked = taskManagementService
+            .performOperation(taskOperationRequest, SYS_USER_IDAM_ID);
 
         taskResourcesMarked.forEach(taskResource -> assertNull(taskResource.getReconfigureRequestTime()));
 
@@ -257,7 +260,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(List.of());
 
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+        List<TaskResource> taskResourcesMarked = taskManagementService
+            .performOperation(taskOperationRequest, SYS_USER_IDAM_ID);
 
         assertEquals(0, taskResourcesMarked.size());
     }
@@ -2646,7 +2650,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             doThrow(new RuntimeException("some unexpected error"))
                 .when(cftTaskDatabaseService).insertAndLock(anyString(), any());
 
-            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID))
                 .isInstanceOf(RuntimeException.class);
         }
 
@@ -2656,7 +2660,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             doThrow(new RuntimeException("some unexpected error"))
                 .when(cftTaskMapper).mapToTaskResource(anyString(), anyList());
 
-            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID))
                 .isInstanceOf(GenericServerErrorException.class)
                 .hasMessage("Generic Server Error: The action could not be completed "
                             + "because there was a problem when initiating the task.");
@@ -2668,7 +2672,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             doThrow(new DataIntegrityViolationException(msg))
                 .when(cftTaskDatabaseService).insertAndLock(anyString(), any());
 
-            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID))
                 .isInstanceOf(DatabaseConflictException.class)
                 .hasMessage("Database Conflict Error: "
                             + "The action could not be completed because there was a conflict in the database.");
@@ -2678,7 +2682,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         void given_initiateTask_task_is_initiated() {
             mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED, initiateTaskRequest);
 
-            taskManagementService.initiateTask(taskId, initiateTaskRequest);
+            taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID);
 
             verifyExpectations(CFTTaskState.UNASSIGNED, initiateTaskRequest);
         }
@@ -2694,7 +2698,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 )
             );
             mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED, initiateRequest);
-            taskManagementService.initiateTask(taskId, initiateRequest);
+            taskManagementService.initiateTask(taskId, initiateRequest, SYS_USER_IDAM_ID);
 
             verifyExpectations(CFTTaskState.UNASSIGNED, initiateRequest);
         }
@@ -2718,7 +2722,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 )))
             );
 
-            verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+            verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource, SYS_USER_IDAM_ID);
 
             if (cftTaskState.equals(CFTTaskState.ASSIGNED) || cftTaskState.equals(CFTTaskState.UNASSIGNED)) {
                 verify(camundaService).updateCftTaskState(
@@ -2750,7 +2754,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
                 .thenReturn(taskResource);
 
-            when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(taskResource);
+            when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class), any()))
+                .thenReturn(taskResource);
 
             when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(taskResource);
         }
@@ -2780,7 +2785,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             doThrow(new RuntimeException("some unexpected error"))
                 .when(cftTaskDatabaseService).insertAndLock(anyString(), any());
 
-            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID))
                 .isInstanceOf(RuntimeException.class);
         }
 
@@ -2790,7 +2795,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             doThrow(new RuntimeException("some unexpected error"))
                 .when(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
-            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID))
                 .isInstanceOf(GenericServerErrorException.class)
                 .hasMessage("Generic Server Error: The action could not be completed "
                             + "because there was a problem when initiating the task.");
@@ -2802,7 +2807,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             doThrow(new DataIntegrityViolationException(msg))
                 .when(cftTaskDatabaseService).insertAndLock(anyString(), any());
 
-            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID))
                 .isInstanceOf(DatabaseConflictException.class)
                 .hasMessage("Database Conflict Error: "
                             + "The action could not be completed because there was a conflict in the database.");
@@ -2822,7 +2827,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 )
             );
             mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED);
-            taskManagementService.initiateTask(taskId, initiateTaskRequest);
+            taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID);
 
             verifyExpectations(CFTTaskState.UNASSIGNED);
         }
@@ -2845,7 +2850,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 )))
             );
 
-            verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+            verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource, SYS_USER_IDAM_ID);
 
             if (cftTaskState.equals(CFTTaskState.ASSIGNED) || cftTaskState.equals(CFTTaskState.UNASSIGNED)) {
                 verify(camundaService).updateCftTaskState(
@@ -2875,7 +2880,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
                 .thenReturn(taskResource);
 
-            when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(taskResource);
+            when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class), any()))
+                .thenReturn(taskResource);
 
             when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(taskResource);
         }

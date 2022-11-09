@@ -60,12 +60,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("unchecked")
 class InitiateTaskTest extends CamundaHelpers {
 
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
     public static final String CASE_ID = "aCaseId";
+    public static final String SYS_USER_IDAM_ID = "SYS_USER_IDAM_ID";
     @Mock
     CamundaService camundaService;
     @Mock
@@ -145,11 +145,11 @@ class InitiateTaskTest extends CamundaHelpers {
             CASE_ID
         );
 
-        when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
+        when(taskAutoAssignmentService.autoAssignCFTTask(any(), any())).thenReturn(unassignedTaskResource);
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
         when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
 
-        taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
         verify(cftTaskMapper, atLeastOnce()).getTaskAttributes(taskResource);
@@ -165,7 +165,7 @@ class InitiateTaskTest extends CamundaHelpers {
         );
 
 
-        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource, SYS_USER_IDAM_ID);
 
         verify(camundaService).updateCftTaskState(
             taskId,
@@ -190,12 +190,12 @@ class InitiateTaskTest extends CamundaHelpers {
             CASE_ID
         );
 
-        when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
+        when(taskAutoAssignmentService.autoAssignCFTTask(any(), any())).thenReturn(unassignedTaskResource);
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
         initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_LOCATION, null));
         when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
 
-        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID);
 
         assertNull(taskResource.getLocation());
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
@@ -212,7 +212,7 @@ class InitiateTaskTest extends CamundaHelpers {
         );
 
 
-        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource, SYS_USER_IDAM_ID);
 
         verify(camundaService).updateCftTaskState(
             taskId,
@@ -244,9 +244,9 @@ class InitiateTaskTest extends CamundaHelpers {
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
         when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
 
-        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID);
 
-        verify(taskAutoAssignmentService, never()).autoAssignCFTTask(any());
+        verify(taskAutoAssignmentService, never()).autoAssignCFTTask(any(), any());
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
         verify(configureTaskService).configureCFTTask(
             eq(taskResource),
@@ -296,13 +296,13 @@ class InitiateTaskTest extends CamundaHelpers {
         when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
         when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(false);
 
-        when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(taskReassigned);
+        when(taskAutoAssignmentService.autoAssignCFTTask(any(), any())).thenReturn(taskReassigned);
 
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
 
         when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
 
-        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
         verify(configureTaskService).configureCFTTask(
@@ -316,7 +316,7 @@ class InitiateTaskTest extends CamundaHelpers {
             )))
         );
 
-        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource, SYS_USER_IDAM_ID);
 
         verify(camundaService).updateCftTaskState(
             taskId,
@@ -329,7 +329,7 @@ class InitiateTaskTest extends CamundaHelpers {
     @Test
     void should_throw_custom_constraint_exception_when_no_due_date() {
 
-        assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)
+        assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID)
         )
             .isInstanceOf(CustomConstraintViolationException.class)
             .hasNoCause()
@@ -344,7 +344,7 @@ class InitiateTaskTest extends CamundaHelpers {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
 
-        assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)
+        assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID)
         )
             .isInstanceOf(DatabaseConflictException.class)
             .hasNoCause()
@@ -375,7 +375,8 @@ class InitiateTaskTest extends CamundaHelpers {
         lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
             .thenReturn(taskResource);
 
-        lenient().when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(taskResource);
+        lenient().when(taskAutoAssignmentService
+            .autoAssignCFTTask(any(TaskResource.class), any())).thenReturn(taskResource);
 
         lenient().when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(taskResource);
     }

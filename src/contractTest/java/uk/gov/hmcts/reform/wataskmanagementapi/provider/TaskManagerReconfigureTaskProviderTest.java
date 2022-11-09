@@ -34,7 +34,8 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new TaskReconfigurationController(
             taskManagementService,
-            clientAccessControlService
+            clientAccessControlService,
+            idamService
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -58,6 +59,6 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
 
     private void setInitMock() {
         when(clientAccessControlService.hasExclusiveAccess(anyString())).thenReturn(true);
-        when(taskManagementService.performOperation(any())).thenReturn(List.of());
+        when(taskManagementService.performOperation(any(), any())).thenReturn(List.of());
     }
 }

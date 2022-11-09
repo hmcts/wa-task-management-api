@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface TaskOperationService {
 
-    List<TaskResource> performOperation(TaskOperationRequest request);
+    List<TaskResource> performOperation(TaskOperationRequest request, String systemUserId);
 }

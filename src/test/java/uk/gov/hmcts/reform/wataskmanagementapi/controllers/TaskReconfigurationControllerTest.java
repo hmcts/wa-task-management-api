@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
@@ -23,6 +24,8 @@ import java.util.UUID;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +37,8 @@ class TaskReconfigurationControllerTest {
     private TaskManagementService taskManagementService;
     @Mock
     private ClientAccessControlService clientAccessControlService;
+    @Mock
+    private IdamService idamService;
 
     private TaskReconfigurationController taskReconfigurationController;
     private String taskId;
@@ -43,8 +48,10 @@ class TaskReconfigurationControllerTest {
         taskId = UUID.randomUUID().toString();
         taskReconfigurationController = new TaskReconfigurationController(
             taskManagementService,
-            clientAccessControlService
+            clientAccessControlService,
+            idamService
         );
+        lenient().when(idamService.getUserId(any())).thenReturn("SYSTEM_USER_IDAM_ID");
 
     }
 

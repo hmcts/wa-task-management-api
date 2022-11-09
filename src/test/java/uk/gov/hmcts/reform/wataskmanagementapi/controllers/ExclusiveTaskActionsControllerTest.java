@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
@@ -25,6 +26,8 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,11 +41,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 class ExclusiveTaskActionsControllerTest {
 
     private static final String SERVICE_AUTHORIZATION_TOKEN = "SERVICE_AUTHORIZATION_TOKEN";
+    private static final String SYSTEM_USER_IDAM_ID = "SYSTEM_USER_IDAM_ID";
 
     @Mock
     private TaskManagementService taskManagementService;
     @Mock
     private ClientAccessControlService clientAccessControlService;
+    @Mock
+    private IdamService idamService;
 
     private ExclusiveTaskActionsController exclusiveTaskActionsController;
     private String taskId;
@@ -52,8 +58,10 @@ class ExclusiveTaskActionsControllerTest {
         taskId = UUID.randomUUID().toString();
         exclusiveTaskActionsController = new ExclusiveTaskActionsController(
             clientAccessControlService,
-            taskManagementService
+            taskManagementService,
+            idamService
         );
+        lenient().when(idamService.getUserId(any())).thenReturn(SYSTEM_USER_IDAM_ID);
 
     }
 
@@ -72,7 +80,7 @@ class ExclusiveTaskActionsControllerTest {
 
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
-            when(taskManagementService.initiateTask(taskId, req))
+            when(taskManagementService.initiateTask(taskId, req, SYSTEM_USER_IDAM_ID))
                 .thenReturn(createDummyTaskResource(taskId));
             ResponseEntity<TaskResource> response = exclusiveTaskActionsController
                 .initiate(SERVICE_AUTHORIZATION_TOKEN, taskId, req);
@@ -126,7 +134,7 @@ class ExclusiveTaskActionsControllerTest {
 
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
-            when(taskManagementService.initiateTask(taskId, req))
+            when(taskManagementService.initiateTask(taskId, req, SYSTEM_USER_IDAM_ID))
                 .thenReturn(createDummyTaskResource(taskId));
             ResponseEntity<TaskResource> response = exclusiveTaskActionsController
                 .initiate(SERVICE_AUTHORIZATION_TOKEN, taskId, req);

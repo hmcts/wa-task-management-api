@@ -4,7 +4,11 @@ public enum TaskAction {
 
     CLAIM("Claim"),
     UNCLAIM("Unclaim"),
-    COMPLETED("Complete");
+    COMPLETED("Complete"),
+    CONFIGURE("Configure"),
+    AUTO_ASSIGN("AutoAssign"),
+    AUTO_UNASSIGN("AutoUnassign"),
+    AUTO_UNASSIGN_ASSIGN("AutoUnassignAssign");
 
     private final String value;
 

@@ -41,14 +41,14 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
 
     @Override
     @Transactional(noRollbackFor = TaskExecuteReconfigurationException.class)
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
+    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest, String systemUserId) {
         if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.EXECUTE_RECONFIGURE)) {
-            return executeTasksToReconfigure(taskOperationRequest);
+            return executeTasksToReconfigure(taskOperationRequest, systemUserId);
         }
         return List.of();
     }
 
-    private List<TaskResource> executeTasksToReconfigure(TaskOperationRequest request) {
+    private List<TaskResource> executeTasksToReconfigure(TaskOperationRequest request, String systemUserId) {
         log.debug("execute tasks toReconfigure request: {}", request);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(request.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
@@ -65,12 +65,12 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
 
         List<String> failedTaskIds = executeReconfiguration(taskIds,
             successfulTaskResources,
-            request.getOperation().getMaxTimeLimit());
+            request.getOperation().getMaxTimeLimit(), systemUserId);
 
         if (!failedTaskIds.isEmpty()) {
             failedTaskIds = executeReconfiguration(failedTaskIds,
                 successfulTaskResources,
-                request.getOperation().getMaxTimeLimit());
+                request.getOperation().getMaxTimeLimit(), systemUserId);
         }
 
         if (!failedTaskIds.isEmpty()) {
@@ -96,22 +96,22 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
 
     private List<String> executeReconfiguration(List<String> taskIds,
                                                 List<TaskResource> successfulTaskResources,
-                                                long maxTimeLimit) {
+                                                long maxTimeLimit, String systemUserId) {
 
         final OffsetDateTime endTimer = OffsetDateTime.now().plusSeconds(maxTimeLimit);
-        List<String> failedTaskIds = reconfigureTasks(taskIds, successfulTaskResources, endTimer);
+        List<String> failedTaskIds = reconfigureTasks(taskIds, successfulTaskResources, endTimer, systemUserId);
 
         List<String> secondaryFailedTaskIds = new ArrayList<>();
 
         if (!failedTaskIds.isEmpty()) {
-            secondaryFailedTaskIds = reconfigureTasks(failedTaskIds, successfulTaskResources, endTimer);
+            secondaryFailedTaskIds = reconfigureTasks(failedTaskIds, successfulTaskResources, endTimer, systemUserId);
         }
 
         return secondaryFailedTaskIds;
     }
 
     private List<String> reconfigureTasks(List<String> taskIds, List<TaskResource> successfulTaskResources,
-                                          OffsetDateTime endTimer) {
+                                          OffsetDateTime endTimer, String systemUserId) {
         List<String> failedTaskIds = new ArrayList<>();
         if (endTimer.isAfter(OffsetDateTime.now())) {
             taskIds.stream()
@@ -124,7 +124,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
                         if (optionalTaskResource.isPresent()) {
                             TaskResource taskResource = optionalTaskResource.get();
                             taskResource = configureTaskService.reconfigureCFTTask(taskResource);
-                            taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+                            taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource, systemUserId);
                             taskResource.setReconfigureRequestTime(null);
                             taskResource.setLastReconfigurationTime(OffsetDateTime.now());
                             successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
