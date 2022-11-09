@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_NEXT;
+
 @SpringBootTest
 @ActiveProfiles({"integration"})
 public class DueDateConfiguratorTest {
@@ -278,12 +280,13 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "true,true,6,8",
-        "true,true,8,12",
-        "true,false,6,8",
-        "false,true,6,6",
-        "false,true,2,4",
-        "false,false,6,6"
+        "true,Next,6,8",
+        "true,Next,8,12",
+        "true,No,6,8",
+        "false,Next,6,6",
+        "false,Next,2,4",
+        "false,No,6,6",
+        "false,Previous,2,1"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvided(
         String dueDateSkipNonWorkingDaysFlag,
@@ -370,7 +373,7 @@ public class DueDateConfiguratorTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue("true"))
+            .value(CamundaValue.stringValue(DUE_DATE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator

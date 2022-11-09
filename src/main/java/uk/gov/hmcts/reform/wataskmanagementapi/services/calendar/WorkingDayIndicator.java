@@ -41,6 +41,15 @@ public class WorkingDayIndicator {
             : getNextWorkingDay(updated, uri, nonWorkingDaysOfWeek);
     }
 
+    public LocalDate getPreviousWorkingDay(LocalDate date, String uri, List<String> nonWorkingDaysOfWeek) {
+        requireNonNull(date);
+        LocalDate updated = date.minusDays(1);
+
+        return isWorkingDay(updated, uri, nonWorkingDaysOfWeek)
+            ? updated
+            : getPreviousWorkingDay(updated, uri, nonWorkingDaysOfWeek);
+    }
+
     private boolean isCustomNonWorkingDay(List<String> nonWorkingDaysOfWeek, LocalDate localDate) {
         if (nonWorkingDaysOfWeek == null || nonWorkingDaysOfWeek.isEmpty()) {
             return false;

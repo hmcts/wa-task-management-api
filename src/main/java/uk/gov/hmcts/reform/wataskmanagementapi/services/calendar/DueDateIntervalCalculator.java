@@ -13,6 +13,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS;
+
 @Slf4j
 @Component
 public class DueDateIntervalCalculator implements DateCalculator {
@@ -52,8 +55,18 @@ public class DueDateIntervalCalculator implements DateCalculator {
                 dueDateIntervalData.getDueDateNonWorkingCalendar(),
                 dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
             );
-            if (dueDateIntervalData.isDueDateMustBeWorkingDay() && !workingDay) {
+
+            if (dueDateIntervalData.getDueDateMustBeWorkingDay()
+                .equalsIgnoreCase(DUE_DATE_MUST_BE_WORKING_DAY_NEXT) && !workingDay) {
                 localDate = workingDayIndicator.getNextWorkingDay(
+                    localDate,
+                    dueDateIntervalData.getDueDateNonWorkingCalendar(),
+                    dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
+                );
+            }
+            if (dueDateIntervalData.getDueDateMustBeWorkingDay()
+                .equalsIgnoreCase(DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS) && !workingDay) {
+                localDate = workingDayIndicator.getPreviousWorkingDay(
                     localDate,
                     dueDateIntervalData.getDueDateNonWorkingCalendar(),
                     dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
@@ -108,8 +121,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
                                          .reduce((a, b) -> b)
                                          .map(ConfigurationDmnEvaluationResponse::getValue)
                                          .map(CamundaValue::getValue)
-                                         .map(Boolean::parseBoolean)
-                                         .orElse(false))
+                                         .orElse("Next"))
             .dueDateTime(dueDateProperties.stream()
                              .filter(r -> r.getName().getValue().equals(DUE_DATE_TIME))
                              .reduce((a, b) -> b)
