@@ -33,6 +33,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_UNASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_UNASSIGN_ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CONFIGURE;
 
 @Slf4j
 @Component
@@ -86,8 +87,12 @@ public class TaskAutoAssignmentService {
             if (taskWithValidPermissions.isEmpty()) {
                 taskResource.setAssignee(null);
                 taskResource.setState(CFTTaskState.UNASSIGNED);
+                //current user invalid - AutoUnAssign Action
+                setTaskActionAttributes(taskResource, systemUserId, AUTO_UNASSIGN);
                 return autoAssignCFTTask(taskResource, systemUserId);
             }
+            //same user is still valid - Configure Action
+            setTaskActionAttributes(taskResource, systemUserId, CONFIGURE);
             return taskResource;
         }
         return autoAssignCFTTask(taskResource, systemUserId);
@@ -114,6 +119,7 @@ public class TaskAutoAssignmentService {
         //The first role assignment which is not ignored is the role assignment to be used for auto-assignment.
 
         if (roleAssignments.isEmpty() || taskResource.getTaskRoleResources() == null) {
+            //already task action is set as Configure or AutoUnAssign
             taskResource.setAssignee(null);
             taskResource.setState(CFTTaskState.UNASSIGNED);
         } else {
