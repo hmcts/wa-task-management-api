@@ -73,7 +73,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String SOME_ASSIGNEE = "someAssignee";
     public static final String SOME_CASE_ID = "someCaseId";
-    public static final String SYS_USER_IDAM_ID = "SYS_USER_IDAM_ID";
 
     private final OffsetDateTime dueDate = OffsetDateTime.now().plusDays(1);
     private final String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
@@ -159,7 +158,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
         when(cftTaskMapper.mapToTaskResource(taskId, taskAttributes)).thenReturn(testTaskResource);
 
-        when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
+        when(taskAutoAssignmentService.performAutoAssignment(any(), any(TaskResource.class)))
             .thenReturn(assignedTask);
 
         when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
@@ -185,7 +184,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         );
 
         inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, taskAttributes);
-        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class));
+        inOrder.verify(taskAutoAssignmentService).performAutoAssignment(any(), any(TaskResource.class));
         inOrder.verify(camundaService).updateCftTaskState(any(), any());
         inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
 

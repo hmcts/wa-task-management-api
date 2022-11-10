@@ -97,6 +97,7 @@ public class ExclusiveTaskActionsController extends BaseController {
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
+
         TaskResource savedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         return ResponseEntity
