@@ -9,7 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAc
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TaskActionAttributeBuilderTest {
+class TaskActionAttributeBuilderTest {
 
     @ParameterizedTest
     @CsvSource({
