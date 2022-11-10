@@ -385,7 +385,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.id", equalTo(taskId1))
             .body("task.name", equalTo("process application"))
             .body("task.type", equalTo("processApplication"))
-            .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")));
+            .body("task.permissions.values", equalToObject(List.of("Read", "Own")));
 
         result2.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -393,7 +393,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.id", equalTo(taskId2))
             .body("task.name", equalTo("process application"))
             .body("task.type", equalTo("processApplication"))
-            .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")));
+            .body("task.permissions.values", equalToObject(List.of("Read", "Own")));
 
         //add a specific permission
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables1.getCaseId(),
@@ -417,7 +417,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.id", equalTo(taskId1))
             .body("task.name", equalTo("process application"))
             .body("task.type", equalTo("processApplication"))
-            .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Own", "Execute")));
+            .body("task.permissions.values", equalToObject(List.of("Read", "Own", "Execute")));
 
         result2.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -425,7 +425,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.id", equalTo(taskId2))
             .body("task.name", equalTo("process application"))
             .body("task.type", equalTo("processApplication"))
-            .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")));
+            .body("task.permissions.values", equalToObject(List.of("Read", "Own")));
 
         common.cleanUpTask(taskId1);
         common.cleanUpTask(taskId2);

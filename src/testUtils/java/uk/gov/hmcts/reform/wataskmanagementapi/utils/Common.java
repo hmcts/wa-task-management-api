@@ -458,7 +458,7 @@ public class Common {
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo.getUid(),
-            "case-manager",
+            "ftpa-judge",
             toJsonString(Map.of(
                 "caseId", caseId,
                 "caseType", caseType,
@@ -467,7 +467,7 @@ public class Common {
             )),
             R2_ROLE_ASSIGNMENT_REQUEST,
             GrantType.SPECIFIC.name(),
-            RoleCategory.LEGAL_OPERATIONS.name(),
+            RoleCategory.JUDICIAL.name(),
             toJsonString(List.of()),
             RoleType.CASE.name(),
             Classification.PUBLIC.name(),
