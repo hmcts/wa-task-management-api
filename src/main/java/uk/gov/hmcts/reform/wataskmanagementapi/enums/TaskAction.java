@@ -1,5 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.enums;
 
+import java.util.Optional;
+
+import static java.util.Arrays.stream;
+
 public enum TaskAction {
 
     CLAIM("Claim"),
@@ -14,6 +18,12 @@ public enum TaskAction {
 
     TaskAction(String value) {
         this.value = value;
+    }
+
+    public static Optional<TaskAction> from(String value) {
+        return stream(values())
+            .filter(v -> v.getValue().equalsIgnoreCase(value))
+            .findFirst();
     }
 
     public String getValue() {
