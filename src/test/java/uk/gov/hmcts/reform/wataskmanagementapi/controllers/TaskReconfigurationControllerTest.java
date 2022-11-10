@@ -48,8 +48,7 @@ class TaskReconfigurationControllerTest {
     void setUp() {
         taskReconfigurationController = new TaskReconfigurationController(
             taskManagementService,
-            clientAccessControlService,
-            idamTokenGenerator
+            clientAccessControlService
         );
         lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
         lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);

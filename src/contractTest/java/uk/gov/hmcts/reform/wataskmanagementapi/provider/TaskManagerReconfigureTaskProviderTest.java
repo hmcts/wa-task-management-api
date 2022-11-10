@@ -35,8 +35,7 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new TaskReconfigurationController(
             taskManagementService,
-            clientAccessControlService,
-            idamTokenGenerator
+            clientAccessControlService
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -60,9 +59,6 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
 
     private void setInitMock() {
         when(clientAccessControlService.hasExclusiveAccess(anyString())).thenReturn(true);
-        when(taskManagementService.performOperation(any(), any())).thenReturn(List.of());
-        lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
-        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
-        lenient().when(userInfo.getUid()).thenReturn("SYSTEM_USER_IDAM_ID");
+        when(taskManagementService.performOperation(any())).thenReturn(List.of());
     }
 }

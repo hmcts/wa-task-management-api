@@ -9,11 +9,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -30,26 +30,26 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_ASSIGN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_UNASSIGN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_UNASSIGN_ASSIGN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CONFIGURE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskActionAttributesBuilder.buildTaskActionAttribute;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskActionAttributesBuilder.setTaskActionAttributes;
 
 @Slf4j
 @Component
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods"})
 public class TaskAutoAssignmentService {
 
     private final TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService;
     private final TaskConfigurationCamundaService taskConfigurationCamundaService;
     private final CftQueryService cftQueryService;
+    private final IdamTokenGenerator idamTokenGenerator;
 
     public TaskAutoAssignmentService(TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService,
                                      TaskConfigurationCamundaService taskConfigurationCamundaService,
-                                     CftQueryService cftQueryService) {
+                                     CftQueryService cftQueryService, IdamTokenGenerator idamTokenGenerator) {
         this.taskConfigurationRoleAssignmentService = taskConfigurationRoleAssignmentService;
         this.taskConfigurationCamundaService = taskConfigurationCamundaService;
         this.cftQueryService = cftQueryService;
+        this.idamTokenGenerator = idamTokenGenerator;
     }
 
     public void autoAssignTask(TaskToConfigure taskToConfigure, String currentTaskState) {
@@ -70,8 +70,9 @@ public class TaskAutoAssignmentService {
         }
     }
 
-    public TaskResource reAutoAssignCFTTask(TaskResource taskResource, String systemUserId) {
-
+    public TaskResource reAutoAssignCFTTask(TaskResource taskResource) {
+        String iniialAssignee = taskResource.getAssignee();
+        CFTTaskState initialCftState = taskResource.getState();
         //if task is found and assigned
         if (StringUtils.isNotBlank(taskResource.getAssignee())) {
 
@@ -87,24 +88,49 @@ public class TaskAutoAssignmentService {
             if (taskWithValidPermissions.isEmpty()) {
                 taskResource.setAssignee(null);
                 taskResource.setState(CFTTaskState.UNASSIGNED);
-                //current user invalid - AutoUnAssign Action
-                setTaskActionAttributes(taskResource, systemUserId, AUTO_UNASSIGN);
-                return autoAssignCFTTask(taskResource, systemUserId);
+                updateTaskActionAttributes(taskResource, initialCftState, iniialAssignee);
+                return autoAssignCFTTask(taskResource);
             }
             //same user is still valid - Configure Action
-            setTaskActionAttributes(taskResource, systemUserId, CONFIGURE);
+
+            updateTaskActionAttributes(taskResource, initialCftState, iniialAssignee);
             return taskResource;
         }
-        return autoAssignCFTTask(taskResource, systemUserId);
+        updateTaskActionAttributes(taskResource, initialCftState, iniialAssignee);
+        return autoAssignCFTTask(taskResource);
     }
 
-    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
-        task.setLastUpdatedTimestamp(OffsetDateTime.now());
-        task.setLastUpdatedUser(userId);
-        task.setLastUpdatedAction(action.getValue());
+    public TaskResource performAutoAssignment(String taskId, TaskResource taskResource) {
+        boolean isOldAssigneeValid = false;
+        String initialAssignee = taskResource.getAssignee();
+        CFTTaskState initialCftState = taskResource.getState();
+
+        if (taskResource.getAssignee() != null) {
+            log.info("Task '{}' had previous assignee, checking validity.", taskId);
+            //Task had previous assignee
+            isOldAssigneeValid =
+                checkAssigneeIsStillValid(taskResource, taskResource.getAssignee());
+        }
+        TaskResource newTaskResource = taskResource;
+        if (isOldAssigneeValid) {
+            log.info("Task '{}' had previous assignee, and was valid, keeping assignee.", taskId);
+            //Keep old assignee from skeleton task and change state
+            newTaskResource.setState(CFTTaskState.ASSIGNED);
+        } else {
+            log.info("Task '{}' has an invalid assignee, unassign it before auto-assigning.", taskId);
+            if (taskResource.getAssignee() != null) {
+                newTaskResource.setAssignee(null);
+                newTaskResource.setState(CFTTaskState.UNASSIGNED);
+            }
+            log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
+            //Otherwise attempt auto-assignment
+            newTaskResource = autoAssignCFTTask(taskResource);
+        }
+        updateTaskActionAttributes(newTaskResource, initialCftState, initialAssignee);
+        return newTaskResource;
     }
 
-    public TaskResource autoAssignCFTTask(TaskResource taskResource, String systemUserId) {
+    public TaskResource autoAssignCFTTask(TaskResource taskResource) {
         List<RoleAssignment> roleAssignments =
             taskConfigurationRoleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
         
@@ -132,11 +158,6 @@ public class TaskAutoAssignmentService {
                 taskResource.setAssignee(match.get().getActorId());
                 taskResource.setState(CFTTaskState.ASSIGNED);
                 taskResource.setAutoAssigned(true);
-                if (AUTO_UNASSIGN.getValue().equals(taskResource.getLastUpdatedAction())) {
-                    setTaskActionAttributes(taskResource, systemUserId, AUTO_UNASSIGN_ASSIGN);
-                } else {
-                    setTaskActionAttributes(taskResource, systemUserId, AUTO_ASSIGN);
-                }
             } else {
                 //If stage above produces an empty result of matching role assignment, then the task is
                 //to be left unassigned.
@@ -144,7 +165,6 @@ public class TaskAutoAssignmentService {
                 taskResource.setState(CFTTaskState.UNASSIGNED);
             }
         }
-
         return taskResource;
     }
 
@@ -154,7 +174,6 @@ public class TaskAutoAssignmentService {
 
         Optional<RoleAssignment> match = runRoleAssignmentAutoAssignVerification(taskResource, roleAssignments);
         return match.isPresent();
-
     }
 
     private Optional<RoleAssignment> runRoleAssignmentAutoAssignVerification(TaskResource taskResource,
@@ -265,6 +284,14 @@ public class TaskAutoAssignmentService {
             );
 
         }
+    }
+
+    private void updateTaskActionAttributes(TaskResource taskResource, CFTTaskState previousCftTaskState,
+                                            String previousAssignee) {
+        String systemUserToken = idamTokenGenerator.generate();
+        String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
+        TaskAction taskAction = buildTaskActionAttribute(taskResource, previousCftTaskState, previousAssignee);
+        setTaskActionAttributes(taskResource, systemUserId, taskAction);
     }
 
 }

@@ -70,7 +70,7 @@ public class MarkTaskReconfigurationService implements TaskOperationService {
 
     @Override
     @Transactional(noRollbackFor = TaskReconfigurationException.class)
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest, String systemUserId) {
+    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.MARK_TO_RECONFIGURE)) {
             return markTasksToReconfigure(taskOperationRequest.getTaskFilter());
         }

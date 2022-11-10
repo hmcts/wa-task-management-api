@@ -61,8 +61,7 @@ class ExclusiveTaskActionsControllerTest {
         taskId = UUID.randomUUID().toString();
         exclusiveTaskActionsController = new ExclusiveTaskActionsController(
             clientAccessControlService,
-            taskManagementService,
-            idamTokenGenerator
+            taskManagementService
         );
         lenient().when(idamTokenGenerator.generate()).thenReturn("IDAM_SYS_TOKEN");
         lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
@@ -85,7 +84,7 @@ class ExclusiveTaskActionsControllerTest {
 
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
-            when(taskManagementService.initiateTask(taskId, req, SYSTEM_USER_IDAM_ID))
+            when(taskManagementService.initiateTask(taskId, req))
                 .thenReturn(createDummyTaskResource(taskId));
             ResponseEntity<TaskResource> response = exclusiveTaskActionsController
                 .initiate(SERVICE_AUTHORIZATION_TOKEN, taskId, req);
@@ -139,7 +138,7 @@ class ExclusiveTaskActionsControllerTest {
 
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
-            when(taskManagementService.initiateTask(taskId, req, SYSTEM_USER_IDAM_ID))
+            when(taskManagementService.initiateTask(taskId, req))
                 .thenReturn(createDummyTaskResource(taskId));
             ResponseEntity<TaskResource> response = exclusiveTaskActionsController
                 .initiate(SERVICE_AUTHORIZATION_TOKEN, taskId, req);

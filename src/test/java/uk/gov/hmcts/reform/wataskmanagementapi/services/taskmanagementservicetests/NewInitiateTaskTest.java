@@ -6,9 +6,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -24,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
@@ -44,6 +47,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -64,7 +68,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
     public static final String CASE_ID = "aCaseId";
-    public static final String SYS_USER_IDAM_ID = "SYS_USER_IDAM_ID";
+
     @Mock
     CamundaService camundaService;
     @Mock
@@ -78,7 +82,11 @@ class NewInitiateTaskTest extends CamundaHelpers {
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
+    IdamTokenGenerator idamTokenGenerator;
+    @Spy @InjectMocks
     TaskAutoAssignmentService taskAutoAssignmentService;
+    @Mock
+    private UserInfo userInfo;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
@@ -145,10 +153,10 @@ class NewInitiateTaskTest extends CamundaHelpers {
         unassignedTaskResource.setDueDateTime(dueDate);
 
         mockInitiateTaskDependencies(unassignedTaskResource);
-        when(taskAutoAssignmentService.autoAssignCFTTask(any(), any())).thenReturn(unassignedTaskResource);
+        doReturn(unassignedTaskResource).when(taskAutoAssignmentService).autoAssignCFTTask(any());
 
         lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
-        taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID);
+        taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
@@ -164,7 +172,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
         );
 
 
-        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource, SYS_USER_IDAM_ID);
+        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
 
         verify(camundaService).updateCftTaskState(
             taskId,
@@ -194,16 +202,16 @@ class NewInitiateTaskTest extends CamundaHelpers {
         mockInitiateTaskDependencies(taskWithAssignee);
 
         when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
-        when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(true);
+        doReturn(true).when(taskAutoAssignmentService).checkAssigneeIsStillValid(any(), eq("someUserId"));
 
         when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
 
         when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
             .thenReturn(taskWithAssignee);
 
-        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID);
+        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
-        verify(taskAutoAssignmentService, never()).autoAssignCFTTask(any(), any());
+        verify(taskAutoAssignmentService, never()).autoAssignCFTTask(any());
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
         verify(configureTaskService).configureCFTTask(
             eq(taskResource),
@@ -261,13 +269,12 @@ class NewInitiateTaskTest extends CamundaHelpers {
         taskReassigned.setDueDateTime(dueDate);
 
         when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
-        when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(false);
-
-        when(taskAutoAssignmentService.autoAssignCFTTask(any(), any())).thenReturn(taskReassigned);
+        doReturn(false).when(taskAutoAssignmentService).checkAssigneeIsStillValid(any(), eq("someUserId"));
+        doReturn(taskReassigned).when(taskAutoAssignmentService).autoAssignCFTTask(any());
 
         lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
 
-        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID);
+        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
@@ -283,7 +290,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
             )))
         );
 
-        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource, SYS_USER_IDAM_ID);
+        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
 
         verify(camundaService).updateCftTaskState(
             taskId,
@@ -296,7 +303,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
     @Test
     void should_throw_custom_constraint_exception_when_no_due_date() {
 
-        assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID)
+        assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)
         )
             .isInstanceOf(CustomConstraintViolationException.class)
             .hasNoCause()
@@ -311,7 +318,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         initiateTaskRequest.getTaskAttributes().put(DUE_DATE.value(), formattedDueDate);
 
-        assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest, SYS_USER_IDAM_ID)
+        assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)
         )
             .isInstanceOf(DatabaseConflictException.class)
             .hasNoCause()
@@ -336,9 +343,10 @@ class NewInitiateTaskTest extends CamundaHelpers {
         lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
             .thenReturn(expected);
 
-        lenient().when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class),
-            any())).thenReturn(expected);
-
+        lenient().doReturn(expected).when(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class));
+        lenient().when(idamTokenGenerator.generate()).thenReturn("Bearer Token");
+        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
+        lenient().when(userInfo.getUid()).thenReturn("SYSTEM_USER_IDAM_ID");
         lenient().when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(expected);
     }
 }

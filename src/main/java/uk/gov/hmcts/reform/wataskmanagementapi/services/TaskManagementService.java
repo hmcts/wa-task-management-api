@@ -90,6 +90,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskActionAttributesBuilder.setTaskActionAttributes;
 
 @Slf4j
 @Service
@@ -217,12 +218,6 @@ public class TaskManagementService {
 
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
-    }
-
-    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
-        task.setLastUpdatedTimestamp(OffsetDateTime.now());
-        task.setLastUpdatedUser(userId);
-        task.setLastUpdatedAction(action.getValue());
     }
 
     /**
@@ -732,19 +727,17 @@ public class TaskManagementService {
      *
      * @param taskId              the task id.
      * @param initiateTaskRequest Additional data to define how a task should be initiated.
-     * @param systemUserId        IDAM System User Id
      * @return The updated entity {@link TaskResource}
      */
     @Transactional(rollbackFor = Exception.class)
-    public TaskResource initiateTask(String taskId, InitiateTaskRequestAttributes initiateTaskRequest,
-                                     String systemUserId) {
+    public TaskResource initiateTask(String taskId, InitiateTaskRequestAttributes initiateTaskRequest) {
         //Get DueDatetime or throw exception
         List<TaskAttribute> taskAttributes = initiateTaskRequest.getTaskAttributes();
 
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
         lockTaskId(taskId, dueDate);
-        return initiateTaskProcess(taskId, initiateTaskRequest, systemUserId);
+        return initiateTaskProcess(taskId, initiateTaskRequest);
     }
 
     /**
@@ -753,11 +746,10 @@ public class TaskManagementService {
      *
      * @param taskId              the task id.
      * @param initiateTaskRequest Additional data to define how a task should be initiated.
-     * @param systemUserId        IDAM System User Id
      * @return The updated entity {@link TaskResource}
      */
     @Transactional(rollbackFor = Exception.class)
-    public TaskResource initiateTask(String taskId, InitiateTaskRequestMap initiateTaskRequest, String systemUserId) {
+    public TaskResource initiateTask(String taskId, InitiateTaskRequestMap initiateTaskRequest) {
         //Get DueDatetime or throw exception
         Map<String, Object> taskAttributes = new ConcurrentHashMap<>(initiateTaskRequest.getTaskAttributes());
         taskAttributes.put("taskId", taskId);
@@ -765,7 +757,7 @@ public class TaskManagementService {
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
         lockTaskId(taskId, dueDate);
-        return initiateTaskProcess(taskId, taskAttributes, systemUserId);
+        return initiateTaskProcess(taskId, taskAttributes);
     }
 
     @Transactional
@@ -842,10 +834,10 @@ public class TaskManagementService {
             );
     }
 
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest, String systemUserId) {
+    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         return taskOperationServices.stream()
             .flatMap(taskOperationService -> taskOperationService
-                .performOperation(taskOperationRequest, systemUserId).stream())
+                .performOperation(taskOperationRequest).stream())
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -903,7 +895,7 @@ public class TaskManagementService {
 
     @SuppressWarnings("PMD.PreserveStackTrace")
     private TaskResource initiateTaskProcess(String taskId,
-                                             InitiateTaskRequestAttributes initiateTaskRequest, String systemUserId) {
+                                             InitiateTaskRequestAttributes initiateTaskRequest) {
         try {
             TaskResource taskResource = cftTaskMapper.mapToTaskResource(
                 taskId,
@@ -912,29 +904,7 @@ public class TaskManagementService {
             String roleAssignmentId = getRoleAssignmentId(initiateTaskRequest.getTaskAttributes());
 
             taskResource = configureTask(taskResource, roleAssignmentId);
-            boolean isOldAssigneeValid = false;
-
-            if (taskResource.getAssignee() != null) {
-                log.info("Task '{}' had previous assignee, checking validity.", taskId);
-                //Task had previous assignee
-                isOldAssigneeValid =
-                    taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, taskResource.getAssignee());
-            }
-
-            if (isOldAssigneeValid) {
-                log.info("Task '{}' had previous assignee, and was valid, keeping assignee.", taskId);
-                //Keep old assignee from skeleton task and change state
-                taskResource.setState(CFTTaskState.ASSIGNED);
-            } else {
-                log.info("Task '{}' has an invalid assignee, unassign it before auto-assigning.", taskId);
-                if (taskResource.getAssignee() != null) {
-                    taskResource.setAssignee(null);
-                    taskResource.setState(CFTTaskState.UNASSIGNED);
-                }
-                log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
-                //Otherwise attempt auto-assignment
-                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource, systemUserId);
-            }
+            taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
@@ -945,7 +915,7 @@ public class TaskManagementService {
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")
-    private TaskResource initiateTaskProcess(String taskId, Map<String, Object> taskAttributes, String systemUserId) {
+    private TaskResource initiateTaskProcess(String taskId, Map<String, Object> taskAttributes) {
         try {
             TaskResource taskResource = cftTaskMapper.mapToTaskResource(
                 taskId,
@@ -955,33 +925,7 @@ public class TaskManagementService {
             taskAttributes.put(DUE_DATE.value(), taskResource.getDueDateTime());
 
             taskResource = configureTask(taskResource, taskAttributes);
-            boolean isOldAssigneeValid = false;
-
-            if (taskResource.getAssignee() != null) {
-                log.info("Task '{}' had previous assignee, checking validity.", taskId);
-                //Task had previous assignee
-                isOldAssigneeValid =
-                    taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, taskResource.getAssignee());
-            }
-
-            if (isOldAssigneeValid) {
-                log.info("Task '{}' had previous assignee, and was valid, keeping assignee.", taskId);
-                //Keep old assignee from skeleton task and change state
-                taskResource.setState(CFTTaskState.ASSIGNED);
-                setTaskActionAttributes(taskResource, systemUserId, TaskAction.CONFIGURE);
-            } else {
-                log.info("Task '{}' has an invalid assignee, unassign it before auto-assigning.", taskId);
-                if (taskResource.getAssignee() == null) {
-                    setTaskActionAttributes(taskResource, systemUserId, TaskAction.CONFIGURE);
-                } else {
-                    taskResource.setAssignee(null);
-                    taskResource.setState(CFTTaskState.UNASSIGNED);
-                    setTaskActionAttributes(taskResource, systemUserId, TaskAction.AUTO_UNASSIGN);
-                }
-                log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
-                //Otherwise attempt auto-assignment
-                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource, systemUserId);
-            }
+            taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);

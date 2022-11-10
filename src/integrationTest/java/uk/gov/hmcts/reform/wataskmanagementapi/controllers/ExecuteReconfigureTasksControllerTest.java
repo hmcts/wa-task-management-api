@@ -114,7 +114,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         bearerAccessToken1 = "Token" + UUID.randomUUID();
         when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid("system_user1").build());
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any(), any())).thenAnswer(i -> i.getArguments()[0]);
+        when(taskAutoAssignmentService.reAutoAssignCFTTask(any())).thenAnswer(i -> i.getArguments()[0]);
     }
 
     @Test

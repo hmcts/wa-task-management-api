@@ -62,7 +62,7 @@ class ExecuteTaskReconfigurationServiceTest {
         when(configureTaskService.reconfigureCFTTask(any()))
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any(), any()))
+        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
         when(cftTaskDatabaseService.saveTask(any()))
@@ -80,10 +80,10 @@ class ExecuteTaskReconfigurationServiceTest {
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService
-            .performOperation(request, SYS_USER_IDAM_ID);
+            .performOperation(request);
 
         verify(configureTaskService, times(2)).reconfigureCFTTask(any());
-        verify(taskAutoAssignmentService, times(2)).reAutoAssignCFTTask(any(), any());
+        verify(taskAutoAssignmentService, times(2)).reAutoAssignCFTTask(any());
 
         taskResourcesReconfigured.forEach(taskResource -> {
             assertNull(taskResource.getReconfigureRequestTime());
@@ -112,10 +112,10 @@ class ExecuteTaskReconfigurationServiceTest {
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService
-            .performOperation(request, SYS_USER_IDAM_ID);
+            .performOperation(request);
 
         verify(configureTaskService, times(0)).configureCFTTask(any(), any());
-        verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any(), any());
+        verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
 
         assertEquals(0, taskResourcesReconfigured.size());
     }
@@ -135,7 +135,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         when(configureTaskService.reconfigureCFTTask(any()))
             .thenReturn(taskResources.get(1));
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any(), any()))
+        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
             .thenReturn(taskResources.get(1));
         when(cftTaskDatabaseService.saveTask(any()))
             .thenReturn(taskResources.get(1));
@@ -149,10 +149,10 @@ class ExecuteTaskReconfigurationServiceTest {
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService
-            .performOperation(request, SYS_USER_IDAM_ID);
+            .performOperation(request);
 
         verify(configureTaskService, times(1)).reconfigureCFTTask(any());
-        verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any(), any());
+        verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
 
         assertEquals(1, taskResourcesReconfigured.size());
     }
@@ -208,7 +208,7 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        assertThatThrownBy(() -> executeTaskReconfigurationService.performOperation(request, SYS_USER_IDAM_ID))
+        assertThatThrownBy(() -> executeTaskReconfigurationService.performOperation(request))
             .hasNoCause()
             .hasMessageContaining("Task Execute Reconfiguration Failed: "
                                   + "Task Reconfiguration process failed to execute "
@@ -241,7 +241,7 @@ class ExecuteTaskReconfigurationServiceTest {
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService
-            .performOperation(request, SYS_USER_IDAM_ID);
+            .performOperation(request);
         assertEquals(0, taskResourcesReconfigured.size());
     }
 
@@ -265,10 +265,10 @@ class ExecuteTaskReconfigurationServiceTest {
         );
 
         List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService
-            .performOperation(request, SYS_USER_IDAM_ID);
+            .performOperation(request);
 
         verify(configureTaskService, times(0)).configureCFTTask(any(), any());
-        verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any(), any());
+        verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
 
         taskResourcesReconfigured.forEach(taskResource -> {
             assertNull(taskResource.getReconfigureRequestTime());

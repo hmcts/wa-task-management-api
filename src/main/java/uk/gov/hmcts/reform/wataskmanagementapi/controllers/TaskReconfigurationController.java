@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -32,16 +31,13 @@ public class TaskReconfigurationController extends BaseController {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;
-    private final IdamTokenGenerator idamTokenGenerator;
 
     @Autowired
     public TaskReconfigurationController(TaskManagementService taskManagementService,
-                                         ClientAccessControlService clientAccessControlService,
-                                         IdamTokenGenerator idamTokenGenerator) {
+                                         ClientAccessControlService clientAccessControlService) {
         super();
         this.taskManagementService = taskManagementService;
         this.clientAccessControlService = clientAccessControlService;
-        this.idamTokenGenerator = idamTokenGenerator;
     }
 
     @Operation(description = "performs specified operation like marking tasks to reconfigure and execute reconfigure.")
@@ -63,12 +59,8 @@ public class TaskReconfigurationController extends BaseController {
             clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
 
         if (hasExclusiveAccessRequest) {
-            String systemUserToken = idamTokenGenerator.generate();
-            String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
-
             taskManagementService.performOperation(
-                taskOperationRequest,
-                systemUserId
+                taskOperationRequest
             );
         } else {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);

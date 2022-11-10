@@ -58,12 +58,6 @@ public class SpringBootContractProviderBaseTest {
     @Mock
     protected WorkTypesService workTypesService;
 
-    @Mock
-    protected IdamTokenGenerator idamTokenGenerator;
-
-    @Mock
-    protected UserInfo userInfo;
-
     @Autowired
     protected MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
 
