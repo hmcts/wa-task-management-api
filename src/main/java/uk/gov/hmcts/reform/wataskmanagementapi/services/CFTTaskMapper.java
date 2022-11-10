@@ -393,7 +393,8 @@ public class CFTTaskMapper {
                 && t.getTaskResource().getCaseId() != null).map(t -> t.getTaskResource().getCaseId())
             .findFirst();
         if (caseId.isPresent()) {
-            return extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, (String) caseId.get(), granularPermissionResponseFeature);
+            return extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments,
+                                                    (String) caseId.get(), granularPermissionResponseFeature);
         } else {
             return new TreeSet<PermissionTypes>();
         }

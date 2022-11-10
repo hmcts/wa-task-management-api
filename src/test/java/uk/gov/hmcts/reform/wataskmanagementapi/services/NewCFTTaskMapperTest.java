@@ -2012,7 +2012,7 @@ class NewCFTTaskMapperTest {
                                                   RoleType.CASE).build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -2061,7 +2061,7 @@ class NewCFTTaskMapperTest {
                                                   RoleType.CASE).build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
