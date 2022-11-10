@@ -1,4 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -18,13 +19,15 @@ public class TaskActionAttributeBuilderTest {
         ", UNASSIGNED, , UNASSIGNED, Configure",
         ", UNASSIGNED, OldAssignee, ASSIGNED, AutoUnassign"
     })
-    void should_build_task_action_correctly_when_task_is_assigned (String newAssignee, String newCFTState, String oldAssignee, String oldCftState, String taskAction) {
+    void should_build_task_action_correctly_when_task_is_assigned(String newAssignee, String newCFTState,
+                                                                  String oldAssignee, String oldCftState,
+                                                                  String taskAction) {
         TaskResource resource = new TaskResource("taskId",
             "taskName",
             "taskType",
             CFTTaskState.from(newCFTState).get());
         resource.setAssignee(newAssignee);
-        TaskAction action =TaskActionAttributesBuilder.buildTaskActionAttribute(
+        TaskAction action = TaskActionAttributesBuilder.buildTaskActionAttribute(
             resource,
             CFTTaskState.from(oldCftState).get(),
             oldAssignee);
