@@ -100,10 +100,10 @@ spring:
         default_schema: ${POSTGRES_NAME:cft_task_db}
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
   flyway:
-    enabled: false
+    enabled: true
     baselineOnMigrate: true
-#    defaultSchema: ${POSTGRES_NAME:cft_task_db}
-#    schemas: ${POSTGRES_NAME:cft_task_db}
+    defaultSchema: ${POSTGRES_NAME:cft_task_db}
+    schemas: ${POSTGRES_NAME:cft_task_db}
   security:
     oauth2:
       resourceserver:
