@@ -91,11 +91,11 @@ public class CamundaHelpers {
         );
     }
 
-    protected CamundaTask createMockedUnmappedTaskWithNoAssignee() {
+    protected CamundaTask createMockedUnmappedTaskWithAssignee() {
         return new CamundaTask(
             "someCamundaTaskId",
             "someCamundaTaskName",
-            null,
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
             ZonedDateTime.now(),
             ZonedDateTime.now().plusDays(1),
             "someCamundaTaskDescription",
