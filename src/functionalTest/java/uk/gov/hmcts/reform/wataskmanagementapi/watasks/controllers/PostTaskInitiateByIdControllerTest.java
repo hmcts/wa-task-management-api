@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,6 +21,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.hasItems;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CONFIGURE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskActionAttributesForAssertion;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -95,6 +98,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "unassigned"
         );
 
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+
         common.cleanUpTask(taskId);
     }
 
@@ -153,6 +160,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "cftTaskState",
             "unassigned"
         );
+
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -225,6 +236,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
 
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+
         common.cleanUpTask(taskId);
     }
 
@@ -286,6 +301,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "unassigned"
         );
 
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+
         common.cleanUpTask(taskId);
     }
 
@@ -339,8 +358,14 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task.major_priority", equalTo(1000));
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+
         //Expect to get 503 for database conflict
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
+        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+
         common.cleanUpTask(taskId);
     }
 }

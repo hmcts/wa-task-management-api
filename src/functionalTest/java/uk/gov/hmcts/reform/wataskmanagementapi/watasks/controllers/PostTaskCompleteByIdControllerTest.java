@@ -30,7 +30,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildNullTaskActionAttributesForAssertion;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskActionAttributesForAssertion;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -165,7 +164,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                 taskId
             )));
 
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId, "unassigned");
+        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
     }
 
@@ -228,7 +228,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId, "unassigned");
+        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -315,7 +316,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId, "unassigned");
+        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -597,7 +599,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId, "unassigned");
+        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);

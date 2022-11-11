@@ -37,18 +37,4 @@ public class TestAssertionsBuilder {
 
     }
 
-    public static Map<String, Matcher<?>> buildNullTaskActionAttributesForAssertion(String taskId,
-                                                                                    String taskState) {
-
-        return Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", CoreMatchers.is(taskState),
-            "task.assignee", nullValue(),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
-
-    }
-
 }
