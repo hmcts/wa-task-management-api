@@ -1,0 +1,19 @@
+{
+  "division": "england-and-wales",
+  "events": [
+    {
+      "title": "Boxing Day",
+      "date": "2022-12-26",
+      "notes": "",
+      "bunting": true,
+      "working_day": true
+    },
+    {
+      "title": "Christmas Day",
+      "date": "2022-12-27",
+      "notes": "Substitute day",
+      "bunting": true,
+      "working_day": true
+    }
+  ]
+}
