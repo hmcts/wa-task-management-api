@@ -37,8 +37,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ExecuteTaskReconfigurationServiceTest {
 
-    private  static final String SYS_USER_IDAM_ID = "SYS_USER_IDAM_ID";
-
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
