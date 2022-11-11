@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,7 +21,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.hasItems;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CONFIGURE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskActionAttributesForAssertion;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -87,7 +85,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "key4", "value4"
                 ))).body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.last_updated_timestamp", notNullValue())
+                .body("task.last_updated_user", equalTo(idamSystemUser))
+                .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
         };
 
         initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
@@ -97,10 +98,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "cftTaskState",
             "unassigned"
         );
-
-        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
-            "unassigned", idamSystemUser, CONFIGURE);
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -150,7 +147,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "roleAssignmentId", "roleAssignmentId")))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.last_updated_timestamp", notNullValue())
+                .body("task.last_updated_user", equalTo(idamSystemUser))
+                .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
         };
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
@@ -160,11 +160,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "cftTaskState",
             "unassigned"
         );
-
-        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
-            "unassigned", idamSystemUser, CONFIGURE);
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
-
         common.cleanUpTask(taskId);
     }
 
@@ -231,15 +226,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "key3", "value3",
                     "key4", "value4"
                 ))).body("task.minor_priority", equalTo(500))
-                .body("task.major_priority", equalTo(5000));
+                .body("task.major_priority", equalTo(5000))
+                .body("task.last_updated_timestamp", notNullValue())
+                .body("task.last_updated_user", equalTo(idamSystemUser))
+                .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
         };
 
         initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
-
-        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
-            "unassigned", idamSystemUser, CONFIGURE);
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
-
         common.cleanUpTask(taskId);
     }
 
@@ -290,7 +283,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.permissions.values.size()", equalTo(3))
                 .body("task.permissions.values", hasItems("Read", "Cancel", "Own"))
                 .body("task.minor_priority", equalTo(500))
-                .body("task.major_priority", equalTo(5000));
+                .body("task.major_priority", equalTo(5000))
+                .body("task.last_updated_timestamp", notNullValue())
+                .body("task.last_updated_user", equalTo(idamSystemUser))
+                .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
         };
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
@@ -300,11 +296,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "cftTaskState",
             "unassigned"
         );
-
-        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
-            "unassigned", idamSystemUser, CONFIGURE);
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
-
         common.cleanUpTask(taskId);
     }
 
@@ -355,17 +346,14 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "key3", "value3",
                 "key4", "value4"
             ))).body("task.minor_priority", equalTo(500))
-            .body("task.major_priority", equalTo(1000));
+            .body("task.major_priority", equalTo(1000))
+            .body("task.last_updated_timestamp", notNullValue())
+            .body("task.last_updated_user", equalTo(idamSystemUser))
+            .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
-        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
-            "unassigned", idamSystemUser, CONFIGURE);
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
-
         //Expect to get 503 for database conflict
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
-
         common.cleanUpTask(taskId);
     }
 }
