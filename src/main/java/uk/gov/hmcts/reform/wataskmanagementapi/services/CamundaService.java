@@ -160,7 +160,7 @@ public class CamundaService {
         if (result == null || result.isEmpty()) {
             return isTaskStateCompleted.get();
         }
-        
+
         Optional<HistoryVariableInstance> historyVariableInstance = result.stream()
             .filter(r -> r.getName().equals(TASK_STATE.value()))
             .findFirst();
