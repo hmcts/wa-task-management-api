@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
@@ -112,6 +113,8 @@ public abstract class SpringBootFunctionalBaseTest {
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
+    @Autowired
+    protected IdamTokenGenerator idamTokenGenerator;
 
     @Value("${targets.camunda}")
     private String camundaUrl;
@@ -126,6 +129,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     protected TestAuthenticationCredentials iaCaseworkerCredentials;
     protected TestAuthenticationCredentials waCaseworkerCredentials;
+    protected String idamSystemUser;
 
     @Before
     public void setUpGivens() throws IOException {
@@ -159,6 +163,7 @@ public abstract class SpringBootFunctionalBaseTest {
         common.setupCFTOrganisationalRoleAssignment(iaCaseworkerCredentials.getHeaders(), "IA", "Asylum");
         waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         common.setupCFTOrganisationalRoleAssignmentForWA(waCaseworkerCredentials.getHeaders());
+        idamSystemUser = idamTokenGenerator.getUserInfo(idamTokenGenerator.generate()).getUid();
     }
 
     @After

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
@@ -23,13 +22,13 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.COMPLETED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildNullTaskActionAttributesForAssertion;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskActionAttributesForAssertion;
@@ -95,7 +94,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_204_when_completing_a_task_by_id() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
@@ -140,7 +140,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_403_if_task_was_not_previously_assigned() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, Jurisdiction.WA);
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
@@ -164,14 +165,15 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                 taskId
             )));
 
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId,"unassigned");
+        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId, "unassigned");
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
     }
 
     @Test
     public void should_return_a_204_when_completing_a_task_by_id_with_restricted_role_assignment() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -205,7 +207,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -225,7 +228,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId,"unassigned");
+        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId, "unassigned");
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -234,7 +237,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_204_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, Jurisdiction.WA);
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -271,7 +275,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIdsWithCustomVariable(REGION, "1", "requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIdsWithCustomVariable(REGION, "1",
+            "requests/ccd/wa_case_data.json");
         taskId = taskVariables.getTaskId();
 
         common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), caseworkerForReadCredentials.getHeaders());
@@ -310,7 +315,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId,"unassigned");
+        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId, "unassigned");
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -319,7 +324,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_succeed_and_return_204_when_a_task_that_was_already_claimed_and_privileged_auto_complete() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, Jurisdiction.WA);
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
@@ -386,7 +392,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_204_when_completing_a_task_with_completion_options_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, Jurisdiction.WA);
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
@@ -419,7 +426,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_204_if_task_was_not_previously_assigned_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, Jurisdiction.WA);
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
@@ -448,7 +456,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_204_when_completing_a_task_with_restricted_role_assignment_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, Jurisdiction.WA);
         common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
@@ -481,7 +490,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, Jurisdiction.WA);
         Response result = restApiActions.post(
@@ -506,7 +516,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_204_and_retrieve_task_role_assignment_attributes_match_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, Jurisdiction.WA);
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -586,7 +597,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId,"unassigned");
+        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId, "unassigned");
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -596,7 +607,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void user_should_complete_task() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
@@ -629,7 +641,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void user_should_not_complete_task_when_grant_type_specific_and_permission_read() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
 
         initiateTask(taskVariables, Jurisdiction.WA);
@@ -653,15 +666,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
         //This will be changed when assign endpoint story RWA-1582 is played
-        Map<String, Matcher<?>> taskValueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", CoreMatchers.is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
-
+        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -671,7 +677,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void user_should_not_complete_task_when_grant_type_challenged_and_permission_read() {
         testGrantType = GrantType.CHALLENGED;
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            "processApplication");
         taskId = taskVariables.getTaskId();
 
         initiateTask(taskVariables, Jurisdiction.WA);
@@ -695,15 +702,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
         //This will be changed when assign endpoint story RWA-1582 is played
-        Map<String, Matcher<?>> taskValueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", CoreMatchers.is("assigned"),
-            "task.assignee", equalTo(userInfo.getUid()),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
-
+        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, userInfo.getUid(),
+            "assigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -727,15 +727,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
         //This need to be changed when assign endpoint story RWA-1582 is played
-        Map<String, Matcher<?>> taskValueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", CoreMatchers.is("assigned"),
-            "task.assignee", equalTo(assigneeId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
-
+        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
+            "assigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
     }

@@ -16,9 +16,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdictio
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskActionAttributesForAssertion;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -85,12 +85,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -187,12 +183,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
         assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
@@ -227,12 +219,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -330,12 +318,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -472,12 +456,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -544,12 +524,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -582,12 +558,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -685,12 +657,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -791,12 +759,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> valueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, null,
+            "unassigned", idamSystemUser, CONFIGURE);
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
             WA_JURISDICTION, WA_CASE_TYPE);
         assertions.taskAttributesVerifier(taskId, valueMap, caseworkerForReadCredentials.getHeaders());
