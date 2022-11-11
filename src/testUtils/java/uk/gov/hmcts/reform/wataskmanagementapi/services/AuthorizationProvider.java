@@ -72,6 +72,22 @@ public class AuthorizationProvider {
         return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
     }
 
+
+    public TestAuthenticationCredentials getNewTribunalCaseworker(String email, String forename, String surname) {
+        /*
+         * This user is used to assign role assignments to on a per test basis.
+         * A clean up before assigning new role assignments is needed.
+         */
+        TestAccount caseworker = createIdamTestAccount(email, forename, surname);
+
+        Headers authenticationHeaders = new Headers(
+            getAuthorizationOnly(caseworker),
+            getServiceAuthorizationHeader()
+        );
+
+        return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
+    }
+
     public TestAuthenticationCredentials getNewWaTribunalCaseworker(String emailPrefix) {
         /*
          * This user is used to assign role assignments to on a per test basis.
@@ -285,6 +301,31 @@ public class AuthorizationProvider {
         body.put("password", password);
         body.put("forename", "WAFTAccount");
         body.put("surname", "Functional");
+        body.put("roles", requiredRoles);
+        body.put("userGroup", userGroup);
+
+        idamServiceApi.createTestUser(body);
+
+        log.info("Test account created successfully");
+        return new TestAccount(email, password);
+    }
+
+    private TestAccount createIdamTestAccount(String email, String forename, String surname) {
+        String password = "System01";
+
+        log.info("Attempting to create a new test account {}", email);
+
+        RoleCode userGroup = new RoleCode("caseworker");
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa"),
+                                              new RoleCode("caseworker-wa-task-officer"),
+                                              new RoleCode("caseworker")
+        );
+
+        Map<String, Object> body = new ConcurrentHashMap<>();
+        body.put("email", email);
+        body.put("password", password);
+        body.put("forename", forename);
+        body.put("surname", surname);
         body.put("roles", requiredRoles);
         body.put("userGroup", userGroup);
 
