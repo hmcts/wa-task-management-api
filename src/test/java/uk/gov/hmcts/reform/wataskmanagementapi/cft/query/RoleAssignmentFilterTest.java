@@ -92,8 +92,8 @@ public class RoleAssignmentFilterTest {
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC"})
     void should_build_query_for_specific(Classification classification) {
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         lenient().when(root.get("securityClassification")).thenReturn(pathObject);
         lenient().when(root.get("caseTypeId")).thenReturn(pathObject);
@@ -112,7 +112,7 @@ public class RoleAssignmentFilterTest {
         lenient().when(builder.equal(pathObject, new String[]{})).thenReturn(equalPredicate);
 
         Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, roleAssignmentWithSpecificGrantType(classification), false, builder, root);
+            permissionsRequired, roleAssignmentWithSpecificGrantType(classification), builder, root);
 
         assertNotNull(builder);
         assertNotNull(predicate);
@@ -128,7 +128,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(5)).get(anyString());
         verify(pathObject, times(2)).isNull();
         verify(builder, times(5)).equal(any(), anyString());
-        verify(builder, times(4)).or(any());
+        verify(builder, times(3)).or(any());
         verify(builder, times(3)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(2)).and(
@@ -139,9 +139,6 @@ public class RoleAssignmentFilterTest {
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC"})
     void should_build_query_for_specific_when_attributes_does_not_match(Classification classification) {
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
@@ -166,8 +163,10 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
         Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, roleAssignments, false, builder, root);
+            permissionsRequired, roleAssignments, builder, root);
 
         assertNotNull(builder);
         assertNotNull(predicate);
@@ -186,7 +185,7 @@ public class RoleAssignmentFilterTest {
         lenient().when(pathObject.isNull()).thenReturn(null);
 
         predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, roleAssignments, false, builder, root);
+            permissionsRequired, roleAssignments, builder, root);
 
         assertNotNull(builder);
         assertNotNull(predicate);
@@ -194,10 +193,6 @@ public class RoleAssignmentFilterTest {
 
     @Test
     void should_build_query_for_specific_with_out_attributes() {
-
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .roleType(RoleType.ORGANISATION)
@@ -217,17 +212,16 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
         Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse.getRoleAssignments(), false, builder, root);
+            permissionsRequired, accessControlResponse.getRoleAssignments(), builder, root);
         assertNotNull(predicate);
     }
 
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC", "PRIVATE", "RESTRICTED"})
     void should_build_query_for_standard_and_excluded(Classification classification) {
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
         lenient().when(root.get("securityClassification")).thenReturn(pathObject);
         lenient().when(root.get("caseTypeId")).thenReturn(pathObject);
         lenient().when(root.get("caseId")).thenReturn(pathObject);
@@ -248,8 +242,10 @@ public class RoleAssignmentFilterTest {
         lenient().when(builder.equal(pathObject, "tribunal-caseworker")).thenReturn(equalPredicate);
         lenient().when(builder.equal(pathObject, new String[]{})).thenReturn(equalPredicate);
 
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
         RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, roleAssignmentWithStandardGrantType(classification), false, builder, root);
+            permissionsRequired, roleAssignmentWithStandardGrantType(classification), builder, root);
 
         verify(builder, times(1)).equal(pathObject, new String[]{});
         verify(builder, times(1)).equal(pathObject, "Asylum");
@@ -261,7 +257,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(root, times(7)).get(anyString());
         verify(pathObject, times(1)).isNull();
-        verify(builder, times(4)).or(any());
+        verify(builder, times(3)).or(any());
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(1)).and(
@@ -272,9 +268,6 @@ public class RoleAssignmentFilterTest {
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC", "PRIVATE", "RESTRICTED"})
     void should_build_query_for_challenged_and_excluded(Classification classification) {
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
         lenient().when(root.get("securityClassification")).thenReturn(pathObject);
         lenient().when(root.get("caseTypeId")).thenReturn(pathObject);
         lenient().when(root.get("caseId")).thenReturn(pathObject);
@@ -291,8 +284,10 @@ public class RoleAssignmentFilterTest {
         lenient().when(builder.equal(pathObject, "tribunal-caseworker")).thenReturn(equalPredicate);
         lenient().when(builder.equal(pathObject, new String[]{"DIVORCE", "PROBATE"})).thenReturn(equalPredicate);
 
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
         RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, roleAssignmentWithChallengedGrantType(classification), false, builder, root);
+            permissionsRequired, roleAssignmentWithChallengedGrantType(classification), builder, root);
 
         verify(builder, times(1)).equal(pathObject, new String[]{});
         verify(builder, times(1)).equal(pathObject, "Asylum");
@@ -301,7 +296,7 @@ public class RoleAssignmentFilterTest {
 
         verify(root, times(1)).join(anyString());
         verify(root, times(6)).get(anyString());
-        verify(builder, times(4)).or(any());
+        verify(builder, times(3)).or(any());
         verify(builder, times(3)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(1)).and(
@@ -314,24 +309,21 @@ public class RoleAssignmentFilterTest {
 
     @Test
     void should_build_query_for_all_grant_types() {
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         lenient().when(taskRoleResources.get("roleName")).thenReturn(pathObject);
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
         Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, roleAssignmentWithAllGrantTypes(), false, builder, root);
+            permissionsRequired, roleAssignmentWithAllGrantTypes(), builder, root);
 
         assertNotNull(predicate);
     }
 
     @Test
     void should_build_query_for_negation_values() {
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
@@ -350,8 +342,10 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
         RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, roleAssignments, false, builder, root);
+            permissionsRequired, roleAssignments, builder, root);
 
         verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
         verify(builder, times(1)).equal(pathObject, new String[]{});
@@ -359,7 +353,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(root, times(1)).get(anyString());
         verify(pathObject, times(1)).isNull();
-        verify(builder, times(4)).or(any());
+        verify(builder, times(3)).or(any());
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(3)).and(any(), any());
         verify(builder, times(1)).and(
@@ -369,9 +363,6 @@ public class RoleAssignmentFilterTest {
 
     @Test
     void should_build_query_for_invalid_classification() {
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
@@ -389,8 +380,10 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
         RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, roleAssignments, false, builder, root);
+            permissionsRequired, roleAssignments, builder, root);
 
         verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
         verify(builder, times(1)).equal(pathObject, new String[]{});
@@ -399,7 +392,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).get(anyString());
         verify(pathObject, times(1)).isNull();
         verify(builder, times(1)).in(any());
-        verify(builder, times(4)).or(any());
+        verify(builder, times(3)).or(any());
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(3)).and(any(), any());
         verify(builder, times(1)).and(
@@ -409,17 +402,17 @@ public class RoleAssignmentFilterTest {
 
     @Test
     void should_build_query_for_when_begin_and_end_time_are_active() {
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
         RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, inActiveRoles(), false, builder, root);
+            permissionsRequired, inActiveRoles(), builder, root);
 
         verify(builder, times(0)).equal(any(), any());
         verify(root, times(1)).join(anyString());
         verify(builder, times(1)).or(any(), any());
         verify(builder, times(0)).and(
             any(), any(), any(), any(), any(), any(), any());
-        verify(builder, times(4)).or(any());
+        verify(builder, times(3)).or(any());
     }
 
     @Test

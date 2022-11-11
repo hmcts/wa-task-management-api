@@ -46,6 +46,7 @@ public class ServiceMocks {
     public static final String IDAM_USER_ID_GP = "IDAM_USER_ID_GP";
     public static final String IDAM_USER_EMAIL_GP = "wa-granular-permission-wa-ft-test@test.com";
     public static final String SECONDARY_IDAM_USER_ID = "SECONDARY_IDAM_USER_ID";
+    public static final String THIRD_IDAM_USER_ID = "THIRD_IDAM_USER_ID";
     public static final String SECONDARY_IDAM_USER_EMAIL = "wa-ft-test@test.com";
     public static final String IDAM_AUTHORIZATION_TOKEN = "Bearer IDAM_AUTH_TOKEN";
     public static final String IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION = "Bearer IDAM_AUTH_TOKEN_FOR_EXCEPTION";
@@ -174,6 +175,24 @@ public class ServiceMocks {
             "formKey",
             processInstanceId
         );
+    }
+
+    public List<RoleAssignment> createRoleAssignmentsWithJurisdiction(String jurisdiction) {
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
+        Map<String, String> roleAttributes = new HashMap<>();
+        // Role Assignment with SCSS and RoleType CASE
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), jurisdiction);
+
+        final RoleAssignment caseRoleAssignment = createBaseAssignment(
+            UUID.randomUUID().toString(),
+            "tribunal-caseworker",
+            RoleType.ORGANISATION,
+            Classification.PUBLIC,
+            roleAttributes
+        );
+        allTestRoles.add(caseRoleAssignment);
+
+        return allTestRoles;
     }
 
     public List<RoleAssignment> createRoleAssignmentsWithJurisdiction(String jurisdiction,String caseId) {

@@ -14,7 +14,8 @@ public enum SearchParameterKey {
     //R2 should be snake_case only,
     WORK_TYPE("work_type"),
     AVAILABLE_TASKS_ONLY("available_tasks_only"),
-    ROLE_CATEGORY("role_category");
+    ROLE_CATEGORY("role_category"),
+    REQUEST_CONTEXT("request_context");
 
     @JsonValue
     private final String id;

@@ -2,8 +2,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
@@ -11,13 +13,18 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -25,15 +32,22 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 import static java.util.Collections.emptyList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 
 @Slf4j
 @Service
@@ -50,32 +64,48 @@ public class CftQueryService {
     private final TaskResourceDao taskResourceDao;
 
     private final AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     public CftQueryService(CamundaService camundaService,
                            CFTTaskMapper cftTaskMapper,
                            TaskResourceDao taskResourceDao,
-                           AllowedJurisdictionConfiguration allowedJurisdictionConfiguration) {
+                           AllowedJurisdictionConfiguration allowedJurisdictionConfiguration,
+                           LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
         this.camundaService = camundaService;
         this.cftTaskMapper = cftTaskMapper;
         this.taskResourceDao = taskResourceDao;
         this.allowedJurisdictionConfiguration = allowedJurisdictionConfiguration;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     public GetTasksResponse<Task> searchForTasks(
         int firstResult,
         int maxResults,
         SearchTaskRequest searchTaskRequest,
-        List<RoleAssignment> roleAssignments,
-        List<PermissionTypes> permissionsRequired
+        AccessControlResponse accessControlResponse,
+        boolean granularPermissionResponseFeature
     ) {
-        validateRequest(searchTaskRequest);
+        boolean isGranularPermissionEnabled = launchDarklyFeatureFlagProvider
+            .getBooleanValue(
+                FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail()
+            );
+
+        validateRequest(searchTaskRequest, isGranularPermissionEnabled);
+
+        List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
+        PermissionRequirements permissionsRequired = findPermissionRequirement(searchTaskRequest,
+                                                                               isGranularPermissionEnabled);
+        boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
 
         final List<Object[]> taskResourcesSummary = taskResourceDao.getTaskResourceSummary(
             firstResult,
             maxResults,
             searchTaskRequest,
             roleAssignments,
-            permissionsRequired
+            permissionsRequired,
+            availableTasksOnly
         );
 
         if (isEmpty(taskResourcesSummary)) {
@@ -85,14 +115,18 @@ public class CftQueryService {
         final List<TaskResource> taskResources
             = taskResourceDao.getTaskResources(searchTaskRequest, taskResourcesSummary);
 
-        Long count = taskResourceDao.getTotalCount(searchTaskRequest, roleAssignments, permissionsRequired);
+        Long count = taskResourceDao.getTotalCount(searchTaskRequest,
+                                                   roleAssignments,
+                                                   permissionsRequired,
+                                                   availableTasksOnly);
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
-                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    roleAssignments
-                )
+                     cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                         taskResource,
+                         roleAssignments,
+                         granularPermissionResponseFeature
+                     )
             )
             .collect(Collectors.toList());
 
@@ -102,7 +136,8 @@ public class CftQueryService {
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(
         SearchEventAndCase searchEventAndCase,
         List<RoleAssignment> roleAssignments,
-        List<PermissionTypes> permissionsRequired
+        PermissionRequirements permissionsRequired,
+        boolean granularPermissionResponseFeature
     ) {
 
         //Safe-guard against unsupported Jurisdictions.
@@ -132,7 +167,8 @@ public class CftQueryService {
             taskTypes
         );
 
-        final List<Task> tasks = mapTasksWithPermissionsUnion(roleAssignments, taskResources);
+        final List<Task> tasks = mapTasksWithPermissionsUnion(roleAssignments, taskResources,
+                                                              granularPermissionResponseFeature);
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
 
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
@@ -168,17 +204,79 @@ public class CftQueryService {
         return taskResourceDao.getTask(taskId, roleAssignments, permissionRequirements);
     }
 
+    private PermissionRequirements findPermissionRequirement(SearchTaskRequest searchTaskRequest,
+                                                             boolean isGranularPermissionEnabled) {
+        if (isGranularPermissionEnabled) {
+            //When granular permission feature flag is enabled, request is expected only in new format
+            SearchParameterRequestContext context = extractRequestContext(searchTaskRequest);
+            if (context == null) {
+                return PermissionRequirementBuilder.builder().buildSingleType(READ);
+            } else if (context.isEqual(RequestContext.AVAILABLE_TASK_ONLY)) {
+                return PermissionRequirementBuilder.builder().buildSingleRequirementWithAnd(OWN, CLAIM);
+            } else if (context.isEqual(RequestContext.ALL_WORK)) {
+                return PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+            }
+            return PermissionRequirementBuilder.builder().buildSingleType(READ);
+        } else {
+            if (isAvailableTasksOnly(searchTaskRequest)) {
+                return PermissionRequirementBuilder.builder().buildSingleRequirementWithAnd(OWN, READ);
+            } else {
+                return PermissionRequirementBuilder.builder().buildSingleType(READ);
+            }
+        }
+    }
+
+    @Nullable
+    private SearchParameterRequestContext extractRequestContext(SearchTaskRequest searchTaskRequest) {
+
+        return (SearchParameterRequestContext) searchTaskRequest.getSearchParameters()
+            .stream()
+            .filter(SearchParameterRequestContext.class::isInstance)
+            .findFirst().orElse(null);
+    }
+
+    // TODO: Once the granular permission feature flag enabled or available_tasks_only parameter is depreciated,
+    // this method should only check AVAILABLE_TASK_ONLY context
+    private boolean isAvailableTasksOnly(SearchTaskRequest searchTaskRequest) {
+        final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap = asEnumMapForBoolean(searchTaskRequest);
+        SearchParameterBoolean availableTasksOnly = boolKeyMap.get(AVAILABLE_TASKS_ONLY);
+
+        SearchParameterRequestContext context = extractRequestContext(searchTaskRequest);
+
+        if (context == null) {
+            return availableTasksOnly != null && availableTasksOnly.getValues();
+        } else {
+            return context.isEqual(RequestContext.AVAILABLE_TASK_ONLY);
+        }
+    }
+
+    private static EnumMap<SearchParameterKey, SearchParameterBoolean> asEnumMapForBoolean(
+        SearchTaskRequest searchTaskRequest) {
+
+        EnumMap<SearchParameterKey, SearchParameterBoolean> map = new EnumMap<>(SearchParameterKey.class);
+        if (searchTaskRequest != null && !CollectionUtils.isEmpty(searchTaskRequest.getSearchParameters())) {
+            searchTaskRequest.getSearchParameters()
+                .stream()
+                .filter(SearchParameterBoolean.class::isInstance)
+                .forEach(request -> map.put(request.getKey(), (SearchParameterBoolean) request));
+        }
+
+        return map;
+    }
+
     private List<Task> mapTasksWithPermissionsUnion(List<RoleAssignment> roleAssignments,
-                                                    List<TaskResource> taskResources) {
+                                                    List<TaskResource> taskResources,
+                                                    boolean granularPermissionResponseFeature) {
         if (taskResources.isEmpty()) {
             return emptyList();
         }
 
         return taskResources.stream()
             .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    roleAssignments
-                )
+                     taskResource,
+                     roleAssignments,
+                     granularPermissionResponseFeature
+                 )
             )
             .collect(Collectors.toList());
     }
@@ -202,7 +300,7 @@ public class CftQueryService {
         return evaluateDmnResult.size() == taskTypes.size();
     }
 
-    private void validateRequest(SearchTaskRequest searchTaskRequest) {
+    private void validateRequest(SearchTaskRequest searchTaskRequest, boolean isGranularPermissionEnabled) {
         List<Violation> violations = new ArrayList<>();
 
         //Validate work-type
@@ -226,6 +324,14 @@ public class CftQueryService {
                     ));
                 }
             });
+        }
+
+        if (isGranularPermissionEnabled) {
+            final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap =
+                asEnumMapForBoolean(searchTaskRequest);
+            if (boolKeyMap.containsKey(AVAILABLE_TASKS_ONLY)) {
+                violations.add(new Violation(AVAILABLE_TASKS_ONLY.value(), "Invalid request parameter"));
+            }
         }
 
         if (!violations.isEmpty()) {
