@@ -72,6 +72,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL_OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE_OWN;
@@ -99,7 +100,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
     "PMD.LawOfDemeter",
     "PMD.ExcessiveParameterList",
     "PMD.ExcessiveClassLength",
-    "PMD.GodClass"})
+    "PMD.GodClass",
+    "PMD.CyclomaticComplexity"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
 
@@ -460,11 +462,30 @@ public class TaskManagementService {
     public void cancelTask(String taskId,
                            AccessControlResponse accessControlResponse) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
+        PermissionRequirements permissionsRequired;
 
-        roleAssignmentVerification.verifyRoleAssignments(
+        String userId = accessControlResponse.getUserInfo().getUid();
+        String email = accessControlResponse.getUserInfo().getEmail();
+
+        if (isGranularPermissionFeatureEnabled(userId, email)) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(CANCEL, CANCEL_OWN);
+        } else {
+            permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
+        }
+
+        TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
             taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
         );
+
+        if (isGranularPermissionFeatureEnabled(userId, email)
+            && !taskResource.getTaskRoleResources().stream().anyMatch(permission -> permission.getCancel().equals(true))
+            && (taskResource.getAssignee() == null
+                || !userId.equals(taskResource.getAssignee())
+                )
+        ) {
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+        }
 
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);
@@ -521,13 +542,9 @@ public class TaskManagementService {
         final String userId = accessControlResponse.getUserInfo().getUid();
         final String userEmail = accessControlResponse.getUserInfo().getEmail();
 
-        final boolean isGranularPermissionFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            userId,
-            userEmail
-        );
+        final boolean isGranularPermissionFeatureEnabled = isGranularPermissionFeatureEnabled(userId, userEmail);
 
-        boolean taskHasCompleted = false;
+        boolean taskHasCompleted;
 
         checkCompletePermissions(taskId, accessControlResponse, isGranularPermissionFeatureEnabled, userId);
 
@@ -627,8 +644,6 @@ public class TaskManagementService {
         }
         return false;
     }
-
-
 
     /**
      * This method is only used by privileged clients allowing them to set a predefined options for completion.
@@ -1083,6 +1098,5 @@ public class TaskManagementService {
                 email
             );
     }
-
 
 }
