@@ -395,9 +395,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.type", equalTo("processApplication"))
             .body("task.permissions.values", equalToObject(List.of("Read", "Own")));
 
-        //add a specific permission
-        common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables1.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+        //add a case permission
+        common.setupFtpaJudgeForCaseAccess(caseworkerCredentials.getHeaders(), taskVariables1.getCaseId(),
+                                               WA_JURISDICTION, WA_CASE_TYPE);
 
         result1 = restApiActions.get(
             ENDPOINT_BEING_TESTED,
