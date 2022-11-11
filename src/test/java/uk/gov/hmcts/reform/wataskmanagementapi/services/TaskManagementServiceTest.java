@@ -1681,8 +1681,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .buildSingleRequirementWithOr(CANCEL, CANCEL_OWN);
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.empty());
-            when(cftTaskDatabaseService.findByIdOnly(taskId))
-                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     GRANULAR_PERMISSION_FEATURE,
                     IDAM_USER_ID,
@@ -1713,6 +1712,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .buildSingleRequirementWithOr(CANCEL, CANCEL_OWN);
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
             when(taskResource.getAssignee()).thenReturn(null);
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     GRANULAR_PERMISSION_FEATURE,
@@ -1855,6 +1855,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
@@ -1886,6 +1887,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .initPermissionRequirement(asList(CANCEL, CANCEL_OWN), PermissionJoin.OR).build();
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
@@ -1926,6 +1928,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .initPermissionRequirement(asList(CANCEL, CANCEL_OWN), PermissionJoin.OR).build();
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
