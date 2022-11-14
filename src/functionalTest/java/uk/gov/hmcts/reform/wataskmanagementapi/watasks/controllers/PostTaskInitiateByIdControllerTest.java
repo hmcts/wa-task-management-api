@@ -236,7 +236,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[7].role_name", equalTo("lead-judge"))
             .body("roles[7].permissions", hasItems("Cancel"))
             .body("roles[8].role_name", equalTo("task-supervisor"))
-            .body("roles[8].permissions", hasItems("Read", "Manage", "Cancel", "Complete", "Assign", "Unassign"));
+            .body("roles[8].permissions", hasItems("Read", "Manage", "Cancel"));
 
         common.cleanUpTask(taskId);
     }
