@@ -50,7 +50,7 @@ class WorkingDayIndicatorTest {
 
     @Test
     void shouldReturnTrueForWeekdays() {
-        when(publicHolidaysCollection.getPublicHolidays(URI)).thenReturn(Collections.emptySet());
+        when(publicHolidaysCollection.getPublicHolidays(List.of(URI))).thenReturn(Collections.emptySet());
 
         assertTrue(service.isWorkingDay(MONDAY, URI, List.of("SATURDAY", "SUNDAY")));
         assertTrue(service.isWorkingDay(TUESDAY, URI, List.of("SATURDAY", "SUNDAY")));
@@ -74,7 +74,7 @@ class WorkingDayIndicatorTest {
     @Test
     void shouldReturnFalseForOneBankHolidayWhenThereIsOneBankHolidayInCollection() {
         LocalDate bankHoliday = BANK_HOLIDAY;
-        when(publicHolidaysCollection.getPublicHolidays(URI))
+        when(publicHolidaysCollection.getPublicHolidays(List.of(URI)))
             .thenReturn(new HashSet<>(Collections.singletonList(bankHoliday)));
 
         assertFalse(service.isWorkingDay(bankHoliday, URI, List.of("SATURDAY", "SUNDAY")));
@@ -84,7 +84,7 @@ class WorkingDayIndicatorTest {
     @Test
     void shouldReturnFalseForPublicHolidayWhenThereIsMoreDatesInPublicHolidaysCollection() {
         Set<LocalDate> publicHolidays = new HashSet<>(Arrays.asList(MONDAY, TUESDAY, WEDNESDAY, THURSDAY));
-        when(publicHolidaysCollection.getPublicHolidays(URI)).thenReturn(publicHolidays);
+        when(publicHolidaysCollection.getPublicHolidays(List.of(URI))).thenReturn(publicHolidays);
 
         assertTrue(service.isWorkingDay(FRIDAY, URI, List.of("SATURDAY", "SUNDAY")));
 
@@ -110,7 +110,7 @@ class WorkingDayIndicatorTest {
 
     @Test
     void shouldReturnFollowingTuesdayForNextWorkingDayGivenABankHolidayFridayAndMonday() {
-        when(publicHolidaysCollection.getPublicHolidays(URI)).thenReturn(
+        when(publicHolidaysCollection.getPublicHolidays(List.of(URI))).thenReturn(
             new HashSet<>(Collections.singletonList(BANK_HOLIDAY))
         );
 

@@ -29,7 +29,7 @@ public class WorkingDayIndicator {
     }
 
     private boolean isPublicHoliday(LocalDate date, String uri) {
-        return publicHolidaysCollection.getPublicHolidays(uri).contains(date);
+        return publicHolidaysCollection.getPublicHolidays(List.of(uri)).contains(date);
     }
 
     public LocalDate getNextWorkingDay(LocalDate date, String uri, List<String> nonWorkingDaysOfWeek) {

@@ -10,14 +10,18 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHoli
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 
 /**
  * Stores all public holidays for england and wales retrieved from Gov uk API: https://www.gov.uk/bank-holidays/england-and-wales.json .
  */
 @Component
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class PublicHolidaysCollection {
 
     public final Decoder feignDecoder;
@@ -28,15 +32,31 @@ public class PublicHolidaysCollection {
         this.feignEncoder = feignEncoder;
     }
 
-    @Cacheable(value = "public_holidays_uri_cache", key = "#uri", sync = true)
-    public Set<LocalDate> getPublicHolidays(String uri) {
-        BankHolidaysApi bankHolidaysApi = bankHolidaysApi(uri);
-        BankHolidays bankHolidays = bankHolidaysApi.retrieveAll();
-        return Optional.ofNullable(bankHolidays).isPresent()
-            ? bankHolidays.getEvents().stream()
+
+    public Set<LocalDate> getPublicHolidays(List<String> uris) {
+        BankHolidays allPublicHolidays = BankHolidays.builder().events(new ArrayList<BankHolidays.EventDate>()).build();
+        if (uris != null) {
+            for (String uri : uris) {
+                BankHolidays publicHolidays = getPublicHolidays(uri);
+                for (BankHolidays.EventDate eventDate : publicHolidays.getEvents()) {
+                    if (!eventDate.isWorkingDay()) {
+                        allPublicHolidays.getEvents().add(eventDate);
+                    }
+                }
+            }
+        }
+
+        return Optional.ofNullable(allPublicHolidays).isPresent()
+            ? allPublicHolidays.getEvents().stream()
             .map(item -> LocalDate.parse(item.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
             .collect(Collectors.toSet())
             : Set.of();
+    }
+
+    @Cacheable(value = "public_holidays_uri_cache", key = "#uri", sync = true)
+    public BankHolidays getPublicHolidays(String uri) {
+        BankHolidaysApi bankHolidaysApi = bankHolidaysApi(uri);
+        return bankHolidaysApi.retrieveAll();
     }
 
     private BankHolidaysApi bankHolidaysApi(String uri) {
