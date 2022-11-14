@@ -9,6 +9,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -415,8 +416,12 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(
             eq(BEARER_USER_TOKEN),
             eq(BEARER_SERVICE_TOKEN),
+            eq(0),
+            eq(50),
             any(MultipleQueryRequest.class)
-        )).thenReturn(new RoleAssignmentResource(getRoleAssignment.apply(shouldReturnRoleAssignment)));
+        ))
+            .thenReturn(ResponseEntity.ok(new RoleAssignmentResource(getRoleAssignment
+                                                                         .apply(shouldReturnRoleAssignment))));
 
     }
 
@@ -429,8 +434,11 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(
             eq(BEARER_USER_TOKEN),
             eq(BEARER_SERVICE_TOKEN),
+            eq(0),
+            eq(50),
             any(MultipleQueryRequest.class)
-        )).thenReturn(new RoleAssignmentResource(getRoleAssignment.apply(shouldReturnRoleAssignment)));
+        )).thenReturn(ResponseEntity.ok(new RoleAssignmentResource(getRoleAssignment
+                                                                               .apply(shouldReturnRoleAssignment))));
 
     }
 

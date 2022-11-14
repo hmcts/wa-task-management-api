@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -88,16 +89,45 @@ public class TaskConfigurationRoleAssignmentService {
     }
 
     public RoleAssignmentResource performSearch(MultipleQueryRequest multipleQueryRequest) {
+
+        int pageNumber = 0;
+
         try {
-            return roleAssignmentServiceApi.queryRoleAssignments(
-                systemUserIdamToken.generate(),
-                serviceAuthTokenGenerator.generate(),
-                multipleQueryRequest
+            ResponseEntity<RoleAssignmentResource> responseEntity = getPageResponse(
+                multipleQueryRequest,
+                pageNumber
             );
+            List<RoleAssignment> roleAssignments
+                = new ArrayList<>(requireNonNull(responseEntity.getBody()).getRoleAssignmentResponse());
+
+            long totalRecords = Long.parseLong(responseEntity.getHeaders().get("Total-Records").get(0));
+            long totalPageNumber = totalRecords / 50;
+            while (totalPageNumber > pageNumber) {
+                pageNumber += 1;
+                responseEntity = getPageResponse(multipleQueryRequest, pageNumber);
+                List<RoleAssignment> roleAssignmentResponse = requireNonNull(responseEntity.getBody())
+                    .getRoleAssignmentResponse();
+
+                if(roleAssignmentResponse.isEmpty()) {
+                    roleAssignments.addAll(roleAssignmentResponse);
+                }
+            }
+            return new RoleAssignmentResource(roleAssignments);
         } catch (FeignException ex) {
             throw new ServerErrorException(
                 "Could not retrieve role assignments when performing the search", ex);
         }
+    }
+
+    private ResponseEntity<RoleAssignmentResource> getPageResponse(MultipleQueryRequest multipleQueryRequest, int pageNumber) {
+        ResponseEntity<RoleAssignmentResource> responseEntity = roleAssignmentServiceApi.queryRoleAssignments(
+            systemUserIdamToken.generate(),
+            serviceAuthTokenGenerator.generate(),
+            pageNumber,
+            50,
+            multipleQueryRequest
+        );
+        return responseEntity;
     }
 
     private MultipleQueryRequest buildQueryForAutoAssignment(TaskResource taskResource) {

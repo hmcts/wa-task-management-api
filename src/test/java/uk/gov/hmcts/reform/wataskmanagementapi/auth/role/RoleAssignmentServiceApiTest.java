@@ -8,6 +8,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
@@ -89,9 +90,11 @@ class RoleAssignmentServiceApiTest {
         );
 
         when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
-            eq(S2S_TOKEN),
-            any(MultipleQueryRequest.class)))
-            .thenReturn(roleAssignmentResource);
+                                                           eq(S2S_TOKEN),
+                                                           eq(0),
+                                                           eq(50),
+                                                           any(MultipleQueryRequest.class)))
+            .thenReturn(ResponseEntity.ok(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.searchRolesByCaseId(caseId);
 
@@ -101,6 +104,8 @@ class RoleAssignmentServiceApiTest {
         verify(roleAssignmentServiceApi).queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
+            eq(0),
+            eq(50),
             captor.capture()
         );
 
@@ -124,10 +129,14 @@ class RoleAssignmentServiceApiTest {
             singletonList(testRoleAssignment)
         );
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
-            any(MultipleQueryRequest.class)))
-            .thenReturn(roleAssignmentResource);
+            eq(0),
+            eq(50),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
             createTestTaskWithRoleResources(
@@ -142,6 +151,8 @@ class RoleAssignmentServiceApiTest {
         verify(roleAssignmentServiceApi).queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
+            eq(0),
+            eq(50),
             captor.capture()
         );
 
@@ -163,10 +174,14 @@ class RoleAssignmentServiceApiTest {
             singletonList(testRoleAssignment)
         );
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
-            any(MultipleQueryRequest.class)))
-            .thenReturn(roleAssignmentResource);
+            eq(0),
+            eq(50),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
             createTestTaskWithRoleResources(
@@ -181,6 +196,8 @@ class RoleAssignmentServiceApiTest {
         verify(roleAssignmentServiceApi).queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
+            eq(0),
+            eq(50),
             captor.capture()
         );
 
@@ -204,8 +221,10 @@ class RoleAssignmentServiceApiTest {
 
         when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
+                                                           eq(0),
+                                                           eq(50),
             any(MultipleQueryRequest.class)))
-            .thenReturn(roleAssignmentResource);
+            .thenReturn(ResponseEntity.ok(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
             createTestTaskWithRoleResources(
@@ -220,6 +239,8 @@ class RoleAssignmentServiceApiTest {
         verify(roleAssignmentServiceApi).queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
+            eq(0),
+            eq(50),
             captor.capture()
         );
 
@@ -238,9 +259,13 @@ class RoleAssignmentServiceApiTest {
     void should_throw_server_error_exception_when_call_to_role_assignment_fails() {
 
         doThrow(FeignException.FeignServerException.class)
-            .when(roleAssignmentServiceApi).queryRoleAssignments(eq(IDAM_USER_TOKEN),
+            .when(roleAssignmentServiceApi).queryRoleAssignments(
+                eq(IDAM_USER_TOKEN),
                 eq(S2S_TOKEN),
-                any(MultipleQueryRequest.class));
+                eq(0),
+                eq(50),
+                any(MultipleQueryRequest.class)
+            );
 
         assertThatThrownBy(() -> roleAssignmentService.searchRolesByCaseId(caseId))
             .isInstanceOf(ServerErrorException.class)

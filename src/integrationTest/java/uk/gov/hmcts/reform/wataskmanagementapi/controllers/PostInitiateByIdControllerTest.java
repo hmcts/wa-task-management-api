@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -207,8 +208,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
             ));
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(emptyList()));
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok(new RoleAssignmentResource(emptyList())));
 
         ExecutorService executorService = new ScheduledThreadPoolExecutor(2);
         executorService.execute(() -> {
@@ -348,8 +349,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
             ));
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(emptyList()));
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok(new RoleAssignmentResource(emptyList())));
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
@@ -464,8 +465,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             ));
 
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok(new RoleAssignmentResource(
                 singletonList(RoleAssignment.builder()
                                   .id("someId")
                                   .actorIdType(ActorIdType.IDAM)
@@ -476,7 +477,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                                   .roleType(RoleType.ORGANISATION)
                                   .classification(Classification.PUBLIC)
                                   .authorisations(List.of("IA"))
-                                  .build())));
+                                  .build()))));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
@@ -572,8 +573,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             ));
 
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok(new RoleAssignmentResource(
                 singletonList(RoleAssignment.builder()
                     .id("someId")
                     .actorIdType(ActorIdType.IDAM)
@@ -584,7 +585,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .roleType(RoleType.CASE)
                     .classification(Classification.PUBLIC)
                     .authorisations(List.of("IA"))
-                    .build())));
+                    .build()))));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
@@ -792,8 +793,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(emptyList()));
-        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok(new RoleAssignmentResource(
                 singletonList(RoleAssignment.builder()
                     .id("someId")
                     .actorIdType(ActorIdType.IDAM)
@@ -804,7 +805,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .roleType(RoleType.ORGANISATION)
                     .classification(Classification.PUBLIC)
                     .authorisations(List.of("IA"))
-                    .build())));
+                    .build()))));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
@@ -903,8 +904,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(emptyList()));
-        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok(new RoleAssignmentResource(
                 singletonList(RoleAssignment.builder()
                                   .id("someId")
                                   .actorIdType(ActorIdType.IDAM)
@@ -915,7 +916,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                                   .roleType(RoleType.ORGANISATION)
                                   .classification(Classification.PUBLIC)
                                   .authorisations(List.of("IA"))
-                                  .build())));
+                                  .build()))));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
@@ -1032,8 +1033,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.getRolesForUser(eq("someAssignee"), any(), any()))
             .thenReturn(new RoleAssignmentResource(emptyList()));
-        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(emptyList()));
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok(new RoleAssignmentResource(emptyList())));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
