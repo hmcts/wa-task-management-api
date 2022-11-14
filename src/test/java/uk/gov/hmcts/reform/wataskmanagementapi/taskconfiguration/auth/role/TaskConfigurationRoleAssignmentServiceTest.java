@@ -100,7 +100,8 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(50),
             any(MultipleQueryRequest.class)
         ))
-            .thenReturn(ResponseEntity.ok(roleAssignmentResource));
+            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
+                            .body(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.searchRolesByCaseId(caseId);
 
@@ -177,7 +178,8 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(50),
             any(MultipleQueryRequest.class)
         ))
-            .thenReturn(ResponseEntity.ok(roleAssignmentResource));
+            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
+                            .body(roleAssignmentResource));
 
         List<RoleAssignment> roleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
 

@@ -108,7 +108,7 @@ public class TaskConfigurationRoleAssignmentService {
                 List<RoleAssignment> roleAssignmentResponse = requireNonNull(responseEntity.getBody())
                     .getRoleAssignmentResponse();
 
-                if(roleAssignmentResponse.isEmpty()) {
+                if (roleAssignmentResponse.isEmpty()) {
                     roleAssignments.addAll(roleAssignmentResponse);
                 }
             }
@@ -119,15 +119,15 @@ public class TaskConfigurationRoleAssignmentService {
         }
     }
 
-    private ResponseEntity<RoleAssignmentResource> getPageResponse(MultipleQueryRequest multipleQueryRequest, int pageNumber) {
-        ResponseEntity<RoleAssignmentResource> responseEntity = roleAssignmentServiceApi.queryRoleAssignments(
+    private ResponseEntity<RoleAssignmentResource> getPageResponse(
+        MultipleQueryRequest multipleQueryRequest, int pageNumber) {
+        return roleAssignmentServiceApi.queryRoleAssignments(
             systemUserIdamToken.generate(),
             serviceAuthTokenGenerator.generate(),
             pageNumber,
             50,
             multipleQueryRequest
         );
-        return responseEntity;
     }
 
     private MultipleQueryRequest buildQueryForAutoAssignment(TaskResource taskResource) {

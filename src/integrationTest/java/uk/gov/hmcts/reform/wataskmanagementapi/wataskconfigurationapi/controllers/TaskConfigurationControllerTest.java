@@ -420,8 +420,9 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             eq(50),
             any(MultipleQueryRequest.class)
         ))
-            .thenReturn(ResponseEntity.ok(new RoleAssignmentResource(getRoleAssignment
-                                                                         .apply(shouldReturnRoleAssignment))));
+            .thenReturn(ResponseEntity.ok()
+                            .header("Total-Records", "1")
+                            .body(new RoleAssignmentResource(getRoleAssignment.apply(shouldReturnRoleAssignment))));
 
     }
 
@@ -437,8 +438,10 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             eq(0),
             eq(50),
             any(MultipleQueryRequest.class)
-        )).thenReturn(ResponseEntity.ok(new RoleAssignmentResource(getRoleAssignment
-                                                                               .apply(shouldReturnRoleAssignment))));
+        )).thenReturn(ResponseEntity.ok()
+                                  .header("Total-Records", "1")
+                                  .body(new RoleAssignmentResource(getRoleAssignment
+                                                                       .apply(shouldReturnRoleAssignment))));
 
     }
 

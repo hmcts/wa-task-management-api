@@ -60,8 +60,8 @@ public interface RoleAssignmentServiceApi {
     ResponseEntity<RoleAssignmentResource> queryRoleAssignments(
         @RequestHeader(AUTHORIZATION) String userToken,
         @RequestHeader(SERVICE_AUTHORIZATION) String s2sToken,
-        @RequestHeader(value = "pageNumber") Integer pageNumber,
-        @RequestHeader(value = "size") Integer size,
+        @RequestHeader("pageNumber") Integer pageNumber,
+        @RequestHeader("size") Integer size,
         @RequestBody MultipleQueryRequest queryRequest
     );
 }

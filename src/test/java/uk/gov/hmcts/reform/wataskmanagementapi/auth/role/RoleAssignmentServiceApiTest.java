@@ -94,7 +94,8 @@ class RoleAssignmentServiceApiTest {
                                                            eq(0),
                                                            eq(50),
                                                            any(MultipleQueryRequest.class)))
-            .thenReturn(ResponseEntity.ok(roleAssignmentResource));
+            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
+                            .body(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.searchRolesByCaseId(caseId);
 
@@ -136,7 +137,8 @@ class RoleAssignmentServiceApiTest {
             eq(50),
             any(MultipleQueryRequest.class)
         ))
-            .thenReturn(ResponseEntity.ok(roleAssignmentResource));
+            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
+                            .body(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
             createTestTaskWithRoleResources(
@@ -181,7 +183,8 @@ class RoleAssignmentServiceApiTest {
             eq(50),
             any(MultipleQueryRequest.class)
         ))
-            .thenReturn(ResponseEntity.ok(roleAssignmentResource));
+            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
+                            .body(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
             createTestTaskWithRoleResources(
@@ -224,7 +227,8 @@ class RoleAssignmentServiceApiTest {
                                                            eq(0),
                                                            eq(50),
             any(MultipleQueryRequest.class)))
-            .thenReturn(ResponseEntity.ok(roleAssignmentResource));
+            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
+                            .body(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
             createTestTaskWithRoleResources(
