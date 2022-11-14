@@ -16,11 +16,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdictio
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -253,6 +256,79 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         common.cleanUpTask(taskId);
 
+    }
+
+    //Add four IT to cover grant type SPECIFIC, STANDARD, CHALLENGED, EXCLUDED for complete request, then remove this.
+    @Test
+    public void should_return_a_204_when_completing_a_task_by_id_with_restricted_role_assignment() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        taskId = taskVariables.getTaskId();
+        initiateTask(taskVariables, Jurisdiction.WA);
+
+        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+
+        common.cleanUpTask(taskId);
+    }
+
+    //Need new IT to cover role assignment verification for attributes in common for all actions, then remove this test.
+    @Test
+    public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIdsWithCustomVariable(REGION, "1", "requests/ccd/wa_case_data.json");
+        taskId = taskVariables.getTaskId();
+
+        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), caseworkerForReadCredentials.getHeaders());
+        initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
+        //Create temporary role-assignment to assign task
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.FORBIDDEN
+        );
+
+        //Delete role-assignment and re-create
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            caseworkerCredentials.getHeaders(),
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "WA",
+                "region", "2"
+            )
+        );
+
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+
+        common.cleanUpTask(taskId);
     }
 
     private void assignTask(TestVariables taskVariables) {

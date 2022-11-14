@@ -97,9 +97,6 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
-    // RoleAssignmentVerification scenarios are covered in CftQueryServiceAssignTaskTest
-    // and PostTaskAssignByIdControllerTest integration tests
-
     @Test
     //TODO: Remove, there is nothing specifically done in assigning an already assigned tasks
     public void assigner_has_grant_type_specific_and_permission_manage_can_assign_other_already_assigned_task() {

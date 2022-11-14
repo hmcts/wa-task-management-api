@@ -286,6 +286,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions(
         String jurisdiction, String caseType) throws Exception {
 
+        //Same user has been used as a assigner and assignee
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             "tribunal-caseworker", true, false, false, true, false,
             true, new String[]{}, 1, false, "LegalOperations"

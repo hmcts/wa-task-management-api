@@ -6,7 +6,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
@@ -23,7 +22,6 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     private TestAuthenticationCredentials caseworkerForReadCredentials;
     private TestAuthenticationCredentials granularPermissionCaseworkerCredentials;
     private TestAuthenticationCredentials assignerCredentials;
-    private GrantType testGrantType = GrantType.SPECIFIC;
 
     @Before
     public void setUp() {
@@ -136,5 +134,28 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
+    //Add four IT to cover grant type SPECIFIC, STANDARD, CHALLENGED, EXCLUDED for cancel request and then remove this.
+    @Test
+    public void user_should_cancel_task_when_grant_type_challenged_and_permission_cancel() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                                       "reviewSpecificAccessRequestJudiciary");
+
+        common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
+
+        String taskId = taskVariables.getTaskId();
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.cleanUpTask(taskId);
+    }
 }
 

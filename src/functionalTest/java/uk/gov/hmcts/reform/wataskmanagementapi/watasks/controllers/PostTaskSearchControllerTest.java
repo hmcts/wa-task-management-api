@@ -475,4 +475,50 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
+    //Add an IT to cover all the sort by filed and remove this then
+    @Test
+    public void should_return_200_with_tasks_sorted_on_next_hearing_date_asc() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        List<TestVariables> tasksCreated = new ArrayList<>();
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        tasksCreated.add(taskVariables);
+        initiateTask(taskVariables, Jurisdiction.WA);
+
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        tasksCreated.add(taskVariables);
+        initiateTask(taskVariables, Jurisdiction.WA);
+
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+            ),
+            List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("tasks[0].id", is(taskIds.get(0)))
+            .body("tasks[1].id", is(taskIds.get(1)))
+            .body("total_records", equalTo(2));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+    }
+
 }
