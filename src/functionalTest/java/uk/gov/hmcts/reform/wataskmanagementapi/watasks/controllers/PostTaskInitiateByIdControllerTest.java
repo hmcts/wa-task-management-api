@@ -132,13 +132,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[6].permissions", hasItems("Read"))
             .body("roles[7].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("roles[7].role_name", equalTo("senior-tribunal-caseworker"))
-            .body("roles[7].permissions", hasItems("Read", "Execute", "Complete", "Claim", "Unclaim",
-                                                   "UnclaimAssign", "UnassignClaim", "UnassignAssign"))
+            .body("roles[7].permissions", hasItems("Read", "Execute"))
             .body("roles[8].role_name", equalTo("task-supervisor"))
-            .body("roles[8].permissions", hasItems("Read", "Manage", "Cancel", "Complete", "Assign", "Unassign"))
+            .body("roles[8].permissions", hasItems("Read", "Manage", "Cancel"))
             .body("roles[9].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("roles[9].role_name", equalTo("tribunal-caseworker"))
-            .body("roles[9].permissions", hasItems("Read","CompleteOwn","CancelOwn","Claim","Own"));
+            .body("roles[9].permissions", hasItems("Read","Own"));
 
         common.cleanUpTask(taskId);
     }
@@ -185,8 +184,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.work_type_id", equalTo("access_requests"))
                 .body("task.work_type_label", equalTo("Access requests"))
                 .body("task.role_category", equalTo("JUDICIAL"))
-                .body("task.permissions.values.size()", equalTo(3))
-                .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Own"))
                 .body("task.additional_properties", equalToObject(Map.of(
                     "roleAssignmentId", "roleAssignmentId")))
                 .body("task.minor_priority", equalTo(500))
@@ -352,7 +351,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.work_type_id", equalTo("hearing_work"))
                 .body(
                     "task.permissions.values",
-                    equalToObject(List.of("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"))
+                    equalToObject(List.of("Read", "Own"))
                 )
                 .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                       + "trigger/decideAnApplication)"))
@@ -453,7 +452,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[0].role_name", equalTo("ctsc"))
             .body("roles[0].permissions", hasItems("Read", "Own", "Cancel"))
             .body("roles[1].role_name", equalTo("task-supervisor"))
-            .body("roles[1].permissions", hasItems("Read", "Manage", "Cancel", "Complete", "Assign", "Unassign"));
+            .body("roles[1].permissions", hasItems("Read", "Manage", "Cancel"));
 
         common.cleanUpTask(taskId);
     }
@@ -529,7 +528,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[0].role_name", equalTo("senior-tribunal-caseworker"))
             .body("roles[0].permissions", hasItems("Read", "Execute"))
             .body("roles[1].role_name", equalTo("task-supervisor"))
-            .body("roles[1].permissions", hasItems("Read", "Manage", "Cancel", "Complete", "Assign", "Unassign"))
+            .body("roles[1].permissions", hasItems("Read", "Manage", "Cancel"))
             .body("roles[2].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("roles[2].role_name", equalTo("tribunal-caseworker"))
             .body("roles[2].permissions", hasItems("Read", "Execute"));
