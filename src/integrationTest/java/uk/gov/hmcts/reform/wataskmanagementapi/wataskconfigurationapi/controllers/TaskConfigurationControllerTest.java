@@ -176,9 +176,9 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
     }
 
-    @DisplayName("Should return 404 if task did not exist when configuring a task")
+    @DisplayName("Should return 502 if task did not exist when configuring a task")
     @Test
-    void should_fail_and_return_404_when_configuring_a_task_over_rest() throws Exception {
+    void should_fail_and_return_502_when_configuring_a_task_over_rest() throws Exception {
 
         when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, testTaskId))
             .thenThrow(mock(FeignException.NotFound.class));
@@ -186,10 +186,20 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         when(serviceAuthTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         mockMvc.perform(
-                post(TASK_CONFIGURATION_ENDPOINT + testTaskId)
-                    .contentType(APPLICATION_JSON_VALUE)
-            )
-            .andExpect(status().isNotFound());
+            post(TASK_CONFIGURATION_ENDPOINT + testTaskId)
+                .contentType(APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isBadGateway(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type")
+                .value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
+            jsonPath("$.title")
+                .value("Downstream Dependency Error"),
+            jsonPath("$.status")
+                .value(502),
+            jsonPath("$.detail")
+                .value("Downstream dependency did not respond as expected and the request could not be completed.")
+        );
 
         verify(camundaServiceApi, never()).addLocalVariablesToTask(
             eq(BEARER_SERVICE_TOKEN),
