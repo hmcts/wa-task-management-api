@@ -101,6 +101,61 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
         Services wa_workflow_api, wa_task_configuration, ia-case-api, ia-case-documents, ia-case-notifications should be running.
         And WA Case Type CCD definition from wa-ccd-definitions is uploaded as well.
 - To run integration tests docker should be running.
+
+If minikube is not running, run minikube. Once minikube is running run the following microservices with the following commands and run in separate terminals:
+
+Go in your local project repository and follow the steps : \
+
+ia-case-api
+```
+source $HOME/.profile && git fetch --all && git pull && ./gradlew clean build && ./gradlew clean bootRun
+```
+
+ia-case-notifications-api
+```
+source $HOME/.profile && git fetch --all && git pull && ./gradlew clean build && ./gradlew clean bootRun
+```
+
+ia-case-documents-api
+```
+source $HOME/.profile && git fetch --all && git pull && ./gradlew clean build && ./gradlew clean bootRun
+```
+
+Then upload the below repository \
+
+ia-ccd-definitions
+```
+git fetch --all && git pull && yarn install && yarn setup && yarn upload-wa
+```
+
+wa-ccd-definitions
+```
+git fetch --all && git pull && yarn install && yarn setup && yarn upload-wa
+```
+
+After uploads run the following repositories \
+
+wa-workflow-api
+```
+source $HOME/.profile && git fetch --all && git pull && ./gradlew clean build && ./gradlew clean bootRun
+```
+
+wa-case-event-handler
+```
+source $HOME/.profile && git fetch --all && git pull && ./gradlew clean build && ./gradlew clean bootRun
+```
+
+wa-task-management-api
+```
+source $HOME/.profile && git fetch --all && git pull && ./gradlew clean build && ./gradlew clean bootRun
+```
+
+wa-task-monitor
+```
+source $HOME/.profile && git fetch --all && git pull && ./gradlew clean build && ./gradlew clean bootRun
+```
+
+
 - To run all tests including junit, integration and functional. You can run the command
    ```
        ./gradlew test integration functional
