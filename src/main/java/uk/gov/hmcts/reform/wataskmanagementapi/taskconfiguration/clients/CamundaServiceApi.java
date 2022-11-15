@@ -94,4 +94,3 @@ public interface CamundaServiceApi {
         DmnRequest<DecisionTableRequest> evaluateDmnRequest
     );
 }
-
