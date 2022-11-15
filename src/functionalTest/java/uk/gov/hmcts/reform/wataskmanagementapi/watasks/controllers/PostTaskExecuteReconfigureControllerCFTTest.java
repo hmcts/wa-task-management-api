@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import org.junit.After;
@@ -35,13 +35,11 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
     private TestAuthenticationCredentials assignerCredentials;
     private TestAuthenticationCredentials assigneeCredentials;
     private String taskId;
-    private String assigneeId;
 
     @Before
     public void setUp() {
         assignerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         assigneeCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        assigneeId = getAssigneeId(assigneeCredentials.getHeaders());
     }
 
     @After
