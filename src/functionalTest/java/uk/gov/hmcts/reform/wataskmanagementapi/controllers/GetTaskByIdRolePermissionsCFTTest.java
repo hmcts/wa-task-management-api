@@ -26,16 +26,22 @@ public class GetTaskByIdRolePermissionsCFTTest extends SpringBootFunctionalBaseT
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/roles";
     private TestAuthenticationCredentials caseworkerCredentials;
+    private TestAuthenticationCredentials granularPermissionCaseworkerCredentials;
 
     @Before
     public void setUp() {
+
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        granularPermissionCaseworkerCredentials = authorizationProvider
+            .getNewTribunalCaseworker("wa-granular-permission-");
     }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+        common.clearAllRoleAssignments(granularPermissionCaseworkerCredentials.getHeaders());
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(granularPermissionCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -126,4 +132,38 @@ public class GetTaskByIdRolePermissionsCFTTest extends SpringBootFunctionalBaseT
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_return_200_and_retrieve_granular_permission() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "processApplication",
+            "process application"
+        );
+        String taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCaseworkerCredentials.getHeaders());
+
+        initiateTask(taskVariables, Jurisdiction.WA);
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            granularPermissionCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("roles.size()", equalTo(10))
+            .body("roles[0].role_category", is("LEGAL_OPERATIONS"))
+            .body("roles[0].role_name", is("case-manager"))
+            .body("roles[0].permissions.size()",  equalTo(1))
+            .body("roles[0].permissions", hasItems("Own"))
+            .body("roles[0].authorisations", empty())
+            .body("roles[3].role_category", is("LEGAL_OPERATIONS"))
+            .body("roles[3].role_name", is("challenged-access-legal-ops"))
+            .body("roles[3].permissions.size()",  equalTo(5))
+            .body("roles[3].permissions", hasItems("Own", "Manage", "Complete", "Assign", "Unassign"));
+
+        common.cleanUpTask(taskId);
+    }
 }

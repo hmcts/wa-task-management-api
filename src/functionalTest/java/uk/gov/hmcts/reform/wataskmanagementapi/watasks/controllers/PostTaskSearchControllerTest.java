@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 
@@ -35,7 +34,6 @@ import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
@@ -52,6 +50,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Before
     public void setUp() {
+
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         granularPermissionCaseworkerCredentials = authorizationProvider
             .getNewTribunalCaseworker("wa-granular-permission-");
@@ -75,17 +74,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, Jurisdiction.WA);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication", "process application");
-        tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA);
-
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
             new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
         ));
 
@@ -121,7 +116,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.warnings", everyItem(equalTo(false)))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
             .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "CompleteOwn","CancelOwn","Claim"))))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own"))))
             .body("tasks.description", everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                          + "trigger/decideAnApplication)")))
             .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
@@ -136,7 +131,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.priority_date", everyItem(notNullValue()))
             .body("tasks.minor_priority", everyItem(equalTo(500)))
             .body("tasks.major_priority", everyItem(equalTo(1000)))
-            .body("total_records", equalTo(2));
+            .body("total_records", equalTo(1));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
@@ -149,12 +144,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                                                        "processApplication",
                                                                        "process application");
-        tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA);
-
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                         "processApplication",
-                                                         "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, Jurisdiction.WA);
 
@@ -220,7 +209,56 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.priority_date", everyItem(notNullValue()))
             .body("tasks.minor_priority", everyItem(equalTo(500)))
             .body("tasks.major_priority", everyItem(equalTo(1000)))
-            .body("total_records", equalTo(2));
+            .body("total_records", equalTo(1));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+    }
+
+    @Test
+    public void should_return_a_200_with_search_results_and_correct_properties_and_granular_permission() {
+
+        common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCaseworkerCredentials.getHeaders());
+        String roleAssignmentId = UUID.randomUUID().toString();
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", roleAssignmentId,
+            "key1", "value1",
+            "key2", "value2",
+            "key3", "value3",
+            "key4", "value4",
+            "key5", "value5",
+            "key6", "value6",
+            "key7", "value7",
+            "key8", "value8"
+        );
+        List<TestVariables> tasksCreated = new ArrayList<>();
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        tasksCreated.add(taskVariables);
+        initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
+
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            granularPermissionCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("tasks.name", everyItem(equalTo("process application")))
+            .body("tasks.case_management_category", everyItem(equalTo("Protection")))
+            .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "CompleteOwn","CancelOwn","Claim"))));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
@@ -257,7 +295,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
             new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
         ));
 
@@ -300,7 +338,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             asList(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+                new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
             ),
             List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
@@ -345,7 +383,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             asList(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+                new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
             ),
             List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
