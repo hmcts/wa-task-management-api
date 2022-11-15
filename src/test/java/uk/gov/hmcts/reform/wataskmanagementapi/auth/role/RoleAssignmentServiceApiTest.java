@@ -44,6 +44,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.MAX_NO_RECORDS_TO_BE_FETCHED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.TOTAL_RECORDS;
 
 @ExtendWith(MockitoExtension.class)
 class RoleAssignmentServiceApiTest {
@@ -92,10 +94,9 @@ class RoleAssignmentServiceApiTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
                                                            eq(S2S_TOKEN),
                                                            eq(0),
-                                                           eq(50),
+                                                           eq(MAX_NO_RECORDS_TO_BE_FETCHED),
                                                            any(MultipleQueryRequest.class)))
-            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
-                            .body(roleAssignmentResource));
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1").body(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.searchRolesByCaseId(caseId);
 
@@ -106,7 +107,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             captor.capture()
         );
 
@@ -134,10 +135,10 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             any(MultipleQueryRequest.class)
         ))
-            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1")
                             .body(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
@@ -154,7 +155,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             captor.capture()
         );
 
@@ -180,10 +181,10 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             any(MultipleQueryRequest.class)
         ))
-            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1")
                             .body(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
@@ -200,7 +201,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             captor.capture()
         );
 
@@ -222,13 +223,14 @@ class RoleAssignmentServiceApiTest {
             Collections.emptyList()
         );
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
-                                                           eq(0),
-                                                           eq(50),
-            any(MultipleQueryRequest.class)))
-            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
-                            .body(roleAssignmentResource));
+            eq(0),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1").body(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
             createTestTaskWithRoleResources(
@@ -244,7 +246,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             captor.capture()
         );
 
@@ -267,7 +269,7 @@ class RoleAssignmentServiceApiTest {
                 eq(IDAM_USER_TOKEN),
                 eq(S2S_TOKEN),
                 eq(0),
-                eq(50),
+                eq(MAX_NO_RECORDS_TO_BE_FETCHED),
                 any(MultipleQueryRequest.class)
             );
 

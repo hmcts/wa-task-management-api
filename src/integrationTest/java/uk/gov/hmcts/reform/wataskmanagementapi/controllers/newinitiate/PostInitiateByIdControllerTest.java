@@ -76,6 +76,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.TOTAL_RECORDS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
@@ -213,7 +214,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
-                            .header("Total-Records", "0")
+                            .header(TOTAL_RECORDS, "0")
                             .body(new RoleAssignmentResource(emptyList())));
 
         ExecutorService executorService = new ScheduledThreadPoolExecutor(2);
@@ -365,7 +366,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
-                            .header("Total-Records", "0")
+                            .header(TOTAL_RECORDS, "0")
                             .body(new RoleAssignmentResource(emptyList())));
 
         ZonedDateTime createdDate = ZonedDateTime.now();
@@ -486,7 +487,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
-                            .header("Total-Records", "1")
+                            .header(TOTAL_RECORDS, "1")
                             .body(new RoleAssignmentResource(
                                 singletonList(RoleAssignment.builder()
                                                   .id("someId")
@@ -599,7 +600,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
-                            .header("Total-Records", "1")
+                            .header(TOTAL_RECORDS, "1")
                             .body(new RoleAssignmentResource(
                                 singletonList(RoleAssignment.builder()
                                                   .id("someId")
@@ -827,7 +828,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(new RoleAssignmentResource(emptyList()));
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
-                            .header("Total-Records", "1")
+                            .header(TOTAL_RECORDS, "1")
                             .body(new RoleAssignmentResource(
                                 singletonList(RoleAssignment.builder()
                                                   .id("someId")
@@ -944,7 +945,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(new RoleAssignmentResource(emptyList()));
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
-                            .header("Total-Records", "1")
+                            .header(TOTAL_RECORDS, "1")
                             .body(new RoleAssignmentResource(
                                 singletonList(RoleAssignment.builder()
                                                   .id("someId")
@@ -1079,7 +1080,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(new RoleAssignmentResource(emptyList()));
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
-                            .header("Total-Records", "0")
+                            .header(TOTAL_RECORDS, "0")
                             .body(new RoleAssignmentResource(emptyList()))
             );
         ZonedDateTime createdDate = ZonedDateTime.now();

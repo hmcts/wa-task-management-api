@@ -29,11 +29,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entit
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -48,6 +50,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.MAX_NO_RECORDS_TO_BE_FETCHED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.TOTAL_RECORDS;
 
 @ExtendWith(MockitoExtension.class)
 class TaskConfigurationRoleAssignmentServiceTest {
@@ -97,10 +101,10 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             any(MultipleQueryRequest.class)
         ))
-            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1")
                             .body(roleAssignmentResource));
 
         final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.searchRolesByCaseId(caseId);
@@ -112,7 +116,61 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            captor.capture()
+        );
+
+        MultipleQueryRequest queryRequests = captor.getValue();
+
+        assertThat(queryRequests).isNotNull();
+        assertThat(queryRequests.getQueryRequests()).isNotEmpty();
+        QueryRequest actualQueryRequest = queryRequests.getQueryRequests().get(0);
+        assertThat(actualQueryRequest.getRoleType()).contains(RoleType.CASE);
+        assertThat(actualQueryRequest.getRoleName()).contains("tribunal-caseworker");
+        assertThat(actualQueryRequest.getValidAt()).isBefore(LocalDateTime.now());
+        assertThat(actualQueryRequest.getHasAttributes()).isNull();
+        assertThat(actualQueryRequest.getAttributes()).isNotNull();
+        assertThat(actualQueryRequest.getAttributes().get("caseId")).contains(caseId);
+    }
+
+    @Test
+    void should_search_roles_by_case_id_with_total_records_more_than_50() {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        IntStream.range(0, 50).forEach((i) -> roleAssignments.add(getRoleAssignment()));
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            eq(0),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "75")
+                            .body(new RoleAssignmentResource(roleAssignments)));
+
+        List<RoleAssignment> secondIteration = new ArrayList<>();
+        IntStream.range(0, 25).forEach((i) -> secondIteration.add(getRoleAssignment()));
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            eq(1),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "75")
+                            .body(new RoleAssignmentResource(secondIteration)));
+
+        final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.searchRolesByCaseId(caseId);
+
+        assertNotNull(actualRoleAssignments);
+        assertEquals(75, actualRoleAssignments.size());
+
+        verify(roleAssignmentServiceApi).queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            eq(0),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             captor.capture()
         );
 
@@ -133,11 +191,13 @@ class TaskConfigurationRoleAssignmentServiceTest {
     void should_throw_server_error_exception_when_call_to_role_assignment_fails() {
 
         doThrow(FeignException.FeignServerException.class)
-            .when(roleAssignmentServiceApi).queryRoleAssignments(eq(IDAM_USER_TOKEN),
+            .when(roleAssignmentServiceApi).queryRoleAssignments(
+                eq(IDAM_USER_TOKEN),
                 eq(S2S_TOKEN),
-                                                                 eq(0),
-                                                                 eq(50),
-                any(MultipleQueryRequest.class));
+                eq(0),
+                eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+                any(MultipleQueryRequest.class)
+            );
 
         assertThatThrownBy(() -> roleAssignmentService.searchRolesByCaseId(caseId))
             .isInstanceOf(ServerErrorException.class)
@@ -175,10 +235,10 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             any(MultipleQueryRequest.class)
         ))
-            .thenReturn(ResponseEntity.ok().header("Total-Records", "1")
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1")
                             .body(roleAssignmentResource));
 
         List<RoleAssignment> roleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
@@ -189,7 +249,7 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             captor.capture()
         );
 

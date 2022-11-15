@@ -31,6 +31,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.MAX_NO_RECORDS_TO_BE_FETCHED;
 
 public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest {
 
@@ -60,7 +61,7 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
             "user token",
             "s2s token",
             0,
-            50,
+            MAX_NO_RECORDS_TO_BE_FETCHED,
             MultipleQueryRequest.builder().build()
         ).getBody();
 
@@ -98,7 +99,8 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
         RoleAssignmentResource roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
             "user token",
             "s2s token",
-            0,50,
+            0,
+            MAX_NO_RECORDS_TO_BE_FETCHED,
             MultipleQueryRequest.builder().build()
         ).getBody();
 
@@ -156,7 +158,7 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
             "user token",
             "s2s token",
             0,
-            50,
+            MAX_NO_RECORDS_TO_BE_FETCHED,
             MultipleQueryRequest.builder().build()
         ).getBody();
 

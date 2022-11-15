@@ -40,6 +40,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.C
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.AvoidDuplicateLiterals"})
 public class TaskConfigurationRoleAssignmentService {
 
+    public static final String TOTAL_RECORDS = "Total-Records";
+    public static final int MAX_NO_RECORDS_TO_BE_FETCHED = 50;
+    public static final int DEFAULT_PAGE_NUMBER = 0;
     private final AuthTokenGenerator serviceAuthTokenGenerator;
 
     private final RoleAssignmentServiceApi roleAssignmentServiceApi;
@@ -90,7 +93,7 @@ public class TaskConfigurationRoleAssignmentService {
 
     public RoleAssignmentResource performSearch(MultipleQueryRequest multipleQueryRequest) {
 
-        int pageNumber = 0;
+        int pageNumber = DEFAULT_PAGE_NUMBER;
 
         try {
             ResponseEntity<RoleAssignmentResource> responseEntity = getPageResponse(
@@ -100,15 +103,15 @@ public class TaskConfigurationRoleAssignmentService {
             List<RoleAssignment> roleAssignments
                 = new ArrayList<>(requireNonNull(responseEntity.getBody()).getRoleAssignmentResponse());
 
-            long totalRecords = Long.parseLong(responseEntity.getHeaders().get("Total-Records").get(0));
-            long totalPageNumber = totalRecords / 50;
+            long totalRecords = Long.parseLong(responseEntity.getHeaders().get(TOTAL_RECORDS).get(DEFAULT_PAGE_NUMBER));
+            long totalPageNumber = totalRecords / MAX_NO_RECORDS_TO_BE_FETCHED;
             while (totalPageNumber > pageNumber) {
                 pageNumber += 1;
                 responseEntity = getPageResponse(multipleQueryRequest, pageNumber);
                 List<RoleAssignment> roleAssignmentResponse = requireNonNull(responseEntity.getBody())
                     .getRoleAssignmentResponse();
 
-                if (roleAssignmentResponse.isEmpty()) {
+                if (!roleAssignmentResponse.isEmpty()) {
                     roleAssignments.addAll(roleAssignmentResponse);
                 }
             }
@@ -125,7 +128,7 @@ public class TaskConfigurationRoleAssignmentService {
             systemUserIdamToken.generate(),
             serviceAuthTokenGenerator.generate(),
             pageNumber,
-            50,
+            MAX_NO_RECORDS_TO_BE_FETCHED,
             multipleQueryRequest
         );
     }

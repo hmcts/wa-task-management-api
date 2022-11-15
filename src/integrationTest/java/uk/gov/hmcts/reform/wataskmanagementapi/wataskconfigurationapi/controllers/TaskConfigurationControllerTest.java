@@ -67,6 +67,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNCONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.MAX_NO_RECORDS_TO_BE_FETCHED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.TOTAL_RECORDS;
 
 class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
 
@@ -417,11 +419,11 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             eq(BEARER_USER_TOKEN),
             eq(BEARER_SERVICE_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             any(MultipleQueryRequest.class)
         ))
             .thenReturn(ResponseEntity.ok()
-                            .header("Total-Records", "1")
+                            .header(TOTAL_RECORDS, "1")
                             .body(new RoleAssignmentResource(getRoleAssignment.apply(shouldReturnRoleAssignment))));
 
     }
@@ -436,10 +438,10 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             eq(BEARER_USER_TOKEN),
             eq(BEARER_SERVICE_TOKEN),
             eq(0),
-            eq(50),
+            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
             any(MultipleQueryRequest.class)
         )).thenReturn(ResponseEntity.ok()
-                                  .header("Total-Records", "1")
+                                  .header(TOTAL_RECORDS, "1")
                                   .body(new RoleAssignmentResource(getRoleAssignment
                                                                        .apply(shouldReturnRoleAssignment))));
 
