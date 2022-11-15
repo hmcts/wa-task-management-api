@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOpe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
@@ -48,6 +49,8 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -191,6 +194,9 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
             assertNull(task.getNextHearingDate());
             assertNull(task.getNextHearingId());
+            assertNotNull(task.getLastUpdatedTimestamp());
+            assertEquals("system_user1", task.getLastUpdatedUser());
+            assertEquals(TaskAction.CONFIGURE, task.getLastUpdatedAction());
         });
     }
 
@@ -271,6 +277,9 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                     task.getNextHearingDate().toLocalDate()
                 );
                 assertEquals("nextHearingId1", task.getNextHearingId());
+            assertNotNull(task.getLastUpdatedTimestamp());
+            assertEquals("system_user1", task.getLastUpdatedUser());
+            assertEquals(TaskAction.CONFIGURE, task.getLastUpdatedAction());
             }
         );
     }
