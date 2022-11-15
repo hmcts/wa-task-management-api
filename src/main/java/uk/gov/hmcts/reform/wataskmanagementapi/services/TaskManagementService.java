@@ -40,6 +40,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorE
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
@@ -559,7 +560,7 @@ public class TaskManagementService {
         try {
             //Perform Camunda updates
             camundaService.completeTask(taskId, taskHasCompleted);
-        } catch (Exception e) {
+        } catch (TaskCompleteException e) {
             boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
             if (!isTaskCompleted) {
                 log.error("Task Completion failed for task ({}) due to {}.", taskId, e.getMessage());
