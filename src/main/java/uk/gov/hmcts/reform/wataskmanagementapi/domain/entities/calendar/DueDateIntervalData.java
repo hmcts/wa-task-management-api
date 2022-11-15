@@ -22,8 +22,8 @@ public class DueDateIntervalData {
 
     public boolean dueDateMustBeWorkingDayBoolean() {
         return dueDateMustBeWorkingDay.isEmpty()
-            || "Next".equalsIgnoreCase(dueDateMustBeWorkingDay)
-            || "Previous".equalsIgnoreCase(dueDateMustBeWorkingDay);
+            || DUE_DATE_MUST_BE_WORKING_DAY_NEXT.equalsIgnoreCase(dueDateMustBeWorkingDay)
+            || DUE_DATE_MUST_BE_WORKING_DAY_NEXT.equalsIgnoreCase(dueDateMustBeWorkingDay);
 
     }
 }

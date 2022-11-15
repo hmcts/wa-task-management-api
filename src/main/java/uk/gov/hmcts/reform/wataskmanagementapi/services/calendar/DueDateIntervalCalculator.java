@@ -121,7 +121,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
                                          .reduce((a, b) -> b)
                                          .map(ConfigurationDmnEvaluationResponse::getValue)
                                          .map(CamundaValue::getValue)
-                                         .orElse("Next"))
+                                         .orElse(DUE_DATE_MUST_BE_WORKING_DAY_NEXT))
             .dueDateTime(dueDateProperties.stream()
                              .filter(r -> r.getName().getValue().equals(DUE_DATE_TIME))
                              .reduce((a, b) -> b)
