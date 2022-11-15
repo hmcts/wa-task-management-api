@@ -77,15 +77,12 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     driverClassName: org.postgresql.Driver
-#    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
     jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:}
   datasource-replica:
     driverClassName: org.postgresql.Driver
-#    url: jdbc:postgresql://localhost:5433/cft_task_db_replica${POSTGRES_CONNECTION_OPTIONS:}
-    jdbcUrl: jdbc:postgresql://ccd-shared-database-replica:5433/cft_task_db_replica${POSTGRES_CONNECTION_OPTIONS:}
-#    url: jdbc:postgresql://${POSTGRES_HOST_REPLICA:ccd-shared-database-replica}:${POSTGRES_REPLICA_PORT:5433}/${POSTGRES_REPLICA_NAME:cft_task_db_replica}${POSTGRES_CONNECTION_OPTIONS:}
+    jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/cft_task_db_replica${POSTGRES_CONNECTION_OPTIONS:}
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:}
   jpa:

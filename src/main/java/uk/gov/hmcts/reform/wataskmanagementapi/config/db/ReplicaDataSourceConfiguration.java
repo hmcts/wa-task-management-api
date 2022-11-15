@@ -16,11 +16,6 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableTransactionManagement
-//@EnableJpaRepositories(
-//    entityManagerFactoryRef = "replicaEntityManagerFactory",
-//    transactionManagerRef = "replicaTransactionManager",
-//    basePackages = {"uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.replica"}
-//)
 public class ReplicaDataSourceConfiguration {
 
     @Bean(name = "replicaDataSource")
