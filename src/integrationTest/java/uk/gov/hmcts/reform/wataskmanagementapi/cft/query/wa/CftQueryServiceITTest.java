@@ -171,7 +171,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
-                                                                                scenario.roleAssignments);
+            scenario.roleAssignments);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
@@ -197,7 +197,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
-                                                                                scenario.roleAssignments);
+            scenario.roleAssignments);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
@@ -589,7 +589,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             0,
             10,
             searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
 

@@ -84,7 +84,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
             new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
-            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds),
+            new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList("processApplication"))
         ));
 
         Response result = restApiActions.post(
@@ -145,14 +146,14 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication",
-                                                                       "process application");
+            "processApplication",
+            "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, Jurisdiction.WA);
 
         common.setupHearingPanelJudgeForStandardAccess(granularPermissionCaseworkerCredentials.getHeaders(),
-                                                       "WA",
-                                                       "WaCaseType"
+            "WA",
+            "WaCaseType"
         );
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
@@ -261,7 +262,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.name", everyItem(equalTo("process application")))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
             .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "CompleteOwn","CancelOwn","Claim"))));
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"))));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId()));

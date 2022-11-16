@@ -425,7 +425,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
             .thenReturn(new GetTasksResponse<>(List.of(createTaskForTaskTypeSearch()), 1L));
     }
 }
