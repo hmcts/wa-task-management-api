@@ -31,10 +31,14 @@ public class TaskType {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TaskType taskType = (TaskType) o;
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        TaskType taskType = (TaskType) obj;
         return taskTypeId.equalsIgnoreCase(taskType.taskTypeId);
     }
 
