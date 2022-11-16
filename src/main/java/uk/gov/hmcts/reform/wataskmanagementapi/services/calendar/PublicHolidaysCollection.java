@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import feign.Feign;
 import feign.FeignException;
+import feign.codec.DecodeException;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.exceptions.CalendarResourceInvalidException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.exceptions.CalendarResourceNotFoundException;
 
 import java.time.LocalDate;
@@ -42,6 +44,9 @@ public class PublicHolidaysCollection {
                 .map(item -> LocalDate.parse(item.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
                 .collect(Collectors.toSet())
                 : Set.of();
+        } catch (DecodeException e) {
+            log.error("Could not read calendar resource {}", uri, e);
+            throw new CalendarResourceInvalidException("Could not read calendar resource " + uri, e);
         } catch (FeignException e) {
             log.error("Could not find calendar resource {}", uri, e);
             throw new CalendarResourceNotFoundException("Could not find calendar resource " + uri, e);

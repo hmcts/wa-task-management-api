@@ -16,6 +16,11 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
+import java.util.Arrays;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.TEXT_PLAIN;
+
 @Configuration
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class SnakeCaseFeignConfiguration {
@@ -37,7 +42,8 @@ public class SnakeCaseFeignConfiguration {
 
     @Bean
     public Decoder feignDecoder() {
-        HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(objectMapper);
+        MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(objectMapper);
+        jacksonConverter.setSupportedMediaTypes(Arrays.asList(TEXT_PLAIN, APPLICATION_JSON));
         ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
         return new ResponseEntityDecoder(new SpringDecoder(objectFactory));
     }

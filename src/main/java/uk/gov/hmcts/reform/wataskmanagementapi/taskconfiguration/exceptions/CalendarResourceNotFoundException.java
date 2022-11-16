@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.exceptions;
 
-import feign.FeignException;
+public class CalendarResourceNotFoundException extends RuntimeException {
+    private static final long serialVersionUID = 6753971692367781003L;
 
-public class CalendarResourceNotFoundException extends RuntimeException{
     public CalendarResourceNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }
