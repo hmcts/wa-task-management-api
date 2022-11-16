@@ -12,9 +12,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
@@ -30,11 +36,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,11 +48,13 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,6 +62,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -76,13 +85,16 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     private ClientAccessControlService clientAccessControlService;
 
     @MockBean
-    private TaskAutoAssignmentService taskAutoAssignmentService;
+    private CftQueryService cftQueryService;
 
     @MockBean
     private CaseConfigurationProviderService caseConfigurationProviderService;
 
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
+
+    @MockBean
+    private TaskConfigurationRoleAssignmentService roleAssignmentService;
 
     @MockBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
@@ -115,7 +127,15 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         bearerAccessToken1 = "Token" + UUID.randomUUID();
         when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid("system_user1").build());
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        RoleAssignment roleAssignmentResource = buildRoleAssignment(
+            "assigneeUser@test.com",
+            "case-worker",
+            singletonList("IA")
+        );
+        List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource);
+        when(roleAssignmentService.getRolesByUserId(any())).thenReturn(roleAssignmentForAssignee);
+        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.empty());
     }
 
     @Test
@@ -194,7 +214,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             assertNull(task.getNextHearingId());
             assertNotNull(task.getLastUpdatedTimestamp());
             assertEquals("system_user1", task.getLastUpdatedUser());
-            assertEquals(TaskAction.CONFIGURE, task.getLastUpdatedAction());
+            assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
         });
     }
 
@@ -275,9 +295,9 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                     task.getNextHearingDate().toLocalDate()
                 );
                 assertEquals("nextHearingId1", task.getNextHearingId());
-            assertNotNull(task.getLastUpdatedTimestamp());
-            assertEquals("system_user1", task.getLastUpdatedUser());
-            assertEquals(TaskAction.CONFIGURE, task.getLastUpdatedAction());
+                assertNotNull(task.getLastUpdatedTimestamp());
+                assertEquals("system_user1", task.getLastUpdatedUser());
+                assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
             }
         );
     }
@@ -380,10 +400,10 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     private void createTaskAndRoleAssignments(CFTTaskState cftTaskState, String caseId) {
         //assigner permission : manage, own, cancel
         TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
+            TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER.getRoleName(),
             false, true, true, true, true, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
+            TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER.getRoleCategory().name()
         );
         String jurisdiction = "IA";
         String caseType = "Asylum";
@@ -392,7 +412,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER)
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
@@ -477,6 +497,22 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 booleanValue(canReconfigure)
             )
         );
+    }
+
+    private RoleAssignment buildRoleAssignment(String actorId, String roleName, List<String> authorisations) {
+        return RoleAssignment.builder()
+            .id(UUID.randomUUID().toString())
+            .actorIdType(ActorIdType.IDAM)
+            .actorId(actorId)
+            .roleName(roleName)
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .roleType(RoleType.ORGANISATION)
+            .classification(Classification.PUBLIC)
+            .authorisations(authorisations)
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
     }
 
 }
