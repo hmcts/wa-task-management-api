@@ -244,7 +244,7 @@ class TaskSearchControllerTest {
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
         when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(),
-                                            anyBoolean())).thenReturn(tasksResponse);
+            anyBoolean())).thenReturn(tasksResponse);
 
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
@@ -323,7 +323,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any())).thenReturn(tasksResponse);
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean())).thenReturn(tasksResponse);
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
             new SearchTaskRequest(
