@@ -60,12 +60,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task";
+    private static final String FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL = "followUpOverdueReasonsForAppeal";
     private static final String TASK_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String CAMUNDA_SEARCH_HISTORY_ENDPOINT = "/history/variable-instance";
     private static final Map<String, String> TASK_TYPE_WORK_TYPE_MAP = new HashMap<>() {
         {
             put("arrangeOfflinePayment", "routine_work");
-            put("followUpOverdueReasonsForAppeal", "decision_making_work");
+            put(FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL, "decision_making_work");
         }
     };
 
@@ -117,8 +118,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     @Test
     public void given_sort_by_parameter_should_support_camelCase_and_snake_case() {
         // create some tasks
-        TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
-        TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
+        TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds(FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL);
+        TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds(FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL);
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
@@ -181,7 +182,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_return_a_200_with_search_results_and_warnings() {
-        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds("followUpOverdueReasonsForAppeal");
+        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds(FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL);
         final String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
@@ -297,7 +298,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_return_a_200_with_search_results_based_on_state_unassigned() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL);
         final String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
@@ -326,7 +327,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_return_a_200_with_search_results_based_on_state_assigned() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("followUpOverdueReasonsForAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL);
         final String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
@@ -364,7 +365,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_TYPE, "followUpOverdueReasonsForAppeal"
+            CamundaVariableDefinition.TASK_TYPE, FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
@@ -402,7 +403,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_TYPE, "followUpOverdueReasonsForAppeal"
+            CamundaVariableDefinition.TASK_TYPE, FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
@@ -443,7 +444,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "17595",
-            CamundaVariableDefinition.TASK_TYPE, "followUpOverdueReasonsForAppeal"
+            CamundaVariableDefinition.TASK_TYPE, FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
@@ -480,7 +481,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
-            CamundaVariableDefinition.TASK_TYPE, "followUpOverdueReasonsForAppeal"
+            CamundaVariableDefinition.TASK_TYPE, FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
@@ -524,7 +525,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
-            CamundaVariableDefinition.TASK_TYPE, "followUpOverdueReasonsForAppeal"
+            CamundaVariableDefinition.TASK_TYPE, FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
@@ -710,7 +711,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_have_consistent_unassigned_state_in_camunda_and_cft_db() {
-        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds("followUpOverdueReasonsForAppeal");
+        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds(FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL);
         String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
@@ -883,7 +884,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_search_by_work_type_and_return_a_task_with_same_work_type() {
-        String taskType = "followUpOverdueReasonsForAppeal";
+        String taskType = FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL;
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
@@ -919,7 +920,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     @Test
     public void should_search_by_multiple_work_types_and_return_tasks_for_each_work_type() {
         //initiate first task
-        String taskType = "followUpOverdueReasonsForAppeal";
+        String taskType = FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL;
         TestVariables taskVariables1 = common.setupTaskWithWarningsAndRetrieveIds(taskType);
         final String taskId1 = taskVariables1.getTaskId();
 
@@ -955,7 +956,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.case_id", contains(taskVariables2.getCaseId(), taskVariables1.getCaseId()))
             .body("tasks.id", contains(taskId2, taskId1))
             .body("tasks.work_type_id", hasItems(
-                TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"),
+                TASK_TYPE_WORK_TYPE_MAP.get(FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL),
                 TASK_TYPE_WORK_TYPE_MAP.get("arrangeOfflinePayment"))
             )
             .body("total_records", equalTo(2));
@@ -991,7 +992,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_return_empty_list_when_search_by_work_type_exists_and_case_id_not_exists() {
-        String taskType = "followUpOverdueReasonsForAppeal";
+        String taskType = FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL;
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds(taskType);
         final String taskId = taskVariables.getTaskId();
 
@@ -1001,7 +1002,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN,
-                singletonList(TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"))),
+                singletonList(TASK_TYPE_WORK_TYPE_MAP.get(FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL))),
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("dummyCaseId"))
         ));
 
@@ -1022,7 +1023,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     @Test
     public void should_search_by_case_ids_and_multiple_work_types_and_return_tasks_for_each_work_type() {
         //initiate first task
-        String taskType = "followUpOverdueReasonsForAppeal";
+        String taskType = FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL;
         TestVariables taskVariables1 = common.setupTaskWithWarningsAndRetrieveIds(taskType);
         final String taskId1 = taskVariables1.getTaskId();
 
@@ -1058,7 +1059,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.case_id", hasItems(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
             .body("tasks.id", hasItems(taskId1, taskId2))
             .body("tasks.work_type_id", hasItems(
-                TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"),
+                TASK_TYPE_WORK_TYPE_MAP.get(FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL),
                 TASK_TYPE_WORK_TYPE_MAP.get("arrangeOfflinePayment"))
             )
             .body("total_records", equalTo(2));
@@ -1176,7 +1177,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     @Test
     public void should_search_by_any_role_category_and_return_tasks_with_appropriate_role_category() {
         //initiate first task
-        String taskType = "followUpOverdueReasonsForAppeal";
+        String taskType = FOLLOWUP_OVERDUE_REASONS_FOR_APPEAL;
         TestVariables taskVariables1 = common.setupTaskWithWarningsAndRetrieveIds(taskType);
         final String taskId1 = taskVariables1.getTaskId();
 
