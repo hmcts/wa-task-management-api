@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -41,21 +42,24 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.C
 public class TaskConfigurationRoleAssignmentService {
 
     public static final String TOTAL_RECORDS = "Total-Records";
-    public static final int MAX_NO_RECORDS_TO_BE_FETCHED = 50;
     public static final int DEFAULT_PAGE_NUMBER = 0;
     private final AuthTokenGenerator serviceAuthTokenGenerator;
 
     private final RoleAssignmentServiceApi roleAssignmentServiceApi;
 
     private final IdamTokenGenerator systemUserIdamToken;
+    private final int maxRoleAssignmentRecords;
 
     @Autowired
-    public TaskConfigurationRoleAssignmentService(RoleAssignmentServiceApi roleAssignmentServiceApi,
-                                                  AuthTokenGenerator serviceAuthTokenGenerator,
-                                                  IdamTokenGenerator systemUserIdamToken) {
+    public TaskConfigurationRoleAssignmentService(
+        RoleAssignmentServiceApi roleAssignmentServiceApi,
+        AuthTokenGenerator serviceAuthTokenGenerator,
+        IdamTokenGenerator systemUserIdamToken,
+        @Value("${role-assignment-service.maxResults}") int maxRoleAssignmentRecords) {
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
         this.serviceAuthTokenGenerator = serviceAuthTokenGenerator;
         this.systemUserIdamToken = systemUserIdamToken;
+        this.maxRoleAssignmentRecords = maxRoleAssignmentRecords;
     }
 
     public List<RoleAssignment> queryRolesForAutoAssignmentByCaseId(TaskResource taskResource) {
@@ -103,8 +107,8 @@ public class TaskConfigurationRoleAssignmentService {
             List<RoleAssignment> roleAssignments
                 = new ArrayList<>(requireNonNull(responseEntity.getBody()).getRoleAssignmentResponse());
 
-            long totalRecords = Long.parseLong(responseEntity.getHeaders().get(TOTAL_RECORDS).get(DEFAULT_PAGE_NUMBER));
-            long totalPageNumber = totalRecords / MAX_NO_RECORDS_TO_BE_FETCHED;
+            long totalRecords = Long.parseLong(responseEntity.getHeaders().get(TOTAL_RECORDS).get(0));
+            long totalPageNumber = totalRecords / maxRoleAssignmentRecords;
             while (totalPageNumber > pageNumber) {
                 pageNumber += 1;
                 responseEntity = getPageResponse(multipleQueryRequest, pageNumber);
@@ -128,7 +132,7 @@ public class TaskConfigurationRoleAssignmentService {
             systemUserIdamToken.generate(),
             serviceAuthTokenGenerator.generate(),
             pageNumber,
-            MAX_NO_RECORDS_TO_BE_FETCHED,
+            maxRoleAssignmentRecords,
             multipleQueryRequest
         );
     }

@@ -44,13 +44,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.MAX_NO_RECORDS_TO_BE_FETCHED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.TOTAL_RECORDS;
 
 @ExtendWith(MockitoExtension.class)
 class RoleAssignmentServiceApiTest {
     private static final String IDAM_USER_TOKEN = "IDAM_USER_TOKEN";
     private static final String S2S_TOKEN = "S2S_SERVICE_TOKEN";
+    public static final int MAX_ROLE_ASSIGNMENT_RECORDS = 50;
 
     @Mock
     private AuthTokenGenerator serviceAuthTokenGenerator;
@@ -76,7 +76,8 @@ class RoleAssignmentServiceApiTest {
         roleAssignmentService = new TaskConfigurationRoleAssignmentService(
             roleAssignmentServiceApi,
             serviceAuthTokenGenerator,
-            idamTokenGenerator
+            idamTokenGenerator,
+            MAX_ROLE_ASSIGNMENT_RECORDS
         );
 
         when(idamTokenGenerator.generate()).thenReturn(IDAM_USER_TOKEN);
@@ -94,7 +95,7 @@ class RoleAssignmentServiceApiTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
                                                            eq(S2S_TOKEN),
                                                            eq(0),
-                                                           eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+                                                           eq(MAX_ROLE_ASSIGNMENT_RECORDS),
                                                            any(MultipleQueryRequest.class)))
             .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1").body(roleAssignmentResource));
 
@@ -107,7 +108,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -135,7 +136,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             any(MultipleQueryRequest.class)
         ))
             .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1")
@@ -155,7 +156,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -181,7 +182,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             any(MultipleQueryRequest.class)
         ))
             .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1")
@@ -201,7 +202,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -227,7 +228,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             any(MultipleQueryRequest.class)
         ))
             .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1").body(roleAssignmentResource));
@@ -246,7 +247,7 @@ class RoleAssignmentServiceApiTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -269,7 +270,7 @@ class RoleAssignmentServiceApiTest {
                 eq(IDAM_USER_TOKEN),
                 eq(S2S_TOKEN),
                 eq(0),
-                eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+                eq(MAX_ROLE_ASSIGNMENT_RECORDS),
                 any(MultipleQueryRequest.class)
             );
 

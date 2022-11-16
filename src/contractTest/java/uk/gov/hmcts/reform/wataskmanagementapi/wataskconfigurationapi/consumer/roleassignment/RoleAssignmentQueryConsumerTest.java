@@ -63,7 +63,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
         when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
         when(idamTokenGenerator.generate()).thenReturn(AUTH_TOKEN);
 
-        roleAssignmentService = new TaskConfigurationRoleAssignmentService(roleAssignmentApi, authTokenGenerator, idamTokenGenerator);
+        roleAssignmentService = new TaskConfigurationRoleAssignmentService(roleAssignmentApi, authTokenGenerator, idamTokenGenerator, 50);
     }
 
     @Pact(provider = "am_roleAssignment_queryAssignment", consumer = "wa_task_management_api")

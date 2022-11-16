@@ -67,7 +67,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNCONFIGURED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.MAX_NO_RECORDS_TO_BE_FETCHED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.TOTAL_RECORDS;
 
 class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
@@ -419,7 +418,7 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             eq(BEARER_USER_TOKEN),
             eq(BEARER_SERVICE_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             any(MultipleQueryRequest.class)
         ))
             .thenReturn(ResponseEntity.ok()
@@ -438,7 +437,7 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             eq(BEARER_USER_TOKEN),
             eq(BEARER_SERVICE_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             any(MultipleQueryRequest.class)
         )).thenReturn(ResponseEntity.ok()
                                   .header(TOTAL_RECORDS, "1")

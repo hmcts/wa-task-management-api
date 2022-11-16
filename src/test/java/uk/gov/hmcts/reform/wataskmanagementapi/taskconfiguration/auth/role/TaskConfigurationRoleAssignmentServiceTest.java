@@ -50,13 +50,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.MAX_NO_RECORDS_TO_BE_FETCHED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.TOTAL_RECORDS;
 
 @ExtendWith(MockitoExtension.class)
 class TaskConfigurationRoleAssignmentServiceTest {
     private static final String IDAM_USER_TOKEN = "IDAM_USER_TOKEN";
     private static final String S2S_TOKEN = "S2S_SERVICE_TOKEN";
+    public static final int MAX_ROLE_ASSIGNMENT_RECORDS = 50;
 
     @Mock
     private AuthTokenGenerator serviceAuthTokenGenerator;
@@ -80,9 +80,11 @@ class TaskConfigurationRoleAssignmentServiceTest {
     void setUp() {
         caseId = UUID.randomUUID().toString();
         testRoleAssignment = getRoleAssignment();
-        roleAssignmentService = new TaskConfigurationRoleAssignmentService(roleAssignmentServiceApi,
+        roleAssignmentService = new TaskConfigurationRoleAssignmentService(
+            roleAssignmentServiceApi,
             serviceAuthTokenGenerator,
-            idamTokenGenerator
+            idamTokenGenerator,
+            MAX_ROLE_ASSIGNMENT_RECORDS
         );
 
         when(idamTokenGenerator.generate()).thenReturn(IDAM_USER_TOKEN);
@@ -101,7 +103,7 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             any(MultipleQueryRequest.class)
         ))
             .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1")
@@ -116,7 +118,7 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -136,13 +138,13 @@ class TaskConfigurationRoleAssignmentServiceTest {
     @Test
     void should_search_roles_by_case_id_with_total_records_more_than_50() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
-        IntStream.range(0, 50).forEach((i) -> roleAssignments.add(getRoleAssignment()));
+        IntStream.range(0, MAX_ROLE_ASSIGNMENT_RECORDS).forEach((i) -> roleAssignments.add(getRoleAssignment()));
 
         when(roleAssignmentServiceApi.queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             any(MultipleQueryRequest.class)
         ))
             .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "75")
@@ -155,7 +157,7 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(1),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             any(MultipleQueryRequest.class)
         ))
             .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "75")
@@ -170,7 +172,7 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -195,7 +197,7 @@ class TaskConfigurationRoleAssignmentServiceTest {
                 eq(IDAM_USER_TOKEN),
                 eq(S2S_TOKEN),
                 eq(0),
-                eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+                eq(MAX_ROLE_ASSIGNMENT_RECORDS),
                 any(MultipleQueryRequest.class)
             );
 
@@ -235,7 +237,7 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             any(MultipleQueryRequest.class)
         ))
             .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1")
@@ -249,7 +251,7 @@ class TaskConfigurationRoleAssignmentServiceTest {
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
             eq(0),
-            eq(MAX_NO_RECORDS_TO_BE_FETCHED),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
