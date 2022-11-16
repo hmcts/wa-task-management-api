@@ -126,7 +126,7 @@ public class PostTaskExecuteReconfigureControllerCFTTest extends SpringBootFunct
             .body("task.last_reconfiguration_time", notNullValue())
             .body("task.last_updated_timestamp", notNullValue())
             .body("task.last_updated_user", equalTo(idamSystemUser))
-            .body("task.last_updated_action", equalTo(TaskAction.CONFIGURE));
+            .body("task.last_updated_action", equalTo(TaskAction.CONFIGURE.getValue()));
 
         common.cleanUpTask(taskId);
     }
