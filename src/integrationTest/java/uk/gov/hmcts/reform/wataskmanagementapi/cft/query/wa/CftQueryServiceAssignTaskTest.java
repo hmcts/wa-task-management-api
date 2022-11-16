@@ -438,10 +438,37 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         Assertions.assertThat(assignerTaskResponse.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(assignerTaskResponse.get().getCaseId()).isEqualTo(caseId);
 
-        //assignee
+        //assignee own permission
         List<RoleAssignment> assigneeRoleAssignments = new ArrayList<>();
 
         RoleAssignmentRequest assigneeRoleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_CASE_MANAGER)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+
+        final Optional<TaskResource> ownAssigneeTaskResponse = cftQueryService.getTask(
+            taskId,
+            assigneeRoleAssignments,
+            assigneePermissionsRequired
+        );
+
+        Assertions.assertThat(ownAssigneeTaskResponse.isPresent()).isTrue();
+        Assertions.assertThat(ownAssigneeTaskResponse.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(ownAssigneeTaskResponse.get().getCaseId()).isEqualTo(caseId);
+
+        //assignee execute permission
+        assigneeRoleAssignments = new ArrayList<>();
+
+        assigneeRoleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE)
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
@@ -455,15 +482,15 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
 
         createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
-        final Optional<TaskResource> assigneeTaskResponse = cftQueryService.getTask(
+        final Optional<TaskResource> executeAssigneeTaskResponse = cftQueryService.getTask(
             taskId,
             assigneeRoleAssignments,
             assigneePermissionsRequired
         );
 
-        Assertions.assertThat(assigneeTaskResponse.isPresent()).isTrue();
-        Assertions.assertThat(assigneeTaskResponse.get().getTaskId()).isEqualTo(taskId);
-        Assertions.assertThat(assigneeTaskResponse.get().getCaseId()).isEqualTo(caseId);
+        Assertions.assertThat(executeAssigneeTaskResponse.isPresent()).isTrue();
+        Assertions.assertThat(executeAssigneeTaskResponse.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(executeAssigneeTaskResponse.get().getCaseId()).isEqualTo(caseId);
 
     }
 
@@ -557,5 +584,177 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         Assertions.assertThat(assigneeTaskResponse.get().getCaseId()).isEqualTo(caseId);
 
     }
+
+    @Test
+    void should_not_retrieve_a_task_when_grant_type_challenged_without_assigner_assignee_having_required_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111005";
+        final String caseId = "1623278362431005";
+
+        //assigner
+        List<RoleAssignment> assignerRoleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest assignerRoleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+
+        final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
+            taskId,
+            assignerRoleAssignments,
+            assignerPermissionsRequired
+        );
+
+        Assertions.assertThat(assignerTaskResponse.isEmpty()).isTrue();
+
+        //assignee
+        List<RoleAssignment> assigneeRoleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest assigneeRoleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+
+
+        final Optional<TaskResource> assigneeTaskResponse = cftQueryService.getTask(
+            taskId,
+            assigneeRoleAssignments,
+            assigneePermissionsRequired
+        );
+
+        Assertions.assertThat(assigneeTaskResponse.isEmpty()).isTrue();
+
+    }
+
+    @Test
+    void should_not_retrieve_a_task_when_grant_type_standard_without_assigner_assignee_having_required_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111004";
+        final String caseId = "1623278362431004";
+
+        //assigner
+        List<RoleAssignment> assignerRoleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest assignerRoleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+
+        final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
+            taskId,
+            assignerRoleAssignments,
+            assignerPermissionsRequired
+        );
+
+        Assertions.assertThat(assignerTaskResponse.isEmpty()).isTrue();
+
+        //assignee
+        List<RoleAssignment> assigneeRoleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest assigneeRoleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+
+        final Optional<TaskResource> assigneeTaskResponse = cftQueryService.getTask(
+            taskId,
+            assigneeRoleAssignments,
+            assigneePermissionsRequired
+        );
+
+        Assertions.assertThat(assigneeTaskResponse.isEmpty()).isTrue();
+
+    }
+
+    @Test
+    void should_not_retrieve_a_task_when_grant_type_specific_without_assigner_assignee_having_required_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111006";
+        final String caseId = "1623278362431006";
+
+        //assigner
+        List<RoleAssignment> assignerRoleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest assignerRoleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+
+        final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
+            taskId,
+            assignerRoleAssignments,
+            assignerPermissionsRequired
+        );
+
+        Assertions.assertThat(assignerTaskResponse.isEmpty()).isTrue();
+
+        //assignee
+        List<RoleAssignment> assigneeRoleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest assigneeRoleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_CASE_MANAGER)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+
+        final Optional<TaskResource> ownAssigneeTaskResponse = cftQueryService.getTask(
+            taskId,
+            assigneeRoleAssignments,
+            assigneePermissionsRequired
+        );
+
+        Assertions.assertThat(ownAssigneeTaskResponse.isEmpty()).isTrue();
+    }
+
 
 }

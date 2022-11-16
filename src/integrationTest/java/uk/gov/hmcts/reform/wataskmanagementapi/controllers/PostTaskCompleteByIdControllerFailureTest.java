@@ -628,6 +628,47 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                     + "The request failed the Role Assignment checks performed.")
             );
         }
+
+        @Test
+        public void should_return_a_404_if_task_does_not_exist() throws Exception {
+            mockServices.mockUserInfo();
+            List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
+                "SCSS", "caseId1");
+            // create role assignments Organisation and SCSS , Case Id
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+                roleAssignmentsWithJurisdiction
+            );
+
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo,
+                                                      roleAssignmentsWithJurisdiction));
+
+            when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+            CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
+            String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+
+            mockMvc.perform(
+                post(String.format(ENDPOINT_PATH, nonExistentTaskId))
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(request))
+            ).andExpectAll(
+                status().is4xxClientError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
+                jsonPath("$.title").value("Task Not Found Error"),
+                jsonPath("$.status").value(404),
+                jsonPath("$.detail").value(
+                    "Task Not Found Error: The task could not be found.")
+            );
+        }
     }
 
     @Nested
@@ -780,6 +821,44 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                         "Forbidden: "
                         + "The action could not be completed because the client/user had insufficient rights to a resource.")
                 );
+        }
+
+        @Test
+        public void should_return_a_404_if_task_does_not_exist() throws Exception {
+            mockServices.mockUserInfo();
+            List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
+                "SCSS", "caseId1");
+            // create role assignments Organisation and SCSS , Case Id
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+                roleAssignmentsWithJurisdiction
+            );
+
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo,
+                                                      roleAssignmentsWithJurisdiction));
+
+            when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+            String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+            mockMvc.perform(
+                post(String.format(ENDPOINT_PATH, nonExistentTaskId))
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andExpectAll(
+                status().is4xxClientError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
+                jsonPath("$.title").value("Task Not Found Error"),
+                jsonPath("$.status").value(404),
+                jsonPath("$.detail").value(
+                    "Task Not Found Error: The task could not be found.")
+            );
         }
     }
 

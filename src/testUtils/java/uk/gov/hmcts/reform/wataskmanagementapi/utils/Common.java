@@ -1455,6 +1455,39 @@ public class Common {
         );
     }
 
+    public void createStandardWARoleAssignment(Headers headers, String roleName) {
+        log.info("Creating Standard {} organizational Role", roleName);
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            roleName,
+            toJsonString(Map.of(
+                "primaryLocation", "765324",
+                "caseType", "WaCaseType",
+                "jurisdiction", "WA"
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
     private String toJsonString(Map<String, String> attributes) {
         String json = null;
 
@@ -1544,7 +1577,8 @@ public class Common {
                 log.info("Orphaned Restricted role assignments were found.");
                 log.info("Creating a temporary role assignment to perform cleanup");
                 //Create a temporary organisational role
-                setupOrganisationalRoleAssignment(headers);
+                UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
+                createCaseAllocator(userInfo, headers, "WA");
                 //Recursive
                 clearAllRoleAssignments(headers);
             }
