@@ -16,6 +16,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
@@ -412,6 +413,16 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                             .stringType("name2", "value2")
                             .stringType("name3", "value3")
                         )
+                        .object("permissions", (value) -> {
+                            value
+                                .unorderedArray("values", (p) -> p
+                                    .stringValue(PermissionTypes.READ.value())
+                                    .stringValue(PermissionTypes.EXECUTE.value())
+                                    .stringValue(PermissionTypes.REFER.value())
+                                    .stringValue(PermissionTypes.COMPLETE.value())
+                                    .stringValue(PermissionTypes.ASSIGN.value())
+                                    .stringValue(PermissionTypes.UNASSIGN.value()));
+                        })
                 )).build();
 
     }

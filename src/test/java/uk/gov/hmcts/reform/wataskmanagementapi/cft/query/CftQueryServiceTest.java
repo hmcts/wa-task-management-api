@@ -75,6 +75,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -332,9 +333,9 @@ public class CftQueryServiceTest extends CamundaHelpers {
             List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
             PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(READ);
 
-            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
-            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
 
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
@@ -347,7 +348,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 .thenReturn(1L);
 
             GetTasksResponse<Task> taskResourceList
-                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse);
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, false);
 
             assertNotNull(taskResourceList);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
@@ -373,7 +374,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
-            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
                      .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, false))
@@ -385,7 +386,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 .thenReturn(1L);
 
             GetTasksResponse<Task> taskResourceList
-                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse);
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, false);
 
             assertNotNull(taskResourceList);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
@@ -411,7 +412,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
-            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
                      .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, true))
@@ -422,7 +423,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTotalCount(searchTaskRequest, roleAssignments, permissionsRequired, true))
                 .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
-                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse);
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, false);
 
             assertNotNull(taskResourceList);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
@@ -453,7 +454,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertThrows(
                 CustomConstraintViolationException.class, () ->
                     cftQueryService.searchForTasks(
-                        1, 10, searchTaskRequest, accessControlResponse
+                        1, 10, searchTaskRequest, accessControlResponse, false
                     )
             );
 
@@ -479,7 +480,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
 
-            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
                      .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, false))
@@ -491,7 +492,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 .thenReturn(1L);
 
             GetTasksResponse<Task> taskResourceList
-                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse);
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, false);
 
             assertNotNull(taskResourceList);
             final Task task = taskResourceList.getTasks().get(0);
@@ -534,7 +535,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 1,
                 10,
                 searchTaskRequest,
-                accessControlResponse
+                accessControlResponse,
+                false
             );
 
             assertNotNull(taskResourceList);
@@ -564,7 +566,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             AccessControlResponse accessControlResponse = new AccessControlResponse(granularPermissionUserInfo,
                                                                                     roleAssignments);
 
-            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
                      .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, true))
@@ -575,7 +577,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTotalCount(searchTaskRequest, roleAssignments, permissionsRequired, true))
                 .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
-                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse);
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, false);
 
             assertNotNull(taskResourceList);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
@@ -604,7 +606,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             AccessControlResponse accessControlResponse = new AccessControlResponse(granularPermissionUserInfo,
                                                                                     roleAssignments);
 
-            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
                      .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, false))
@@ -615,7 +617,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTotalCount(searchTaskRequest, roleAssignments, permissionsRequired, false))
                 .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
-                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse);
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, false);
 
             assertNotNull(taskResourceList);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
@@ -642,7 +644,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             AccessControlResponse accessControlResponse = new AccessControlResponse(granularPermissionUserInfo,
                                                                                     roleAssignments);
 
-            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
                      .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, false))
@@ -653,7 +655,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTotalCount(searchTaskRequest, roleAssignments, permissionsRequired, false))
                 .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
-                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse);
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, false);
 
             assertNotNull(taskResourceList);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
@@ -684,7 +686,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertThrows(
                 CustomConstraintViolationException.class, () ->
                     cftQueryService.searchForTasks(
-                        1, 10, searchTaskRequest, accessControlResponse
+                        1, 10, searchTaskRequest, accessControlResponse, false
                     )
             );
 
@@ -756,7 +758,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
                 accessControlResponse.getRoleAssignments(),
-                permissionsRequired
+                permissionsRequired,
+                true
             );
 
             assertNotNull(response);
@@ -777,7 +780,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
                 accessControlResponse.getRoleAssignments(),
-                permissionsRequired
+                permissionsRequired,
+                false
             );
 
             assertNotNull(response);
@@ -804,7 +808,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
                 accessControlResponse.getRoleAssignments(),
-                permissionsRequired
+                permissionsRequired,
+                false
             );
 
             assertNotNull(response);
@@ -840,12 +845,13 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 permissionsRequired, List.of("reviewTheAppeal")
             ))
                 .thenReturn(List.of(createTaskResource()));
-            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
 
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
                 roleAssignments,
-                permissionsRequired
+                permissionsRequired,
+                false
             );
 
             assertNotNull(response);
@@ -888,12 +894,13 @@ public class CftQueryServiceTest extends CamundaHelpers {
             ))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
 
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
                 roleAssignments,
-                permissionsRequired
+                permissionsRequired,
+                false
             );
 
             assertNotNull(response);
@@ -934,7 +941,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
                 null,
-                permissionsRequired
+                permissionsRequired,
+                false
             );
 
             assertNotNull(response);
@@ -964,7 +972,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
                 null,
-                permissionsRequired
+                permissionsRequired,
+                false
             );
 
             assertNotNull(response);
@@ -995,7 +1004,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
                 null,
-                permissionsRequired
+                permissionsRequired,
+                false
             );
 
             assertNotNull(response);

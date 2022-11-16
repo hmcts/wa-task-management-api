@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -51,6 +52,8 @@ class GetTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
@@ -58,9 +61,6 @@ class GetTaskTest extends CamundaHelpers {
     CftQueryService cftQueryService;
     @Mock
     private List<TaskOperationService> taskOperationServices;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
@@ -76,6 +76,8 @@ class GetTaskTest extends CamundaHelpers {
         taskId = UUID.randomUUID().toString();
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
         Task mockedMappedTask = mock(Task.class);
         when(cftTaskMapper.mapToTaskWithPermissions(any(), any()))
