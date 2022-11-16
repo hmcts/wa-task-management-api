@@ -78,6 +78,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}/initiation";
     protected static final String TASK_GET_ENDPOINT = "task/{task-id}";
+    protected static final String TASK_GET_ROLES_ENDPOINT = "task/{task-id}/roles";
     protected static final String WA_JURISDICTION = "WA";
     protected static final String WA_CASE_TYPE = "WaCaseType";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
