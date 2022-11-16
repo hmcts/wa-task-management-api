@@ -168,7 +168,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
 
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
+        String serviceToken = otherUser.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
         Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
             "completed", userInfo.getUid(), COMPLETED);
