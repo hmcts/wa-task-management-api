@@ -47,6 +47,8 @@ public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     private List<Map<String, Map<String, String>>> getExpectedTaskTypes() {
+        
+
         return Lists.list(
             Map.of("task_type",
                 Map.of(

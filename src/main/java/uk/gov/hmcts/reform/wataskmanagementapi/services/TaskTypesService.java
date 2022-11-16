@@ -11,8 +11,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.DmnEvaluationService;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 
@@ -59,7 +61,7 @@ public class TaskTypesService {
 
     private List<TaskTypeResponse> extractValues(List<TaskTypesDmnEvaluationResponse> evaluationResponses) {
 
-        List<TaskTypeResponse> taskTypeResponses = new ArrayList<>();
+        Set<TaskType> taskTypeResponses = new HashSet<>();
 
         evaluationResponses.forEach(item -> {
 
@@ -68,19 +70,11 @@ public class TaskTypesService {
                     item.getTaskTypeName().getValue()
                 );
 
-                TaskTypeResponse taskTypeResponse = new TaskTypeResponse(taskType);
-
-                boolean isExist = taskTypeResponses.stream()
-                    .anyMatch(t -> t.getTaskType().getTaskTypeId().equalsIgnoreCase(taskType.getTaskTypeId()));
-
-                if (!isExist) {
-                    taskTypeResponses.add(taskTypeResponse);
-                }
-
+                taskTypeResponses.add(taskType);
             }
         );
 
-        return taskTypeResponses;
+        return taskTypeResponses.stream().map(TaskTypeResponse::new).collect(Collectors.toList());
 
     }
 
