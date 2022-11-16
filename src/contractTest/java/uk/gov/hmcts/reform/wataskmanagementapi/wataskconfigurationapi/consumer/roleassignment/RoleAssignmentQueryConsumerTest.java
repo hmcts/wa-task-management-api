@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi.V2_MEDIA_TYPE_POST_ASSIGNMENTS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService.TOTAL_RECORDS;
 
 @SuppressWarnings("checkstyle:LineLength")
 @PactTestFor(providerName = "am_roleAssignment_queryAssignment", port = "8991")
@@ -87,6 +88,11 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
                 "application\\/vnd\\.uk\\.gov\\.hmcts\\.role-assignment-service\\.post-assignment-query-request\\+json\\;charset\\=UTF-8\\;version\\=2\\.0",
                 "application/vnd.uk.gov.hmcts.role-assignment-service.post-assignment-query-request+json;charset=UTF-8;version=2.0"
             )
+            .matchHeader(
+                TOTAL_RECORDS,
+                "1",
+                "1"
+            )
             .status(HttpStatus.OK.value())
             .headers(getResponseHeaders())
             .body(createRoleAssignmentResponseSearchQueryResponse())
@@ -131,6 +137,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     private Map<String, String> getResponseHeaders() {
         Map<String, String> responseHeaders = Maps.newHashMap();
         responseHeaders.put("Content-Type", V2_MEDIA_TYPE_POST_ASSIGNMENTS);
+        responseHeaders.put(TOTAL_RECORDS, "1");
         return responseHeaders;
     }
 
