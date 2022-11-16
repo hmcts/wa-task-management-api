@@ -108,6 +108,8 @@ class CompleteTaskTest extends CamundaHelpers {
         assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
+        verify(camundaService, times(0)).isTaskCompletedInCamunda(taskId);
+
     }
 
     @Test
@@ -145,6 +147,7 @@ class CompleteTaskTest extends CamundaHelpers {
         assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
+        verify(camundaService, times(0)).isTaskCompletedInCamunda(taskId);
     }
 
     @Test
@@ -177,6 +180,7 @@ class CompleteTaskTest extends CamundaHelpers {
         assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
+        verify(camundaService, times(0)).isTaskCompletedInCamunda(taskId);
     }
 
     @Test
@@ -199,6 +203,9 @@ class CompleteTaskTest extends CamundaHelpers {
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
         assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+        verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
+        verify(camundaService, times(0)).isTaskCompletedInCamunda(taskId);
+
     }
 
     @Test
@@ -226,6 +233,7 @@ class CompleteTaskTest extends CamundaHelpers {
         assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
+        verify(camundaService, times(1)).isTaskCompletedInCamunda(taskId);
     }
 
     @Test
@@ -257,6 +265,7 @@ class CompleteTaskTest extends CamundaHelpers {
 
         verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, false);
+        verify(camundaService, times(1)).isTaskCompletedInCamunda(taskId);
     }
 
     @Test
@@ -280,6 +289,7 @@ class CompleteTaskTest extends CamundaHelpers {
         assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
+        verify(camundaService, times(0)).isTaskCompletedInCamunda(taskId);
     }
 
     @Test
