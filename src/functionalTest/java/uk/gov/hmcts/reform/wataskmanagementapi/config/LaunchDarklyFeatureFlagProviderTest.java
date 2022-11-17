@@ -10,7 +10,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.NON_EXISTENT_KEY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.PRIVILEGED_ACCESS_FEATURE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.TEST_KEY;
 
 
@@ -18,6 +18,7 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
 
     public static final String SOME_USER_ID = "some user id";
     public static final String SOME_USER_EMAIL = "test@test.com";
+    public static final String GRANULAR_PERMISSION_EMAIL = "wa-granular-permission@test.com";
     @Autowired
     private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
@@ -42,12 +43,12 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     }
 
     @Test
-    public void should_return_either_true_or_false_for_release_2_endpoints_feature() {
+    public void should_return_either_true_or_false_for_release_4_granular_permission_response() {
         boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
+            RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
             SOME_USER_ID,
-            SOME_USER_EMAIL
+            GRANULAR_PERMISSION_EMAIL
         );
-        assertThat(launchDarklyFeature, either(equalTo(true)).or(equalTo(false)));
+        assertThat(launchDarklyFeature, equalTo(true));
     }
 }

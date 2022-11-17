@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -11,13 +13,12 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -25,10 +26,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.singletonList;
@@ -36,18 +44,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CANCELLED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_OTHER_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
@@ -59,6 +70,8 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private IdamWebApi idamWebApi;
     @MockBean
+    private CamundaService camundaService;
+    @MockBean
     private CamundaServiceApi camundaServiceApi;
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
@@ -67,20 +80,13 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
-    private AccessControlService accessControlService;
-    @MockBean
-    private PermissionEvaluatorService permissionEvaluatorService;
-    @MockBean
-    private CftQueryService cftQueryService;
-
-    @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @Mock
-    private RoleAssignment mockedRoleAssignment;
+    @MockBean
+    private AccessControlService accessControlService;
     @Mock
     private UserInfo mockedUserInfo;
     @Autowired
-    private TaskResourceRepository taskResourceRepository;
+    private CFTTaskDatabaseService cftTaskDatabaseService;
     private ServiceMocks mockServices;
     private String taskId;
 
@@ -108,25 +114,33 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_succeed_and_return_204_and_update_cft_task_state() throws Exception {
 
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("cancelCaseSuccessId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+        TaskRoleResource tribunalResource = new TaskRoleResource(
+            "tribunal-caseworker", true, false, false, false, true,
+            true, new String[]{}, 1, false, "LegalOperations"
+        );
+        insertDummyTaskInDb(taskId, tribunalResource);
+
         when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
-        initiateATask(taskId);
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
-        when(permissionEvaluatorService.hasAccess(any(), any(), any()))
-            .thenReturn(true);
-
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
-
-        TaskResource task = spy(TaskResource.class);
-        when(cftQueryService.getTask(anyString(), any(), any(PermissionRequirements.class)))
-            .thenReturn(Optional.of(task));
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         doNothing().when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
@@ -138,38 +152,112 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .andExpect(status().isNoContent());
 
-        Optional<TaskResource> taskResource = taskResourceRepository.getByTaskId(taskId);
+        Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
 
         assertTrue(taskResource.isPresent());
         assertEquals(CANCELLED, taskResource.get().getState());
     }
 
     @Test
-    void should_succeed_and_return_204_when_task_is_already_deleted() throws Exception {
+    void should_not_cancel_and_return_403_wih_no_cancel_permission() throws Exception {
+
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("cancelCaseSuccessId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+        TaskRoleResource tribunalResource = new TaskRoleResource(
+            "tribunal-caseworker", true, false, false, false, false,
+            true, new String[]{}, 1, false, "LegalOperations",
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
+        );
+        insertDummyTaskInDb(taskId, tribunalResource);
 
         when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
-        initiateATask(taskId);
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
-        when(permissionEvaluatorService.hasAccess(any(), any(), any()))
-            .thenReturn(true);
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+        doNothing().when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
-        when(camundaServiceApi.searchHistory(eq(IDAM_AUTHORIZATION_TOKEN), any()))
-            .thenReturn(singletonList(new HistoryVariableInstance(
-                "someId",
-                CFT_TASK_STATE.value(),
-                "some state"
-            )));
+        mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpectAll(
+                status().is4xxClientError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
+                jsonPath("$.title").value("Role Assignment Verification"),
+                jsonPath("$.status").value(403),
+                jsonPath("$.detail").value(
+                    "Role Assignment Verification: "
+                        + "The request failed the Role Assignment checks performed.")
+            );
 
-        TaskResource task = spy(TaskResource.class);
-        when(cftQueryService.getTask(anyString(), any(), any(PermissionRequirements.class)))
-            .thenReturn(Optional.of(task));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "nullAssignee",
+        "notOwnAssignee"
+    })
+    void should_not_cancel_and_return_403_wih_cancelown_granular_permission_and_assignee_not_own(
+        String assigneeType) throws Exception {
+
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("cancelCaseSuccessId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+        TaskRoleResource tribunalResource = new TaskRoleResource(
+            "tribunal-caseworker", true, false, false, false, false,
+            true, new String[]{}, 1, false, "LegalOperations",
+            taskId, OffsetDateTime.now(), false, false, true, true,
+            false, false, false, false, false, false
+        );
+        if (assigneeType.equals("nullAssignee")) {
+            insertDummyTaskInDb(taskId, tribunalResource);
+        } else {
+            insertAssignedDummyTaskInDb(taskId, tribunalResource, IDAM_OTHER_USER_ID);
+        }
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        doNothing().when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
             IDAM_USER_ID,
             IDAM_USER_EMAIL
         )).thenReturn(true);
@@ -180,28 +268,169 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
+            .andExpectAll(
+                status().is4xxClientError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
+                jsonPath("$.title").value("Role Assignment Verification"),
+                jsonPath("$.status").value(403),
+                jsonPath("$.detail").value(
+                    "Role Assignment Verification: "
+                        + "The request failed the Role Assignment checks performed.")
+            );
+
+    }
+
+    @Test
+    void should_not_cancel_and_return_403_wih_no_cancelown_granular_permission() throws Exception {
+
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("cancelCaseSuccessId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+        TaskRoleResource tribunalResource = new TaskRoleResource(
+            "tribunal-caseworker", true, false, false, false, false,
+            true, new String[]{}, 1, false, "LegalOperations",
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
+        );
+        insertDummyTaskInDb(taskId, tribunalResource);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        doNothing().when(camundaServiceApi).bpmnEscalation(any(), any(), any());
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+        )).thenReturn(true);
+
+        CamundaTask camundaTask = mockServices.getCamundaTask("processInstanceId", taskId);
+        when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(camundaTask);
+
+        mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpectAll(
+            status().is4xxClientError(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
+            jsonPath("$.title").value("Role Assignment Verification"),
+            jsonPath("$.status").value(403),
+            jsonPath("$.detail").value(
+                "Role Assignment Verification: "
+                    + "The request failed the Role Assignment checks performed.")
+            );
+
+    }
+
+    @Test
+    void should_succeed_and_return_204_when_task_is_already_deleted() throws Exception {
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("cancelCaseSuccessId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+        TaskRoleResource tribunalResource = new TaskRoleResource(
+            "tribunal-caseworker", true, false, false, false, true,
+            true, new String[]{}, 1, false, "LegalOperations"
+        );
+        insertDummyTaskInDb(taskId, tribunalResource);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        when(camundaServiceApi.searchHistory(eq(IDAM_AUTHORIZATION_TOKEN), any()))
+            .thenReturn(singletonList(new HistoryVariableInstance(
+                "someId",
+                CFT_TASK_STATE.value(),
+                "some state"
+            )));
+
+        mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
             .andExpect(status().isNoContent());
 
-        Optional<TaskResource> taskResource = taskResourceRepository.getByTaskId(taskId);
+        Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
 
         assertTrue(taskResource.isPresent());
         assertEquals(CANCELLED, taskResource.get().getState());
     }
 
-    private void initiateATask(String id) {
-
+    private void insertDummyTaskInDb(String taskId, TaskRoleResource taskRoleResource) {
         TaskResource taskResource = new TaskResource(
-            id,
-            "taskName",
-            "taskType",
-            UNCONFIGURED,
-            OffsetDateTime.now(),
-            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            UNASSIGNED
         );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
-        taskResourceRepository.save(taskResource);
+        insertTask(taskId, taskRoleResource, taskResource);
     }
 
+    private void insertTask(String taskId, TaskRoleResource taskRoleResource, TaskResource taskResource) {
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setDueDateTime(OffsetDateTime.now());
+        taskResource.setJurisdiction("IA");
+        taskResource.setCaseTypeId("Asylum");
+        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+        taskResource.setLocation("765324");
+        taskResource.setLocationName("Taylor House");
+        taskResource.setRegion("TestRegion");
+        taskResource.setCaseId("cancelCaseSuccessId1");
+
+        taskRoleResource.setTaskId(taskId);
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+        taskResource.setTaskRoleResources(taskRoleResourceSet);
+        cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private void insertAssignedDummyTaskInDb(String taskId, TaskRoleResource taskRoleResource, String userId) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            ASSIGNED,
+            "cancelCaseSuccessId1",
+            userId
+        );
+        insertTask(taskId, taskRoleResource, taskResource);
+    }
 }

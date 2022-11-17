@@ -149,6 +149,13 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime priorityDate;
 
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime lastUpdatedTimestamp;
+
+    private String lastUpdatedUser;
+
+    private String lastUpdatedAction;
+
     private Boolean indexed = false;
 
     protected TaskResource() {
@@ -493,6 +500,18 @@ public class TaskResource implements Serializable {
 
     public void setPriorityDate(OffsetDateTime priorityDate) {
         this.priorityDate = priorityDate;
+    }
+
+    public void setLastUpdatedTimestamp(OffsetDateTime lastUpdatedTimestamp) {
+        this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+    }
+
+    public void setLastUpdatedUser(String lastUpdatedUser) {
+        this.lastUpdatedUser = lastUpdatedUser;
+    }
+
+    public void setLastUpdatedAction(String lastUpdatedAction) {
+        this.lastUpdatedAction = lastUpdatedAction;
     }
 
     public void setIndexed(Boolean indexed) {

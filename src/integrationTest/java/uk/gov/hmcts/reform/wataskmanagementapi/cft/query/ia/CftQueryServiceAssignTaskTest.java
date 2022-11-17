@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
@@ -70,11 +71,14 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
-                                              allowedJurisdictionConfiguration, taskSearchAdaptor
+                                              allowedJurisdictionConfiguration, launchDarklyFeatureFlagProvider, taskSearchAdaptor
         );
     }
 
