@@ -71,7 +71,7 @@ public class TaskAutoAssignmentService {
     }
 
     public TaskResource reAutoAssignCFTTask(TaskResource taskResource) {
-        String iniialAssignee = taskResource.getAssignee();
+        String initialAssignee = taskResource.getAssignee();
         CFTTaskState initialCftState = taskResource.getState();
         //if task is found and assigned
         if (StringUtils.isNotBlank(taskResource.getAssignee())) {
@@ -89,16 +89,16 @@ public class TaskAutoAssignmentService {
                 taskResource.setAssignee(null);
                 taskResource.setState(CFTTaskState.UNASSIGNED);
                 TaskResource newTaskResource = autoAssignCFTTask(taskResource);
-                updateTaskActionAttributes(newTaskResource, initialCftState, iniialAssignee);
+                updateTaskActionAttributes(newTaskResource, initialCftState, initialAssignee);
                 return newTaskResource;
             }
             //same user is still valid - Configure Action
 
-            updateTaskActionAttributes(taskResource, initialCftState, iniialAssignee);
+            updateTaskActionAttributes(taskResource, initialCftState, initialAssignee);
             return taskResource;
         }
         TaskResource newTaskResource = autoAssignCFTTask(taskResource);
-        updateTaskActionAttributes(newTaskResource, initialCftState, iniialAssignee);
+        updateTaskActionAttributes(newTaskResource, initialCftState, initialAssignee);
         return newTaskResource;
     }
 
