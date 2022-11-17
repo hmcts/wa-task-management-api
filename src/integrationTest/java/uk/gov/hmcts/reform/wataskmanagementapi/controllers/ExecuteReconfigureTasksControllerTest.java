@@ -46,7 +46,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -73,6 +72,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName.EXECUTE_RECONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName.MARK_TO_RECONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
@@ -80,6 +80,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
+    public static final String SYSTEM_USER_1 = "system_user1";
+    public static final String ASSIGNEE_USER = "assigneeUser";
+    public static final String OLD_ASSIGNEE_USER = "oldAssigneeUser";
 
     @MockBean
     private ClientAccessControlService clientAccessControlService;
@@ -126,23 +129,23 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         ));
         bearerAccessToken1 = "Token" + UUID.randomUUID();
         when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
-        when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid("system_user1").build());
+        when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
 
         RoleAssignment roleAssignmentResource = buildRoleAssignment(
-            "assigneeUser@test.com",
-            "case-worker",
+            ASSIGNEE_USER,
+            "tribunalCaseworker",
             singletonList("IA")
         );
         List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource);
         when(roleAssignmentService.getRolesByUserId(any())).thenReturn(roleAssignmentForAssignee);
-        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.empty());
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(roleAssignmentForAssignee);
     }
 
     @Test
     void should_execute_reconfigure_on_task_and_not_update_data_when_can_reconfigure_is_false() throws Exception {
 
-        String caseIdToday = "caseId1-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday);
+        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        createTaskAndTaskRoles(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -156,6 +159,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
         taskResources.forEach(task -> {
+            assertEquals(ASSIGNEE_USER, task.getAssignee());
+            assertEquals(CFTTaskState.ASSIGNED, task.getState());
             assertNotNull(task.getReconfigureRequestTime());
             assertEquals(LocalDate.now(), task.getReconfigureRequestTime().toLocalDate());
             assertNotNull(task.getReconfigureRequestTime());
@@ -180,7 +185,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             permissionsResponse()
         );
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
-
+        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResources.get(0)));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -212,8 +217,10 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
             assertNull(task.getNextHearingDate());
             assertNull(task.getNextHearingId());
+            assertEquals(ASSIGNEE_USER, task.getAssignee());
+            assertEquals(CFTTaskState.ASSIGNED, task.getState());
             assertNotNull(task.getLastUpdatedTimestamp());
-            assertEquals("system_user1", task.getLastUpdatedUser());
+            assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
             assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
         });
     }
@@ -221,8 +228,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     @Test
     void should_execute_reconfigure_on_task_and_update_data_when_can_reconfigure_is_true() throws Exception {
 
-        String caseIdToday = "caseId2-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday);
+        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        createTaskAndTaskRoles(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -234,8 +241,9 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-
         taskResourcesBefore.forEach(task -> {
+            assertEquals(ASSIGNEE_USER, task.getAssignee());
+            assertEquals(CFTTaskState.ASSIGNED, task.getState());
             assertNotNull(task.getReconfigureRequestTime());
             assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate());
             assertNull(task.getMinorPriority());
@@ -258,7 +266,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             permissionsResponse()
         );
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
-
+        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -295,9 +303,353 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                     task.getNextHearingDate().toLocalDate()
                 );
                 assertEquals("nextHearingId1", task.getNextHearingId());
+                assertEquals(ASSIGNEE_USER, task.getAssignee());
+                assertEquals(CFTTaskState.ASSIGNED, task.getState());
                 assertNotNull(task.getLastUpdatedTimestamp());
-                assertEquals("system_user1", task.getLastUpdatedUser());
+                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+            }
+        );
+    }
+
+    @Test
+    void should_execute_reconfigure_autoassignment_unassigned_to_assigned() throws Exception {
+
+        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        createTaskAndTaskRoles(CFTTaskState.UNASSIGNED, null, caseIdToday);
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        taskResourcesBefore.forEach(task -> {
+            assertNotNull(task.getReconfigureRequestTime());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate());
+            assertNull(task.getMinorPriority());
+            assertNull(task.getMajorPriority());
+            assertNull(task.getDescription());
+            assertNull(task.getCaseName());
+            assertEquals("765324", task.getLocation());
+            assertEquals("Taylor House", task.getLocationName());
+            assertNull(task.getCaseCategory());
+            assertNull(task.getWorkTypeResource());
+            assertNull(task.getRoleCategory());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+            assertNull(task.getNextHearingDate());
+            assertNull(task.getNextHearingId());
+        });
+
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(true),
+            permissionsResponse()
+        );
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
+        taskResourcesAfter.forEach(task -> {
+                assertNotNull(task.getLastReconfigurationTime());
+                assertNull(task.getReconfigureRequestTime());
+                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                assertEquals(1, task.getMinorPriority());
+                assertEquals(1, task.getMajorPriority());
+                assertEquals("description", task.getDescription());
+                assertEquals("TestCase", task.getCaseName());
+                assertEquals("512401", task.getLocation());
+                assertEquals("Manchester", task.getLocationName());
+                assertEquals("caseCategory", task.getCaseCategory());
+                assertEquals("routine_work", task.getWorkTypeResource().getId());
+                assertEquals("JUDICIAL", task.getRoleCategory());
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getNextHearingDate().toLocalDate()
+                );
+                assertEquals("nextHearingId1", task.getNextHearingId());
+                assertEquals(ASSIGNEE_USER, task.getAssignee());
+                assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                assertNotNull(task.getLastUpdatedTimestamp());
+                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                assertEquals(TaskAction.AUTO_ASSIGN.getValue(), task.getLastUpdatedAction());
+            }
+        );
+    }
+
+    @Test
+    void should_execute_reconfigure_autoassignment_unassigned_to_unassigned() throws Exception {
+
+        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        createTaskAndTaskRoles(CFTTaskState.UNASSIGNED, null, caseIdToday);
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        taskResourcesBefore.forEach(task -> {
+            assertNotNull(task.getReconfigureRequestTime());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate());
+            assertNull(task.getMinorPriority());
+            assertNull(task.getMajorPriority());
+            assertNull(task.getDescription());
+            assertNull(task.getCaseName());
+            assertEquals("765324", task.getLocation());
+            assertEquals("Taylor House", task.getLocationName());
+            assertNull(task.getCaseCategory());
+            assertNull(task.getWorkTypeResource());
+            assertNull(task.getRoleCategory());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+            assertNull(task.getNextHearingDate());
+            assertNull(task.getNextHearingId());
+        });
+
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(true),
+            permissionsResponse()
+        );
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
+        taskResourcesAfter.forEach(task -> {
+                assertNotNull(task.getLastReconfigurationTime());
+                assertNull(task.getReconfigureRequestTime());
+                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                assertEquals(1, task.getMinorPriority());
+                assertEquals(1, task.getMajorPriority());
+                assertEquals("description", task.getDescription());
+                assertEquals("TestCase", task.getCaseName());
+                assertEquals("512401", task.getLocation());
+                assertEquals("Manchester", task.getLocationName());
+                assertEquals("caseCategory", task.getCaseCategory());
+                assertEquals("routine_work", task.getWorkTypeResource().getId());
+                assertEquals("JUDICIAL", task.getRoleCategory());
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getNextHearingDate().toLocalDate()
+                );
+                assertEquals("nextHearingId1", task.getNextHearingId());
+                assertNull(task.getAssignee());
+                assertEquals(CFTTaskState.UNASSIGNED, task.getState());
+                assertNotNull(task.getLastUpdatedTimestamp());
+                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+            }
+        );
+    }
+
+    @Test
+    void should_execute_reconfigure_autoassignment_assigned_to_assigned_another_user() throws Exception {
+
+        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        createTaskAndTaskRoles(CFTTaskState.ASSIGNED, OLD_ASSIGNEE_USER, caseIdToday);
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        taskResourcesBefore.forEach(task -> {
+            assertEquals(OLD_ASSIGNEE_USER, task.getAssignee());
+            assertEquals(CFTTaskState.ASSIGNED, task.getState());
+            assertNotNull(task.getReconfigureRequestTime());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate());
+            assertNull(task.getMinorPriority());
+            assertNull(task.getMajorPriority());
+            assertNull(task.getDescription());
+            assertNull(task.getCaseName());
+            assertEquals("765324", task.getLocation());
+            assertEquals("Taylor House", task.getLocationName());
+            assertNull(task.getCaseCategory());
+            assertNull(task.getWorkTypeResource());
+            assertNull(task.getRoleCategory());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+            assertNull(task.getNextHearingDate());
+            assertNull(task.getNextHearingId());
+        });
+
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(true),
+            permissionsResponse()
+        );
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
+        taskResourcesAfter.forEach(task -> {
+                assertNotNull(task.getLastReconfigurationTime());
+                assertNull(task.getReconfigureRequestTime());
+                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                assertEquals(1, task.getMinorPriority());
+                assertEquals(1, task.getMajorPriority());
+                assertEquals("description", task.getDescription());
+                assertEquals("TestCase", task.getCaseName());
+                assertEquals("512401", task.getLocation());
+                assertEquals("Manchester", task.getLocationName());
+                assertEquals("caseCategory", task.getCaseCategory());
+                assertEquals("routine_work", task.getWorkTypeResource().getId());
+                assertEquals("JUDICIAL", task.getRoleCategory());
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getNextHearingDate().toLocalDate()
+                );
+                assertEquals("nextHearingId1", task.getNextHearingId());
+                assertEquals(ASSIGNEE_USER, task.getAssignee());
+                assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                assertNotNull(task.getLastUpdatedTimestamp());
+                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                assertEquals(TaskAction.AUTO_UNASSIGN_ASSIGN.getValue(), task.getLastUpdatedAction());
+            }
+        );
+    }
+
+    @Test
+    void should_execute_reconfigure_autoassignment_assigned_to_unassigned() throws Exception {
+
+        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        createTaskAndTaskRoles(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday);
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        taskResourcesBefore.forEach(task -> {
+            assertEquals(ASSIGNEE_USER, task.getAssignee());
+            assertEquals(CFTTaskState.ASSIGNED, task.getState());
+            assertNotNull(task.getReconfigureRequestTime());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate());
+            assertNull(task.getMinorPriority());
+            assertNull(task.getMajorPriority());
+            assertNull(task.getDescription());
+            assertNull(task.getCaseName());
+            assertEquals("765324", task.getLocation());
+            assertEquals("Taylor House", task.getLocationName());
+            assertNull(task.getCaseCategory());
+            assertNull(task.getWorkTypeResource());
+            assertNull(task.getRoleCategory());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+            assertNull(task.getNextHearingDate());
+            assertNull(task.getNextHearingId());
+        });
+
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(true),
+            permissionsResponse()
+        );
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
+        taskResourcesAfter.forEach(task -> {
+                assertNotNull(task.getLastReconfigurationTime());
+                assertNull(task.getReconfigureRequestTime());
+                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                assertEquals(1, task.getMinorPriority());
+                assertEquals(1, task.getMajorPriority());
+                assertEquals("description", task.getDescription());
+                assertEquals("TestCase", task.getCaseName());
+                assertEquals("512401", task.getLocation());
+                assertEquals("Manchester", task.getLocationName());
+                assertEquals("caseCategory", task.getCaseCategory());
+                assertEquals("routine_work", task.getWorkTypeResource().getId());
+                assertEquals("JUDICIAL", task.getRoleCategory());
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getNextHearingDate().toLocalDate()
+                );
+                assertEquals("nextHearingId1", task.getNextHearingId());
+                assertNull(task.getAssignee());
+                assertEquals(CFTTaskState.UNASSIGNED, task.getState());
+                assertNotNull(task.getLastUpdatedTimestamp());
+                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                assertEquals(TaskAction.AUTO_UNASSIGN.getValue(), task.getLastUpdatedAction());
             }
         );
     }
@@ -306,7 +658,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     void should_not_execute_reconfigure_for_past_reconfigure_request_time() throws Exception {
 
         String caseIdToday = "caseId" + OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday);
+        createTaskAndTaskRoles(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -374,6 +726,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                                      String caseType,
                                      String caseId,
                                      String taskId, CFTTaskState cftTaskState,
+                                     String assignee,
                                      TaskRoleResource taskRoleResource) {
         TaskResource taskResource = new TaskResource(
             taskId,
@@ -390,6 +743,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         taskResource.setLocationName("Taylor House");
         taskResource.setRegion("TestRegion");
         taskResource.setCaseId(caseId);
+        taskResource.setAssignee(assignee);
 
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
@@ -397,51 +751,36 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         cftTaskDatabaseService.saveTask(taskResource);
     }
 
-    private void createTaskAndRoleAssignments(CFTTaskState cftTaskState, String caseId) {
+    private void createTaskAndTaskRoles(CFTTaskState cftTaskState, String assignee, String caseId) {
         //assigner permission : manage, own, cancel
         TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER.getRoleName(),
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, true, true, false,
-            new String[]{}, 1, false,
+            new String[]{"IA"}, 1, true,
             TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER.getRoleCategory().name()
         );
         String jurisdiction = "IA";
         String caseType = "Asylum";
-        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignerTaskRoleResource);
-
-        List<RoleAssignment> assignerRoles = new ArrayList<>();
-
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId(caseId)
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignee, assignerTaskRoleResource);
     }
 
     private List<PermissionsDmnEvaluationResponse> permissionsResponse() {
         return asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
-                null,
-                null,
-                null,
+                stringValue("Read,Refer,Own,Execute,Manage,Cancel"),
+                stringValue("IA"),
+                integerValue(1),
+                booleanValue(true),
                 stringValue("LEGAL_OPERATIONS"),
                 stringValue("categoryA,categoryC")
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
-                null,
-                null,
-                null,
+                stringValue("Read,Refer,Own,Execute,Manage,Cancel"),
+                stringValue("IA"),
+                integerValue(2),
+                booleanValue(true),
                 stringValue("LEGAL_OPERATIONS"),
                 stringValue("categoryB,categoryD")
             )

@@ -88,16 +88,18 @@ public class TaskAutoAssignmentService {
             if (taskWithValidPermissions.isEmpty()) {
                 taskResource.setAssignee(null);
                 taskResource.setState(CFTTaskState.UNASSIGNED);
-                updateTaskActionAttributes(taskResource, initialCftState, iniialAssignee);
-                return autoAssignCFTTask(taskResource);
+                TaskResource newTaskResource = autoAssignCFTTask(taskResource);
+                updateTaskActionAttributes(newTaskResource, initialCftState, iniialAssignee);
+                return newTaskResource;
             }
             //same user is still valid - Configure Action
 
             updateTaskActionAttributes(taskResource, initialCftState, iniialAssignee);
             return taskResource;
         }
-        updateTaskActionAttributes(taskResource, initialCftState, iniialAssignee);
-        return autoAssignCFTTask(taskResource);
+        TaskResource newTaskResource = autoAssignCFTTask(taskResource);
+        updateTaskActionAttributes(newTaskResource, initialCftState, iniialAssignee);
+        return newTaskResource;
     }
 
     public TaskResource performAutoAssignment(String taskId, TaskResource taskResource) {
