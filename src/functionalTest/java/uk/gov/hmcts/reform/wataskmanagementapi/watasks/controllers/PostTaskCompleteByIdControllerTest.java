@@ -172,7 +172,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
         Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
             "completed", userInfo.getUid(), COMPLETED);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, taskValueMap, otherUser.getHeaders());
 
         common.cleanUpTask(taskId);
         common.clearAllRoleAssignments(otherUser.getHeaders());
@@ -220,8 +220,9 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                 taskId, userInfo.getUid()
             )));
 
-        //Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId,"unassigned");
-        //assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
+            "assigned", userInfo.getUid(), CLAIM);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
         common.clearAllRoleAssignments(otherUser.getHeaders());
@@ -366,8 +367,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        //Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId,"unassigned");
-        //assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
         common.cleanUpTask(taskId);
     }
 
