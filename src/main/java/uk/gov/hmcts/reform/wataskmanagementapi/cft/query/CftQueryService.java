@@ -88,19 +88,20 @@ public class CftQueryService {
             int firstResult,
             int maxResults,
             SearchTaskRequest searchTaskRequest,
-            List<RoleAssignment> roleAssignments,
-            List<PermissionTypes> permissionsRequired) {
+            AccessControlResponse accessControlResponse,
+            boolean granularPermissionResponseFeature) {
         if (taskSearchAdaptor.isEnabled()) {
             try {
-                return taskSearchAdaptor.searchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments,
-                                                        permissionsRequired);
+                return taskSearchAdaptor.searchForTasks(firstResult, maxResults, searchTaskRequest,
+                                                        accessControlResponse.getRoleAssignments(),
+                                                        granularPermissionResponseFeature);
             } catch (SQLException e) {
                 log.error("POC Database connection error {}", e.getMessage());
                 return new GetTasksResponse<>(List.of(), 0);
             }
         } else {
-            return originalSearchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments,
-                                          permissionsRequired);
+            return originalSearchForTasks(firstResult, maxResults, searchTaskRequest, accessControlResponse,
+                                          granularPermissionResponseFeature);
         }
     }
 

@@ -65,13 +65,13 @@ public final class TaskSearchQueryBuilder {
         Root<TaskResource> root) {
 
         log.debug("Querying with 'available_tasks_only' set to '{}'", availableTasksOnly);
-        log.debug("Querying with 'permissions required' set to '{}'", permissionsForRequest);
+        log.debug("Querying with 'permissions required' set to '{}'", permissionsRequired);
 
         final Predicate constrainsSpec =
             buildApplicationConstraints(searchTaskRequest, availableTasksOnly, builder, root);
 
         final Predicate roleAssignmentSpec = buildRoleAssignmentConstraints(
-            permissionsForRequest,
+            permissionsRequired,
             roleAssignments,
             builder,
             root

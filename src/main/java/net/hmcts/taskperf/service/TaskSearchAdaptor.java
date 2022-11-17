@@ -80,7 +80,7 @@ public class TaskSearchAdaptor {
         int maxResults,
         SearchTaskRequest searchTaskRequest,
         List<RoleAssignment> roleAssignments,
-        List<PermissionTypes> permissionsRequired
+        boolean granularPermissionResponseFeature
     ) throws SQLException {
         validateRequest(searchTaskRequest);
 
@@ -116,7 +116,8 @@ public class TaskSearchAdaptor {
 	            .map(taskResource ->
 	                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
 	                    taskResource,
-                        roleAssignments)
+                        roleAssignments,
+                        granularPermissionResponseFeature)
 	            )
 	            .collect(Collectors.toList());
 

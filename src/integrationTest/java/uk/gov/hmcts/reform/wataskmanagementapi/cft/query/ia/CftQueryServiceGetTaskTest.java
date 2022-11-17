@@ -78,7 +78,8 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
-                                              allowedJurisdictionConfiguration, launchDarklyFeatureFlagProvider, taskSearchAdaptor
+                                              allowedJurisdictionConfiguration, launchDarklyFeatureFlagProvider,
+                                              taskSearchAdaptor
         );
     }
 
