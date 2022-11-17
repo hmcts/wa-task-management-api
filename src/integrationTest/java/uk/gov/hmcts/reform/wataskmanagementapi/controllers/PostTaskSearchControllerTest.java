@@ -367,6 +367,123 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_return_task_with_old_permissions_when_granular_permission_flag_off() throws Exception {
+        String caseId = "searchCriteriaCaseId3";
+        mockServices.mockUserInfo();
+        // create role assignments with IA, Organisation and SCSS , Case
+        List<RoleAssignment> roleAssignments = mockServices.createRoleAssignmentsWithSCSSandIA(caseId);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            true, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), true, true, true, true,
+            true, true, true, true, true, true
+        );
+
+        insertDummyTaskInDb(caseId, taskId, "SSCS", "Asylum", taskRoleResource);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("SSCS"))
+        ));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchTaskRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isOk(),
+            jsonPath("total_records").value(1),
+            jsonPath("$.tasks").isNotEmpty(),
+            jsonPath("$.tasks.length()").value(1),
+            jsonPath("$.tasks[0].jurisdiction").value("SSCS"),
+            jsonPath("$.tasks[0].permissions.values[0]").value("Read"),
+            jsonPath("$.tasks[0].permissions.values[1]").value("Own"),
+            jsonPath("$.tasks[0].permissions.values[2]").value("Execute"),
+            jsonPath("$.tasks[0].permissions.values.length()").value(3)
+        ).andReturn();
+
+    }
+
+    @Test
+    void should_return_task_with_granular_permissions_when_permission_flag_on() throws Exception {
+        String caseId = "searchCriteriaCaseId4";
+        mockServices.mockUserInfo();
+        // create role assignments with IA, Organisation and SCSS , Case
+        List<RoleAssignment> roleAssignments = mockServices.createRoleAssignmentsWithSCSSandIA(caseId);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            true, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), true, true, true, true,
+            true, true, true, true, true, false
+        );
+
+        insertDummyTaskInDb(caseId, taskId, "SSCS", "Asylum", taskRoleResource);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("SSCS"))
+        ));
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
+            mockedUserInfo.getUid(),
+            mockedUserInfo.getEmail()
+        )).thenReturn(true);
+
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchTaskRequest))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andDo(MockMvcResultHandlers.print())
+            .andExpectAll(
+                status().isOk(),
+                jsonPath("total_records").value(1),
+                jsonPath("$.tasks").isNotEmpty(),
+                jsonPath("$.tasks.length()").value(1),
+                jsonPath("$.tasks[0].jurisdiction").value("SSCS"),
+                jsonPath("$.tasks[0].permissions.values[0]").value("Read"),
+                jsonPath("$.tasks[0].permissions.values[1]").value("Own"),
+                jsonPath("$.tasks[0].permissions.values[2]").value("Execute"),
+                jsonPath("$.tasks[0].permissions.values[3]").value("Complete"),
+                jsonPath("$.tasks[0].permissions.values[4]").value("CompleteOwn"),
+                jsonPath("$.tasks[0].permissions.values[5]").value("CancelOwn"),
+                jsonPath("$.tasks[0].permissions.values[6]").value("Claim"),
+                jsonPath("$.tasks[0].permissions.values[7]").value("Unclaim"),
+                jsonPath("$.tasks[0].permissions.values[8]").value("Assign"),
+                jsonPath("$.tasks[0].permissions.values[9]").value("Unassign"),
+                jsonPath("$.tasks[0].permissions.values[10]").value("UnclaimAssign"),
+                jsonPath("$.tasks[0].permissions.values[11]").value("UnassignClaim"),
+                jsonPath("$.tasks[0].permissions.values.length()").value(12)
+            ).andReturn();
+    }
+
+    @Test
     void should_return_200_empty_list_when_work_types_did_not_match() throws Exception {
 
         UserInfo userInfo = mockServices.mockUserInfo();
@@ -1168,12 +1285,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            accessControlResponse.getUserInfo().getUid(),
-            IDAM_USER_EMAIL
-        )).thenReturn(false);
-
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -1207,7 +1318,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             expectedReq,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
     }
 
@@ -1263,7 +1375,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             expectedReq,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
     }
 
@@ -1320,7 +1433,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             expectedReq,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
     }
 
@@ -1377,7 +1491,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             expectedReq,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
     }
 
@@ -1434,7 +1549,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             expectedReq,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
     }
 

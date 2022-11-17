@@ -54,6 +54,9 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
@@ -151,7 +154,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             scenario.firstResult,
             scenario.maxResults,
             scenario.searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
         //then
@@ -170,6 +174,58 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource({
+        "grantTypeWithStandardAndExcludedScenarioHappyPath"
+    })
+    void should_retrieve_tasks_with_non_granular_permission(TaskQueryScenario scenario) {
+
+        //given
+        AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
+                                                                                scenario.roleAssignments);
+
+        //when
+        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+            scenario.firstResult,
+            scenario.maxResults,
+            scenario.searchTaskRequest,
+            accessControlResponse,
+            false
+        );
+        //then
+        Assertions.assertThat(allTasks.getTasks().get(0).getPermissions().getValues().contains(
+            READ)).isTrue();
+        Assertions.assertThat(allTasks.getTasks().get(0).getPermissions().getValues().contains(
+            UNCLAIM_ASSIGN)).isFalse();
+
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource({
+        "grantTypeWithStandardAndExcludedScenarioHappyPath"
+    })
+    void should_retrieve_tasks_with_granular_permission(TaskQueryScenario scenario) {
+
+        //given
+        AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
+                                                                                scenario.roleAssignments);
+
+        //when
+        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+            scenario.firstResult,
+            scenario.maxResults,
+            scenario.searchTaskRequest,
+            accessControlResponse,
+            true
+        );
+
+        //then
+        Assertions.assertThat(allTasks.getTasks().get(0).getPermissions().getValues().containsAll(
+            List.of(READ, UNASSIGN, UNCLAIM_ASSIGN))).isTrue();
+
+    }
+
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource({
         "sortByFieldNexHearingDateAscOrder",
         "sortByFieldNexHearingDateDescOrder"
     })
@@ -184,7 +240,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             scenario.firstResult,
             scenario.maxResults,
             scenario.searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
         //then
@@ -221,7 +278,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             scenario.firstResult,
             scenario.maxResults,
             scenario.searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
         //then
@@ -251,7 +309,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 -1,
                 1,
                 searchTaskRequest,
-                accessControlResponse
+                accessControlResponse,
+                false
             ))
             .hasNoCause()
             .hasMessage("Offset index must not be less than zero");
@@ -261,7 +320,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 0,
                 0,
                 searchTaskRequest,
-                accessControlResponse
+                accessControlResponse,
+                false
             ))
             .hasNoCause()
             .hasMessage("Limit must not be less than one");
@@ -299,7 +359,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             0,
             10,
             searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
 
@@ -332,7 +393,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             0,
             10,
             searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
         //when excluded role applied to standard user can not retrieve task
@@ -368,13 +430,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
-        permissionsRequired.add(PermissionTypes.READ);
+        permissionsRequired.add(READ);
 
         GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             0,
             10,
             searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
 
@@ -402,13 +465,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
-        permissionsRequired.add(PermissionTypes.READ);
+        permissionsRequired.add(READ);
 
         allTasks = cftQueryService.searchForTasks(
             0,
             10,
             searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
         //when excluded role applied to challenged user can not retrieve task
@@ -445,13 +509,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
-        permissionsRequired.add(PermissionTypes.READ);
+        permissionsRequired.add(READ);
 
         GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             0,
             10,
             searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
 
@@ -479,13 +544,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
-        permissionsRequired.add(PermissionTypes.READ);
+        permissionsRequired.add(READ);
 
         allTasks = cftQueryService.searchForTasks(
             0,
             10,
             searchTaskRequest,
-            accessControlResponse
+            accessControlResponse,
+            false
         );
 
         //when excluded role applied to specific user can retrieve task

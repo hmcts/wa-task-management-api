@@ -15,11 +15,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -133,7 +136,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         common.setupWAOrganisationalRoleAssignment(otherUser.getHeaders());
 
-        CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(true));
+        CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -141,11 +144,20 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             otherUser.getHeaders()
         );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+        UserInfo userInfo = idamService.getUserInfo(caseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
 
-        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .and()
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
+            .body("message", equalTo(String.format(
+                LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER,
+                taskId, userInfo.getUid()
+            )));
 
         common.cleanUpTask(taskId);
         common.clearAllRoleAssignments(otherUser.getHeaders());
@@ -252,6 +264,80 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         common.cleanUpTask(taskId);
 
+    }
+
+    //Add four IT to cover grant type SPECIFIC, STANDARD, CHALLENGED, EXCLUDED for complete request, then remove this.
+    @Test
+    public void should_return_a_204_when_completing_a_task_by_id_with_restricted_role_assignment() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
+        taskId = taskVariables.getTaskId();
+        initiateTask(taskVariables);
+
+        common.setupSpecificTribunalCaseWorker(taskVariables.getCaseId(), caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+
+        common.cleanUpTask(taskId);
+    }
+
+    //Need new IT to cover role assignment verification for attributes in common for all actions, then remove this test.
+    @Test
+    public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
+        TestVariables taskVariables = common.setupWATaskWithWithCustomVariableAndRetrieveIds(REGION, "1", "requests/ccd/wa_case_data.json");
+        taskId = taskVariables.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+        initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
+        //Create temporary role-assignment to assign task
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.FORBIDDEN
+        );
+
+        //Delete role-assignment and re-create
+        common.setupWAOrganisationalRoleAssignmentWithCustomAttributes(
+            caseworkerCredentials.getHeaders(),
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "WA",
+                "region", "2"
+            )
+        );
+
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+
+        common.cleanUpTask(taskId);
     }
 
     private void assignTask(TestVariables taskVariables) {
