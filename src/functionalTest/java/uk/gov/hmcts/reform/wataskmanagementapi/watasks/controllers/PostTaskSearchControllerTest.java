@@ -258,7 +258,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
             new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
         ));
 
@@ -274,7 +274,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.name", everyItem(equalTo("process application")))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
             .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "CompleteOwn","CancelOwn","Claim"))));
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"))));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
@@ -308,15 +308,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
 
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            asList(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
-            ),
-            List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
-        );
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+        ));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
@@ -357,7 +354,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             asList(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+                new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
             ),
             List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
