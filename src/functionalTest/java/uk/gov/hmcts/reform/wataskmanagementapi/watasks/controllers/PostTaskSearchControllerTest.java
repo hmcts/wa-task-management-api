@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 
@@ -34,6 +35,7 @@ import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
@@ -364,51 +366,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_200_with_tasks_sorted_on_next_hearing_date_asc() {
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
-        List<TestVariables> tasksCreated = new ArrayList<>();
-
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
-        tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA);
-
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
-        tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA);
-
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            asList(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-                new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
-            ),
-            List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
-        );
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
-            searchTaskRequest,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.prettyPrint();
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
-            .body("tasks[0].id", is(taskIds.get(0)))
-            .body("tasks[1].id", is(taskIds.get(1)))
-            .body("total_records", equalTo(2));
-
-        tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
-    }
-
-    @Test
     public void should_return_a_200_with_role_category_ctsc() {
         common.setupCFTCtscRoleAssignmentForWA(caseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
@@ -470,6 +427,52 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.minor_priority", everyItem(equalTo(500)))
             .body("tasks.major_priority", everyItem(equalTo(5000)))
             .body("total_records", equalTo(1));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+    }
+
+
+    @Test
+    public void should_return_200_with_tasks_sorted_on_next_hearing_date_asc() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        List<TestVariables> tasksCreated = new ArrayList<>();
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        tasksCreated.add(taskVariables);
+        initiateTask(taskVariables, Jurisdiction.WA);
+
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        tasksCreated.add(taskVariables);
+        initiateTask(taskVariables, Jurisdiction.WA);
+
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+            ),
+            List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("tasks[0].id", is(taskIds.get(0)))
+            .body("tasks[1].id", is(taskIds.get(1)))
+            .body("total_records", equalTo(2));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
