@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 public final class TaskActionAttributesBuilder {
 
@@ -27,6 +28,30 @@ public final class TaskActionAttributesBuilder {
             return TaskAction.AUTO_ASSIGN;
         } else if (oldState.equals(CFTTaskState.ASSIGNED) && taskResource.getState().equals(CFTTaskState.UNASSIGNED)) {
             return TaskAction.AUTO_UNASSIGN;
+        }
+
+        return TaskAction.CONFIGURE;
+    }
+
+    public static TaskAction buildTaskActionAttributeForAssign(TaskResource taskResource, String assigner, String newAssignee,
+                                                      String oldAssignee) {
+        if (oldAssignee == null && !StringUtils.equals(newAssignee, assigner)) {
+            return TaskAction.ASSIGN;
+        } else if (oldAssignee == null && StringUtils.equals(newAssignee, assigner)) {
+            return TaskAction.CLAIM;
+        } else if (newAssignee == null && oldAssignee != null && !StringUtils.equals(oldAssignee, assigner)) {
+            return TaskAction.UNASSIGN;
+        } else if (newAssignee == null && oldAssignee != null && StringUtils.equals(oldAssignee, assigner)) {
+            return TaskAction.UNCLAIM;
+        } else if (newAssignee != null && oldAssignee != null && !StringUtils.equals(oldAssignee, newAssignee)
+                   && !StringUtils.equals(newAssignee, assigner)) {
+            return TaskAction.UNASSIGN_ASSIGN;
+        } else if (newAssignee != null && oldAssignee != null && !StringUtils.equals(oldAssignee, newAssignee)
+                   && StringUtils.equals(newAssignee, assigner)) {
+            return TaskAction.UNASSIGN_CLAIM;
+        } else if (newAssignee != null && oldAssignee != null && !StringUtils.equals(oldAssignee, newAssignee)
+                  && StringUtils.equals(oldAssignee, assigner)) {
+            return TaskAction.UNCLAIM_ASSIGN;
         }
 
         return TaskAction.CONFIGURE;

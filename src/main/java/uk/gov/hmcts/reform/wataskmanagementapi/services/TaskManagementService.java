@@ -259,15 +259,15 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
-        unclaimTask(taskId, userId, taskHasUnassigned);
+        unclaimTask(taskId, userId, taskHasUnassigned, TaskAction.UNCLAIM);
     }
 
-    private void unclaimTask(String taskId, String userId, boolean taskHasUnassigned) {
+    private void unclaimTask(String taskId, String userId, boolean taskHasUnassigned, TaskAction taskAction) {
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);
         task.setState(CFTTaskState.UNASSIGNED);
         task.setAssignee(null);
-        setTaskActionAttributes(task, userId, TaskAction.UNCLAIM);
+        setTaskActionAttributes(task, userId, taskAction);
         //Perform Camunda updates
         camundaService.unclaimTask(taskId, taskHasUnassigned);
         //Commit transaction
@@ -333,7 +333,7 @@ public class TaskManagementService {
             if (assignee.isEmpty()) {
                 String taskState = taskResource.getState().getValue();
                 boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
-                unclaimTask(taskId, assigner.getUid(), taskHasUnassigned);
+                unclaimTask(taskId, assigner.getUid(), taskHasUnassigned, TaskAction.UNCLAIM);
             } else {
                 requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
 
