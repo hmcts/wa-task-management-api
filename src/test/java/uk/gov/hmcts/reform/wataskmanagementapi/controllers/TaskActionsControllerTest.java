@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -74,6 +75,8 @@ class TaskActionsControllerTest {
     private SystemDateProvider systemDateProvider;
     @Mock
     private ClientAccessControlService clientAccessControlService;
+    @Mock
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     private TaskActionsController taskActionsController;
     private String taskId;
@@ -85,7 +88,8 @@ class TaskActionsControllerTest {
             taskManagementService,
             accessControlService,
             systemDateProvider,
-            clientAccessControlService
+            clientAccessControlService,
+            launchDarklyFeatureFlagProvider
         );
 
     }
