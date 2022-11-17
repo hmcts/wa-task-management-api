@@ -222,7 +222,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             )));
 
         Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
-            "assigned", userInfo.getUid(), COMPLETED);
+            "assigned", userInfo.getUid(), CLAIM);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
