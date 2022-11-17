@@ -168,11 +168,12 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
+
+        String serviceToken = otherUser.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
         Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
             "completed", userInfo.getUid(), COMPLETED);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, taskValueMap, otherUser.getHeaders());
 
         common.cleanUpTask(taskId);
         common.clearAllRoleAssignments(otherUser.getHeaders());
@@ -220,7 +221,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                 taskId, userInfo.getUid()
             )));
 
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId,"unassigned");
+        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
+            "assigned", userInfo.getUid(), COMPLETED);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
