@@ -75,19 +75,19 @@ public final class TaskActionAttributesBuilder {
 
     private static boolean isUnassignAssign(String assigner, Optional<String> newAssignee,
                                             Optional<String> oldAssignee) {
-        return newAssignee.isPresent() && oldAssignee.isPresent() && !oldAssignee.equals(newAssignee.get())
+        return newAssignee.isPresent() && oldAssignee.isPresent() && !oldAssignee.equals(newAssignee)
                && !StringUtils.equals(newAssignee.get(), assigner);
     }
 
     private static boolean isUnassignClaim(String assigner, Optional<String> newAssignee,
                                            Optional<String> oldAssignee) {
-        return newAssignee.isPresent() && oldAssignee.isPresent() && !oldAssignee.equals(newAssignee.get())
+        return newAssignee.isPresent() && oldAssignee.isPresent() && !oldAssignee.equals(newAssignee)
                && StringUtils.equals(newAssignee.get(), assigner);
     }
 
     private static boolean isUnclaimAssign(String assigner, Optional<String> newAssignee,
                                            Optional<String> oldAssignee) {
-        return newAssignee.isPresent() && oldAssignee.isPresent() && !oldAssignee.equals(newAssignee.get())
+        return newAssignee.isPresent() && oldAssignee.isPresent() && !oldAssignee.equals(newAssignee)
                && StringUtils.equals(oldAssignee.get(), assigner);
     }
 }
