@@ -159,7 +159,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
         Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, userInfo.getUid(),
             "assigned", userInfo.getUid(), CLAIM);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, currentCaseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
