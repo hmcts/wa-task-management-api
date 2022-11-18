@@ -91,6 +91,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskActionAttributesBuilder.buildTaskActionAttributeForAssign;
 import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskActionAttributesBuilder.setTaskActionAttributes;
 
 @Slf4j
@@ -333,7 +334,9 @@ public class TaskManagementService {
             if (assignee.isEmpty()) {
                 String taskState = taskResource.getState().getValue();
                 boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
-                unclaimTask(taskId, assigner.getUid(), taskHasUnassigned, TaskAction.UNCLAIM);
+                TaskAction taskAction = buildTaskActionAttributeForAssign(assigner.getUid(), Optional.empty(),
+                    currentAssignee);
+                unclaimTask(taskId, assigner.getUid(), taskHasUnassigned, taskAction);
             } else {
                 requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
 
@@ -353,7 +356,8 @@ public class TaskManagementService {
                 TaskResource task = findByIdAndObtainLock(taskId);
                 task.setState(CFTTaskState.ASSIGNED);
                 task.setAssignee(assignee.get().getUid());
-
+                updateTaskActionAttributes(task, assigner.getUid(),
+                    Optional.of(assignee.get().getUid()), currentAssignee);
                 //Perform Camunda updates
                 camundaService.assignTask(
                     taskId,
@@ -365,6 +369,12 @@ public class TaskManagementService {
                 cftTaskDatabaseService.saveTask(task);
             }
         }
+    }
+
+    private void updateTaskActionAttributes(TaskResource taskResource, String assigner, Optional<String> newAssignee,
+                                            Optional<String> oldAssignee) {
+        TaskAction taskAction = buildTaskActionAttributeForAssign(assigner, newAssignee, oldAssignee);
+        setTaskActionAttributes(taskResource, assigner, taskAction);
     }
 
     private boolean verifyActionRequired(Optional<String> currentAssignee,
