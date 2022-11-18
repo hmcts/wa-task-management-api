@@ -56,8 +56,6 @@ public class GivensBuilder {
     private final CoreCaseDataApi coreCaseDataApi;
 
 
-    private Map<String, CamundaValue<?>> taskVariables;
-
     public GivensBuilder(RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
                          AuthorizationProvider authorizationProvider,
@@ -147,12 +145,6 @@ public class GivensBuilder {
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    public List<CamundaTask> iRetrieveATasksWithProcessVariableFilter(String key, String value, String taskType) {
-        log.info("Attempting to retrieve task with {} = {}", key, value);
-        String filter = "?processVariables=" + key + "_eq_" + value + ",taskId_eq_" + taskType;
-        return retrieveTasks(filter, 1);
-    }
-
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value, int taskIndex) {
         String filter = "?processVariables=" + key + "_eq_" + value;
         return retrieveTasks(filter, taskIndex);
@@ -200,20 +192,6 @@ public class GivensBuilder {
 
         result.then().assertThat()
             .statusCode(status.value());
-    }
-
-    public GivensBuilder iUpdateTaskVariable(String taskId, Map<String, CamundaValue<?>> processVariables) {
-        Response result = camundaApiActions.post(
-            "/task/{task-id}/variables",
-            taskId,
-            new Modifications(processVariables),
-            authorizationProvider.getServiceAuthorizationHeader()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        return this;
     }
 
     public GivensBuilder iUpdateVariablesOfTaskById(String taskId, Map<String, CamundaValue<?>> processVariables) {
@@ -345,19 +323,6 @@ public class GivensBuilder {
         additionalProperties.forEach(processVariables::withProcessVariable);
 
         return processVariables.build().getProcessVariablesMap();
-    }
-
-    public String iCreateACcdCase() {
-        TestAuthenticationCredentials lawFirmCredentials =
-            authorizationProvider.getNewTribunalCaseworker("wa-ft-r2-");
-        return createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
-            "IA",
-            "Asylum",
-            "startAppeal",
-            "submitAppeal",
-            lawFirmCredentials,
-            "requests/ccd/case_data.json"
-        );
     }
 
     public String iCreateWACcdCase(String resourceFileName) {

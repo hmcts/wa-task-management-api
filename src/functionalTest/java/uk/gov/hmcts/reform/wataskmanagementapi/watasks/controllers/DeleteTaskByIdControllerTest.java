@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import org.junit.After;
@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTask
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.Map;
 
@@ -19,7 +18,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
     private TestAuthenticationCredentials caseworkerCredentials;
@@ -37,8 +36,8 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_succeed_when_terminate_reason_is_cancelled() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        initiateTask(taskVariables);
 
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
@@ -64,8 +63,8 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_succeed_when_terminate_reason_is_completed() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        initiateTask(taskVariables, Jurisdiction.IA);
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        initiateTask(taskVariables);
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
@@ -122,7 +121,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
     private TestVariables claimAndCancelTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             caseworkerCredentials.getHeaders(),
@@ -143,7 +142,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
     private TestVariables claimAndCompleteTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             caseworkerCredentials.getHeaders(),
