@@ -37,7 +37,8 @@ public class TaskManagerClaimTaskProviderTest extends SpringBootContractProvider
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-                launchDarklyFeatureFlagProvider));
+            launchDarklyFeatureFlagProvider
+        ));
         if (context != null) {
             context.setTarget(testTarget);
         }
