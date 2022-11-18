@@ -55,5 +55,27 @@ class TaskActionAttributeBuilderTest {
             Optional.ofNullable(newAssignee),
             Optional.ofNullable(oldAssignee));
         assertEquals(action, TaskAction.from(taskAction).get());
+
+        assertEquals(taskAction.equals("Assign"), TaskActionAttributesBuilder.isAssign(assigner,
+            Optional.ofNullable(newAssignee),
+            Optional.ofNullable(oldAssignee)));
+        assertEquals(taskAction.equals("Claim"), TaskActionAttributesBuilder.isClaim(assigner,
+            Optional.ofNullable(newAssignee),
+            Optional.ofNullable(oldAssignee)));
+        assertEquals(taskAction.equals("Unassign"), TaskActionAttributesBuilder.isUnassign(assigner,
+            Optional.ofNullable(newAssignee),
+            Optional.ofNullable(oldAssignee)));
+        assertEquals(taskAction.equals("Unclaim"), TaskActionAttributesBuilder.isUnclaim(assigner,
+            Optional.ofNullable(newAssignee),
+            Optional.ofNullable(oldAssignee)));
+        assertEquals(taskAction.equals("UnassignAssign"), TaskActionAttributesBuilder.isUnassignAssign(assigner,
+            Optional.ofNullable(newAssignee),
+            Optional.ofNullable(oldAssignee)));
+        assertEquals(taskAction.equals("UnassignClaim"), TaskActionAttributesBuilder.isUnassignClaim(assigner,
+            Optional.ofNullable(newAssignee),
+            Optional.ofNullable(oldAssignee)));
+        assertEquals(taskAction.equals("UnclaimAssign"), TaskActionAttributesBuilder.isUnclaimAssign(assigner,
+            Optional.ofNullable(newAssignee),
+            Optional.ofNullable(oldAssignee)));
     }
 }

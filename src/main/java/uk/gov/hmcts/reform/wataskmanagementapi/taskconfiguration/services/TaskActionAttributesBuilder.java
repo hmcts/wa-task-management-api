@@ -53,27 +53,27 @@ public final class TaskActionAttributesBuilder {
         return TaskAction.CONFIGURE;
     }
 
-    private static boolean isAssign(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
+    public static boolean isAssign(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
         return oldAssignee.isEmpty() && newAssignee.isPresent()
             && !StringUtils.equals(newAssignee.get(), assigner);
     }
 
-    private static boolean isClaim(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
+    public static boolean isClaim(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
         return oldAssignee.isEmpty() && newAssignee.isPresent()
                && StringUtils.equals(newAssignee.get(), assigner);
     }
 
-    private static boolean isUnassign(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
+    public static boolean isUnassign(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
         return newAssignee.isEmpty() && oldAssignee.isPresent()
                    && !StringUtils.equals(oldAssignee.get(), assigner);
     }
 
-    private static boolean isUnclaim(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
+    public static boolean isUnclaim(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
         return newAssignee.isEmpty() && oldAssignee.isPresent()
                && StringUtils.equals(oldAssignee.get(), assigner);
     }
 
-    private static boolean isUnassignAssign(String assigner, Optional<String> newAssignee,
+    public static boolean isUnassignAssign(String assigner, Optional<String> newAssignee,
                                             Optional<String> oldAssignee) {
         return newAssignee.isPresent() && oldAssignee.isPresent()
                && !oldAssignee.equals(newAssignee)
@@ -81,7 +81,7 @@ public final class TaskActionAttributesBuilder {
                && !StringUtils.equals(newAssignee.get(), assigner);
     }
 
-    private static boolean isUnassignClaim(String assigner, Optional<String> newAssignee,
+    public static boolean isUnassignClaim(String assigner, Optional<String> newAssignee,
                                            Optional<String> oldAssignee) {
         return newAssignee.isPresent() && oldAssignee.isPresent()
                && !oldAssignee.equals(newAssignee)
@@ -89,7 +89,7 @@ public final class TaskActionAttributesBuilder {
                && StringUtils.equals(newAssignee.get(), assigner);
     }
 
-    private static boolean isUnclaimAssign(String assigner, Optional<String> newAssignee,
+    public static boolean isUnclaimAssign(String assigner, Optional<String> newAssignee,
                                            Optional<String> oldAssignee) {
         return newAssignee.isPresent() && oldAssignee.isPresent()
                && !oldAssignee.equals(newAssignee)
