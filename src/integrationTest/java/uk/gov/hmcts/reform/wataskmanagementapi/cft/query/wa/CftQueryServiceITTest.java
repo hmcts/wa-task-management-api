@@ -63,6 +63,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 
@@ -133,7 +135,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "paginatedResultsScenario",
         "searchByWorkTypeScenario",
         "grantTypeWithAvailableTasksOnlyRequestContextScenarioHappyPath",
-        "grantTypeWithAllWorkRequestContextScenarioHappyPath"
+        "grantTypeWithAllWorkRequestContextScenarioHappyPath",
+        "searchByWorkTypeScenario",
+        "searchByCaseIdScenario",
+        "searchByJurisdictionLocationAndStateScenario",
+        "searchByRoleCategoryScenario",
+        "searchByStateScenario",
+        "searchByJurisdictionAndLocationScenario"
     })
     void should_retrieve_tasks(TaskQueryScenario scenario) {
 
@@ -154,12 +162,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         Assertions.assertThat(allTasks.getTotalRecords())
             .isEqualTo(scenario.expectedTotalRecords);
         //then
-        Assertions.assertThat(allTasks.getTasks())
-            .hasSize(scenario.expectedAmountOfTasksInResponse)
-            .flatExtracting(Task::getId, Task::getCaseId)
-            .containsExactly(
-                scenario.expectedTaskDetails.toArray()
-            );
+        if (scenario.expectedTotalRecords > 0) {
+            Assertions.assertThat(allTasks.getTasks())
+                .hasSize(scenario.expectedAmountOfTasksInResponse)
+                .flatExtracting(Task::getId, Task::getCaseId)
+                .containsExactly(
+                    scenario.expectedTaskDetails.toArray()
+                );
+        }
     }
 
     @ParameterizedTest(name = "{0}")
@@ -1538,7 +1548,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             List.of(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of(PRIMARY_LOCATION)),
-                new SearchParameterList(WORK_TYPE, IN, singletonList("hearing_work"))
+                new SearchParameterList(WORK_TYPE, IN, List.of("hearing_work", "access_requests"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
@@ -2017,6 +2027,252 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         ));
     }
 
+    private static Stream<TaskQueryScenario> searchByJurisdictionAndLocationScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of(PRIMARY_LOCATION))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by jurisdiction and location")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.PUBLIC))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(5)
+            .expectedTotalRecords(5)
+            .userInfo(userInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
+                                 )
+            ).build();
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("INVALID"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario emptyJurisdictionTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by invalid jurisdiction, empty results")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(0)
+            .expectedTotalRecords(0)
+            .userInfo(userInfo)
+            .build();
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("INVALID"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario emptyLocationTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by invalid location, empty results")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(0)
+            .expectedTotalRecords(0)
+            .userInfo(userInfo)
+            .build();
+
+        return Stream.of(allTasks, emptyJurisdictionTasks, emptyLocationTasks);
+    }
+
+    private static Stream<TaskQueryScenario> searchByStateScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("PENDING_AUTO_ASSIGN"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by state")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(1)
+            .expectedTotalRecords(1)
+            .userInfo(userInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032"
+                                 )
+            ).build();
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("CANCELLED"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario emptyTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by state, empty results")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(0)
+            .expectedTotalRecords(0)
+            .userInfo(userInfo)
+            .build();
+
+        return Stream.of(allTasks, emptyTasks);
+    }
+
+    private static Stream<TaskQueryScenario> searchByRoleCategoryScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, List.of("CTSC"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by role category")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(1)
+            .expectedTotalRecords(1)
+            .userInfo(userInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000029", "1623278362400029"
+                                 )
+            ).build();
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, List.of("CTSC", "ADMIN"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario multipleTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by role category, multiple")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(2)
+            .expectedTotalRecords(2)
+            .userInfo(userInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000029", "1623278362400029",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000030", "1623278362400030"
+                                 )
+            ).build();
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, List.of("LEGAL_OPERATIONS"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario emptyTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by role category, empty results")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(0)
+            .expectedTotalRecords(0)
+            .userInfo(userInfo)
+            .build();
+
+        return Stream.of(allTasks, multipleTasks, emptyTasks);
+    }
+
+    private static Stream<TaskQueryScenario> searchByCaseIdScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362400001"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by case id")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(1)
+            .expectedTotalRecords(1)
+            .userInfo(userInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
+                                 )
+            ).build();
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("0000000000000000"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario emptyTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by case id, empty results")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(0)
+            .expectedTotalRecords(0)
+            .userInfo(userInfo)
+            .build();
+
+        return Stream.of(allTasks, emptyTasks);
+    }
+
+    private static Stream<TaskQueryScenario> searchByJurisdictionLocationAndStateScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of(PRIMARY_LOCATION)),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("COMPLETED", "PENDING_AUTO_ASSIGN"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by jurisdiction, location and state")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(2)
+            .expectedTotalRecords(2)
+            .userInfo(userInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000031", "1623278362400031",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032"
+                                 )
+            ).build();
+
+        return Stream.of(allTasks);
+    }
+
+
     private static Stream<TaskQueryScenario> searchByWorkTypeScenario() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             List.of(
@@ -2041,7 +2297,53 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 )
             ).build();
 
-        return Stream.of(allTasks);
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of(PRIMARY_LOCATION)),
+                new SearchParameterList(WORK_TYPE, IN, List.of("review_case", "access_requests"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario multipleWorkType = TaskQueryScenario.builder()
+            .scenarioName("Search by work type, multiple")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(2)
+            .expectedTotalRecords(2)
+            .userInfo(userInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035"
+                                 )
+            ).build();
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of(PRIMARY_LOCATION)),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362400035")),
+                new SearchParameterList(WORK_TYPE, IN, singletonList("routine_work"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario emptyWorkType = TaskQueryScenario.builder()
+            .scenarioName("Search by work type, empty")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(0)
+            .expectedTotalRecords(0)
+            .userInfo(userInfo)
+            .build();
+
+        return Stream.of(allTasks, multipleWorkType, emptyWorkType);
     }
 
     @Builder
