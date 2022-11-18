@@ -234,7 +234,8 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail()
             );
-
+        log.info("GP for {} and {} is {}", accessControlResponse.getUserInfo().getUid(),
+                 accessControlResponse.getUserInfo().getEmail(), granularPermissionFeatureEnabled);
         PermissionRequirements permissionsRequired;
         if (granularPermissionFeatureEnabled) {
             permissionsRequired = PermissionRequirementBuilder.builder()
