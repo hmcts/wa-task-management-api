@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -40,8 +41,12 @@ import static org.mockito.Mockito.when;
 public class ServiceMocks {
 
     public static final String IDAM_USER_ID = "IDAM_USER_ID";
+    public static final String IDAM_OTHER_USER_ID = "IDAM_OTHER_USER_ID";
     public static final String IDAM_USER_EMAIL = "wa-ft-test@test.com";
+    public static final String IDAM_USER_ID_GP = "IDAM_USER_ID_GP";
+    public static final String IDAM_USER_EMAIL_GP = "wa-granular-permission-wa-ft-test@test.com";
     public static final String SECONDARY_IDAM_USER_ID = "SECONDARY_IDAM_USER_ID";
+    public static final String THIRD_IDAM_USER_ID = "THIRD_IDAM_USER_ID";
     public static final String SECONDARY_IDAM_USER_EMAIL = "wa-ft-test@test.com";
     public static final String IDAM_AUTHORIZATION_TOKEN = "Bearer IDAM_AUTH_TOKEN";
     public static final String IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION = "Bearer IDAM_AUTH_TOKEN_FOR_EXCEPTION";
@@ -66,6 +71,17 @@ public class ServiceMocks {
     public void mockServiceAPIs() {
 
         mockUserInfo();
+        mockRoleAssignments(roleAssignmentServiceApi);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        mockVariables();
+    }
+
+    public void mockServiceAPIsGp() {
+
+        mockGPUserInfo();
         mockRoleAssignments(roleAssignmentServiceApi);
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
@@ -104,6 +120,12 @@ public class ServiceMocks {
         UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
         return mockedUserInfo;
+    }
+
+    public UserInfo mockGPUserInfo() {
+        UserInfo mockedGPUserInfo = UserInfo.builder().uid(IDAM_USER_ID_GP).email(IDAM_USER_EMAIL_GP).build();
+        when(idamWebApi.userInfo(any())).thenReturn(mockedGPUserInfo);
+        return mockedGPUserInfo;
     }
 
     public UserInfo mockSecondaryUserInfo() {
@@ -155,6 +177,24 @@ public class ServiceMocks {
         );
     }
 
+    public List<RoleAssignment> createRoleAssignmentsWithJurisdiction(String jurisdiction) {
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
+        Map<String, String> roleAttributes = new HashMap<>();
+        // Role Assignment with SCSS and RoleType CASE
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), jurisdiction);
+
+        final RoleAssignment caseRoleAssignment = createBaseAssignment(
+            UUID.randomUUID().toString(),
+            "tribunal-caseworker",
+            RoleType.ORGANISATION,
+            Classification.PUBLIC,
+            roleAttributes
+        );
+        allTestRoles.add(caseRoleAssignment);
+
+        return allTestRoles;
+    }
+
     public List<RoleAssignment> createRoleAssignmentsWithJurisdiction(String jurisdiction,String caseId) {
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         Map<String, String> roleAttributes = new HashMap<>();
@@ -174,14 +214,14 @@ public class ServiceMocks {
         return allTestRoles;
     }
 
-    public List<RoleAssignment> createRoleAssignmentsWithSCSSandIA() {
+    public List<RoleAssignment> createRoleAssignmentsWithSCSSandIA(String caseId) {
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         // Role Assignment with IA and RoleType Organisation
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
         final RoleAssignment orgRoleAssignment = createBaseAssignment(
             UUID.randomUUID().toString(),
-            "tribunal-caseworker",
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             RoleType.ORGANISATION,
             Classification.PUBLIC,
             roleAttributes
@@ -191,10 +231,10 @@ public class ServiceMocks {
         // Role Assignment with SCSS and RoleType CASE
         roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "SSCS");
-        roleAttributes.put(RoleAttributeDefinition.CASE_ID.value(), "caseId1");
+        roleAttributes.put(RoleAttributeDefinition.CASE_ID.value(), caseId);
         final RoleAssignment caseRoleAssignment = createBaseAssignment(
             UUID.randomUUID().toString(),
-            "tribunal-caseworker",
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             RoleType.CASE,
             Classification.PUBLIC,
             roleAttributes

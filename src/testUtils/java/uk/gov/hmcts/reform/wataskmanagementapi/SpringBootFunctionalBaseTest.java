@@ -49,6 +49,7 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
@@ -70,10 +71,13 @@ public abstract class SpringBootFunctionalBaseTest {
         "There was a problem fetching the variables for task with id: %s";
     public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_NOT_ASSIGNED =
         "Could not complete task with id: %s as task was not previously assigned";
+    public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER =
+        "Could not complete task with id: %s as task was assigned to other user %s";
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}/initiation";
     protected static final String TASK_GET_ENDPOINT = "task/{task-id}";
+    protected static final String TASK_GET_ROLES_ENDPOINT = "task/{task-id}/roles";
     protected static final String WA_JURISDICTION = "WA";
     protected static final String WA_CASE_TYPE = "WaCaseType";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
@@ -84,7 +88,9 @@ public abstract class SpringBootFunctionalBaseTest {
             + "The user being assigned the Task has failed the Role Assignment checks performed.";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED =
         "Role Assignment Verification: The request failed the Role Assignment checks performed.";
-
+    protected static String ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER =
+        "Role Assignment Verification: The user assigning the Task has failed the Role Assignment checks performed.";
+    protected static String TASK_NOT_FOUND_ERROR = "Task Not Found Error: The task could not be found.";
     protected GivensBuilder given;
     protected Assertions assertions;
     protected Common common;
@@ -331,9 +337,38 @@ public abstract class SpringBootFunctionalBaseTest {
             authorizationProvider.getServiceAuthorizationHeadersOnly()
         );
 
-        response.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
+        //Note: Since tasks can be initiated directly by task monitor, we will have database conflicts for
+        // second initiation request, so we are by-passing 503 and 201 response statuses.
+        assertResponse(response);
 
+    }
+
+    private void assertResponse(Response response) {
+        response.prettyPrint();
+
+        int statusCode = response.getStatusCode();
+        switch (statusCode) {
+            case 503:
+                log.info("Initiation failed due to Database Conflict Error, so handling gracefully, {}", statusCode);
+
+                response.then().assertThat()
+                    .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+                    .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+                    .body("type", equalTo(
+                        "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
+                    .body("title", equalTo("Database Conflict Error"))
+                    .body("status", equalTo(503))
+                    .body("detail", equalTo(
+                        "Database Conflict Error: The action could not be completed because "
+                            + "there was a conflict in the database."));
+                break;
+            case 201:
+                log.info("task Initiation got successfully with status, {}", statusCode);
+                break;
+            default:
+                log.info("task Initiation failed with status, {}", statusCode);
+                throw new RuntimeException("Invalid status received for task initiation " + statusCode);
+        }
     }
 
     protected String getAssigneeId(Headers headers) {

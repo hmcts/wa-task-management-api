@@ -16,7 +16,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.zalando.problem.ProblemModule;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
@@ -25,7 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
@@ -53,10 +51,6 @@ public class TaskManagementProviderTestConfiguration {
     private EntityManagerFactory entityManagerFactory;
     @MockBean
     private CamundaService camundaService;
-    @MockBean
-    private CamundaQueryBuilder camundaQueryBuilder;
-    @MockBean
-    private PermissionEvaluatorService permissionEvaluatorService;
     @MockBean
     private CFTTaskMapper cftTaskMapper;
     @MockBean
@@ -96,13 +90,11 @@ public class TaskManagementProviderTestConfiguration {
     @Primary
     public TaskManagementService taskManagementService() {
         roleAssignmentVerificationService = new RoleAssignmentVerificationService(
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftQueryService
         );
         return new TaskManagementService(
             camundaService,
-            camundaQueryBuilder,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
@@ -110,8 +102,7 @@ public class TaskManagementProviderTestConfiguration {
             taskAutoAssignmentService,
             roleAssignmentVerificationService,
             taskOperationServices,
-            entityManager,
-            allowedJurisdictionConfiguration
+            entityManager
         );
     }
 

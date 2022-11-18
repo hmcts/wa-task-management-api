@@ -1,16 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
@@ -37,7 +34,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByWorkType;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
@@ -63,15 +59,10 @@ public final class TaskSearchQueryBuilder {
     public static Predicate buildTaskSummaryQuery(
         SearchTaskRequest searchTaskRequest,
         List<RoleAssignment> roleAssignments,
-        List<PermissionTypes> permissionsRequired,
+        PermissionRequirements permissionsRequired,
+        Boolean availableTasksOnly,
         CriteriaBuilder builder,
         Root<TaskResource> root) {
-
-        final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
-
-        if (availableTasksOnly && !permissionsRequired.contains(PermissionTypes.OWN)) {
-            permissionsRequired.add(PermissionTypes.OWN);
-        }
 
         log.debug("Querying with 'available_tasks_only' set to '{}'", availableTasksOnly);
         log.debug("Querying with 'permissions required' set to '{}'", permissionsRequired);
@@ -82,7 +73,6 @@ public final class TaskSearchQueryBuilder {
         final Predicate roleAssignmentSpec = buildRoleAssignmentConstraints(
             permissionsRequired,
             roleAssignments,
-            availableTasksOnly,
             builder,
             root
         );
@@ -129,7 +119,7 @@ public final class TaskSearchQueryBuilder {
     public static Predicate buildQueryForCompletable(
         SearchEventAndCase searchEventAndCase,
         List<RoleAssignment> roleAssignments,
-        List<PermissionTypes> permissionsRequired,
+        PermissionRequirements permissionsRequired,
         List<String> taskTypes,
         CriteriaBuilder builder,
         Root<TaskResource> root) {
@@ -143,7 +133,6 @@ public final class TaskSearchQueryBuilder {
         predicates.add(buildRoleAssignmentConstraints(
             permissionsRequired,
             roleAssignments,
-            false,
             builder,
             root
         ));
@@ -234,25 +223,8 @@ public final class TaskSearchQueryBuilder {
         return map;
     }
 
-    private static EnumMap<SearchParameterKey, SearchParameterBoolean> asEnumMapForBoolean(
-        SearchTaskRequest searchTaskRequest) {
 
-        EnumMap<SearchParameterKey, SearchParameterBoolean> map = new EnumMap<>(SearchParameterKey.class);
-        if (searchTaskRequest != null && !CollectionUtils.isEmpty(searchTaskRequest.getSearchParameters())) {
-            searchTaskRequest.getSearchParameters()
-                .stream()
-                .filter(SearchParameterBoolean.class::isInstance)
-                .forEach(request -> map.put(request.getKey(), (SearchParameterBoolean) request));
-        }
 
-        return map;
-    }
 
-    private static boolean isAvailableTasksOnly(SearchTaskRequest searchTaskRequest) {
-        final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap = asEnumMapForBoolean(searchTaskRequest);
-        SearchParameterBoolean availableTasksOnly = boolKeyMap.get(AVAILABLE_TASKS_ONLY);
-
-        return availableTasksOnly != null && availableTasksOnly.getValues();
-    }
 
 }

@@ -20,7 +20,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -56,27 +55,6 @@ public final class RoleAssignmentFilter {
 
     private RoleAssignmentFilter() {
         // avoid creating object
-    }
-
-    public static Predicate buildRoleAssignmentConstraints(
-        List<PermissionTypes> permissionsRequired,
-        List<RoleAssignment> roleAssignments,
-        boolean andPermissions,
-        CriteriaBuilder builder,
-        Root<TaskResource> root) {
-
-        final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
-
-        // roll assigment filter
-        Predicate roleAssignmentFilterPredicate = getRoleAssignmentFilterPredicate(roleAssignments,
-                                                                                   builder, root, taskRoleResources);
-
-        // permissions check
-        Predicate permissionRequirementPredicate = getPermissionRequirementPredicate(permissionsRequired,
-                                                                                     builder, taskRoleResources,
-                                                                                     andPermissions);
-
-        return builder.and(roleAssignmentFilterPredicate, permissionRequirementPredicate);
     }
 
     public static Predicate buildRoleAssignmentConstraints(
@@ -158,29 +136,11 @@ public final class RoleAssignmentFilter {
         return builder.or(specific, standardChallengedExcluded);
     }
 
-    private static Predicate getPermissionRequirementPredicate(List<PermissionTypes> permissionsRequired,
-                                                               CriteriaBuilder builder,
-                                                               Join<TaskResource, TaskRoleResource> taskRoleResources,
-                                                               boolean andPermissions) {
-        List<Predicate> permissionPredicates = new ArrayList<>();
-        for (PermissionTypes type : permissionsRequired) {
-            permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
-        }
-        Predicate permissionPredicate;
-        if (andPermissions) {
-            permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
-        } else {
-            permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
-        }
-
-        return permissionPredicate;
-    }
-
     private static Predicate getPermissionRequirementPredicate(PermissionRequirements permissionsRequired,
                                                                CriteriaBuilder builder,
                                                                Join<TaskResource, TaskRoleResource> taskRoleResources) {
         PermissionRequirements nextRequirements = permissionsRequired;
-        PermissionJoin nextPermissionJoin = nextRequirements.getPermissionJoin();
+        PermissionJoin nextPermissionJoin = permissionsRequired.getPermissionJoin();
         Predicate permissionRequirementPredicate = null;
 
         List<Predicate> permissionPredicates = new ArrayList<>();
@@ -190,13 +150,15 @@ public final class RoleAssignmentFilter {
             PermissionRequirement requirement = nextRequirements.getPermissionRequirement();
 
             for (PermissionTypes type : requirement.getPermissionTypes()) {
-                permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
+                permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.taskRoleResourceField())));
             }
             Predicate permissionPredicate;
             if (PermissionJoin.AND.equals(requirement.getPermissionJoin())) {
                 permissionPredicate = builder.and(permissionPredicates.toArray(predicates));
-            } else {
+            } else if (PermissionJoin.OR.equals(requirement.getPermissionJoin())) {
                 permissionPredicate = builder.or(permissionPredicates.toArray(predicates));
+            } else {
+                permissionPredicate = permissionPredicates.get(0);
             }
             permissionPredicates.clear();
 

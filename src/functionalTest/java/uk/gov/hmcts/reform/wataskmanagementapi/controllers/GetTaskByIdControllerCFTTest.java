@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
@@ -37,7 +38,6 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-
     }
 
     @After
@@ -123,7 +123,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.case_management_category", equalTo("Protection"))
             .body("task.work_type_id", equalTo("decision_making_work"))
             .body("task.permissions.values.size()", equalTo(5))
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("task.permissions.values", hasItems(PermissionTypes.READ.value(),
+                                                      PermissionTypes.REFER.value(),
+                                                      PermissionTypes.MANAGE.value(),
+                                                      PermissionTypes.CANCEL.value()))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
@@ -193,7 +196,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .and().body("task.id", equalTo(taskId))
             .body("task.warnings", is(true))
             .body("task.permissions.values.size()", equalTo(5))
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"));
+            .body("task.permissions.values", hasItems(PermissionTypes.READ.value(),
+                                                      PermissionTypes.REFER.value(),
+                                                      PermissionTypes.MANAGE.value(),
+                                                      PermissionTypes.CANCEL.value()));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "task.warning_list.values");
@@ -256,7 +262,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
             .body("task.permissions.values.size()", equalTo(5))
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("task.permissions.values", hasItems(PermissionTypes.READ.value(),
+                                                      PermissionTypes.REFER.value(),
+                                                      PermissionTypes.MANAGE.value(),
+                                                      PermissionTypes.CANCEL.value()))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
