@@ -48,8 +48,8 @@ class TaskActionAttributeBuilderTest {
         "newAssignee, newAssignee, assigner, Configure",
         ", , Assigner, Configure",
     })
-    void should_build_task_action_correctly_when_task_is_assigned(String newAssignee, String oldAssignee, String assigner,
-                                                                  String taskAction) {
+    void should_build_task_action_correctly_when_task_is_assigned(String newAssignee, String oldAssignee,
+                                                                  String assigner, String taskAction) {
         TaskAction action = TaskActionAttributesBuilder.buildTaskActionAttributeForAssign(
             assigner,
             Optional.ofNullable(newAssignee),
