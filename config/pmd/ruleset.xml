@@ -8,9 +8,7 @@
 
   <rule ref="category/java/bestpractices.xml">
     <exclude name="GuardLogStatement"/>
-    <exclude name="JUnitTestContainsTooManyAsserts"/>
-    <exclude name="LiteralsFirstInComparisons"/>
-    <exclude name="UnusedAssignment"/>
+    <exclude name="JUnitTestContainsTooManyAsserts"/> 
   </rule>
   <rule ref="category/java/codestyle.xml">
     <exclude name="AtLeastOneConstructor"/>
@@ -43,8 +41,6 @@
     <exclude name="UseUtilityClass"/>
     <exclude name="LoosePackageCoupling"/>
     <exclude name="DataClass"/>
-    <exclude name="CognitiveComplexity"/>
-    <exclude name="CyclomaticComplexity"/>
   </rule>
   <rule ref="category/java/design.xml/ExcessiveImports">
     <properties>
@@ -68,7 +64,6 @@
   </rule>
   <rule ref="category/java/errorprone.xml">
     <exclude name="BeanMembersShouldSerialize"/>
-    <exclude name="ReturnEmptyCollectionRatherThanNull"/>
   </rule>
   <rule ref="category/java/multithreading.xml"/>
   <rule ref="category/java/performance.xml"/>
