@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
@@ -61,7 +60,6 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -777,40 +775,6 @@ class CamundaServiceTest extends CamundaHelpers {
                             + "the task state was also updated to completed, but he Task could not be completed.");
         }
     }
-
-    @Nested
-    @DisplayName("searchWithCriteriaAndNoPagination()")
-    class AutoCompleteTask {
-
-        @Test
-        void should_succeed() {
-
-            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
-            List<CamundaTask> camundaTasks = singletonList(createMockedUnmappedTask());
-            when(camundaServiceApi.searchWithCriteriaAndNoPagination(
-                eq(BEARER_SERVICE_TOKEN), anyMap())).thenReturn(camundaTasks);
-            List<CamundaTask> response = camundaService.searchWithCriteriaAndNoPagination(camundaSearchQuery);
-
-            assertNotNull(response);
-            assertEquals(camundaTasks, response);
-        }
-
-        @Test
-        void should_throw_a_server_error_exception_when_search_fails() {
-
-            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
-
-            doThrow(FeignException.FeignServerException.class)
-                .when(camundaServiceApi).searchWithCriteriaAndNoPagination(eq(BEARER_SERVICE_TOKEN), anyMap());
-
-            assertThatThrownBy(() -> camundaService.searchWithCriteriaAndNoPagination(camundaSearchQuery))
-                .isInstanceOf(ServerErrorException.class)
-                .hasCauseInstanceOf(FeignException.class)
-                .hasMessage("There was a problem performing the search");
-
-        }
-    }
-
 
     @Nested
     @DisplayName("evaluateTaskCompletionDmn()")
