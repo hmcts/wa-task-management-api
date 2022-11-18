@@ -359,10 +359,10 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "process application"
         );
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables1, Jurisdiction.WA);
-        initiateTask(taskVariables2, Jurisdiction.WA);
+        initiateTask(taskVariables1);
+        initiateTask(taskVariables2);
 
         String taskId1 = taskVariables1.getTaskId();
         String taskId2 = taskVariables2.getTaskId();
