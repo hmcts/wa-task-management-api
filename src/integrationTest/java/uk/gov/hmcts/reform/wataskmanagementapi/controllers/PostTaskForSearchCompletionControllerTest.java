@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
@@ -452,9 +453,214 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     }
 
     @Test
+    void should_return_a_200_and_task_list_with_warnings_and_additional_properties() throws Exception {
+        String caseId = "searchForCompletableCaseId22";
+        searchEventAndCase = new SearchEventAndCase(
+            caseId,
+            "decideAnApplication",
+            "ia",
+            "asylum"
+        );
+        mockServices.mockUserInfo();
+
+        // Role attribute is IA
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        String roleAssignmentId = UUID.randomUUID().toString();
+
+        // Task created is IA
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(caseId, taskId, "IA", "Asylum",
+                                                               roleAssignmentId, taskRoleResource);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+            "taskType", new CamundaVariable("reviewTheAppeal", "String"),
+            "completionMode", new CamundaVariable("Auto", "String"),
+            "workType", new CamundaVariable("decision_making_work", "String"),
+            "description", new CamundaVariable("aDescription", "String")
+        ));
+        when(camundaServiceApi.evaluateDMN(any(), any(), any(), anyMap()))
+            .thenReturn(mockedResponse);
+
+        when(camundaServiceApi.getAllVariables(any(), any()))
+            .thenReturn(mockedAllVariables(caseId, "processInstanceId", "IA", taskId));
+
+        mockMvc.perform(
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks.size()").value(1))
+            .andExpect(jsonPath("tasks[0].warning_list.values.size()").value(2))
+            .andExpect(jsonPath("tasks[0].warning_list.values[0].warningCode").value("Code1"))
+            .andExpect(jsonPath("tasks[0].warning_list.values[0].warningText").value("Text1"))
+            .andExpect(jsonPath("tasks[0].warning_list.values[1].warningCode").value("Code2"))
+            .andExpect(jsonPath("tasks[0].warning_list.values[1].warningText").value("Text2"))
+            .andExpect(jsonPath("tasks[0].additional_properties['roleAssignmentId']").value(roleAssignmentId));
+    }
+
+    @Test
+    void should_return_a_200_and_empty_list_when_task_does_not_have_required_permissions() throws Exception {
+        String caseId = "searchForCompletableCaseId3";
+        searchEventAndCase = new SearchEventAndCase(
+            caseId,
+            "decideAnAppllication",
+            "ia",
+            "asylum"
+        );
+        mockServices.mockUserInfo();
+
+        // Role attribute is IA
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        // Task created is IA
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, false, false, true, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(caseId, taskId, "IA", "Asylum", taskRoleResource);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        mockMvc.perform(
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks.size()").value(0));
+    }
+
+    @Test
+    void should_return_a_200_and_retrieve_single_task_when_one_of_the_task_does_not_have_required_permissions()
+        throws Exception {
+        String caseId = "searchForCompletableCaseId4";
+        searchEventAndCase = new SearchEventAndCase(
+            caseId,
+            "decideAnApplication",
+            "ia",
+            "asylum"
+        );
+        mockServices.mockUserInfo();
+
+
+        List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+            "taskType", new CamundaVariable("reviewTheAppeal", "String"),
+            "completionMode", new CamundaVariable("Auto", "String"),
+            "workType", new CamundaVariable("decision_making_work", "String"),
+            "description", new CamundaVariable("aDescription", "String")
+        ));
+        when(camundaServiceApi.evaluateDMN(any(), any(), any(), anyMap()))
+            .thenReturn(mockedResponse);
+
+        when(camundaServiceApi.getAllVariables(any(), any()))
+            .thenReturn(mockedAllVariables(caseId, "processInstanceId", "IA", taskId));
+
+        // Role attribute is IA
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        // Task created is IA
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, true, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(caseId, taskId, "IA", "Asylum", taskRoleResource);
+
+        taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, false, false, true, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(caseId, UUID.randomUUID().toString(), "IA", "Asylum", taskRoleResource);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        mockMvc.perform(
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks.size()").value(1));
+    }
+
+    @Test
     void should_return_a_200_with_empty_list_when_the_user_did_not_have_any_roles() throws Exception {
 
-        String caseId = "searchForCompletableCaseId2";
+        String caseId = "searchForCompletableCaseId5";
         searchEventAndCase = new SearchEventAndCase(
             caseId,
             "decideAnApplication",
@@ -598,6 +804,44 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
         cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private void insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(String caseId, String taskId,
+                                                                        String jurisdiction, String caseType,
+                                                                        String roleAssignmentId,
+                                                                        TaskRoleResource taskRoleResource) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "aTaskName",
+            "reviewTheAppeal",
+            ASSIGNED
+        );
+
+        List<NoteResource> warnings = List.of(
+            new NoteResource("Code1","WARNING",null,"Text1"),
+            new NoteResource("Code2","WARNING",null,"Text2")
+        );
+
+        taskResource.setDescription("aDescription");
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setDueDateTime(OffsetDateTime.now());
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setCaseTypeId(caseType);
+        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+        taskResource.setLocation("765324");
+        taskResource.setLocationName("Taylor House");
+        taskResource.setRegion("TestRegion");
+        taskResource.setCaseId(caseId);
+        taskResource.setAssignee(IDAM_USER_ID);
+        taskResource.setWorkTypeResource(new WorkTypeResource("decision_making_work", "Decision Making work"));
+        taskResource.setNotes(warnings);
+        taskResource.setHasWarnings(true);
+        taskResource.setAdditionalProperties(Map.of("roleAssignmentId", roleAssignmentId));
+        taskRoleResource.setTaskId(taskId);
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+        taskResource.setTaskRoleResources(taskRoleResourceSet);
+        cftTaskDatabaseService.saveTask(taskResource);
+
     }
 
 }

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import org.junit.After;
@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
@@ -16,17 +17,18 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 
-public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     private TestAuthenticationCredentials assignerCredentials;
@@ -43,26 +45,25 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
     public void cleanUp() {
         common.clearAllRoleAssignments(assignerCredentials.getHeaders());
         common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
+
         authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
     }
 
     @Test
-    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned_for_WA() {
+    public void should_return_a_204_after_tasks_are_marked_and_executed_for_reconfigure() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
-            "processApplication"
+            "processApplication",
+            "Process Application"
         );
-
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
-        common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE
-        );
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
+
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
 
         Response result = restApiActions.post(
@@ -92,49 +93,19 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
             .body("task.reconfigure_request_time", notNullValue())
             .body("task.last_reconfiguration_time", nullValue());
 
-        common.cleanUpTask(taskId);
-    }
-
-    @Test
-    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
-            "processApplication"
-        );
-
-        common.setupCFTOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(taskVariables, Jurisdiction.WA);
-
-        taskId = taskVariables.getTaskId();
-
-        //before mark to reconfigure
-        Response result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            assigneeCredentials.getHeaders()
-        );
-
-        result.prettyPrint();
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("unassigned"))
-            .body("task.reconfigure_request_time", nullValue())
-            .body("task.last_reconfiguration_time", nullValue());
-
-        //mark to reconfigure
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            taskOperationRequestWithRetryWindowHours(
+                TaskOperationName.EXECUTE_RECONFIGURE,
+                OffsetDateTime.now().minus(Duration.ofDays(1))),
             assigneeCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        //after mark to reconfigure
+        taskId = taskVariables.getTaskId();
+
         result = restApiActions.get(
             "/task/{task-id}",
             taskId,
@@ -147,9 +118,9 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("unassigned"))
-            .body("task.reconfigure_request_time", notNullValue())
-            .body("task.last_reconfiguration_time", nullValue());
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", nullValue())
+            .body("task.last_reconfiguration_time", notNullValue());
 
         common.cleanUpTask(taskId);
     }
@@ -159,9 +130,25 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
             .name(operationName)
             .runId(UUID.randomUUID().toString())
             .maxTimeLimit(2)
-            .retryWindowHours(120)
             .build();
         return new TaskOperationRequest(operation, taskFilters(caseId));
+    }
+
+    private TaskOperationRequest taskOperationRequestWithRetryWindowHours(TaskOperationName operationName,
+                                                                          OffsetDateTime reconfigureRequestTime) {
+        TaskOperation operation = TaskOperation.builder()
+            .name(operationName)
+            .runId(UUID.randomUUID().toString())
+            .maxTimeLimit(2)
+            .retryWindowHours(120)
+            .build();
+        return new TaskOperationRequest(operation, taskFilters(reconfigureRequestTime));
+    }
+
+    private List<TaskFilter<?>> taskFilters(OffsetDateTime reconfigureRequestTime) {
+        ExecuteReconfigureTaskFilter filter = new ExecuteReconfigureTaskFilter(
+            "reconfigure_request_time", reconfigureRequestTime, TaskFilterOperator.AFTER);
+        return List.of(filter);
     }
 
     private List<TaskFilter<?>> taskFilters(String caseId) {
@@ -188,10 +175,10 @@ public class PostTaskMarkReconfigureControllerCFTTest extends SpringBootFunction
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned",
-                                                 assignerCredentials.getHeaders()
+            assignerCredentials.getHeaders()
         );
         assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee",
-                                                 assigneeId, assignerCredentials.getHeaders()
+            assigneeId, assignerCredentials.getHeaders()
         );
     }
 
