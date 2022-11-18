@@ -4,7 +4,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
 
 @SpringBootApplication
 @EnableFeignClients(clients = {
