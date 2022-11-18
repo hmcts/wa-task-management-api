@@ -5,7 +5,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskActionAttributesBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
