@@ -386,9 +386,9 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        //This need to be changed when assign endpoint story RWA-1582 is played
+        String lastUpdatedUser = getAssigneeId(caseworkerCredentials.getHeaders());
         Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
-            "assigned", idamSystemUser, CONFIGURE);
+            "assigned", lastUpdatedUser, CLAIM);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
     }
