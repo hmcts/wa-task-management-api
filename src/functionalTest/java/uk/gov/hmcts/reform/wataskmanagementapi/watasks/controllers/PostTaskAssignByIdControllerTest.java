@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,8 +11,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
+
+import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskActionAttributesForAssertion;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -92,7 +97,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(taskVariables, Jurisdiction.WA);
 
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()), TaskAction.ASSIGN);
 
         common.cleanUpTask(taskId);
     }
@@ -110,11 +115,11 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         //first assign
         common.setupFtpaJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()), TaskAction.ASSIGN);
 
         //second assign
         common.setupFtpaJudgeForSpecificAccess(secondAssigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        assignTaskAndValidate(taskVariables, getAssigneeId(secondAssigneeCredentials.getHeaders()));
+        assignTaskAndValidate(taskVariables, getAssigneeId(secondAssigneeCredentials.getHeaders()), TaskAction.UNASSIGN_ASSIGN);
 
         common.cleanUpTask(taskId);
     }
@@ -135,11 +140,11 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         //first assign
         common.setupFtpaJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()), TaskAction.ASSIGN);
 
         //second assign
         common.setupFtpaJudgeForSpecificAccess(secondAssigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        assignTaskAndValidate(taskVariables, getAssigneeId(secondAssigneeCredentials.getHeaders()));
+        assignTaskAndValidate(taskVariables, getAssigneeId(secondAssigneeCredentials.getHeaders()), TaskAction.UNASSIGN_ASSIGN);
 
         common.cleanUpTask(taskId);
     }
@@ -205,7 +210,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
-    private void assignTaskAndValidate(TestVariables taskVariables, String assigneeId) {
+    private void assignTaskAndValidate(TestVariables taskVariables, String assigneeId, TaskAction taskAction) {
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -220,8 +225,11 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         common.setupCFTOrganisationalRoleAssignment(assignerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-        assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned", assignerCredentials.getHeaders());
-        assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee", assigneeId, assignerCredentials.getHeaders());
+
+        String assignerId = getAssigneeId(assignerCredentials.getHeaders());
+        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
+            "assigned", assignerId, taskAction);
+        assertions.taskAttributesVerifier(taskId, valueMap, assignerCredentials.getHeaders());
     }
 
 }
