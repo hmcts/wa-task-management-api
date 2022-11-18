@@ -15,8 +15,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
@@ -46,6 +45,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -76,7 +76,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
-    private AccessControlService accessControlService;
+    private IdamService idamService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
@@ -145,13 +145,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             );
             insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
-
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -203,13 +200,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             );
             insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
-
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -269,13 +263,11 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             );
             insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
-
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
 
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -332,13 +324,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             );
             insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
-
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -392,13 +381,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             );
             insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
-
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -458,13 +444,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             );
             insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
-
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -500,9 +483,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             throws Exception {
 
             mockServices.mockUserInfo();
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -531,9 +511,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             throws Exception {
 
             mockServices.mockUserInfo();
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -561,9 +538,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             throws Exception {
 
             mockServices.mockUserInfo();
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -602,11 +576,12 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
                 roleAssignmentsWithJurisdiction
             );
+
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignmentsWithJurisdiction));
+
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
@@ -639,13 +614,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 roleAssignmentsWithJurisdiction
             );
 
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo,
-                                                      roleAssignmentsWithJurisdiction));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -708,12 +680,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             );
             insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -764,12 +734,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             );
             insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -803,6 +771,27 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
         void should_return_403_with_application_problem_response_when_client_is_not_privileged_and_completion_options()
             throws Exception {
 
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+                .roleAssignmentAttribute(
+                    RoleAssignmentAttribute.builder()
+                        .jurisdiction("IA")
+                        .caseType("Asylum")
+                        .caseId("completeFailureCaseId1")
+                        .build()
+                )
+                .build();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
             mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -833,32 +822,55 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 roleAssignmentsWithJurisdiction
             );
 
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
-
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo,
-                                                      roleAssignmentsWithJurisdiction));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
             String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
             mockMvc.perform(
-                post(String.format(ENDPOINT_PATH, nonExistentTaskId))
+                    post(String.format(ENDPOINT_PATH, nonExistentTaskId))
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                )
+                .andExpectAll(
+                    status().is4xxClientError(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
+                    jsonPath("$.title").value("Task Not Found Error"),
+                    jsonPath("$.status").value(404),
+                    jsonPath("$.detail").value(
+                        "Task Not Found Error: The task could not be found.")
+                );
+        }
+
+        @Test
+        public void should_return_a_401_when_the_user_did_not_have_any_roles() throws Exception {
+            List<RoleAssignment> roles = new ArrayList<>();
+
+            RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roles);
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+            //Assigner
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(roleAssignmentResource);
+
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             ).andExpectAll(
                 status().is4xxClientError(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
-                jsonPath("$.title").value("Task Not Found Error"),
-                jsonPath("$.status").value(404),
-                jsonPath("$.detail").value(
-                    "Task Not Found Error: The task could not be found.")
-            );
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.error").value("Unauthorized"),
+                jsonPath("$.status").value(401),
+                jsonPath("$.message").value(
+                    "User did not have sufficient permissions to perform this action"));
         }
     }
 

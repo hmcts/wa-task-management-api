@@ -16,6 +16,8 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 
 public class Assertions {
+    private static final String TASK_ENDPOINT_BEING_TESTED = "task/{task-id}";
+    private static final String CAMUNDA_SEARCH_HISTORY_ENDPOINT = "/history/variable-instance";
 
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
@@ -36,7 +38,7 @@ public class Assertions {
         );
 
         Response result = camundaApiActions.post(
-            "/history/variable-instance",
+            CAMUNDA_SEARCH_HISTORY_ENDPOINT,
             request,
             authorizationProvider.getServiceAuthorizationHeader()
         );
@@ -53,7 +55,7 @@ public class Assertions {
     public void taskStateWasUpdatedInDatabase(String taskId, String value, Headers authenticationHeaders) {
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            TASK_ENDPOINT_BEING_TESTED,
             taskId,
             authenticationHeaders
         );
@@ -89,7 +91,7 @@ public class Assertions {
                                               Headers authenticationHeaders) {
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            TASK_ENDPOINT_BEING_TESTED,
             taskId,
             authenticationHeaders
         );
