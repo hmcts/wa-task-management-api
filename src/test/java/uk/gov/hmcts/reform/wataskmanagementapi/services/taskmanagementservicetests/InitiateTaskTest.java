@@ -5,9 +5,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -44,6 +47,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -60,7 +64,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("unchecked")
 class InitiateTaskTest extends CamundaHelpers {
 
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
@@ -79,6 +82,9 @@ class InitiateTaskTest extends CamundaHelpers {
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
+    private IdamTokenGenerator idamTokenGenerator;
+
+    @Spy @InjectMocks
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
     private Map<String, Object> taskAttributes;
@@ -93,6 +99,8 @@ class InitiateTaskTest extends CamundaHelpers {
 
     @Mock
     private List<TaskOperationService> taskOperationServices;
+    @Mock
+    private UserInfo userInfo;
 
 
     @BeforeEach
@@ -136,7 +144,6 @@ class InitiateTaskTest extends CamundaHelpers {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
         mockInitiateTaskDependencies();
-
         TaskResource unassignedTaskResource = new TaskResource(
             taskId,
             A_TASK_NAME,
@@ -145,7 +152,7 @@ class InitiateTaskTest extends CamundaHelpers {
             CASE_ID
         );
 
-        when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(unassignedTaskResource);
+        doReturn(unassignedTaskResource).when(taskAutoAssignmentService).autoAssignCFTTask(any());
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
         when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
 
@@ -239,7 +246,7 @@ class InitiateTaskTest extends CamundaHelpers {
         );
 
         when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
-        when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(true);
+        doReturn(true).when(taskAutoAssignmentService).checkAssigneeIsStillValid(any(), any());
 
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
         when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(taskAttributes);
@@ -294,9 +301,9 @@ class InitiateTaskTest extends CamundaHelpers {
         );
 
         when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
-        when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(false);
+        doReturn(false).when(taskAutoAssignmentService).checkAssigneeIsStillValid(any(), eq("someUserId"));
 
-        when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(taskReassigned);
+        doReturn(taskReassigned).when(taskAutoAssignmentService).autoAssignCFTTask(any());
 
         when(cftTaskMapper.readDate(any(), any(TaskAttributeDefinition.class), any())).thenCallRealMethod();
 
@@ -369,15 +376,17 @@ class InitiateTaskTest extends CamundaHelpers {
     }
 
     private void mockInitiateTaskDependencies() {
+        lenient().when(idamTokenGenerator.generate()).thenReturn("Bearer Token");
+        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
+        lenient().when(userInfo.getUid()).thenReturn("SYSTEM_USER_IDAM_ID");
         when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
             .thenReturn(taskResource);
 
         lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
             .thenReturn(taskResource);
-
-        lenient().when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(taskResource);
-
+        lenient().doReturn(taskResource).when(taskAutoAssignmentService).autoAssignCFTTask(any());
         lenient().when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(taskResource);
+
     }
 }
 

@@ -8,6 +8,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestAttributes;
@@ -25,6 +27,8 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,6 +47,10 @@ class ExclusiveTaskActionsControllerTest {
     private TaskManagementService taskManagementService;
     @Mock
     private ClientAccessControlService clientAccessControlService;
+    @Mock
+    private IdamTokenGenerator idamTokenGenerator;
+    @Mock
+    private UserInfo userInfo;
 
     private ExclusiveTaskActionsController exclusiveTaskActionsController;
     private String taskId;
@@ -54,7 +62,10 @@ class ExclusiveTaskActionsControllerTest {
             clientAccessControlService,
             taskManagementService
         );
-
+        lenient().when(idamTokenGenerator.generate()).thenReturn("IDAM_SYS_TOKEN");
+        lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
+        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
+        lenient().when(userInfo.getUid()).thenReturn("SYSTEM_USER_IDAM_ID");
     }
 
     @Nested

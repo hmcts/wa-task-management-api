@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -88,6 +89,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.setTaskActionAttributes;
 
 @Slf4j
 @Service
@@ -209,6 +211,7 @@ public class TaskManagementService {
         }
         task.setState(CFTTaskState.ASSIGNED);
         task.setAssignee(userId);
+        setTaskActionAttributes(task, userId, TaskAction.CLAIM);
 
         camundaService.assignTask(taskId, userId, false);
 
@@ -255,14 +258,15 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
-        unClaimTask(taskId, taskHasUnassigned);
+        unclaimTask(taskId, userId, taskHasUnassigned);
     }
 
-    private void unClaimTask(String taskId, boolean taskHasUnassigned) {
+    private void unclaimTask(String taskId, String userId, boolean taskHasUnassigned) {
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);
         task.setState(CFTTaskState.UNASSIGNED);
         task.setAssignee(null);
+        setTaskActionAttributes(task, userId, TaskAction.UNCLAIM);
         //Perform Camunda updates
         camundaService.unclaimTask(taskId, taskHasUnassigned);
         //Commit transaction
@@ -328,7 +332,7 @@ public class TaskManagementService {
             if (assignee.isEmpty()) {
                 String taskState = taskResource.getState().getValue();
                 boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
-                unClaimTask(taskId, taskHasUnassigned);
+                unclaimTask(taskId, assigner.getUid(), taskHasUnassigned);
             } else {
                 requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
 
@@ -547,6 +551,7 @@ public class TaskManagementService {
         if (!taskHasCompleted) {
             //scenario, task not completed anywhere
             task.setState(CFTTaskState.COMPLETED);
+            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
 
             //check the state, if not complete, complete
             completeCamundaTask(taskId, taskHasCompleted);
@@ -660,7 +665,8 @@ public class TaskManagementService {
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
                                                               AccessControlResponse accessControlResponse,
                                                               CompletionOptions completionOptions) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        String userId = accessControlResponse.getUserInfo().getUid();
+        requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         boolean taskStateIsAssignedAlready;
@@ -678,10 +684,11 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.COMPLETED);
+            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
             //Perform Camunda updates
             camundaService.assignAndCompleteTask(
                 taskId,
-                accessControlResponse.getUserInfo().getUid(),
+                userId,
                 taskStateIsAssignedAlready
             );
             //Commit transaction
@@ -840,7 +847,8 @@ public class TaskManagementService {
 
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         return taskOperationServices.stream()
-            .flatMap(taskOperationService -> taskOperationService.performOperation(taskOperationRequest).stream())
+            .flatMap(taskOperationService -> taskOperationService
+                .performOperation(taskOperationRequest).stream())
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -907,29 +915,7 @@ public class TaskManagementService {
             String roleAssignmentId = getRoleAssignmentId(initiateTaskRequest.getTaskAttributes());
 
             taskResource = configureTask(taskResource, roleAssignmentId);
-            boolean isOldAssigneeValid = false;
-
-            if (taskResource.getAssignee() != null) {
-                log.info("Task '{}' had previous assignee, checking validity.", taskId);
-                //Task had previous assignee
-                isOldAssigneeValid =
-                    taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, taskResource.getAssignee());
-            }
-
-            if (isOldAssigneeValid) {
-                log.info("Task '{}' had previous assignee, and was valid, keeping assignee.", taskId);
-                //Keep old assignee from skeleton task and change state
-                taskResource.setState(CFTTaskState.ASSIGNED);
-            } else {
-                log.info("Task '{}' has an invalid assignee, unassign it before auto-assigning.", taskId);
-                if (taskResource.getAssignee() != null) {
-                    taskResource.setAssignee(null);
-                    taskResource.setState(CFTTaskState.UNASSIGNED);
-                }
-                log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
-                //Otherwise attempt auto-assignment
-                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
-            }
+            taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
@@ -950,29 +936,7 @@ public class TaskManagementService {
             taskAttributes.put(DUE_DATE.value(), taskResource.getDueDateTime());
 
             taskResource = configureTask(taskResource, taskAttributes);
-            boolean isOldAssigneeValid = false;
-
-            if (taskResource.getAssignee() != null) {
-                log.info("Task '{}' had previous assignee, checking validity.", taskId);
-                //Task had previous assignee
-                isOldAssigneeValid =
-                    taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, taskResource.getAssignee());
-            }
-
-            if (isOldAssigneeValid) {
-                log.info("Task '{}' had previous assignee, and was valid, keeping assignee.", taskId);
-                //Keep old assignee from skeleton task and change state
-                taskResource.setState(CFTTaskState.ASSIGNED);
-            } else {
-                log.info("Task '{}' has an invalid assignee, unassign it before auto-assigning.", taskId);
-                if (taskResource.getAssignee() != null) {
-                    taskResource.setAssignee(null);
-                    taskResource.setState(CFTTaskState.UNASSIGNED);
-                }
-                log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
-                //Otherwise attempt auto-assignment
-                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
-            }
+            taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);

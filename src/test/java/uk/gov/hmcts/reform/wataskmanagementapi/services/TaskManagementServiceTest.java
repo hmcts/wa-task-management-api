@@ -225,7 +225,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             .thenReturn(taskResources.get(1));
 
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+        List<TaskResource> taskResourcesMarked = taskManagementService
+            .performOperation(taskOperationRequest);
 
         taskResourcesMarked.forEach(taskResource -> {
             assertNotNull(taskResource.getReconfigureRequestTime());
@@ -241,7 +242,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(taskResources);
 
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+        List<TaskResource> taskResourcesMarked = taskManagementService
+            .performOperation(taskOperationRequest);
 
         taskResourcesMarked.forEach(taskResource -> assertNull(taskResource.getReconfigureRequestTime()));
 
@@ -254,7 +256,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(List.of());
 
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+        List<TaskResource> taskResourcesMarked = taskManagementService
+            .performOperation(taskOperationRequest);
 
         assertEquals(0, taskResourcesMarked.size());
     }
@@ -2892,7 +2895,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 )))
             );
 
-            verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+            verify(taskAutoAssignmentService).performAutoAssignment(taskId, taskResource);
 
             if (cftTaskState.equals(CFTTaskState.ASSIGNED) || cftTaskState.equals(CFTTaskState.UNASSIGNED)) {
                 verify(camundaService).updateCftTaskState(
@@ -2924,7 +2927,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
                 .thenReturn(taskResource);
 
-            when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(taskResource);
+            when(taskAutoAssignmentService.performAutoAssignment(any(), any(TaskResource.class)))
+                .thenReturn(taskResource);
 
             when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(taskResource);
         }
@@ -3019,7 +3023,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 )))
             );
 
-            verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+            verify(taskAutoAssignmentService).performAutoAssignment(taskId, taskResource);
 
             if (cftTaskState.equals(CFTTaskState.ASSIGNED) || cftTaskState.equals(CFTTaskState.UNASSIGNED)) {
                 verify(camundaService).updateCftTaskState(
@@ -3048,9 +3052,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
                 .thenReturn(taskResource);
-
-            when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class))).thenReturn(taskResource);
-
+            when(taskAutoAssignmentService.performAutoAssignment(any(), any(TaskResource.class)))
+                .thenReturn(taskResource);
             when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(taskResource);
         }
 

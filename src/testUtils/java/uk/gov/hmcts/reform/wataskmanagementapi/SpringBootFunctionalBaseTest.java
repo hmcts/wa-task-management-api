@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -39,8 +40,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
-import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -105,6 +106,8 @@ public abstract class SpringBootFunctionalBaseTest {
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
+    @Autowired
+    protected IdamTokenGenerator idamTokenGenerator;
 
     @Value("${targets.camunda}")
     private String camundaUrl;
@@ -118,6 +121,7 @@ public abstract class SpringBootFunctionalBaseTest {
     private Boolean initiationJobRunning;
 
     protected TestAuthenticationCredentials waCaseworkerCredentials;
+    protected String idamSystemUser;
 
     @Before
     public void setUpGivens() throws IOException {
@@ -148,6 +152,7 @@ public abstract class SpringBootFunctionalBaseTest {
             workflowApiActions);
 
         waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        idamSystemUser = idamTokenGenerator.getUserInfo(idamTokenGenerator.generate()).getUid();
         common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
     }
 
