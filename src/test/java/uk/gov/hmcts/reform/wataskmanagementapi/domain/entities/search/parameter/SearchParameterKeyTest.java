@@ -15,7 +15,7 @@ class SearchParameterKeyTest {
         final String userEnum = SearchParameterKey.USER.value();
         final String jurisdictionEnum = SearchParameterKey.JURISDICTION.value();
         final String stateEnum = SearchParameterKey.STATE.value();
-        final String taskIdEnum = SearchParameterKey.TASK_ID.value();
+        final String caseIdEnumCamelCase = SearchParameterKey.CASE_ID_CAMEL_CASE.value();
         final String taskTypeEnum = SearchParameterKey.TASK_TYPE.value();
         final String caseIdEnum = SearchParameterKey.CASE_ID.value();
         final String workTypeEnum = SearchParameterKey.WORK_TYPE.value();
@@ -27,9 +27,9 @@ class SearchParameterKeyTest {
         assertEquals("user", userEnum);
         assertEquals("jurisdiction", jurisdictionEnum);
         assertEquals("state", stateEnum);
-        assertEquals("taskId", taskIdEnum);
-        assertEquals("taskType", taskTypeEnum);
-        assertEquals("caseId", caseIdEnum);
+        assertEquals("caseId", caseIdEnumCamelCase);
+        assertEquals("task_type", taskTypeEnum);
+        assertEquals("case_id", caseIdEnum);
         assertEquals("available_tasks_only", availableTasksOnlyEnum);
         assertEquals("work_type", workTypeEnum);
         assertEquals("role_category", roleCategory);
@@ -50,9 +50,9 @@ class SearchParameterKeyTest {
             "USER, user",
             "JURISDICTION, jurisdiction",
             "STATE, state",
-            "TASK_ID, taskId",
-            "TASK_TYPE, taskType",
-            "CASE_ID, caseId",
+            "CASE_ID_CAMEL_CASE, caseId",
+            "TASK_TYPE, task_type",
+            "CASE_ID, case_id",
             "WORK_TYPE, work_type",
             "AVAILABLE_TASKS_ONLY, available_tasks_only",
             "ROLE_CATEGORY, role_category",
