@@ -509,6 +509,10 @@ public class TaskManagementService {
             //Perform Camunda updates
             camundaService.cancelTask(taskId);
             log.info("{} cancelled in camunda", taskId);
+
+            //set task action attributes
+            setTaskActionAttributes(task, userId, TaskAction.CANCEL);
+
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
             log.info("{} cancelled in CFT", taskId);

@@ -41,6 +41,7 @@ import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -57,10 +58,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_OTHER_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SECONDARY_IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
@@ -156,6 +160,9 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         assertTrue(taskResource.isPresent());
         assertEquals(CANCELLED, taskResource.get().getState());
+        assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+        assertEquals(CANCEL.getValue(), taskResource.get().getLastUpdatedAction());
     }
 
     @Test
@@ -393,6 +400,9 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         assertTrue(taskResource.isPresent());
         assertEquals(CANCELLED, taskResource.get().getState());
+        assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+        assertEquals(CANCEL.getValue(), taskResource.get().getLastUpdatedAction());
     }
 
     private void insertDummyTaskInDb(String taskId, TaskRoleResource taskRoleResource) {
