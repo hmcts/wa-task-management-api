@@ -104,6 +104,61 @@ public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
+    void should_retrieve_a_task_when_grant_type_standard_with_location() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111001";
+        final String caseId = "1623278362431001";
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .baseLocation("765324")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
+        Assertions.assertThat(task.isPresent()).isTrue();
+        Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+    }
+
+    @Test
+    void should_retrieve_a_task_when_grant_type_standard_with_location_not_match() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111001";
+        final String caseId = "1623278362431001";
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .baseLocation("765311")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
+        Assertions.assertThat(task.isEmpty()).isTrue();
+    }
+
+
+    @Test
     void should_not_retrieve_a_task_when_grant_type_standard_with_excluded() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111001";
         final String caseId = "1623278362431001";
@@ -141,6 +196,31 @@ public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
 
+    }
+
+    @Test
+    void should_not_retrieve_a_task_when_grant_type_standard_without_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111001";
+        final String caseId = "1623278362431001";
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_JUDGE_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
+        Assertions.assertThat(task.isEmpty()).isTrue();
     }
 
     @Test
@@ -222,13 +302,62 @@ public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_retrieve_a_task_when_grant_type_specific() {
+    void should_not_retrieve_a_task_when_grant_type_challenged_without_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111002";
+        final String caseId = "1623278362431002";
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_RESTRICTED)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
+        Assertions.assertThat(task.isEmpty()).isTrue();
+    }
+
+    @Test
+    void should_retrieve_a_task_when_grant_type_specific_with_execute_permission() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111003";
         final String caseId = "1623278362431003";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
+        Assertions.assertThat(task.isPresent()).isTrue();
+        Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+
+    }
+
+    @Test
+    void should_retrieve_a_task_when_grant_type_specific_with_own_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111003";
+        final String caseId = "1623278362431003";
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER)
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
@@ -369,6 +498,30 @@ public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+    }
+
+    @Test
+    void should_not_retrieve_a_task_when_grant_type_specific_without_permission() {
+        final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111003";
+        final String caseId = "1623278362431003";
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_CASE_MANAGER)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
+        Assertions.assertThat(task.isEmpty()).isTrue();
+
     }
 
 }

@@ -23,7 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticatio
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
@@ -65,10 +64,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Slf4j
 public abstract class SpringBootFunctionalBaseTest {
 
-    public static final String LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_TASK_WITH_ID =
-        "There was a problem fetching the task with id: %s";
-    public static final String LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK =
-        "There was a problem fetching the variables for task with id: %s";
     public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_NOT_ASSIGNED =
         "Could not complete task with id: %s as task was not previously assigned";
     public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER =
@@ -77,14 +72,12 @@ public abstract class SpringBootFunctionalBaseTest {
 
     private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}/initiation";
     protected static final String TASK_GET_ENDPOINT = "task/{task-id}";
+    protected static final String TASK_GET_ROLES_ENDPOINT = "task/{task-id}/roles";
     protected static final String WA_JURISDICTION = "WA";
     protected static final String WA_CASE_TYPE = "WaCaseType";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
         "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
-    protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL =
-        "Role Assignment Verification: "
-            + "The user being assigned the Task has failed the Role Assignment checks performed.";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED =
         "Role Assignment Verification: The request failed the Role Assignment checks performed.";
     protected static String ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER =
@@ -125,7 +118,6 @@ public abstract class SpringBootFunctionalBaseTest {
     @Value("${initiation_job_running}")
     private Boolean initiationJobRunning;
 
-    protected TestAuthenticationCredentials iaCaseworkerCredentials;
     protected TestAuthenticationCredentials waCaseworkerCredentials;
 
     @Before
@@ -156,17 +148,13 @@ public abstract class SpringBootFunctionalBaseTest {
             roleAssignmentServiceApi,
             workflowApiActions);
 
-        iaCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignment(iaCaseworkerCredentials.getHeaders(), "IA", "Asylum");
         waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignmentForWA(waCaseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(iaCaseworkerCredentials.getHeaders());
         common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(iaCaseworkerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
     }
 
@@ -217,9 +205,8 @@ public abstract class SpringBootFunctionalBaseTest {
 
     }
 
-    protected void initiateTask(TestVariables testVariables,
-                                Jurisdiction jurisdiction) {
-        Headers headers = getAuthHeadersForJurisdiction(jurisdiction);
+    protected void initiateTask(TestVariables testVariables) {
+        Headers headers = waCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, null, defaultInitiationAssert(testVariables));
     }
 
@@ -230,9 +217,8 @@ public abstract class SpringBootFunctionalBaseTest {
     }
 
     protected void initiateTask(TestVariables testVariables,
-                                Jurisdiction jurisdiction,
                                 Consumer<Response> assertConsumer) {
-        Headers headers = getAuthHeadersForJurisdiction(jurisdiction);
+        Headers headers = waCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, null, assertConsumer);
     }
 
@@ -243,9 +229,8 @@ public abstract class SpringBootFunctionalBaseTest {
     }
 
     protected void initiateTask(TestVariables testVariables,
-                                Jurisdiction jurisdiction,
                                 Map<String, String> additionalProperties) {
-        Headers headers = getAuthHeadersForJurisdiction(jurisdiction);
+        Headers headers = waCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
     }
 
@@ -296,14 +281,6 @@ public abstract class SpringBootFunctionalBaseTest {
                 .body("task.id", equalTo(testVariables.getTaskId()))
                 .body("task.case_id", equalTo(testVariables.getCaseId()));
         };
-    }
-
-    private Headers getAuthHeadersForJurisdiction(Jurisdiction jurisdiction) {
-        switch (jurisdiction) {
-            case IA: return iaCaseworkerCredentials.getHeaders();
-            case WA: return waCaseworkerCredentials.getHeaders();
-            default: return null;
-        }
     }
 
     private void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties) {
