@@ -14,9 +14,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCate
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.TaskTypesDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.TaskTypesDmnResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.DmnEvaluationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;

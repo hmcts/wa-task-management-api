@@ -27,7 +27,7 @@ public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_task_types_for_correct_jurisdiction() {
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED + "?jurisdiction=wa",
@@ -47,7 +47,6 @@ public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     private List<Map<String, Map<String, String>>> getExpectedTaskTypes() {
-        
 
         return Lists.list(
             Map.of("task_type",

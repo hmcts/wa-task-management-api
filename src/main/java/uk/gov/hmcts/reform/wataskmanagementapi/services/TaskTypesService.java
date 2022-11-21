@@ -6,15 +6,14 @@ import org.springframework.stereotype.Service;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypesResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskTypeResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomizedConstraintViolationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.TaskTypesDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.TaskTypesDmnResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.DmnEvaluationService;
 
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomizedConstraintViolationException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,7 +72,7 @@ public class TaskTypesService {
 
     private List<TaskTypeResponse> extractValues(List<TaskTypesDmnEvaluationResponse> evaluationResponses) {
 
-        Set<TaskType> taskTypeResponses = new HashSet<>();
+        Set<TaskType> taskTypeResponses = new LinkedHashSet<>();
 
         evaluationResponses.forEach(item -> {
 
