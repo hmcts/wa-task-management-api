@@ -229,6 +229,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASEID"));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(true);
@@ -257,6 +258,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASEID"));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
         when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(false);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();

@@ -370,10 +370,10 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables1 = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
         TestVariables taskVariables2 = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables1, Jurisdiction.WA);
-        initiateTask(taskVariables2, Jurisdiction.WA);
+        initiateTask(taskVariables1);
+        initiateTask(taskVariables2);
 
         String taskId1 = taskVariables1.getTaskId();
         Response result1 = restApiActions.post(
@@ -415,7 +415,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result2.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value());
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         assertions.taskVariableWasUpdated(taskVariables1.getProcessInstanceId(), "taskState", "completed");
         assertions.taskStateWasUpdatedInDatabase(taskId1, "completed", caseworkerCredentials.getHeaders());
