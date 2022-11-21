@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -18,25 +17,34 @@ import java.util.function.Consumer;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private TestAuthenticationCredentials caseworkerCredentials;
+    private TestAuthenticationCredentials granularPermissionCaseworkerCredentials;
+
 
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2");
+        granularPermissionCaseworkerCredentials = authorizationProvider
+            .getNewTribunalCaseworker("wa-granular-permission-");
     }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        common.clearAllRoleAssignments(granularPermissionCaseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(granularPermissionCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -46,7 +54,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                              "processApplication", "Process Application"
             );
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -90,7 +98,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
         };
 
-        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
+        initiateTask(taskVariables, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -151,10 +159,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "additionalProperties_roleAssignmentId"
             );
         String taskId = taskVariables.getTaskId();
-        common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
-                                                            taskVariables.getCaseId(),
-                                                            WA_JURISDICTION, WA_CASE_TYPE
-        );
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "judge");
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -306,7 +312,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(5000));
         };
 
-        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
+        initiateTask(taskVariables, assertConsumer);
 
         common.cleanUpTask(taskId);
     }
@@ -368,7 +374,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", notNullValue());
         };
 
-        initiateTask(taskVariables, Jurisdiction.WA, assertConsumer);
+        initiateTask(taskVariables, assertConsumer);
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -464,7 +470,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                              "followUpOverdue",
                                              "Follow Up Overdue");
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -492,6 +498,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.location_name", equalTo("Taylor House"))
                 .body("task.execution_type", equalTo("Case Management Task"))
                 .body("task.case_management_category", equalTo("Protection"))
+                .body("task.description", equalTo(""))
                 .body("task.permissions.values.size()", equalTo(2))
                 .body("task.permissions.values", hasItems("Read", "Execute"))
                 .body("task.additional_properties", equalToObject(Map.of(
@@ -545,7 +552,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         );
 
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Consumer<Response> assertConsumer = result -> result.then()
             .assertThat()
@@ -590,4 +597,40 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
         common.cleanUpTask(taskId);
     }
+
+    @Test
+    public void should_return_200_and_retrieve_granular_permission() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "processApplication",
+            "process application"
+        );
+        String taskId = taskVariables.getTaskId();
+        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders());
+
+        initiateTask(taskVariables);
+
+        Response result = restApiActions.get(
+            TASK_GET_ROLES_ENDPOINT,
+            taskId,
+            granularPermissionCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("roles.size()", equalTo(10))
+            .body("roles[0].role_category", is("LEGAL_OPERATIONS"))
+            .body("roles[0].role_name", is("case-manager"))
+            .body("roles[0].permissions.size()",  equalTo(1))
+            .body("roles[0].permissions", hasItems("Own"))
+            .body("roles[0].authorisations", empty())
+            .body("roles[3].role_category", is("LEGAL_OPERATIONS"))
+            .body("roles[3].role_name", is("challenged-access-legal-ops"))
+            .body("roles[3].permissions.size()",  equalTo(5))
+            .body("roles[3].permissions", hasItems("Own", "Manage", "Complete", "Assign", "Unassign"));
+
+        common.cleanUpTask(taskId);
+    }
+
 }
