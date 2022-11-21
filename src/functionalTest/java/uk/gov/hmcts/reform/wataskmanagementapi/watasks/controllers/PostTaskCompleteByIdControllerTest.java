@@ -145,47 +145,29 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            caseworkerCredentials.getHeaders(),0
             HttpStatus.NO_CONTENT
         );
 
-        //S2S service name is wa_task_management_api
-        TestAuthenticationCredentials otherUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        common.setupWAOrganisationalRoleAssignment(otherUser.getHeaders());
-
-        CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
+        CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(null);
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             completeTaskRequest,
-            otherUser.getHeaders()
+            caseworkerCredentials.getHeaders()
         );
-
-        UserInfo userInfo = idamService.getUserInfo(caseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
-
         result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message", equalTo(String.format(
-                LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER,
-                taskId, userInfo.getUid()
-            )));
+            .statusCode(HttpStatus.NO_CONTENT.value());
 
-        String serviceToken = otherUser.getHeaders().getValue(AUTHORIZATION);
-        userInfo = authorizationProvider.getUserInfo(serviceToken);
-        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
-            "assigned", userInfo.getUid(), CLAIM);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, otherUser.getHeaders());
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+
+        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
+        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
+        Map<String, Matcher<?>> taskValueMap = buildTaskAttributesForAssertion(taskId, assigneeId,
+            "completed", userInfo.getUid(), COMPLETED);
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
-        common.clearAllRoleAssignments(otherUser.getHeaders());
-
     }
 
     @Test
