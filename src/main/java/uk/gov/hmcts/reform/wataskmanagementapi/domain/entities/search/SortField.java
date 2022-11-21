@@ -19,7 +19,7 @@ public enum SortField {
     CASE_CATEGORY_CAMEL_CASE("caseCategory", "appealType", "caseCategory"),
     CASE_CATEGORY_SNAKE_CASE("case_category", "appealType", "caseCategory"),
 
-    CASE_ID_CAMEL_CASE("caseId", "caseId", "caseId"),
+    CASE_ID("caseId", "caseId", "caseId"),
     CASE_ID_SNAKE_CASE("case_id", "caseId", "caseId"),
 
     CASE_NAME_CAMEL_CASE("caseName", "caseName", "caseName"),
