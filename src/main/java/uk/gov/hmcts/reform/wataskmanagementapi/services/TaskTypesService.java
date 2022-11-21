@@ -10,8 +10,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypes
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskTypeResponse;
-
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomizedConstraintViolationException;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;

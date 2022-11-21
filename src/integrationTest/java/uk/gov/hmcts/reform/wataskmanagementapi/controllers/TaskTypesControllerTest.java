@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -17,14 +18,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,7 +61,7 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private AuthTokenGenerator serviceAuthTokenGenerator;
 
-    @MockBean
+    @Autowired
     private DmnEvaluationService dmnEvaluationService;
 
     private ServiceMocks mockServices;
@@ -92,20 +89,6 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
-
-        TaskTypesDmnResponse taskTypesDmnResponse = new TaskTypesDmnResponse(
-            "wa-task-types-wa-wacasetype", jurisdiction, "wa-task-types-wa-wacasetype.dmn");
-
-        Set<TaskTypesDmnResponse> taskTypesDmnResponses = Set.of(taskTypesDmnResponse);
-        when(dmnEvaluationService.retrieveTaskTypesDmn(jurisdiction, DMN_NAME))
-            .thenReturn(taskTypesDmnResponses);
-
-        CamundaValue<String> taskTypeId = new CamundaValue<>("processApplication", "String");
-        CamundaValue<String> taskTypeName = new CamundaValue<>("Process Application", "String");
-        TaskTypesDmnEvaluationResponse taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(taskTypeId, taskTypeName);
-        List<TaskTypesDmnEvaluationResponse> taskTypesDmnEvaluationResponses = List.of(taskTypesDmnEvaluationResponse);
-        when(dmnEvaluationService.evaluateTaskTypesDmn(jurisdiction, taskTypesDmnResponse.getKey()))
-            .thenReturn(taskTypesDmnEvaluationResponses);
 
         mockMvc.perform(
             get(ENDPOINT_PATH + "?jurisdiction=" + jurisdiction)
