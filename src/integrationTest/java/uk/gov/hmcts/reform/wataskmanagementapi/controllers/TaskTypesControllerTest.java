@@ -16,9 +16,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,7 +42,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
+
     private static final String ENDPOINT_PATH = "/task/task-types";
+    private static final String DMN_NAME = "Task Types DMN";
 
     @MockBean
     private IdamWebApi idamWebApi;
@@ -53,6 +60,9 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
 
     @MockBean
     private AuthTokenGenerator serviceAuthTokenGenerator;
+
+    @MockBean
+    private DmnEvaluationService dmnEvaluationService;
 
     private ServiceMocks mockServices;
     private UserInfo mockedUserInfo;
@@ -71,16 +81,31 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_all_task_types_when_filter_is_not_provided() throws Exception {
+    void should_return_all_task_types() throws Exception {
 
+        String jurisdiction = "wa";
         final List<String> roleNames = singletonList("tribunal-caseworker");
         List<RoleAssignment> allTestRoles = mockServices.createTestRoleAssignments(roleNames);
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
 
+        TaskTypesDmnResponse taskTypesDmnResponse = new TaskTypesDmnResponse(
+            "wa-task-types-wa-wacasetype", jurisdiction, "wa-task-types-wa-wacasetype.dmn");
+
+        Set<TaskTypesDmnResponse> taskTypesDmnResponses = Set.of(taskTypesDmnResponse);
+        when(dmnEvaluationService.getTaskTypesDmn(jurisdiction, DMN_NAME))
+            .thenReturn(taskTypesDmnResponses);
+
+        CamundaValue<String> taskTypeId = new CamundaValue<>("processApplication", "String");
+        CamundaValue<String> taskTypeName = new CamundaValue<>("Process Application", "String");
+        TaskTypesDmnEvaluationResponse taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(taskTypeId, taskTypeName);
+        List<TaskTypesDmnEvaluationResponse> taskTypesDmnEvaluationResponses = List.of(taskTypesDmnEvaluationResponse);
+        when(dmnEvaluationService.evaluateTaskTypesDmn(jurisdiction, taskTypesDmnResponse.getKey()))
+            .thenReturn(taskTypesDmnEvaluationResponses);
+
         mockMvc.perform(
-            get(ENDPOINT_PATH + "?jurisdiction=wa")
+            get(ENDPOINT_PATH + "?jurisdiction=" + jurisdiction)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -89,35 +114,11 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         }).andExpectAll(
             status().isOk(),
             jsonPath("$.task_types").isNotEmpty(),
-            jsonPath("$.task_types.length()").value(7),
+            jsonPath("$.task_types.length()").value(1),
             jsonPath("$.task_types[0].task_type.task_type_id")
                 .value("processApplication"),
             jsonPath("$.task_types[0]..task_type.task_type_name")
-                .value("Process Application"),
-            jsonPath("$.task_types[1].task_type.task_type_id")
-                .value("reviewAppealSkeletonArgument"),
-            jsonPath("$.task_types[1]..task_type.task_type_name")
-                .value("Review Appeal Skeleton Argument"),
-            jsonPath("$.task_types[2].task_type.task_type_id")
-                .value("decideOnTimeExtension"),
-            jsonPath("$.task_types[2]..task_type.task_type_name")
-                .value("Decide On Time Extension"),
-            jsonPath("$.task_types[3].task_type.task_type_id")
-                .value("followUpOverdueCaseBuilding"),
-            jsonPath("$.task_types[3]..task_type.task_type_name")
-                .value("Follow-up overdue case building"),
-            jsonPath("$.task_types[4].task_type.task_type_id")
-                .value("attendCma"),
-            jsonPath("$.task_types[4]..task_type.task_type_name")
-                .value("Attend Cma"),
-            jsonPath("$.task_types[5].task_type.task_type_id")
-                .value("reviewRespondentResponse"),
-            jsonPath("$.task_types[5]..task_type.task_type_name")
-                .value("Review Respondent Response"),
-            jsonPath("$.task_types[6].task_type.task_type_id")
-                .value("followUpOverdueRespondentEvidence"),
-            jsonPath("$.task_types[6]..task_type.task_type_name")
-                .value("Follow-up overdue respondent evidence")
+                .value("Process Application")
         );
     }
 

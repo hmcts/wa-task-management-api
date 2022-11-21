@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
@@ -274,17 +273,6 @@ public class CamundaService {
             throw new TaskAssignAndCompleteException(TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_COMPLETE);
         }
 
-    }
-
-    public List<CamundaTask> searchWithCriteriaAndNoPagination(CamundaSearchQuery query) {
-        try {
-            return camundaServiceApi.searchWithCriteriaAndNoPagination(
-                authTokenGenerator.generate(),
-                query.getQueries()
-            );
-        } catch (FeignException exp) {
-            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
-        }
     }
 
     public CamundaTask performGetCamundaTaskAction(String id) {

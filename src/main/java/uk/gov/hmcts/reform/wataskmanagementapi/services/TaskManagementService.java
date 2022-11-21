@@ -30,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Compl
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
@@ -40,12 +41,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorE
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -230,7 +229,8 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail()
             );
-
+        log.info("GP for {} and {} is {}", accessControlResponse.getUserInfo().getUid(),
+                 accessControlResponse.getUserInfo().getEmail(), granularPermissionFeatureEnabled);
         PermissionRequirements permissionsRequired;
         if (granularPermissionFeatureEnabled) {
             permissionsRequired = PermissionRequirementBuilder.builder()
@@ -549,13 +549,24 @@ public class TaskManagementService {
             task.setState(CFTTaskState.COMPLETED);
 
             //check the state, if not complete, complete
-            boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
-            if (!isTaskCompleted) {
-                //Perform Camunda updates
-                camundaService.completeTask(taskId, taskHasCompleted);
-            }
+            completeCamundaTask(taskId, taskHasCompleted);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
+        }
+    }
+
+    private void completeCamundaTask(String taskId, boolean taskHasCompleted) {
+        try {
+            //Perform Camunda updates
+            camundaService.completeTask(taskId, taskHasCompleted);
+        } catch (TaskCompleteException e) {
+            boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
+            if (!isTaskCompleted) {
+                log.error("Task Completion failed for task ({}) due to {}.", taskId, e.getMessage());
+                throw e;
+            }
+
+            log.error("Task Completion failed for task ({}) as task is already complete", taskId);
         }
     }
 
