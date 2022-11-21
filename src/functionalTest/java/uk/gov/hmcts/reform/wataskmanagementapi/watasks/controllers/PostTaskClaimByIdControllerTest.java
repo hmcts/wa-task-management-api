@@ -156,10 +156,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
         String serviceToken = currentCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-
+        common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(),
+            WA_JURISDICTION, WA_CASE_TYPE);
         Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, userInfo.getUid(),
             "assigned", userInfo.getUid(), CLAIM);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
