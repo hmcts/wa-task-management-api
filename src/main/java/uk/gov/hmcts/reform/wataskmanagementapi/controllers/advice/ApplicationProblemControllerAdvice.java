@@ -60,7 +60,7 @@ import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 })
 @RequestMapping(produces = APPLICATION_PROBLEM_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-    "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter", "PMD.CouplingBetweenObjects"})
+    "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter", "PMD.CouplingBetweenObjects", "PMD.CognitiveComplexity"})
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice implements ValidationAdviceTrait {
 
     @ExceptionHandler({

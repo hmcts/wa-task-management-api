@@ -94,7 +94,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
         "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411",
-        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity", "PMD.AvoidDuplicateLiterals"
+        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity", "PMD.AvoidDuplicateLiterals",  "PMD.CognitiveComplexity"
     })
 @Slf4j
 public class CFTTaskMapper {
@@ -777,7 +777,7 @@ public class CFTTaskMapper {
                 throw new IllegalArgumentException("Additional Properties mapping issue.", e);
             }
         }
-        return null;
+        return Map.of();
     }
 
     private ExecutionTypeResource extractExecutionType(Map<TaskAttributeDefinition, Object> attributes) {
