@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 
 import java.time.OffsetDateTime;
+import java.util.Optional;
 
 public final class TaskActionAttributesBuilder {
 
@@ -30,5 +31,69 @@ public final class TaskActionAttributesBuilder {
         }
 
         return TaskAction.CONFIGURE;
+    }
+
+    public static TaskAction buildTaskActionAttributeForAssign(String assigner, Optional<String> newAssignee,
+                                                               Optional<String> oldAssignee) {
+        if (isAssign(assigner, newAssignee, oldAssignee)) {
+            return TaskAction.ASSIGN;
+        } else if (isClaim(assigner, newAssignee, oldAssignee)) {
+            return TaskAction.CLAIM;
+        } else if (isUnassign(assigner, newAssignee, oldAssignee)) {
+            return TaskAction.UNASSIGN;
+        } else if (isUnclaim(assigner, newAssignee, oldAssignee)) {
+            return TaskAction.UNCLAIM;
+        } else if (isUnassignAssign(assigner, newAssignee, oldAssignee)) {
+            return TaskAction.UNASSIGN_ASSIGN;
+        } else if (isUnassignClaim(assigner, newAssignee, oldAssignee)) {
+            return TaskAction.UNASSIGN_CLAIM;
+        } else if (isUnclaimAssign(assigner, newAssignee, oldAssignee)) {
+            return TaskAction.UNCLAIM_ASSIGN;
+        }
+        return TaskAction.CONFIGURE;
+    }
+
+    public static boolean isAssign(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
+        return oldAssignee.isEmpty() && newAssignee.isPresent()
+            && !StringUtils.equals(newAssignee.get(), assigner);
+    }
+
+    public static boolean isClaim(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
+        return oldAssignee.isEmpty() && newAssignee.isPresent()
+               && StringUtils.equals(newAssignee.get(), assigner);
+    }
+
+    public static boolean isUnassign(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
+        return newAssignee.isEmpty() && oldAssignee.isPresent()
+                   && !StringUtils.equals(oldAssignee.get(), assigner);
+    }
+
+    public static boolean isUnclaim(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
+        return newAssignee.isEmpty() && oldAssignee.isPresent()
+               && StringUtils.equals(oldAssignee.get(), assigner);
+    }
+
+    public static boolean isUnassignAssign(String assigner, Optional<String> newAssignee,
+                                            Optional<String> oldAssignee) {
+        return newAssignee.isPresent() && oldAssignee.isPresent()
+               && !oldAssignee.equals(newAssignee)
+               && !StringUtils.equals(oldAssignee.get(), assigner)
+               && !StringUtils.equals(newAssignee.get(), assigner);
+    }
+
+    public static boolean isUnassignClaim(String assigner, Optional<String> newAssignee,
+                                           Optional<String> oldAssignee) {
+        return newAssignee.isPresent() && oldAssignee.isPresent()
+               && !oldAssignee.equals(newAssignee)
+               && !StringUtils.equals(oldAssignee.get(), assigner)
+               && StringUtils.equals(newAssignee.get(), assigner);
+    }
+
+    public static boolean isUnclaimAssign(String assigner, Optional<String> newAssignee,
+                                           Optional<String> oldAssignee) {
+        return newAssignee.isPresent() && oldAssignee.isPresent()
+               && !oldAssignee.equals(newAssignee)
+               && !StringUtils.equals(newAssignee.get(), assigner)
+               && StringUtils.equals(oldAssignee.get(), assigner);
     }
 }
