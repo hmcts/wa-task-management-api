@@ -639,8 +639,6 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(cftQueryService.getTask(anyString(),any(),any(PermissionRequirements.class)))
             .thenReturn(Optional.of(task1));
 
-        mockServices.mockUserInfo();
-
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "WA");
 
@@ -664,6 +662,8 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         allTestRoles.add(roleAssignment);
         allTestRoles.add(roleAssignmentCase);
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
             allTestRoles
