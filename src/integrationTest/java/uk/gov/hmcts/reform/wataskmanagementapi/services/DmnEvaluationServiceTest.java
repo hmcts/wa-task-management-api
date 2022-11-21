@@ -16,7 +16,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
-public class DmnEvaluationServiceTest2 {
+public class DmnEvaluationServiceTest {
 
     @MockBean
     private AuthTokenGenerator serviceAuthTokenGenerator;
