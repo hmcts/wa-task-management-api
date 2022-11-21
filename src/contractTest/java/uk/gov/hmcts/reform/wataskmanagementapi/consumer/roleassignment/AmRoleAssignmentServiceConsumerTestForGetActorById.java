@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -42,12 +43,15 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
     @MockBean
     AuthTokenGenerator authTokenGenerator;
 
+    @MockBean
+    IdamTokenGenerator systemUserIdamToken;
+
     private RoleAssignmentService roleAssignmentService;
 
     @BeforeEach
     void setUp() {
         when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
-        roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator);
+        roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator, systemUserIdamToken);
     }
 
     @Test

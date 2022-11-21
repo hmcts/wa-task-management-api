@@ -8,9 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
 
-import static java.util.Collections.emptyMap;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -220,19 +218,6 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .basePath("task/{task-id}")
             .when()
             .delete()
-            .then()
-            .statusCode(HttpStatus.UNAUTHORIZED.value());
-
-        given()
-            .relaxedHTTPSValidation()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .when()
-            .pathParam("task-id", taskId)
-            .basePath("task/{task-id}/configuration")
-            .body(new ConfigureTaskRequest(emptyMap()))
-            .when()
-            .post()
             .then()
             .statusCode(HttpStatus.UNAUTHORIZED.value());
     }
