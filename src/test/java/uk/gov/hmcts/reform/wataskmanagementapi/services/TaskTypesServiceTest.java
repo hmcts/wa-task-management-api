@@ -27,7 +27,6 @@ import java.util.UUID;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -194,10 +193,11 @@ class TaskTypesServiceTest {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
 
         //when
-        List<TaskTypeResponse> response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
+        GetTaskTypesResponse response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
 
         //then
-        assertThat(response).isEmpty();
+        assertNotNull(response);
+        assertNull(response.getTaskTypeResponses());
     }
 
     private List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames,
