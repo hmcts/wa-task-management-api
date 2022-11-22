@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -36,7 +38,8 @@ public class SearchTaskRequest {
     }
 
     public SearchTaskRequest(List<SearchParameter<?>> searchParameters,
-                             List<SortingParameter> sortingParameters) {
+                             @JsonProperty("sortingParameters") @JsonAlias("sorting_parameters")
+                                List<SortingParameter> sortingParameters) {
         this.searchParameters = searchParameters;
         this.sortingParameters = sortingParameters;
     }

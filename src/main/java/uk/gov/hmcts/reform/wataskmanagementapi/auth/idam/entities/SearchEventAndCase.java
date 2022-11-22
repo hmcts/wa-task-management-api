@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -24,8 +27,11 @@ public class SearchEventAndCase {
     @Schema(required = true)
     private final String caseType;
 
-    public SearchEventAndCase(String caseId, String eventId,
-                              String caseJurisdiction, String caseType) {
+    @JsonCreator
+    public SearchEventAndCase(@JsonProperty("caseId") @JsonAlias("case_id") String caseId,
+                              @JsonProperty("eventId") @JsonAlias("event_id") String eventId,
+                              @JsonProperty("caseJurisdiction") @JsonAlias("case_jurisdiction") String caseJurisdiction,
+                              @JsonProperty("caseType") @JsonAlias("case_type") String caseType) {
         this.caseId = caseId;
         this.eventId = eventId;
         this.caseJurisdiction = caseJurisdiction;

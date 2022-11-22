@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,7 +23,8 @@ public class Warning {
     private final String warningText;
 
     @JsonCreator
-    public Warning(@JsonProperty("warningCode") String warningCode, @JsonProperty("warningText") String warningText) {
+    public Warning(@JsonProperty("warningCode") @JsonAlias("warning_code") String warningCode,
+                   @JsonProperty("warningText") @JsonAlias("warning_text") String warningText) {
         this.warningCode = warningCode;
         this.warningText = warningText;
     }
