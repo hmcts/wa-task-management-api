@@ -28,7 +28,6 @@ public class ClientFilter
 	private Set<String> roleCategories;
 	private Set<String> workTypes;
 	private Set<String> taskTypes;
-	private Set<String> taskIds;
 	private Set<String> regions;
 	private Set<String> locations;
 	private Set<String> caseIds;
@@ -46,7 +45,6 @@ public class ClientFilter
 				getConstraints(searchParameters, SearchParameterKey.ROLE_CATEGORY),
 				getConstraints(searchParameters, SearchParameterKey.WORK_TYPE),
 				getConstraints(searchParameters, SearchParameterKey.TASK_TYPE),
-				getConstraints(searchParameters, SearchParameterKey.TASK_ID),
 				new HashSet<>(), // region not yet required in filter.
 				getConstraints(searchParameters, SearchParameterKey.LOCATION),
 				getConstraints(searchParameters, SearchParameterKey.CASE_ID),
@@ -75,11 +73,11 @@ public class ClientFilter
 	 * same key - not sure if the API checks for that.  Since the parameters are ANDed for the query,
 	 * we need to find the intersection of all the sets of values for a single parameter, allowing
 	 * for the fact that they could be single-valued or multi-valued.
-	 * 
+	 *
 	 * TODO: need to establish the variants of search parameters which can actually be received from
 	 * the API.  e.g. is there an EQUALS operator with a single value, or are the values always in
 	 * a list?
-	 * 
+	 *
 	 * This probably works for simple cases, which may be enough for indicative performance testing.
 	 */
 	private static Set<String> getConstraints(List<SearchParameter<?>> searchParameters, SearchParameterKey searchParameterKey)

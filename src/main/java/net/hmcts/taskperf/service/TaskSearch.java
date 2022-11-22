@@ -253,7 +253,6 @@ public class TaskSearch
 		buildExtraConstraint(clientFilter.getCaseIds(), alias, "case_id", true);
 		buildExtraConstraint(clientFilter.getAssignees(), alias, "assignee", true);
 		buildExtraConstraint(clientFilter.getTaskTypes(), alias, "task_type", true);
-		buildExtraConstraint(clientFilter.getTaskIds(), alias, "task_id", true);
 		buildExtraConstraint(
 				buildExcludedCaseIds(RoleAssignmentHelper.exclusionRoleAssignments(roleAssignments, clientFilter)),
 				alias, "case_id", false);
