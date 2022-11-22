@@ -98,6 +98,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DUE_DATE_TIME_FORMATTER;
 
 @ExtendWith(MockitoExtension.class)
 class CFTTaskMapperTest {
@@ -2232,6 +2233,8 @@ class CFTTaskMapperTest {
         assertEquals(1, reconfiguredTaskResource.getMajorPriority());
         assertEquals("nextHearingId1", reconfiguredTaskResource.getNextHearingId());
         assertEquals(taskResource.getNextHearingDate(), reconfiguredTaskResource.getNextHearingDate());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15+01:00"), reconfiguredTaskResource.getDueDateTime());
+
     }
 
     @Test
@@ -2259,6 +2262,7 @@ class CFTTaskMapperTest {
         assertEquals(taskResource.getMajorPriority(), reconfiguredTaskResource.getMajorPriority());
         assertEquals(taskResource.getNextHearingId(), reconfiguredTaskResource.getNextHearingId());
         assertEquals(taskResource.getNextHearingDate(), reconfiguredTaskResource.getNextHearingDate());
+        assertEquals(taskResource.getDueDateTime(), reconfiguredTaskResource.getDueDateTime());
     }
 
     @Test
@@ -2286,6 +2290,7 @@ class CFTTaskMapperTest {
         assertEquals(taskResource.getMajorPriority(), reconfiguredTaskResource.getMajorPriority());
         assertEquals(taskResource.getNextHearingId(), reconfiguredTaskResource.getNextHearingId());
         assertEquals(taskResource.getNextHearingDate(), reconfiguredTaskResource.getNextHearingDate());
+        assertEquals(taskResource.getDueDateTime(), reconfiguredTaskResource.getDueDateTime());
     }
 
     @Test
@@ -2474,7 +2479,12 @@ class CFTTaskMapperTest {
                 booleanValue(canReconfigure)),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
                 stringValue("2021-05-09T20:15:45.345875+01:00"),
-                booleanValue(canReconfigure))
+                booleanValue(canReconfigure)),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("dueDate"),
+                stringValue("2021-05-09T20:15"),
+                booleanValue(canReconfigure)
+            )
         );
     }
 
@@ -2509,7 +2519,12 @@ class CFTTaskMapperTest {
                 null),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
                 stringValue("2021-05-09T20:15:45.345875+01:00"),
-                null)
+                null),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("dueDate"),
+                stringValue("2021-05-09T20:15"),
+                null
+            )
         );
     }
 

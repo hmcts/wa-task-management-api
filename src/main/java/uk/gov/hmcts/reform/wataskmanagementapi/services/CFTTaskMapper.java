@@ -770,6 +770,11 @@ public class CFTTaskMapper {
                         taskResource.setNextHearingDate((OffsetDateTime) value);
                     }
                     break;
+                case DUE_DATE:
+                    LocalDateTime dateTime = LocalDateTime.parse((String) value, DUE_DATE_TIME_FORMATTER);
+                    ZonedDateTime zonedDateTime = dateTime.atZone(ZoneId.of("Europe/London"));
+                    taskResource.setDueDateTime(zonedDateTime.toOffsetDateTime());
+                    break;
                 default:
                     break;
             }
