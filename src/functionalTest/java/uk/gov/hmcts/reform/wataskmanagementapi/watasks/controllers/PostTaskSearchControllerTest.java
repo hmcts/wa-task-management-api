@@ -41,6 +41,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_TYPE;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
@@ -86,7 +87,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
             new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
-            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, caseIds)
+            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, caseIds),
+            new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList("processApplication"))
         ));
 
         Response result = restApiActions.post(
