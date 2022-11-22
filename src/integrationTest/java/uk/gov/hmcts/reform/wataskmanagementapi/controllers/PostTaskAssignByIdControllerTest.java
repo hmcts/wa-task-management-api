@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -43,6 +43,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -207,7 +208,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
         ).andExpect(
             ResultMatcher.matchAll(
@@ -219,6 +220,113 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.detail").value(
                     "Task Assign Error: Task assign partially succeeded. "
                     + "The Task state was updated to assigned, but the Task could not be assigned.")
+            ));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "IA, Asylum",
+        "WA, WaCaseType"
+    })
+    void should_return_500_with_application_problem_response_when_assign_call_fails_due_to_missing_assigneeId(
+        String jurisdiction, String caseType) throws Exception {
+
+        //assigner permission : manage
+        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
+            false, false, false, true, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, assignerTaskRoleResource);
+
+        List<RoleAssignment> assignerRoles = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId("caseId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
+        assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
+
+        //assignee permissions : own, execute
+        //standard role
+        TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
+
+        List<RoleAssignment> assigneeRoles = new ArrayList<>();
+
+        roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId("caseId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+
+        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
+        assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
+
+        //Assigner
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(assignerRoleAssignmentResource);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(assignerAccessControlResponse);
+
+
+        //Assignee
+        lenient().when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(assigneeRoleAssignmentResource);
+
+        when(accessControlService.getRolesGivenUserId(null, IDAM_AUTHORIZATION_TOKEN))
+            .thenThrow(new NullPointerException("Assigner userId cannot be null"));
+
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+        )).thenReturn(false);
+
+        doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).assignTask(any(), any(), any());
+
+        ResultActions perform = mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(asJsonString(new AssignTaskRequest(null)))
+        );
+        perform.andExpect(
+            ResultMatcher.matchAll(
+                status().is5xxServerError(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.message").value("Assigner userId cannot be null"),
+                jsonPath("$.status").value(500)
             ));
     }
 
@@ -264,7 +372,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
@@ -322,7 +430,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
@@ -425,7 +533,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
@@ -543,7 +651,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
@@ -646,7 +754,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
@@ -764,7 +872,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
@@ -866,7 +974,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
@@ -984,7 +1092,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
@@ -1089,7 +1197,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
@@ -1194,7 +1302,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
@@ -1301,7 +1409,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
@@ -1406,7 +1514,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
@@ -1511,7 +1619,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
@@ -1589,7 +1697,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())

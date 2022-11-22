@@ -331,6 +331,7 @@ public class TaskActionsController extends BaseController {
         String assignerAuthToken,
         AssignTaskRequest assignTaskRequest,
         AccessControlResponse assignerAccessControlResponse) {
+
         UserInfo userInfo = assignerAccessControlResponse.getUserInfo();
         return assignTaskRequest.getUserId() == null
             && isGranularPermissionFeatureEnabled(userInfo.getUid(), userInfo.getEmail())
