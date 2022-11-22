@@ -17,8 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
