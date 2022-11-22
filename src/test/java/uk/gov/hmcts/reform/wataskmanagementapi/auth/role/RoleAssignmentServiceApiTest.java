@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role;
 
-import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,22 +8,20 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.MultipleQueryRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.QueryRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.MultipleQueryRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -35,12 +32,10 @@ import java.util.UUID;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,19 +53,17 @@ class RoleAssignmentServiceApiTest {
     @Mock
     private IdamTokenGenerator idamTokenGenerator;
 
-    private TaskConfigurationRoleAssignmentService roleAssignmentService;
+    private RoleAssignmentService roleAssignmentService;
 
     @Captor
     private ArgumentCaptor<MultipleQueryRequest> captor;
 
-    private String caseId;
     private RoleAssignment testRoleAssignment;
 
     @BeforeEach
     void setUp() {
-        caseId = UUID.randomUUID().toString();
         testRoleAssignment = getRoleAssignment();
-        roleAssignmentService = new TaskConfigurationRoleAssignmentService(
+        roleAssignmentService = new RoleAssignmentService(
             roleAssignmentServiceApi,
             serviceAuthTokenGenerator,
             idamTokenGenerator
@@ -81,41 +74,6 @@ class RoleAssignmentServiceApiTest {
 
     }
 
-    @Test
-    void should_search_roles_by_case_id() {
-
-        final RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
-            singletonList(testRoleAssignment)
-        );
-
-        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
-            eq(S2S_TOKEN),
-            any(MultipleQueryRequest.class)))
-            .thenReturn(roleAssignmentResource);
-
-        final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.searchRolesByCaseId(caseId);
-
-        assertNotNull(actualRoleAssignments);
-        assertEquals(1, actualRoleAssignments.size());
-
-        verify(roleAssignmentServiceApi).queryRoleAssignments(
-            eq(IDAM_USER_TOKEN),
-            eq(S2S_TOKEN),
-            captor.capture()
-        );
-
-        MultipleQueryRequest queryRequests = captor.getValue();
-
-        assertThat(queryRequests).isNotNull();
-        assertThat(queryRequests.getQueryRequests()).isNotEmpty();
-        QueryRequest actualQueryRequest = queryRequests.getQueryRequests().get(0);
-        assertThat(actualQueryRequest.getRoleType()).contains(RoleType.CASE);
-        assertThat(actualQueryRequest.getRoleName()).contains("tribunal-caseworker");
-        assertThat(actualQueryRequest.getValidAt()).isBefore(LocalDateTime.now());
-        assertThat(actualQueryRequest.getHasAttributes()).isNull();
-        assertThat(actualQueryRequest.getAttributes()).isNotNull();
-        assertThat(actualQueryRequest.getAttributes().get("caseId")).contains(caseId);
-    }
 
     @Test
     void should_query_roles_for_auto_assignment_by_case_id() {
@@ -232,21 +190,6 @@ class RoleAssignmentServiceApiTest {
         assertThat(actualQueryRequest.getValidAt()).isBefore(LocalDateTime.now());
         assertThat(actualQueryRequest.getHasAttributes()).isNull();
         assertThat(actualQueryRequest.getAttributes()).isNotNull();
-    }
-
-    @Test
-    void should_throw_server_error_exception_when_call_to_role_assignment_fails() {
-
-        doThrow(FeignException.FeignServerException.class)
-            .when(roleAssignmentServiceApi).queryRoleAssignments(eq(IDAM_USER_TOKEN),
-                eq(S2S_TOKEN),
-                any(MultipleQueryRequest.class));
-
-        assertThatThrownBy(() -> roleAssignmentService.searchRolesByCaseId(caseId))
-            .isInstanceOf(ServerErrorException.class)
-            .hasCauseInstanceOf(FeignException.class)
-            .hasMessage("Could not retrieve role assignments when performing the search");
-
     }
 
     private RoleAssignment getRoleAssignment() {

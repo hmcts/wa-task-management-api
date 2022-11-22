@@ -350,11 +350,11 @@ class TaskResourceDaoTest {
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
         List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
-                                                                                    10,
-                                                                                    searchTaskRequest,
-                                                                                    roleAssignments,
-                                                                                    permissionsRequired,
-                                                                                    false);
+            10,
+            searchTaskRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -382,11 +382,11 @@ class TaskResourceDaoTest {
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
         List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
-                                                     10,
-                                                     searchTaskRequest,
-                                                     roleAssignments,
-                                                     permissionsRequired,
-                                                     false);
+            10,
+            searchTaskRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -414,11 +414,11 @@ class TaskResourceDaoTest {
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
         List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
-                                                                                    10,
-                                                                                    searchTaskRequest,
-                                                                                    roleAssignments,
-                                                                                    permissionsRequired,
-                                                                                    false);
+            10,
+            searchTaskRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);

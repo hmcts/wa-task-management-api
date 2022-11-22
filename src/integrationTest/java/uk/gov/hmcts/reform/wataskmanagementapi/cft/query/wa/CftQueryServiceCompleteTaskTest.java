@@ -517,7 +517,6 @@ public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
-                    .region("1")
                     .caseId(caseId)
                     .build()
             )
@@ -527,5 +526,7 @@ public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
+
     }
+
 }
