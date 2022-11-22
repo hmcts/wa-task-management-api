@@ -244,7 +244,6 @@ public class TaskSearch
 		buildExtraConstraint(clientFilter.getCaseIds(), alias, "case_id", true);
 		buildExtraConstraint(clientFilter.getAssignees(), alias, "assignee", true);
 		buildExtraConstraint(clientFilter.getTaskTypes(), alias, "task_type", true);
-		buildExtraConstraint(clientFilter.getTaskIds(), alias, "task_id", true);
 		buildExtraConstraint(
 				buildExcludedCaseIds(RoleAssignmentHelper.exclusionRoleAssignments(roleAssignments, clientFilter)),
 				alias, "case_id", false);
@@ -312,7 +311,9 @@ public class TaskSearch
 				{ "caseid", "case_id" },
 				{ "case_id", "case_id" },
 				{ "casename", "case_name" },
-				{ "case_name", "case_name" }
+				{ "case_name", "case_name" },
+                {"next_hearing_date", "next_hearing_date"},
+                {"nextHearingDate", "next_hearing_date"}
 			}).collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
 	private static final String getSortColumn(SortField sortField)

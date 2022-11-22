@@ -29,7 +29,6 @@ public class ClientFilter
 	private Set<String> roleCategories;
 	private Set<String> workTypes;
 	private Set<String> taskTypes;
-	private Set<String> taskIds;
 	private Set<String> regions;
 	private Set<String> locations;
 	private Set<String> caseIds;
@@ -48,7 +47,6 @@ public class ClientFilter
 				getConstraints(searchParameters, SearchParameterKey.ROLE_CATEGORY),
 				getConstraints(searchParameters, SearchParameterKey.WORK_TYPE),
 				getConstraints(searchParameters, SearchParameterKey.TASK_TYPE),
-				getConstraints(searchParameters, SearchParameterKey.TASK_ID),
 				new HashSet<>(), // region not yet required in filter.
 				getConstraints(searchParameters, SearchParameterKey.LOCATION),
 				getConstraints(searchParameters, SearchParameterKey.CASE_ID),
