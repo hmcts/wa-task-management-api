@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.ToString;
 
-import java.util.Objects;
+import java.util.Locale;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ToString
@@ -44,7 +44,8 @@ public class TaskType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(taskTypeId);
+        int result = 17;
+        return 31 * result + taskTypeId.toLowerCase(Locale.ROOT).hashCode();
     }
 
 }
