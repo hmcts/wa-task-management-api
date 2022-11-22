@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -33,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Compl
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -154,6 +156,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -209,6 +213,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
         doNothing()
@@ -274,6 +280,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -326,6 +334,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -375,6 +386,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -427,6 +441,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -479,6 +495,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -501,6 +519,14 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() throws Exception {
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource, "CASEID");
+
         List<RoleAssignment> roles = new ArrayList<>();
 
         RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roles);
@@ -509,9 +535,11 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(roleAssignmentResource);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenThrow(new NoRoleAssignmentsFoundException("User did not have sufficient permissions to perform this action"));
 
         mockMvc.perform(
-            get("/task/" + "taskId")
+            get("/task/" + taskId)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -539,6 +567,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
@@ -599,6 +630,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -663,6 +696,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -754,6 +789,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -815,6 +852,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -876,6 +915,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -944,6 +985,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(mockedUser2Info.getUid())
             .thenReturn("IDAM_USER_2_ID");
@@ -961,6 +1004,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+        when(accessControlService.getRoles("IDAM_AUTHORIZATION_2_TOKEN"))
+            .thenReturn(new AccessControlResponse(mockedUser2Info, roleAssignments));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -1025,6 +1070,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -1092,6 +1140,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1153,6 +1203,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -1241,6 +1293,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1300,6 +1354,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1361,6 +1417,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -1450,6 +1508,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1536,6 +1596,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -1618,7 +1680,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId1, taskRoleResource1);
         insertDummyTaskInDb(jurisdiction, caseType, taskId2, taskRoleResource2, UUID.randomUUID().toString());
-
 
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
