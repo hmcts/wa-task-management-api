@@ -228,7 +228,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         "IA, Asylum",
         "WA, WaCaseType"
     })
-    void should_return_500_with_application_problem_response_when_assign_call_fails_due_to_missing_assigneeId(
+    void should_return_500_with_application_problem_response_when_assign_call_fails_due_to_missing_assignee_id(
         String jurisdiction, String caseType) throws Exception {
 
         //assigner permission : manage
