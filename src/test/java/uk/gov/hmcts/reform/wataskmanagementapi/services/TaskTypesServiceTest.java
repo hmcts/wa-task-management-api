@@ -27,6 +27,7 @@ import java.util.UUID;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -57,7 +58,7 @@ class TaskTypesServiceTest {
 
 
     @Test
-    void should_return_all_task_types() {
+    void should_return_task_types() {
         //given
         TaskTypesDmnResponse taskTypesDmnResponse = new TaskTypesDmnResponse(
             "wa-task-types-wa-wacasetype",
@@ -177,6 +178,19 @@ class TaskTypesServiceTest {
         assertEquals("Process Application", response.get(0).getTaskType().getTaskTypeName());
         assertEquals("reviewAppealSkeletonArgument", response.get(1).getTaskType().getTaskTypeId());
         assertEquals("Review Appeal Skeleton Argument", response.get(1).getTaskType().getTaskTypeName());
+    }
+
+    @Test
+    void should_return_empty_list_when_role_assignments_empty() {
+        //given
+        List<RoleAssignment> roleAssignments = emptyList();
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
+
+        //when
+        List<TaskTypeResponse> response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
+
+        //then
+        assertThat(response).isEmpty();
     }
 
     private List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames,

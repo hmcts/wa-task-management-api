@@ -45,8 +45,7 @@ public class TaskType {
     @Override
     public int hashCode() {
         int result = 17;
-        result = 31 * result + taskTypeId.toLowerCase(Locale.ROOT).hashCode();
-        return result;
+        return 31 * result + taskTypeId.toLowerCase(Locale.ROOT).hashCode();
     }
 
 }
