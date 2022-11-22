@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
@@ -37,6 +36,7 @@ import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
@@ -53,7 +53,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Before
     public void setUp() {
-
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         granularPermissionCaseworkerCredentials = authorizationProvider
             .getNewTribunalCaseworker("wa-granular-permission-");
@@ -69,13 +68,17 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results_and_correct_properties() {
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         List<TestVariables> tasksCreated = new ArrayList<>();
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication", "process application");
         tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
+
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication", "process application");
+        tasksCreated.add(taskVariables);
+        initiateTask(taskVariables);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -84,7 +87,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
             new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
-            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds),
+            new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, caseIds),
             new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList("processApplication"))
         ));
 
@@ -135,7 +138,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.priority_date", everyItem(notNullValue()))
             .body("tasks.minor_priority", everyItem(equalTo(500)))
             .body("tasks.major_priority", everyItem(equalTo(1000)))
-            .body("total_records", equalTo(1));
+            .body("total_records", equalTo(2));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
@@ -149,7 +152,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             "processApplication",
             "process application");
         tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
+
+        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                                                         "processApplication",
+                                                         "process application");
+        tasksCreated.add(taskVariables);
+        initiateTask(taskVariables);
 
         common.setupHearingPanelJudgeForStandardAccess(granularPermissionCaseworkerCredentials.getHeaders(),
             "WA",
@@ -213,7 +222,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.priority_date", everyItem(notNullValue()))
             .body("tasks.minor_priority", everyItem(equalTo(500)))
             .body("tasks.major_priority", everyItem(equalTo(1000)))
-            .body("total_records", equalTo(1));
+            .body("total_records", equalTo(2));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
@@ -222,7 +231,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results_and_correct_properties_and_granular_permission() {
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCaseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders());
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId,
@@ -237,10 +246,15 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
+        initiateTask(taskVariables, additionalProperties);
 
+        taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        tasksCreated.add(taskVariables);
+        initiateTask(taskVariables, additionalProperties);
+
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -270,7 +284,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId,
@@ -285,13 +299,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "Review Specific Access Request LegalOps");
         tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
+        initiateTask(taskVariables, additionalProperties);
 
-        taskVariables = common.setupWATaskAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "Review Specific Access Request LegalOps");
         tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA, additionalProperties);
+        initiateTask(taskVariables, additionalProperties);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -324,16 +338,16 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_200_with_tasks_sorted_on_next_hearing_date_desc() {
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
         tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
         tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -437,16 +451,16 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_200_with_tasks_sorted_on_next_hearing_date_asc() {
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
         tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
         tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());

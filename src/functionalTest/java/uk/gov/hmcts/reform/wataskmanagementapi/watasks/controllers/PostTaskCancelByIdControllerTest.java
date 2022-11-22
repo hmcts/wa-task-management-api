@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import static org.hamcrest.Matchers.equalTo;
 
@@ -48,12 +47,12 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_not_cancel_task_when_role_assignment_verification_failed() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         String taskId = taskVariables.getTaskId();
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -75,11 +74,11 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_cancel_task_when_role_assignment_verification_passed() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestJudiciary");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestJudiciary",
+                                                                       "Review Specific Access Request Judiciary");
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
-        common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupWAOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), "judge");
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
@@ -100,12 +99,12 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void user_should_cancel_task_when_granular_permission_cancel_own_satisfied() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "process Application");
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCaseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders());
         String taskId = taskVariables.getTaskId();
         Response resultAssignee = restApiActions.post(
             "task/{task-id}/assign",
@@ -137,11 +136,11 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     //Add four IT to cover grant type SPECIFIC, STANDARD, CHALLENGED, EXCLUDED for cancel request and then remove this.
     @Test
     public void user_should_cancel_task_when_grant_type_challenged_and_permission_cancel() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "reviewSpecificAccessRequestJudiciary");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestJudiciary",
+                                                                       "Review Specific Access Request Judiciary");
 
         common.setupChallengedAccessLegalOps(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        common.setupCFTJudicialOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupHearingPanelJudgeForStandardAccess(caseworkerForReadCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
