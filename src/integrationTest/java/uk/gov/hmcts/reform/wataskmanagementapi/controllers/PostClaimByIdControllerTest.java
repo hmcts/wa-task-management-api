@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -536,7 +535,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             any(), any(), any()
         )).thenReturn(roleAssignmentResource);
         when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenThrow(new NoRoleAssignmentsFoundException("User did not have sufficient permissions to perform this action"));
+            .thenThrow(new NoRoleAssignmentsFoundException(
+                "User did not have sufficient permissions to perform this action"));
 
         mockMvc.perform(
             get("/task/" + taskId)
