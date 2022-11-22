@@ -52,7 +52,7 @@ public class ClientFilter
 				getConstraints(searchParameters, SearchParameterKey.CASE_ID),
 				getConstraints(searchParameters, SearchParameterKey.USER),
 				availableTasksOnly(clientQuery),
-                allWork(clientQuery));
+        allWork(clientQuery));
 	}
 
 	private static boolean availableTasksOnly(ClientQuery clientQuery)
@@ -65,6 +65,7 @@ public class ClientFilter
         return clientQuery.getRequestContext() != null
             && clientQuery.getRequestContext().isEqual(RequestContext.ALL_WORK);
     }
+
 
 	/**
 	 * This is a bit involved.  A list of search parameters could contain multiple values for the
