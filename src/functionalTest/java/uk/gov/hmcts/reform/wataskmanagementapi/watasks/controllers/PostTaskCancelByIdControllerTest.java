@@ -102,7 +102,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
         Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, null,
-            "unassigned", userInfo.getUid(), CANCEL);
+            "cancelled", userInfo.getUid(), CANCEL);
         assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
