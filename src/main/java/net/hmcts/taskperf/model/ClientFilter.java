@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import lombok.Value;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
@@ -34,6 +35,7 @@ public class ClientFilter
 	private Set<String> caseIds;
 	private Set<String> assignees;
 	private boolean availableTasksOnly;
+	private boolean allWork;
 
 	public static ClientFilter of(ClientQuery clientQuery)
 	{
@@ -51,35 +53,31 @@ public class ClientFilter
 				getConstraints(searchParameters, SearchParameterKey.LOCATION),
 				getConstraints(searchParameters, SearchParameterKey.CASE_ID),
 				getConstraints(searchParameters, SearchParameterKey.USER),
-				availableTasksOnly(clientQuery));
+				availableTasksOnly(clientQuery),
+                allWork(clientQuery));
 	}
 
 	private static boolean availableTasksOnly(ClientQuery clientQuery)
 	{
-		return
-				clientQuery.getBooleanFilters() != null &&
-				clientQuery.getBooleanFilters().stream()
-				.anyMatch(ClientFilter::isAvailableTasksOnly);
+		return clientQuery.getRequestContext() != null
+            && clientQuery.getRequestContext().isEqual(RequestContext.AVAILABLE_TASK_ONLY);
 	}
 
-	private static boolean isAvailableTasksOnly(SearchParameterBoolean searchParameter)
-	{
-		return
-				searchParameter.getKey().equals(SearchParameterKey.AVAILABLE_TASKS_ONLY) &&
-				searchParameter.getOperator().equals(SearchOperator.BOOLEAN) &&
-				searchParameter.getValues();
-	}
+    private static boolean allWork(ClientQuery clientQuery) {
+        return clientQuery.getRequestContext() != null
+            && clientQuery.getRequestContext().isEqual(RequestContext.ALL_WORK);
+    }
 
 	/**
 	 * This is a bit involved.  A list of search parameters could contain multiple values for the
 	 * same key - not sure if the API checks for that.  Since the parameters are ANDed for the query,
 	 * we need to find the intersection of all the sets of values for a single parameter, allowing
 	 * for the fact that they could be single-valued or multi-valued.
-	 * 
+	 *
 	 * TODO: need to establish the variants of search parameters which can actually be received from
 	 * the API.  e.g. is there an EQUALS operator with a single value, or are the values always in
 	 * a list?
-	 * 
+	 *
 	 * This probably works for simple cases, which may be enough for indicative performance testing.
 	 */
 	private static Set<String> getConstraints(List<SearchParameter<?>> searchParameters, SearchParameterKey searchParameterKey)

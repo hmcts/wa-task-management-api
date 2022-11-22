@@ -195,25 +195,16 @@ public class TaskSearch
 		Set<String> permissions = new HashSet<>();
 		if (clientFilter.isAvailableTasksOnly())
 		{
-			// TODO: should be changed to use the claim permission, once available
-			// TODO: currently removes the permission requested when it is not one
-			//       of the 'available' permissions.  Arguably this should return
-			//       tasks where the user has BOTH any of the available task
-			//       permissions AND any of the requested permissions.  But that
-			//       makes the query complex - we should probably not expose
-			//       the ability to request specific permissions through the API,
-			//       but flags/properties for particular types of query, which
-			//       we then interpret to determine what permissions we should
-			//       search for.  (There are other reasons for this, too - we
-			//       don't want to have to index on all the permissions, just
-			//       the ones we need for the search scenarios we have to support.
-			permissions.add("o");
-//			permissions.add("x");
+			permissions.add("a");
 		}
-		else
+		else if (clientFilter.isAllWork())
 		{
-			permissions.add("r");
+			permissions.add("m");
 		}
+        else
+        {
+            permissions.add("r");
+        }
 		return permissions;
 	}
 

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.sql.DataSource;
 
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -99,6 +101,7 @@ public class TaskSearchAdaptor {
         ClientQuery clientQuery = new ClientQuery(
         		getSearchParameterLists(searchTaskRequest),
         		getSearchParameterBooleans(searchTaskRequest),
+                getRequestContext(searchTaskRequest),
         		new Pagination(firstResult, maxResults),
         		searchTaskRequest.getSortingParameters());
         Connection conn = getConnection();
@@ -180,6 +183,15 @@ public class TaskSearchAdaptor {
     		}
     	}
     	return parameterBooleans;
+    }
+
+    @Nullable
+    private SearchParameterRequestContext getRequestContext(SearchTaskRequest searchTaskRequest) {
+
+        return (SearchParameterRequestContext) searchTaskRequest.getSearchParameters()
+            .stream()
+            .filter(SearchParameterRequestContext.class::isInstance)
+            .findFirst().orElse(null);
     }
 
 	/**
