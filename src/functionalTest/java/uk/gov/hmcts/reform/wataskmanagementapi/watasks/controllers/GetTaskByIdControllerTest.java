@@ -1,22 +1,26 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.Jurisdiction;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
+import static org.hamcrest.Matchers.hasItems;
 
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -49,9 +53,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "process application"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -115,9 +119,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "process application"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -205,7 +209,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "key8", "value8"
         );
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(
             additionalProperties,
             "requests/ccd/wa_case_data.json",
             "reviewSpecificAccessRequestJudiciary"
@@ -245,9 +249,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             taskName
         );
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -299,6 +303,49 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    public void should_return_a_200_with_task_warnings() {
+
+        TestVariables taskVariables = common.setupWATaskWithWarningsAndRetrieveIds("processApplication",
+                                                                                   "process application");
+        String taskId = taskVariables.getTaskId();
+
+        initiateTask(taskVariables);
+
+        common.setupWAOrganisationalRoleAssignmentWithCustomAttributes(
+            caseworkerCredentials.getHeaders(),
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "WA"
+            )
+        );
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.warnings", is(true))
+            .body("task.permissions.values.size()", equalTo(2))
+            .body("task.permissions.values", hasItems("Read", "Own"));
+
+        final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
+            "task.warning_list.values");
+
+        List<Map<String, String>> expectedWarnings = Lists.list(
+            Map.of("warningCode", "Code1", "warningText", "Text1"),
+            Map.of("warningCode", "Code2", "warningText", "Text2")
+        );
+        Assertions.assertEquals(expectedWarnings, actualWarnings);
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
     public void should_return_a_200_with_task_and_granular_permissions() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
@@ -307,9 +354,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "process application"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(granularPermissionCaseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables, Jurisdiction.WA);
+        initiateTask(taskVariables);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,

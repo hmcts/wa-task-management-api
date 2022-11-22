@@ -2,20 +2,19 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
@@ -28,6 +27,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
@@ -40,6 +41,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -77,19 +79,17 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @MockBean
-    private AccessControlService accessControlService;
     @Mock
     private UserInfo mockedUserInfo;
     @Mock
     private UserInfo mockedSecondaryUserInfo;
+    @MockBean
+    private IdamService idamService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
     private ServiceMocks mockServices;
     private String taskId;
 
-    private AccessControlResponse assignerAccessControlResponse;
-    private AccessControlResponse assigneeAccessControlResponse;
     private RoleAssignmentResource assignerRoleAssignmentResource;
     private RoleAssignmentResource assigneeRoleAssignmentResource;
 
@@ -150,7 +150,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -177,29 +176,20 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assigneeRoles, roleAssignmentRequest);
-
-        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
         //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(mockedUserInfo.getUid()), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
-
 
         //Assignee
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(SECONDARY_IDAM_USER_ID), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
 
-        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
-
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).assignTask(any(), any(), any());
@@ -208,7 +198,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
         ).andExpect(
             ResultMatcher.matchAll(
@@ -254,7 +244,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -282,28 +271,20 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
-        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
         //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
 
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
-
-
         //Assignee
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
 
-        when(accessControlService.getRolesGivenUserId(null, IDAM_AUTHORIZATION_TOKEN))
-            .thenThrow(new NullPointerException("Assigner userId cannot be null"));
-
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -314,20 +295,81 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).assignTask(any(), any(), any());
 
-        ResultActions perform = mockMvc.perform(
+        mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(new AssignTaskRequest(null)))
+        ).andExpectAll(
+            status().is5xxServerError(),
+            content().contentType(APPLICATION_JSON_VALUE),
+            jsonPath("$.message").value("IdamUserId cannot be null"),
+            jsonPath("$.status").value(500)
         );
-        perform.andExpect(
-            ResultMatcher.matchAll(
-                status().is5xxServerError(),
-                content().contentType(APPLICATION_JSON_VALUE),
-                jsonPath("$.message").value("Assigner userId cannot be null"),
-                jsonPath("$.status").value(500)
-            ));
+    }
+
+    @Test
+    public void should_return_a_401_when_the_user_did_not_have_any_roles() throws Exception {
+        List<RoleAssignment> roles = new ArrayList<>();
+
+        RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roles);
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+        //Assigner
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(roleAssignmentResource);
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
+        ).andExpectAll(
+            status().is4xxClientError(),
+            content().contentType(APPLICATION_JSON_VALUE),
+            jsonPath("$.error").value("Unauthorized"),
+            jsonPath("$.status").value(401),
+            jsonPath("$.message").value(
+                "User did not have sufficient permissions to perform this action"));
+    }
+
+    @Test
+    public void should_return_a_404_if_task_does_not_exist() throws Exception {
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
+            "SCSS", "caseId1");
+        // create role assignments Organisation and SCSS , Case Id
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignmentsWithJurisdiction
+        );
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
+        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+
+        mockMvc.perform(
+            post("/task/" + nonExistentTaskId + "/assign")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(request))
+                .content(asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
+        ).andExpectAll(
+            status().is4xxClientError(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
+            jsonPath("$.title").value("Task Not Found Error"),
+            jsonPath("$.status").value(404),
+            jsonPath("$.detail").value(
+                "Task Not Found Error: The task could not be found.")
+        );
     }
 
     @ParameterizedTest
@@ -338,6 +380,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
     public void should_return_a_403_when_the_assigner_does_not_have_manage_permission(
         String jurisdiction, String caseType) throws Exception {
 
+        //Same user has been used as a assigner and assignee
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             "tribunal-caseworker", true, true, false, false, false,
             true, new String[]{}, 1, false, "LegalOperations"
@@ -347,23 +390,22 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
             jurisdiction, "caseId1");
         // create role assignments Organisation and SCSS , Case Id
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+        RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
             roleAssignmentsWithJurisdiction
         );
 
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+
+        //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(accessControlResponse);
+            eq(mockedUserInfo.getUid()), any(), any()
+        )).thenReturn(roleAssignmentResource);
 
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo,
-                roleAssignmentsWithJurisdiction));
+        //Assignee
+        lenient().when(roleAssignmentServiceApi.getRolesForUser(
+            eq(SECONDARY_IDAM_USER_ID), any(), any()
+        )).thenReturn(roleAssignmentResource);
 
-        when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo,
-                roleAssignmentsWithJurisdiction));
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         AssignTaskRequest assignTaskRequest = new AssignTaskRequest(SECONDARY_IDAM_USER_ID);
@@ -394,7 +436,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions(
         String jurisdiction, String caseType) throws Exception {
 
-        //Same user has been used as a assigner and assignee
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             "tribunal-caseworker", true, false, false, true, false,
             true, new String[]{}, 1, false, "LegalOperations"
@@ -405,23 +446,22 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> roleAssignmentsWithJurisdiction = mockServices.createRoleAssignmentsWithJurisdiction(
             jurisdiction, "caseId1");
         // create role assignments Organisation and SCSS , Case Id
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+        RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
             roleAssignmentsWithJurisdiction
         );
 
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+
+        //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(accessControlResponse);
+            eq(mockedUserInfo.getUid()), any(), any()
+        )).thenReturn(roleAssignmentResource);
 
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo,
-                roleAssignmentsWithJurisdiction));
+        //Assignee
+        lenient().when(roleAssignmentServiceApi.getRolesForUser(
+            eq(SECONDARY_IDAM_USER_ID), any(), any()
+        )).thenReturn(roleAssignmentResource);
 
-        when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo,
-                roleAssignmentsWithJurisdiction));
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         AssignTaskRequest assignTaskRequest = new AssignTaskRequest(SECONDARY_IDAM_USER_ID);
@@ -430,7 +470,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
@@ -444,226 +484,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
-        "IA, Asylum",
-        "WA, WaCaseType"
-    })
-    public void assigner_should_assign_a_task_to_assignee_with_grant_type_standard(
-        String jurisdiction, String caseType) throws Exception {
-
-        //assigner permission : manage
-        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
-            false, false, false, true, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
-        );
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, assignerTaskRoleResource);
-
-        List<RoleAssignment> assignerRoles = new ArrayList<>();
-
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId("caseId1")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
-        assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
-
-        //assignee permissions : own, execute
-        //standard role
-        TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
-        );
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
-
-        List<RoleAssignment> assigneeRoles = new ArrayList<>();
-
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId("caseId1")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
-
-        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
-        assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
-
-        //Assigner
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(assignerRoleAssignmentResource);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
-
-
-        //Assignee
-        lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(assigneeRoleAssignmentResource);
-
-        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
-
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        AssignTaskRequest assignTaskRequest = new AssignTaskRequest(SECONDARY_IDAM_USER_ID);
-
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
-        ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
-        );
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {
-        "IA, Asylum",
-        "WA, WaCaseType"
-    })
-    public void assigner_should_not_assign_a_task_to_assignee_with_grant_type_standard_and_excluded(
-        String jurisdiction, String caseType) throws Exception {
-
-        //assigner permission : manage
-        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
-            false, false, false, true, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
-        );
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, assignerTaskRoleResource);
-
-        List<RoleAssignment> assignerRoles = new ArrayList<>();
-
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId("caseId1")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
-        assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
-
-        //assignee permissions : own, execute
-        //standard role
-        TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
-        );
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
-
-        List<RoleAssignment> assigneeRoles = new ArrayList<>();
-
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId("caseId1")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
-
-        //Excluded role
-        assigneeTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleName(),
-            false, true, true, false, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleCategory().name()
-        );
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
-
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId("caseId1")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
-
-        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
-        assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
-
-        //Assigner
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(assignerRoleAssignmentResource);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
-
-
-        //Assignee
-        lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(assigneeRoleAssignmentResource);
-
-        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
-
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        AssignTaskRequest assignTaskRequest = new AssignTaskRequest(SECONDARY_IDAM_USER_ID);
-
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
-        ).andExpectAll(
-            status().is4xxClientError(),
-            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
-            jsonPath("$.title").value("Role Assignment Verification"),
-            jsonPath("$.status").value(403),
-            jsonPath("$.detail").value(
-                "Role Assignment Verification: "
-                + "The user being assigned the Task has failed the Role Assignment checks performed.")
-        );
-    }
 
     @ParameterizedTest
     @CsvSource(value = {
@@ -696,7 +516,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -723,29 +542,21 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assigneeRoles, roleAssignmentRequest);
-
-        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
+
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
         //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(mockedUserInfo.getUid()), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
-
 
         //Assignee
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(SECONDARY_IDAM_USER_ID), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
 
-        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
-
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         AssignTaskRequest assignTaskRequest = new AssignTaskRequest(SECONDARY_IDAM_USER_ID);
@@ -754,7 +565,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
@@ -792,7 +603,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -842,28 +652,20 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
-        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
         //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(mockedUserInfo.getUid()), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
-
 
         //Assignee
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(SECONDARY_IDAM_USER_ID), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
 
-        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
-
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         AssignTaskRequest assignTaskRequest = new AssignTaskRequest(SECONDARY_IDAM_USER_ID);
@@ -872,7 +674,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
@@ -917,7 +719,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -943,29 +744,21 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assigneeRoles, roleAssignmentRequest);
-        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
 
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+
         //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(mockedUserInfo.getUid()), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
-
 
         //Assignee
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(SECONDARY_IDAM_USER_ID), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
 
-        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
-
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         AssignTaskRequest assignTaskRequest = new AssignTaskRequest(SECONDARY_IDAM_USER_ID);
@@ -974,7 +767,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
@@ -1012,7 +805,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -1060,30 +852,20 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assigneeRoles, roleAssignmentRequest);
-
-        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
         //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(mockedUserInfo.getUid()), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
-
 
         //Assignee
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(SECONDARY_IDAM_USER_ID), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
 
-        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
-
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         AssignTaskRequest assignTaskRequest = new AssignTaskRequest(SECONDARY_IDAM_USER_ID);
@@ -1092,7 +874,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
@@ -1134,17 +916,13 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
-
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
         //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(IDAM_USER_ID), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
 
         //standard role
         TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
@@ -1171,18 +949,13 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
-        assigneeAccessControlResponse = new AccessControlResponse(mockedSecondaryUserInfo, assigneeRoles);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
         //Assignee
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(SECONDARY_IDAM_USER_ID), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
 
-        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -1197,7 +970,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
@@ -1225,6 +998,15 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, assignerTaskRoleResource);
 
+        //standard role
+        TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
+
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -1239,28 +1021,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
-        assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
-
-
-        //Assigner
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(assignerRoleAssignmentResource);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
-
-        //standard role
-        TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
-        );
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
-
-        List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
         //assignee permissions : own, execute
         roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -1274,20 +1034,16 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
-        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
-        assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
+        assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
-        //Assignee
-        lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(assigneeRoleAssignmentResource);
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+        //Assigner
+        when(roleAssignmentServiceApi.getRolesForUser(
+            eq(IDAM_USER_ID), any(), any()
+        )).thenReturn(assignerRoleAssignmentResource);
 
-        lenient().when(accessControlService.getRolesGivenUserId(IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -1302,7 +1058,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
@@ -1332,6 +1088,15 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
         insertDummyTaskInDb("WA", "WaCaseType", taskId, assignerTaskRoleResource, SECONDARY_IDAM_USER_ID);
 
+        //standard role
+        TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("WA", "WaCaseType", taskId, assigneeTaskRoleResource, SECONDARY_IDAM_USER_ID);
+
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -1346,28 +1111,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
-        assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
-
-
-        //Assigner
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(assignerRoleAssignmentResource);
-
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
-
-        //standard role
-        TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
-        );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId, assigneeTaskRoleResource, SECONDARY_IDAM_USER_ID);
-
-        List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
         //assignee permissions : own, execute
         roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -1381,20 +1124,16 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
-        assigneeAccessControlResponse = new AccessControlResponse(mockedUserInfo, assigneeRoles);
-        assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
+        assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
-        //Assignee
-        lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(assigneeRoleAssignmentResource);
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+        //Assigner
+        when(roleAssignmentServiceApi.getRolesForUser(
+            eq(IDAM_USER_ID), any(), any()
+        )).thenReturn(assignerRoleAssignmentResource);
 
-        lenient().when(accessControlService.getRolesGivenUserId(IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -1409,7 +1148,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
@@ -1451,17 +1190,15 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
         //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(IDAM_USER_ID), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
 
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
 
         //standard role
         TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
@@ -1488,18 +1225,14 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
-        assigneeAccessControlResponse = new AccessControlResponse(mockedSecondaryUserInfo, assigneeRoles);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
         //Assignee
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(SECONDARY_IDAM_USER_ID), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
 
-        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
 
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -1514,7 +1247,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
@@ -1556,17 +1289,15 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
         //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(IDAM_USER_ID), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
 
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
 
         //standard role
         TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
@@ -1593,18 +1324,14 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
-        assigneeAccessControlResponse = new AccessControlResponse(mockedSecondaryUserInfo, assigneeRoles);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
         //Assignee
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
+            eq(SECONDARY_IDAM_USER_ID), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
 
-        lenient().when(accessControlService.getRolesGivenUserId(SECONDARY_IDAM_USER_ID, IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assigneeAccessControlResponse);
 
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -1619,7 +1346,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
@@ -1661,17 +1388,15 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-        assignerAccessControlResponse = new AccessControlResponse(mockedUserInfo, assignerRoles);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
         //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
 
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(assignerAccessControlResponse);
 
         //standard role
         TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
@@ -1682,7 +1407,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
         insertDummyTaskInDb("WA", "WaCaseType", taskId, assigneeTaskRoleResource, SECONDARY_IDAM_USER_ID);
 
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -1697,7 +1421,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
