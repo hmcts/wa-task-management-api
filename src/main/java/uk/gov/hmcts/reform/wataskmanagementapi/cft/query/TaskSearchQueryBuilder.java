@@ -50,7 +50,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
     "PMD.TooManyMethods",
     "PMD.LawOfDemeter",
     "PMD.ExcessiveImports",
-    "PMD.NPathComplexity"
+    "PMD.NPathComplexity",
+    "PMD.CyclomaticComplexity"
 })
 public final class TaskSearchQueryBuilder {
 

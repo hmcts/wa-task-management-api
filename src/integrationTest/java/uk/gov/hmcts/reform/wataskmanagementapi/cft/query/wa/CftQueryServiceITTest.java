@@ -148,7 +148,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
-                                                                                scenario.roleAssignments);
+            scenario.roleAssignments);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
@@ -2103,16 +2103,18 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(20)
             .roleAssignments(pagination(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(5)
-            .expectedTotalRecords(5)
+            .expectedAmountOfTasksInResponse(7)
+            .expectedTotalRecords(7)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
-                                 )
+                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000036", "1623278362400036",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
+                )
             ).build();
 
         searchTaskRequest = new SearchTaskRequest(
@@ -2172,8 +2174,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(1)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032"
-                                 )
+                    "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032"
+                )
             ).build();
 
         searchTaskRequest = new SearchTaskRequest(
@@ -2215,8 +2217,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(1)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000029", "1623278362400029"
-                                 )
+                    "8d6cc5cf-c973-11eb-aaaa-000000000029", "1623278362400029"
+                )
             ).build();
 
         searchTaskRequest = new SearchTaskRequest(
@@ -2236,9 +2238,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(2)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000029", "1623278362400029",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000030", "1623278362400030"
-                                 )
+                    "8d6cc5cf-c973-11eb-aaaa-000000000029", "1623278362400029",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000030", "1623278362400030"
+                )
             ).build();
 
         searchTaskRequest = new SearchTaskRequest(
@@ -2280,8 +2282,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(1)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
-                                 )
+                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
+                )
             ).build();
 
         searchTaskRequest = new SearchTaskRequest(
@@ -2325,9 +2327,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(2)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000031", "1623278362400031",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032"
-                                 )
+                    "8d6cc5cf-c973-11eb-aaaa-000000000031", "1623278362400031",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032"
+                )
             ).build();
 
         return Stream.of(allTasks);
@@ -2378,9 +2380,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(2)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032",
-                                     "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035"
-                                 )
+                    "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000037", "1623278362400037"
+                )
             ).build();
 
         searchTaskRequest = new SearchTaskRequest(
