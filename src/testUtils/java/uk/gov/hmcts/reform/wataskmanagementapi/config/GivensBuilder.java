@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
-import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
@@ -53,22 +52,20 @@ public class GivensBuilder {
     private final AuthorizationProvider authorizationProvider;
     private final DocumentManagementFiles documentManagementFiles;
 
-    private final CoreCaseDataApi coreCaseDataApi;
+    private final CcdRetryableClient ccdRetryableClient;
 
-
-    private Map<String, CamundaValue<?>> taskVariables;
 
     public GivensBuilder(RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
                          AuthorizationProvider authorizationProvider,
-                         CoreCaseDataApi coreCaseDataApi,
+                         CcdRetryableClient ccdRetryableClient,
                          DocumentManagementFiles documentManagementFiles,
                          RestApiActions workflowApiActions
     ) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationProvider = authorizationProvider;
-        this.coreCaseDataApi = coreCaseDataApi;
+        this.ccdRetryableClient = ccdRetryableClient;
         this.documentManagementFiles = documentManagementFiles;
         this.workflowApiActions = workflowApiActions;
 
@@ -147,12 +144,6 @@ public class GivensBuilder {
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    public List<CamundaTask> iRetrieveATasksWithProcessVariableFilter(String key, String value, String taskType) {
-        log.info("Attempting to retrieve task with {} = {}", key, value);
-        String filter = "?processVariables=" + key + "_eq_" + value + ",taskId_eq_" + taskType;
-        return retrieveTasks(filter, 1);
-    }
-
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value, int taskIndex) {
         String filter = "?processVariables=" + key + "_eq_" + value;
         return retrieveTasks(filter, taskIndex);
@@ -200,20 +191,6 @@ public class GivensBuilder {
 
         result.then().assertThat()
             .statusCode(status.value());
-    }
-
-    public GivensBuilder iUpdateTaskVariable(String taskId, Map<String, CamundaValue<?>> processVariables) {
-        Response result = camundaApiActions.post(
-            "/task/{task-id}/variables",
-            taskId,
-            new Modifications(processVariables),
-            authorizationProvider.getServiceAuthorizationHeader()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        return this;
     }
 
     public GivensBuilder iUpdateVariablesOfTaskById(String taskId, Map<String, CamundaValue<?>> processVariables) {
@@ -347,19 +324,6 @@ public class GivensBuilder {
         return processVariables.build().getProcessVariablesMap();
     }
 
-    public String iCreateACcdCase() {
-        TestAuthenticationCredentials lawFirmCredentials =
-            authorizationProvider.getNewTribunalCaseworker("wa-ft-r2-");
-        return createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
-            "IA",
-            "Asylum",
-            "startAppeal",
-            "submitAppeal",
-            lawFirmCredentials,
-            "requests/ccd/case_data.json"
-        );
-    }
-
     public String iCreateWACcdCase(String resourceFileName) {
         TestAuthenticationCredentials lawFirmCredentials =
             authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
@@ -373,7 +337,7 @@ public class GivensBuilder {
         );
     }
 
-    private String createCCDCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
+    public String createCCDCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
                                                                     String caseType,
                                                                     String startEventId,
                                                                     String submitEventId,
@@ -386,7 +350,7 @@ public class GivensBuilder {
 
         Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, credentials);
 
-        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
+        StartEventResponse startCase = ccdRetryableClient.startForCaseworker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -436,7 +400,7 @@ public class GivensBuilder {
             .build();
 
         //Fire submit event
-        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
+        CaseDetails caseDetails = ccdRetryableClient.submitForCaseworker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -448,7 +412,7 @@ public class GivensBuilder {
 
         log.info("Created case [" + caseDetails.getId() + "]");
 
-        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
+        StartEventResponse submitCase = ccdRetryableClient.startEventForCaseWorker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -468,7 +432,7 @@ public class GivensBuilder {
             .data(data)
             .build();
 
-        coreCaseDataApi.submitEventForCaseWorker(
+        ccdRetryableClient.submitEventForCaseWorker(
             userToken,
             serviceToken,
             userInfo.getUid(),
