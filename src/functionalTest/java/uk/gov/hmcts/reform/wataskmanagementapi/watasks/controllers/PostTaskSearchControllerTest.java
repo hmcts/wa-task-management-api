@@ -500,11 +500,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_tasks_matching_to_request_context_available_task_only() {
         List<String> caseIds = new ArrayList<>();
+        List<String> taskIds = new ArrayList<>();
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication",
             "process application"
         );
         String paTask1 = taskVariables.getTaskId();
+        taskIds.add(paTask1);
         caseIds.add(taskVariables.getCaseId());
         initiateTask(taskVariables);
 
@@ -513,6 +515,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             "process application"
         );
         String paTask2 = taskVariables.getTaskId();
+        taskIds.add(paTask2);
         caseIds.add(taskVariables.getCaseId());
         initiateTask(taskVariables);
 
@@ -521,6 +524,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             "follow Up Overdue"
         );
         String foTask1 = taskVariables.getTaskId();
+        taskIds.add(foTask1);
         caseIds.add(taskVariables.getCaseId());
         initiateTask(taskVariables);
 
@@ -529,6 +533,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             "inspect Appeal"
         );
         String iaTask1 = taskVariables.getTaskId();
+        taskIds.add(iaTask1);
         caseIds.add(taskVariables.getCaseId());
         initiateTask(taskVariables);
 
@@ -573,6 +578,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("tasks[0].id", in(taskIds))
+            .body("tasks[1].id", in(taskIds))
+            .body("tasks[2].id", in(taskIds))
+            .body("tasks[3].id", in(taskIds))
             .body("total_records", equalTo(4));
 
         //Case manager doing general task search
