@@ -12,10 +12,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.CcdRetryableClient;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
@@ -94,8 +94,9 @@ public abstract class SpringBootFunctionalBaseTest {
     protected RestApiActions launchDarklyActions;
     @Autowired
     protected AuthorizationProvider authorizationProvider;
+
     @Autowired
-    protected CoreCaseDataApi coreCaseDataApi;
+    protected CcdRetryableClient ccdRetryableClient;
     @Autowired
     protected DocumentManagementFiles documentManagementFiles;
     @Autowired
@@ -137,7 +138,7 @@ public abstract class SpringBootFunctionalBaseTest {
             camundaApiActions,
             restApiActions,
             authorizationProvider,
-            coreCaseDataApi,
+            ccdRetryableClient,
             documentManagementFiles,
             workflowApiActions
         );

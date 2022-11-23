@@ -11,6 +11,7 @@ class DecisionTableTest {
         assertEquals("wa-task-completion", DecisionTable.WA_TASK_COMPLETION.getTableName());
         assertEquals("wa-task-configuration", DecisionTable.WA_TASK_CONFIGURATION.getTableName());
         assertEquals("wa-task-permissions", DecisionTable.WA_TASK_PERMISSIONS.getTableName());
+        assertEquals("wa-task-types", DecisionTable.WA_TASK_TYPES.getTableName());
     }
 
 
@@ -29,6 +30,6 @@ class DecisionTableTest {
     @Test
     void update_test_whenever_additions_to_assign_enum_are_made() {
         int enumLength = DecisionTable.values().length;
-        assertEquals(3, enumLength);
+        assertEquals(4, enumLength);
     }
 }
