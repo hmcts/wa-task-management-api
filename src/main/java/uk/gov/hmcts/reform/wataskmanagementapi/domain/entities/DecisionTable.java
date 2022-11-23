@@ -8,7 +8,8 @@ public enum DecisionTable {
 
     WA_TASK_COMPLETION("wa-task-completion"),
     WA_TASK_CONFIGURATION("wa-task-configuration"),
-    WA_TASK_PERMISSIONS("wa-task-permissions");
+    WA_TASK_PERMISSIONS("wa-task-permissions"),
+    WA_TASK_TYPES("wa-task-types");
 
     private final String tableName;
 
