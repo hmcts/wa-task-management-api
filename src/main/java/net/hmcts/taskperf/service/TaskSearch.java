@@ -195,25 +195,19 @@ public class TaskSearch
 		Set<String> permissions = new HashSet<>();
 		if (clientFilter.isAvailableTasksOnly())
 		{
-			// TODO: should be changed to use the claim permission, once available
-			// TODO: currently removes the permission requested when it is not one
-			//       of the 'available' permissions.  Arguably this should return
-			//       tasks where the user has BOTH any of the available task
-			//       permissions AND any of the requested permissions.  But that
-			//       makes the query complex - we should probably not expose
-			//       the ability to request specific permissions through the API,
-			//       but flags/properties for particular types of query, which
-			//       we then interpret to determine what permissions we should
-			//       search for.  (There are other reasons for this, too - we
-			//       don't want to have to index on all the permissions, just
-			//       the ones we need for the search scenarios we have to support.
-			permissions.add("o");
-//			permissions.add("x");
+            //'a' represent own and claim permission in role signature
+			permissions.add("a");
 		}
-		else
+		else if (clientFilter.isAllWork())
 		{
-			permissions.add("r");
+            //'m' represent manage permission in role signature
+			permissions.add("m");
 		}
+        else
+        {
+            //'r' represent read permission in role signature
+            permissions.add("r");
+        }
 		return permissions;
 	}
 
@@ -320,7 +314,9 @@ public class TaskSearch
 				{ "caseid", "case_id" },
 				{ "case_id", "case_id" },
 				{ "casename", "case_name" },
-				{ "case_name", "case_name" }
+				{ "case_name", "case_name" },
+                {"next_hearing_date", "next_hearing_date"},
+                {"nextHearingDate", "next_hearing_date"}
 			}).collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
 	private static final String getSortColumn(SortField sortField)

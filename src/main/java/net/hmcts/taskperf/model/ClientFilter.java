@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import lombok.Value;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
@@ -33,6 +34,7 @@ public class ClientFilter
 	private Set<String> caseIds;
 	private Set<String> assignees;
 	private boolean availableTasksOnly;
+	private boolean allWork;
 
 	public static ClientFilter of(ClientQuery clientQuery)
 	{
@@ -49,24 +51,21 @@ public class ClientFilter
 				getConstraints(searchParameters, SearchParameterKey.LOCATION),
 				getConstraints(searchParameters, SearchParameterKey.CASE_ID),
 				getConstraints(searchParameters, SearchParameterKey.USER),
-				availableTasksOnly(clientQuery));
+				availableTasksOnly(clientQuery),
+        allWork(clientQuery));
 	}
 
 	private static boolean availableTasksOnly(ClientQuery clientQuery)
 	{
-		return
-				clientQuery.getBooleanFilters() != null &&
-				clientQuery.getBooleanFilters().stream()
-				.anyMatch(ClientFilter::isAvailableTasksOnly);
+		return clientQuery.getRequestContext() != null
+            && clientQuery.getRequestContext().isEqual(RequestContext.AVAILABLE_TASK_ONLY);
 	}
 
-	private static boolean isAvailableTasksOnly(SearchParameterBoolean searchParameter)
-	{
-		return
-				searchParameter.getKey().equals(SearchParameterKey.AVAILABLE_TASKS_ONLY) &&
-				searchParameter.getOperator().equals(SearchOperator.BOOLEAN) &&
-				searchParameter.getValues();
-	}
+    private static boolean allWork(ClientQuery clientQuery) {
+        return clientQuery.getRequestContext() != null
+            && clientQuery.getRequestContext().isEqual(RequestContext.ALL_WORK);
+    }
+
 
 	/**
 	 * This is a bit involved.  A list of search parameters could contain multiple values for the

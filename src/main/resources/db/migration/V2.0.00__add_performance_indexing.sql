@@ -47,16 +47,9 @@ union
 select task_id as task_id,
        role_name as role_name,
        unnest(case when cardinality(authorizations) = 0 then array['*'] else authorizations end) as authorization,
-       'o' as permission
+       'a' as permission
 from cft_task_db.task_roles
-where own
-union
-select task_id as task_id,
-       role_name as role_name,
-       unnest(case when cardinality(authorizations) = 0 then array['*'] else authorizations end) as authorization,
-       'x' as permission
-from cft_task_db.task_roles
-where execute
+where own and claim
 union
 select task_id as task_id,
        role_name as role_name,
