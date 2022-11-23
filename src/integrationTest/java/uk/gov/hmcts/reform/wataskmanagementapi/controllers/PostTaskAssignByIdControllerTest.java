@@ -213,6 +213,102 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             ));
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {
+        "IA, Asylum",
+        "WA, WaCaseType"
+    })
+    void should_return_500_with_application_problem_response_when_assign_call_fails_due_to_missing_assignee_id(
+        String jurisdiction, String caseType) throws Exception {
+
+        //assigner permission : manage
+        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
+            false, false, false, true, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, assignerTaskRoleResource);
+
+        List<RoleAssignment> assignerRoles = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId("caseId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
+
+        //assignee permissions : own, execute
+        //standard role
+        TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
+
+        List<RoleAssignment> assigneeRoles = new ArrayList<>();
+
+        roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId("caseId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+
+        assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+
+        //Assigner
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(assignerRoleAssignmentResource);
+
+        //Assignee
+        lenient().when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(assigneeRoleAssignmentResource);
+
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+        )).thenReturn(false);
+
+        doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).assignTask(any(), any(), any());
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(asJsonString(new AssignTaskRequest(null)))
+        ).andExpectAll(
+            status().is5xxServerError(),
+            content().contentType(APPLICATION_JSON_VALUE),
+            jsonPath("$.message").value("IdamUserId cannot be null"),
+            jsonPath("$.status").value(500)
+        );
+    }
+
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() throws Exception {
         List<RoleAssignment> roles = new ArrayList<>();
@@ -318,7 +414,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
                 .content(asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
