@@ -195,14 +195,17 @@ public class TaskSearch
 		Set<String> permissions = new HashSet<>();
 		if (clientFilter.isAvailableTasksOnly())
 		{
+            //'a' represent own and claim permission in role signature
 			permissions.add("a");
 		}
 		else if (clientFilter.isAllWork())
 		{
+            //'m' represent manage permission in role signature
 			permissions.add("m");
 		}
         else
         {
+            //'r' represent read permission in role signature
             permissions.add("r");
         }
 		return permissions;
