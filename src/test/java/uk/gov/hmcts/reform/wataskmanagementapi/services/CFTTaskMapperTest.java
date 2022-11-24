@@ -432,7 +432,7 @@ class CFTTaskMapperTest {
         assertEquals(5000, taskResource.getMajorPriority());
         assertEquals(500, taskResource.getMinorPriority());
         assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), taskResource.getPriorityDate());
-        assertEquals(OffsetDateTime.parse("2021-05-09T20:15Z"), taskResource.getDueDateTime());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15+01:00"), taskResource.getDueDateTime());
     }
 
     @Test
