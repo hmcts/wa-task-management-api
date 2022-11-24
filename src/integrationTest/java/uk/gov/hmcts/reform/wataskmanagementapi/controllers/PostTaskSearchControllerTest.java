@@ -244,7 +244,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_a_200_with_search_results_and_warnings() throws Exception {
         String caseId = "searchCriteriaCaseId3";
-        String taskId = UUID.randomUUID().toString();
 
         mockServices.mockUserInfo();
 
@@ -279,6 +278,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         String roleAssignmentId = UUID.randomUUID().toString();
 
+        String taskId = UUID.randomUUID().toString();
         insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(caseId,
                                                                taskId,
                                                                "IA",
