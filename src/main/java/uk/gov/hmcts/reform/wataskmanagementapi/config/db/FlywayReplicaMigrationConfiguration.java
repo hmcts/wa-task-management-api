@@ -36,8 +36,8 @@ public class FlywayReplicaMigrationConfiguration {
 
                 Flyway flywayReplica = Flyway.configure()
                     .dataSource(replicaDataSource)
-                    .schemas("cft_task_db_replica")
-                    .defaultSchema("cft_task_db_replica")
+                    .schemas("cft_task_db")
+                    .defaultSchema("cft_task_db")
                     .locations("dbreplica/migration")
                     .baselineOnMigrate(true)
                     .target(MigrationVersion.LATEST).load();
