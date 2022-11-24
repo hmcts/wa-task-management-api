@@ -247,50 +247,74 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "true,true,6,8",
-        "true,true,8,12",
-        "true,false,6,8",
-        "false,true,6,6",
-        "false,true,2,4",
-        "false,false,6,6"
+        "false,false,true,true,6,8,T18:00",
+        "false,false,true,true,8,12,T18:00",
+        "false,false,true,false,6,8,T18:00",
+        "false,false,false,true,6,6,T18:00",
+        "false,false,false,true,2,4,T18:00",
+        "false,false,false,false,6,6,T18:00",
+        "true,true,true,true,6,8,T18:00",
+        "true,true,true,true,8,12,T18:00",
+        "true,true,true,false,6,8,T18:00",
+        "true,true,false,true,6,6,T18:00",
+        "true,true,false,true,2,4,T18:00",
+        "true,true,false,false,6,6,T18:00",
+        "true,false,true,true,6,0,T16:00",
+        "true,false,true,true,8,0,T16:00",
+        "true,false,true,false,6,0,T16:00",
+        "true,false,false,true,6,0,T16:00",
+        "true,false,false,true,2,0,T16:00",
+        "true,false,false,false,6,0,T16:00"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvided(
+        String isReConfigurationRequest,
+        String canConfigure,
         String dueDateSkipNonWorkingDaysFlag,
         String dueDateMustBeWorkingDayFlag,
         String intervalDays,
-        String expectedDays) {
+        String expectedDays,
+        String expectedTime) {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        boolean canConfigurable = Boolean.parseBoolean(canConfigure);
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOrigin"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateIntervalDays"))
             .value(CamundaValue.stringValue(intervalDays))
+            .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
         ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
         ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue(dueDateSkipNonWorkingDaysFlag))
+            .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(dueDateMustBeWorkingDayFlag))
+            .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateTime"))
             .value(CamundaValue.stringValue("18:00"))
+            .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
@@ -299,7 +323,7 @@ public class DueDateConfiguratorTest {
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
                 "WA",
-                false
+                Boolean.parseBoolean(isReConfigurationRequest)
             );
 
         String expectedDueDate = GIVEN_DATE.plusDays(Integer.parseInt(expectedDays))
@@ -308,7 +332,7 @@ public class DueDateConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T18:00"))
+                                   .value(CamundaValue.stringValue(expectedDueDate + expectedTime))
                                    .build()));
     }
 
