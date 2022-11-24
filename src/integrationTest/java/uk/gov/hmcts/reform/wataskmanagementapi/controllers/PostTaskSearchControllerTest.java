@@ -53,10 +53,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -1681,6 +1683,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
         cftTaskDatabaseService.saveTask(taskResource);
+
+        await().atLeast(5, TimeUnit.SECONDS);
     }
 
     private void insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(String caseId, String taskId,
@@ -1719,6 +1723,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         taskResource.setTaskRoleResources(taskRoleResourceSet);
         cftTaskDatabaseService.saveTask(taskResource);
 
+        await().atLeast(5, TimeUnit.SECONDS);
     }
 }
 
