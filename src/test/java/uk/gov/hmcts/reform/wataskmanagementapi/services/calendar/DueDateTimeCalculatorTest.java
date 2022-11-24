@@ -44,7 +44,7 @@ class DueDateTimeCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses)).isFalse();
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, false)).isFalse();
     }
 
     @Test
@@ -64,7 +64,7 @@ class DueDateTimeCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateOrigin);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses)).isFalse();
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, false)).isFalse();
     }
 
     @Test
@@ -76,7 +76,7 @@ class DueDateTimeCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses)).isTrue();
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, false)).isTrue();
     }
 
     @Test
@@ -90,7 +90,7 @@ class DueDateTimeCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Assertions.assertThat(dueDateTimeCalculator.calculateDueDate(evaluationResponses, false))
+        Assertions.assertThat(dueDateTimeCalculator.calculateDueDate(evaluationResponses))
             .isEqualTo(expectedDueDate + "T16:00");
     }
 
@@ -111,7 +111,7 @@ class DueDateTimeCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateTime2);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Assertions.assertThat(dueDateTimeCalculator.calculateDueDate(evaluationResponses, false))
+        Assertions.assertThat(dueDateTimeCalculator.calculateDueDate(evaluationResponses))
             .isEqualTo(expectedDueDate + "T20:00");
     }
 }

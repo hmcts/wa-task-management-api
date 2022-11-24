@@ -75,7 +75,9 @@ public class CaseConfigurationProviderService {
             );
 
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
-            = updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults, jurisdiction, isReconfigureRequest);
+            = updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults,
+                                                                       jurisdiction, isReconfigureRequest
+        );
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(
@@ -149,7 +151,7 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return dueDateConfigurator.configureDueDate(configResponses, jurisdiction, false);
+        return dueDateConfigurator.configureDueDate(configResponses, jurisdiction, isReconfigureRequest);
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(

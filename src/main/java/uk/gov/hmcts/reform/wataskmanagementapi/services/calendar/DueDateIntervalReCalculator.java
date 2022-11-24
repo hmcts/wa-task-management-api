@@ -15,18 +15,20 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-public class DueDateIntervalCalculator implements DateCalculator {
+public class DueDateIntervalReCalculator implements DateCalculator {
     private final WorkingDayIndicator workingDayIndicator;
 
-    public DueDateIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
+    public DueDateIntervalReCalculator(WorkingDayIndicator workingDayIndicator) {
         this.workingDayIndicator = workingDayIndicator;
     }
 
     @Override
     public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest) {
-        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isPresent()
+        ConfigurationDmnEvaluationResponse dueDateOrigin = getProperty(dueDateProperties, DUE_DATE_ORIGIN);
+        return Optional.ofNullable(dueDateOrigin).isPresent()
+            && dueDateOrigin.getCanReconfigure().getValue().booleanValue() == Boolean.TRUE
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE)).isEmpty()
-            && !isReconfigureRequest;
+            && isReconfigureRequest;
     }
 
     @Override

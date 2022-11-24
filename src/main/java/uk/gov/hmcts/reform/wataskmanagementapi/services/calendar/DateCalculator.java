@@ -28,9 +28,9 @@ public interface DateCalculator {
         .withHour(16).withMinute(0).withSecond(0);
     LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
 
-    boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
+    boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest);
 
-    LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest);
+    LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
 
     default ConfigurationDmnEvaluationResponse getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {

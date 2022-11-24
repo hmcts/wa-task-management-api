@@ -25,6 +25,7 @@ import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
@@ -60,11 +61,12 @@ class ReconfigureTaskServiceTest {
 
         TaskResource taskResource = createTaskResourceWithRoleResource();
 
-        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-                                                                        configurationDmnResponse(true),
-                                                                        permissionsResponse()
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(true),
+            permissionsResponse()
         );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), true))
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), eq(true)))
             .thenReturn(results);
 
         TaskResource reconfiguredTaskResource = configureTaskService.reconfigureCFTTask(taskResource);
@@ -92,11 +94,12 @@ class ReconfigureTaskServiceTest {
 
         TaskResource taskResource = createTaskResourceWithRoleResource();
 
-        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-                                                                        configurationDmnResponse(false),
-                                                                        permissionsResponse()
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(false),
+            permissionsResponse()
         );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), true))
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), eq(true)))
             .thenReturn(results);
 
         TaskResource reconfiguredTaskResource = configureTaskService.reconfigureCFTTask(taskResource);

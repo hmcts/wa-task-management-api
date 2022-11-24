@@ -42,7 +42,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses)).isFalse();
+        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses, false)).isFalse();
     }
 
     @Test
@@ -55,7 +55,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses)).isFalse();
+        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses, false)).isFalse();
     }
 
     @Test
@@ -75,7 +75,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses)).isTrue();
+        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses, false)).isTrue();
     }
 
     @Test
@@ -90,7 +90,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate);
 
-        Assertions.assertThat(dueDateCalculator.calculateDueDate(evaluationResponses, false))
+        Assertions.assertThat(dueDateCalculator.calculateDueDate(evaluationResponses))
             .isEqualTo(expectedDueDate + "T16:00");
     }
 
@@ -111,7 +111,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        Assertions.assertThat(dueDateCalculator.calculateDueDate(evaluationResponses, false))
+        Assertions.assertThat(dueDateCalculator.calculateDueDate(evaluationResponses))
             .isEqualTo(expectedDueDate + "T20:00");
     }
 
@@ -133,7 +133,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDate2);
 
-        Assertions.assertThat(dueDateCalculator.calculateDueDate(evaluationResponses, false))
+        Assertions.assertThat(dueDateCalculator.calculateDueDate(evaluationResponses))
             .isEqualTo(expectedDueDate2 + "T19:00");
     }
 }

@@ -10,12 +10,14 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-public class DueDateCalculator implements DateCalculator {
+public class DueDateReCalculator implements DateCalculator {
 
     @Override
     public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest) {
-        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE)).isPresent()
-            && !isReconfigureRequest;
+        ConfigurationDmnEvaluationResponse property = getProperty(dueDateProperties, DUE_DATE);
+        return Optional.ofNullable(property).isPresent()
+            && property.getCanReconfigure().getValue().booleanValue() == Boolean.TRUE
+            && isReconfigureRequest;
     }
 
     @Override
