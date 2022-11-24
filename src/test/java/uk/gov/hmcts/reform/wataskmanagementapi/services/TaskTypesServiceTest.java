@@ -47,17 +47,6 @@ class TaskTypesServiceTest {
     }
 
     @Test
-    void should_return_empty_list_if_role_assignments_is_empty() {
-
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null, emptyList());
-        GetTaskTypesResponse response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
-
-        assertNotNull(response);
-        assertNull(response.getTaskTypeResponses());
-    }
-
-
-    @Test
     void should_return_task_types() {
         //given
         TaskTypesDmnResponse taskTypesDmnResponse = new TaskTypesDmnResponse(
