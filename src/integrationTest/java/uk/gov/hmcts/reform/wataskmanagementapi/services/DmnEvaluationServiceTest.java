@@ -142,7 +142,6 @@ public class DmnEvaluationServiceTest {
                 new DmnRequest<>()
             );
 
-
         // when 61 mins later cache expired should call the service 1 more
         TestConfiguration.fakeTicker.advance(61, TimeUnit.MINUTES);
         dmnEvaluationService.evaluateTaskTypesDmn("sscs", dmnKey);
