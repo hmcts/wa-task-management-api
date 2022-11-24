@@ -108,14 +108,11 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     private UserInfo mockedUserInfo;
     @MockBean
     private ClientAccessControlService clientAccessControlService;
-    private String taskId;
     private ServiceMocks mockServices;
 
 
     @BeforeEach
     void setUp() {
-        taskId = UUID.randomUUID().toString();
-
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         when(mockedUserInfo.getUid())
@@ -138,6 +135,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         "/task", "/task?first_result=0", "/task?max_results=1", "/task?first_result=0&max_results=1"
     })
     void should_return_a_200_when_restricted_role_is_given(String uri) throws Exception {
+        String taskId = UUID.randomUUID().toString();
 
         String caseId = "searchCriteriaCaseId1";
         mockServices.mockUserInfo();
@@ -201,6 +199,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_single_task_when_two_role_assignments_with_one_restricted_is_given() throws Exception {
         String caseId = "searchCriteriaCaseId2";
+        String taskId = UUID.randomUUID().toString();
+
         mockServices.mockUserInfo();
         // create role assignments with IA, Organisation and SCSS , Case
         List<RoleAssignment> roleAssignments = mockServices.createRoleAssignmentsWithSCSSandIA(caseId);
@@ -243,7 +243,9 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_a_200_with_search_results_and_warnings() throws Exception {
-        String caseId = "searchCriteriaCaseId13";
+        String caseId = "searchCriteriaCaseId3";
+        String taskId = UUID.randomUUID().toString();
+
         mockServices.mockUserInfo();
 
         // Role attribute is IA
@@ -372,7 +374,9 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_task_with_old_permissions_when_granular_permission_flag_off() throws Exception {
-        String caseId = "searchCriteriaCaseId23";
+        String caseId = "searchCriteriaCaseId5";
+        String taskId = UUID.randomUUID().toString();
+
         mockServices.mockUserInfo();
         // create role assignments with IA, Organisation and SCSS , Case
         List<RoleAssignment> roleAssignments = mockServices.createRoleAssignmentsWithSCSSandIA(caseId);
@@ -423,7 +427,9 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_task_with_granular_permissions_when_permission_flag_on() throws Exception {
-        String caseId = "searchCriteriaCaseId4";
+        String caseId = "searchCriteriaCaseId6";
+        String taskId = UUID.randomUUID().toString();
+
         mockServices.mockUserInfo();
         // create role assignments with IA, Organisation and SCSS , Case
         List<RoleAssignment> roleAssignments = mockServices.createRoleAssignmentsWithSCSSandIA(caseId);
