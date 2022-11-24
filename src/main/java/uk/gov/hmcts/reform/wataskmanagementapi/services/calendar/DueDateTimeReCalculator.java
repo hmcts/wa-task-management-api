@@ -15,11 +15,15 @@ public class DueDateTimeReCalculator implements DateCalculator {
     @Override
     public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest) {
         ConfigurationDmnEvaluationResponse dueDateTime = getProperty(dueDateProperties, DUE_DATE_TIME);
-        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
+        ConfigurationDmnEvaluationResponse dueDate = getProperty(dueDateProperties, DUE_DATE);
+        ConfigurationDmnEvaluationResponse dueDateOrigin = getProperty(dueDateProperties, DUE_DATE_ORIGIN);
+        return isReconfigureRequest
+            && (Optional.ofNullable(dueDate).isEmpty()
+            || dueDate.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE)
+            && (Optional.ofNullable(dueDateOrigin).isEmpty()
+            || dueDateOrigin.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE)
             && Optional.ofNullable(dueDateTime).isPresent()
-            && dueDateTime.getCanReconfigure().getValue().booleanValue() == Boolean.TRUE
-            && isReconfigureRequest;
+            && dueDateTime.getCanReconfigure().getValue().booleanValue() == Boolean.TRUE;
     }
 
     @Override

@@ -14,9 +14,9 @@ public class DueDateReCalculator implements DateCalculator {
 
     @Override
     public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest) {
-        ConfigurationDmnEvaluationResponse property = getProperty(dueDateProperties, DUE_DATE);
-        return Optional.ofNullable(property).isPresent()
-            && property.getCanReconfigure().getValue().booleanValue() == Boolean.TRUE
+        ConfigurationDmnEvaluationResponse dueDate = getProperty(dueDateProperties, DUE_DATE);
+        return Optional.ofNullable(dueDate).isPresent()
+            && dueDate.getCanReconfigure().getValue().booleanValue() == Boolean.TRUE
             && isReconfigureRequest;
     }
 
@@ -25,10 +25,11 @@ public class DueDateReCalculator implements DateCalculator {
         var dueDateResponse = getProperty(dueDateProperties, DUE_DATE);
         var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME);
 
-        if (Optional.ofNullable(dueDateTimeResponse).isPresent()) {
-            return calculateDueDateFrom(dueDateResponse, dueDateTimeResponse);
-        } else {
+        if (Optional.ofNullable(dueDateTimeResponse).isEmpty()
+            || dueDateTimeResponse.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE) {
             return calculateDueDateFrom(dueDateResponse);
+        } else {
+            return calculateDueDateFrom(dueDateResponse, dueDateTimeResponse);
         }
     }
 
