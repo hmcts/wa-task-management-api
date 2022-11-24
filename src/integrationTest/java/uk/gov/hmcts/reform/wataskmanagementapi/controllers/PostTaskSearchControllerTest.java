@@ -127,6 +127,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+
+        cftTaskDatabaseService.cleanTasks();
     }
 
     @ParameterizedTest
@@ -239,7 +241,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_a_200_with_search_results_and_warnings() throws Exception {
-        String caseId = "searchCriteriaCaseId3";
+        String caseId = "searchCriteriaCaseId13";
         mockServices.mockUserInfo();
 
         // Role attribute is IA
@@ -368,7 +370,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_task_with_old_permissions_when_granular_permission_flag_off() throws Exception {
-        String caseId = "searchCriteriaCaseId3";
+        String caseId = "searchCriteriaCaseId23";
         mockServices.mockUserInfo();
         // create role assignments with IA, Organisation and SCSS , Case
         List<RoleAssignment> roleAssignments = mockServices.createRoleAssignmentsWithSCSSandIA(caseId);
