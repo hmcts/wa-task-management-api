@@ -142,7 +142,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             configurationDmnResponse(false),
             permissionsResponse()
         );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), true))
+            .thenReturn(results);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -220,7 +221,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             configurationDmnResponse(true),
             permissionsResponse()
         );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), true))
+            .thenReturn(results);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)

@@ -64,7 +64,8 @@ class ReconfigureTaskServiceTest {
                                                                         configurationDmnResponse(true),
                                                                         permissionsResponse()
         );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), true))
+            .thenReturn(results);
 
         TaskResource reconfiguredTaskResource = configureTaskService.reconfigureCFTTask(taskResource);
         assertEquals(taskResource.getTitle(), reconfiguredTaskResource.getTitle());
@@ -95,7 +96,8 @@ class ReconfigureTaskServiceTest {
                                                                         configurationDmnResponse(false),
                                                                         permissionsResponse()
         );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), true))
+            .thenReturn(results);
 
         TaskResource reconfiguredTaskResource = configureTaskService.reconfigureCFTTask(taskResource);
         assertEquals(taskResource.getTitle(), reconfiguredTaskResource.getTitle());

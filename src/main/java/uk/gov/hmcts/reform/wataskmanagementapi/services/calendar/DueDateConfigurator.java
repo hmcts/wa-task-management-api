@@ -28,7 +28,7 @@ public class DueDateConfigurator {
     }
 
     public List<ConfigurationDmnEvaluationResponse> configureDueDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, String jurisdiction) {
+        List<ConfigurationDmnEvaluationResponse> configResponses, String jurisdiction, boolean isReconfigureRequest) {
         List<ConfigurationDmnEvaluationResponse> dueDateProperties = configResponses.stream()
             .filter(r -> r.getName().getValue().contains(DUE_DATE))
             .collect(Collectors.toList());
@@ -42,7 +42,7 @@ public class DueDateConfigurator {
 
         Optional<DateCalculator> dueDateCalculator = getDueDateCalculator(dueDateProperties);
         dueDateCalculator
-            .ifPresent(dateCalculator -> dueDate.getAndSet(dateCalculator.calculateDueDate(dueDateProperties)));
+            .ifPresent(dateCalculator -> dueDate.getAndSet(dateCalculator.calculateDueDate(dueDateProperties, false)));
 
         ConfigurationDmnEvaluationResponse dueDateResponse = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue(DUE_DATE))

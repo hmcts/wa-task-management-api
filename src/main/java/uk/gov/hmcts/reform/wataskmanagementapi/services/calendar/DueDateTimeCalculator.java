@@ -20,7 +20,7 @@ public class DueDateTimeCalculator implements DateCalculator {
     }
 
     @Override
-    public LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
+    public LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest) {
         var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME);
         return addTimeToDate(dueDateTimeResponse, DEFAULT_DATE);
     }

@@ -118,7 +118,7 @@ class CaseConfigurationProviderServiceTest {
 
         when(ccdDataService.getCaseData("some case id")).thenReturn(caseDetails);
 
-        caseConfigurationProviderService.getCaseRelatedConfiguration("some case id", inputTaskAttributes);
+        caseConfigurationProviderService.getCaseRelatedConfiguration("some case id", inputTaskAttributes, false);
 
         verify(dmnEvaluationService).evaluateTaskConfigurationDmn(
             "IA",
@@ -171,7 +171,7 @@ class CaseConfigurationProviderServiceTest {
 
         Map<String, Object> taskAttributes = Map.of();
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, taskAttributes);
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false);
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
     }
@@ -198,7 +198,7 @@ class CaseConfigurationProviderServiceTest {
         );
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, taskAttributes);
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false);
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
 
@@ -237,7 +237,7 @@ class CaseConfigurationProviderServiceTest {
 
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, Map.of());
+            .getCaseRelatedConfiguration(someCaseId, Map.of(), false);
 
         assertThat(mappedData.getPermissionsDmnResponse(), is(permissions));
     }
@@ -275,7 +275,7 @@ class CaseConfigurationProviderServiceTest {
 
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, Map.of());
+            .getCaseRelatedConfiguration(someCaseId, Map.of(), false);
 
         assertThat(mappedData.getPermissionsDmnResponse(), is(permissions));
     }
@@ -313,7 +313,7 @@ class CaseConfigurationProviderServiceTest {
 
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, Map.of());
+            .getCaseRelatedConfiguration(someCaseId, Map.of(), false);
 
         assertThat(mappedData.getPermissionsDmnResponse(), is(permissions));
     }
@@ -351,7 +351,7 @@ class CaseConfigurationProviderServiceTest {
 
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, Map.of());
+            .getCaseRelatedConfiguration(someCaseId, Map.of(), false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
     }
@@ -387,7 +387,7 @@ class CaseConfigurationProviderServiceTest {
 
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, Map.of());
+            .getCaseRelatedConfiguration(someCaseId, Map.of(), false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
     }
@@ -426,7 +426,7 @@ class CaseConfigurationProviderServiceTest {
             .thenReturn(permissions);
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, Map.of());
+            .getCaseRelatedConfiguration(someCaseId, Map.of(), false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
     }
@@ -486,7 +486,7 @@ class CaseConfigurationProviderServiceTest {
             ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, taskAttributes);
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Map<String, String> additionalProperties = ImmutableMap.of(
@@ -541,7 +541,7 @@ class CaseConfigurationProviderServiceTest {
             ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, taskAttributes);
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Map<String, String> additionalProperties = ImmutableMap.of(
@@ -594,7 +594,7 @@ class CaseConfigurationProviderServiceTest {
             ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, taskAttributes);
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Map<String, String> additionalProperties = ImmutableMap.of(
@@ -640,7 +640,7 @@ class CaseConfigurationProviderServiceTest {
             ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, taskAttributes);
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Map<String, String> additionalProperties = ImmutableMap.of(
@@ -729,7 +729,7 @@ class CaseConfigurationProviderServiceTest {
             ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, Map.of());
+            .getCaseRelatedConfiguration(someCaseId, Map.of(), false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
@@ -773,7 +773,7 @@ class CaseConfigurationProviderServiceTest {
             ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, Map.of());
+            .getCaseRelatedConfiguration(someCaseId, Map.of(), false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         String expectedDate = GIVEN_DATE.plusDays(8).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
