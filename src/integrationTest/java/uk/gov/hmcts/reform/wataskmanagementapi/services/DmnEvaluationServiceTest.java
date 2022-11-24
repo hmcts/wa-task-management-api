@@ -111,49 +111,48 @@ public class DmnEvaluationServiceTest {
     void should_use_cache_until_expires_then_call_service() {
 
         // given
-        TestConfiguration.fakeTicker.advance(1, TimeUnit.DAYS);
         String dmnKey = "wa-task-types-wa-wacasetype";
 
         when(serviceAuthTokenGenerator.generate())
             .thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         // when first attempt, call the service
-        dmnEvaluationService.evaluateTaskTypesDmn("wa", dmnKey);
+        dmnEvaluationService.evaluateTaskTypesDmn("sscs", dmnKey);
 
         // then
         verify(camundaServiceApi, times(1))
             .evaluateTaskTypesDmnTable(
                 SERVICE_AUTHORIZATION_TOKEN,
                 dmnKey,
-                "wa",
+                "sscs",
                 new DmnRequest<>()
             );
 
 
         // when 10 mins later use cache response
         TestConfiguration.fakeTicker.advance(10, TimeUnit.MINUTES);
-        dmnEvaluationService.evaluateTaskTypesDmn("wa", dmnKey);
+        dmnEvaluationService.evaluateTaskTypesDmn("sscs", dmnKey);
 
         // then
         verify(camundaServiceApi, times(1))
             .evaluateTaskTypesDmnTable(
                 SERVICE_AUTHORIZATION_TOKEN,
                 dmnKey,
-                "wa",
+                "sscs",
                 new DmnRequest<>()
             );
 
 
         // when 61 mins later cache expired should call the service 1 more
         TestConfiguration.fakeTicker.advance(61, TimeUnit.MINUTES);
-        dmnEvaluationService.evaluateTaskTypesDmn("wa", dmnKey);
+        dmnEvaluationService.evaluateTaskTypesDmn("sscs", dmnKey);
 
         // then
         verify(camundaServiceApi, times(2))
             .evaluateTaskTypesDmnTable(
                 SERVICE_AUTHORIZATION_TOKEN,
                 dmnKey,
-                "wa",
+                "sscs",
                 new DmnRequest<>()
             );
     }
