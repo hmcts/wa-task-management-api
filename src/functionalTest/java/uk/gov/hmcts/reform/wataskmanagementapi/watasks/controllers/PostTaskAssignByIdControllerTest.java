@@ -185,6 +185,9 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         common.setupCaseManagerForSpecificAccess(granularPermissionCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         common.setupCaseManagerForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
+
+        initiateTask(taskVariables);
+
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
