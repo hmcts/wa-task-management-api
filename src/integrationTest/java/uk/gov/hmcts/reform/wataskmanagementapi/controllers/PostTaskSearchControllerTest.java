@@ -17,6 +17,7 @@ import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -72,6 +73,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_CLASS;
+import static org.springframework.test.annotation.DirtiesContext.HierarchyMode.EXHAUSTIVE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -96,6 +99,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @SuppressWarnings("checkstyle:LineLength")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @ContextConfiguration(initializers = {PostTaskSearchControllerTest.Initializer.class})
+@DirtiesContext(classMode = BEFORE_CLASS, hierarchyMode = EXHAUSTIVE)
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @MockBean
