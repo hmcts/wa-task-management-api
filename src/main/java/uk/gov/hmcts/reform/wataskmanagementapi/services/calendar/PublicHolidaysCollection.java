@@ -39,7 +39,11 @@ public class PublicHolidaysCollection {
             for (String uri : uris) {
                 BankHolidays publicHolidays = getPublicHolidays(uri);
                 for (BankHolidays.EventDate eventDate : publicHolidays.getEvents()) {
-                    if (!eventDate.isWorkingDay()) {
+                    if (eventDate.isWorkingDay()) {
+                        if (allPublicHolidays.getEvents().contains(eventDate)) {
+                            allPublicHolidays.getEvents().remove(eventDate);
+                        }
+                    } else {
                         allPublicHolidays.getEvents().add(eventDate);
                     }
                 }
