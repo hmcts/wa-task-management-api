@@ -11,26 +11,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractProviderBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskTypesController;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskTypeResponse;
+
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@Provider("wa_task_management_api_complete_task_by_id")
-public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProviderBaseTest {
-
-    @State({"complete a task using taskId"})
-    public void completeTaskById() {
-        setInitMockWithoutPrivilegedAccess();
-    }
-
-    @State({"complete a task using taskId and assign and complete completion options"})
-    public void completeTaskByIdWithCompletionOptions() {
-        setInitMockWithPrivilegedAccess();
-    }
+@Provider("wa_task_management_api_get_task_types_by_jurisdiction")
+public class TaskTypeProviderTest extends SpringBootContractProviderBaseTest {
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
@@ -43,37 +36,37 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskActionsController(
-            taskManagementService,
+        testTarget.setControllers(new TaskTypesController(
             accessControlService,
-            systemDateProvider,
-            clientAccessControlService,
-            launchDarklyFeatureFlagProvider
+            taskTypesService
         ));
+
         if (context != null) {
             context.setTarget(testTarget);
         }
 
-        testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
-
+        testTarget.setMessageConverters(
+            (
+                new MappingJackson2HttpMessageConverter(objectMapper)
+            )
+        );
     }
 
-    private void setInitMockWithoutPrivilegedAccess() {
-        doNothing().when(taskManagementService).completeTask(any(), any());
+    @State({"retrieve all task types by jurisdiction"})
+    public void taskTypesByJurisdiction() {
+
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(false);
+        when(taskTypesService.getTaskTypes(any(), anyString()))
+            .thenReturn(createTaskTypeResponse());
     }
 
-    private void setInitMockWithPrivilegedAccess() {
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(any(), any(), any());
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(true);
+    private List<TaskTypeResponse> createTaskTypeResponse() {
+        TaskType taskType = new TaskType("someTaskTypeId", "Some task type name");
 
+        TaskTypeResponse taskTypeResponse = new TaskTypeResponse(taskType);
 
+        return List.of(taskTypeResponse);
     }
+
 }
