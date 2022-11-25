@@ -38,7 +38,9 @@ public class DueDateConfigurator {
         }
 
         AtomicReference<LocalDateTime> dueDate = new AtomicReference<>();
-        dueDate.set(DEFAULT_ZONED_DATE_TIME);
+        if (!isReconfigureRequest) {
+            dueDate.set(DEFAULT_ZONED_DATE_TIME);
+        }
 
         Optional<DateCalculator> dueDateCalculator = getDueDateCalculator(dueDateProperties, isReconfigureRequest);
         dueDateCalculator
