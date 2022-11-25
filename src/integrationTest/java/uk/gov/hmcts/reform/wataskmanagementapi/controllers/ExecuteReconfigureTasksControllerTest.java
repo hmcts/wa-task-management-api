@@ -49,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -142,7 +143,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             configurationDmnResponse(false),
             permissionsResponse()
         );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), true))
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), eq(true)))
             .thenReturn(results);
 
         mockMvc.perform(
@@ -221,7 +222,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             configurationDmnResponse(true),
             permissionsResponse()
         );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), true))
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), eq(true)))
             .thenReturn(results);
 
         mockMvc.perform(
@@ -238,7 +239,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
-        taskResourcesAfter.forEach(task -> {
+        taskResourcesAfter
+            .forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
                 assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
@@ -323,7 +325,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
     private List<TaskFilter<?>> executeTaskFilters(OffsetDateTime reconfigureRequestTime) {
         TaskFilter<?> filter = new ExecuteReconfigureTaskFilter("reconfigure_request_time",
-            reconfigureRequestTime, TaskFilterOperator.AFTER
+                                                                reconfigureRequestTime, TaskFilterOperator.AFTER
         );
         return List.of(filter);
     }
@@ -375,7 +377,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         String jurisdiction = "IA";
         String caseType = "Asylum";
         insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, dueDateTime,
-                            assignerTaskRoleResource);
+                            assignerTaskRoleResource
+        );
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
@@ -419,31 +422,31 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     private List<ConfigurationDmnEvaluationResponse> configurationDmnResponse(boolean canReconfigure) {
         return asList(
             new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
-                booleanValue(false)
+                                                   booleanValue(false)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("priorityDate"),
@@ -451,13 +454,13 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("nextHearingDate"),
