@@ -58,7 +58,7 @@ public class PublicHolidaysCollection {
     }
 
     @Cacheable(value = "public_holidays_uri_cache", key = "#uri", sync = true)
-    protected BankHolidays getPublicHolidays(String uri) {
+    public BankHolidays getPublicHolidays(String uri) {
         BankHolidaysApi bankHolidaysApi = bankHolidaysApi(uri);
         return bankHolidaysApi.retrieveAll();
     }
