@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskTypesService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
 import java.util.Map;
@@ -55,6 +56,9 @@ public class SpringBootContractProviderBaseTest {
 
     @Mock
     protected WorkTypesService workTypesService;
+
+    @Mock
+    protected TaskTypesService taskTypesService;
 
     @Autowired
     protected MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
