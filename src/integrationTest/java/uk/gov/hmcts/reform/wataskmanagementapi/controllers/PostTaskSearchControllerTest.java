@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
@@ -96,6 +97,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @SuppressWarnings("checkstyle:LineLength")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @DirtiesContext(classMode = BEFORE_CLASS, hierarchyMode = EXHAUSTIVE)
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
@@ -122,7 +124,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     private ServiceMocks mockServices;
 
     @Container
-    private PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:11.4")
+    private static final PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:11.4")
         .withDatabaseName("cft_task_db")
         .withUsername("sa")
         .withPassword("password");
