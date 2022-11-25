@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,6 +18,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TransactionHelper;
 import java.util.Map;
 
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS;
+import static org.springframework.test.annotation.DirtiesContext.HierarchyMode.EXHAUSTIVE;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
@@ -27,6 +30,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
     "CCD_URL=http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 })
 @TestInstance(PER_CLASS)
+@DirtiesContext(classMode = AFTER_CLASS, hierarchyMode = EXHAUSTIVE)
 public abstract class SpringBootIntegrationBaseTest extends RoleAssignmentHelper {
     protected static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
         "name1",
