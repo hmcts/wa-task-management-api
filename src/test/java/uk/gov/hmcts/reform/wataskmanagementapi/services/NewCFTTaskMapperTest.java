@@ -1983,7 +1983,7 @@ class NewCFTTaskMapperTest {
             true,
             false,
             false,
-            true,
+            false,
             new String[]{},
             0,
             true
@@ -2020,7 +2020,6 @@ class NewCFTTaskMapperTest {
         assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     @Test
@@ -2032,7 +2031,7 @@ class NewCFTTaskMapperTest {
             true,
             false,
             false,
-            true,
+            false,
             new String[]{},
             0,
             true
@@ -2069,7 +2068,6 @@ class NewCFTTaskMapperTest {
         assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
     private TaskResource createTaskResource() {

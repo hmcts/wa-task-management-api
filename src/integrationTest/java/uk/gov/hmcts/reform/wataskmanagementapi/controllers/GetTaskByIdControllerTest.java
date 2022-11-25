@@ -134,7 +134,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     public void should_return_a_200_when_get_by_standard_tribunal_case_worker() throws Exception {
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            true, true, false, true, true,
+            true, true, false, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -178,7 +178,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     public void should_return_a_200_when_get_by_standard_judge() throws Exception {
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_JUDGE_PUBLIC.getRoleName(),
-            true, true, false, true, true,
+            true, true, false, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_JUDGE_PUBLIC.getRoleCategory().name()
         );
@@ -222,7 +222,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     public void should_return_a_200_when_get_by_challenge_access_admin() throws Exception {
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN.getRoleName(),
-            true, true, false, true, true,
+            true, true, false, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN.getRoleCategory().name()
         );
@@ -455,7 +455,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     public void should_return_a_403_when_the_user_region_did_not_match() throws Exception {
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            true, true, false, true, true,
+            true, true, false, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -627,14 +627,14 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            true, false, true, false, true,
+            true, false, true, false, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
 
         TaskRoleResource taskRoleResourceCase = new TaskRoleResource(
             TestRolesWithGrantType.SPECIFIC_CASE_MANAGER.getRoleName(),
-            true, true, true, false, true,
+            true, true, true, false, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.SPECIFIC_CASE_MANAGER.getRoleCategory().name()
         );
@@ -643,7 +643,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
         String taskId2 = UUID.randomUUID().toString();
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            true, false, true, false, true,
+            true, false, true, false, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -780,7 +780,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
         //assigner permission : manage, own, cancel
         TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
-            false, true, true, true, true,
+            false, true, true, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
         );
