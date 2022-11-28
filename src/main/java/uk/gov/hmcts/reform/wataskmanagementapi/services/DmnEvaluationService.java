@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
@@ -61,15 +62,24 @@ public class DmnEvaluationService {
         );
     }
 
+    @Cacheable(key = "#jurisdiction", value = "task_types_dmn", sync = true)
     public Set<TaskTypesDmnResponse> getTaskTypesDmn(String jurisdiction, String dmnNameField) {
-        return performGetTaskTypesDmn(jurisdiction, dmnNameField);
+        Set<TaskTypesDmnResponse> response = performGetTaskTypesDmn(jurisdiction, dmnNameField);
+        log.info("task-types-dmn fetched from camunda-api. jurisdiction:{} - taskTypesDmn: {}",
+            jurisdiction, response);
+        return response;
     }
 
+    @Cacheable(key = "#jurisdiction", value = "task_types", sync = true)
     public List<TaskTypesDmnEvaluationResponse> evaluateTaskTypesDmn(String jurisdiction, String decisionTableKey) {
-        return performEvaluateTaskTypesDmnAction(
-            decisionTableKey,
-            jurisdiction
-        );
+        List<TaskTypesDmnEvaluationResponse> response =
+            performEvaluateTaskTypesDmnAction(
+                decisionTableKey,
+                jurisdiction
+            );
+        log.info("task-types fetched from camunda-api. jurisdiction:{} - taskTypesDmnEvaluationResponses: {}",
+            jurisdiction, response);
+        return response;
     }
 
     private List<ConfigurationDmnEvaluationResponse> performEvaluateConfigurationDmnAction(
