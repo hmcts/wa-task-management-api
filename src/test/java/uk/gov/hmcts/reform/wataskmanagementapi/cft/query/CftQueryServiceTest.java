@@ -337,7 +337,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
-                     .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, false))
+                .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, false))
                 .thenReturn(taskResourceSummary);
             when(taskResourceDao.getTaskResources(searchTaskRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
@@ -569,7 +569,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
-                     .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, true))
+                .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, true))
                 .thenReturn(taskResourceSummary);
             when(taskResourceDao.getTaskResources(searchTaskRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
@@ -842,7 +842,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
 
             when(taskResourceDao.getCompletableTaskResources(searchEventAndCase, roleAssignments,
-                                                             permissionsRequired, List.of("reviewTheAppeal")
+                permissionsRequired, List.of("reviewTheAppeal")
             ))
                 .thenReturn(List.of(createTaskResource()));
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
