@@ -346,6 +346,92 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    public void should_return_a_200_and_add_permission_for_specific_role() {
+
+        TestVariables taskVariables1 = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "processApplication",
+            "process application"
+        );
+        TestVariables taskVariables2 = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "processApplication",
+            "process application"
+        );
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        initiateTask(taskVariables1);
+        initiateTask(taskVariables2);
+
+        String taskId1 = taskVariables1.getTaskId();
+        String taskId2 = taskVariables2.getTaskId();
+
+        Response result1 = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId1,
+            caseworkerCredentials.getHeaders()
+        );
+
+        Response result2 = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId2,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result1.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(taskId1))
+            .body("task.name", equalTo("process application"))
+            .body("task.type", equalTo("processApplication"))
+            .body("task.permissions.values", equalToObject(List.of("Read", "Own")));
+
+        result2.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(taskId2))
+            .body("task.name", equalTo("process application"))
+            .body("task.type", equalTo("processApplication"))
+            .body("task.permissions.values", equalToObject(List.of("Read", "Own")));
+
+        //add a case permission
+        common.setupFtpaJudgeForCaseAccess(caseworkerCredentials.getHeaders(), taskVariables1.getCaseId(),
+                                               WA_JURISDICTION, WA_CASE_TYPE);
+
+        result1 = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId1,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result2 = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId2,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result1.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(taskId1))
+            .body("task.name", equalTo("process application"))
+            .body("task.type", equalTo("processApplication"))
+            .body("task.permissions.values", equalToObject(List.of("Read", "Own", "Execute")));
+
+        result2.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(taskId2))
+            .body("task.name", equalTo("process application"))
+            .body("task.type", equalTo("processApplication"))
+            .body("task.permissions.values", equalToObject(List.of("Read", "Own")));
+
+        common.cleanUpTask(taskId1);
+        common.cleanUpTask(taskId2);
+    }
+
+    @Test
     public void should_return_a_200_with_task_and_granular_permissions() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(

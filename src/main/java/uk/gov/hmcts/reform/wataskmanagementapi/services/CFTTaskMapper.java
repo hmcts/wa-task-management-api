@@ -10,6 +10,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -328,6 +329,7 @@ public class CFTTaskMapper {
             extractUnionOfPermissionsForUser(
                 taskResource.getTaskRoleResources(),
                 roleAssignments,
+                taskResource.getCaseId(),
                 granularPermissionResponseFeature
             );
 
@@ -386,19 +388,41 @@ public class CFTTaskMapper {
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments,
                                                                  boolean granularPermissionResponseFeature) {
-        List<String> userRoleNames = roleAssignments.stream()
-            .map(RoleAssignment::getRoleName)
-            .collect(Collectors.toList());
+        Optional caseId = taskRoleResources.stream()
+            .filter(t -> t.getTaskResource() != null
+                && t.getTaskResource().getCaseId() != null).map(t -> t.getTaskResource().getCaseId())
+            .findFirst();
+        if (caseId.isPresent()) {
+            return extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments,
+                                                    (String) caseId.get(), granularPermissionResponseFeature);
+        } else {
+            return new TreeSet<PermissionTypes>();
+        }
+    }
 
+    private Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
+                                                                 List<RoleAssignment> roleAssignments,
+                                                                 String caseId,
+                                                                 boolean granularPermissionResponseFeature) {
         TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
+        if (caseId != null) {
+            List<String> userRoleNames = roleAssignments.stream()
+                .filter(ra -> !ra.getRoleType().equals(RoleType.CASE) || ra.getAttributes() != null
+                    && ra.getAttributes().get("caseId") != null
+                    && ra.getAttributes().get("caseId").equals(caseId))
+                .map(RoleAssignment::getRoleName)
+                .collect(Collectors.toList());
 
-        if (taskRoleResources != null) {
-            taskRoleResources.forEach(taskRoleResource -> {
-                if (userRoleNames.contains(taskRoleResource.getRoleName())) {
-                    Set<PermissionTypes> permissionTypes = evaluatePermissionsFoundAndCollectResults(taskRoleResource);
-                    permissionsFound.addAll(permissionTypes);
-                }
-            });
+
+            if (taskRoleResources != null) {
+                taskRoleResources.forEach(taskRoleResource -> {
+                    if (userRoleNames.contains(taskRoleResource.getRoleName())) {
+                        Set<PermissionTypes> permissionTypes = evaluatePermissionsFoundAndCollectResults(
+                            taskRoleResource);
+                        permissionsFound.addAll(permissionTypes);
+                    }
+                });
+            }
         }
 
         if (!granularPermissionResponseFeature) {
