@@ -46,7 +46,6 @@ class TaskTypesServiceTest {
         );
     }
 
-
     @Test
     void should_return_task_types() {
         //given
@@ -82,11 +81,92 @@ class TaskTypesServiceTest {
 
         //then
         assertNotNull(response);
-
         assertEquals(1, response.size());
         assertEquals("processApplication", response.get(0).getTaskType().getTaskTypeId());
         assertEquals("Process Application", response.get(0).getTaskType().getTaskTypeName());
 
+    }
+
+    @Test
+    void should_return_all_task_types_with_first_record_and_without_duplicate() {
+
+        //given
+        TaskTypesDmnResponse taskTypesDmnResponse = new TaskTypesDmnResponse(
+            "wa-task-types-wa-wacasetype",
+            "wa",
+            "wa-task-types-wa-wacasetype.dmn"
+        );
+        Set<TaskTypesDmnResponse> taskTypesDmnResponses = Set.of(taskTypesDmnResponse);
+
+        when(dmnEvaluationService.getTaskTypesDmn("wa", "Task Types DMN"))
+            .thenReturn(taskTypesDmnResponses);
+
+
+        List<TaskTypesDmnEvaluationResponse> taskTypesDmnEvaluationResponses = new ArrayList<>();
+        //first record
+        CamundaValue<String> taskTypeId = new CamundaValue<>("processApplication", "String");
+        CamundaValue<String> taskTypeName = new CamundaValue<>("Process Application", "String");
+
+        TaskTypesDmnEvaluationResponse taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(
+            taskTypeId, taskTypeName
+        );
+        taskTypesDmnEvaluationResponses.add(taskTypesDmnEvaluationResponse);
+
+        //second record
+        taskTypeId = new CamundaValue<>("reviewAppealSkeletonArgument", "String");
+        taskTypeName = new CamundaValue<>("Review Appeal Skeleton Argument", "String");
+
+        taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(
+            taskTypeId, taskTypeName
+        );
+        taskTypesDmnEvaluationResponses.add(taskTypesDmnEvaluationResponse);
+
+        //third record (duplicate-with different taskTypeName)
+        taskTypeId = new CamundaValue<>("processApplication", "String");
+        taskTypeName = new CamundaValue<>("Process Application-2", "String");
+
+        taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(
+            taskTypeId, taskTypeName
+        );
+        taskTypesDmnEvaluationResponses.add(taskTypesDmnEvaluationResponse);
+
+        //fourth record (duplicate)
+        taskTypeId = new CamundaValue<>("processApplication", "String");
+        taskTypeName = new CamundaValue<>("Process Application", "String");
+
+        taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(
+            taskTypeId, taskTypeName
+        );
+        taskTypesDmnEvaluationResponses.add(taskTypesDmnEvaluationResponse);
+
+        //fifth record (duplicate-with upperCase taskTypeId)
+        taskTypeId = new CamundaValue<>("PROCESSAPPLICATION", "String");
+        taskTypeName = new CamundaValue<>("Process Application", "String");
+
+        taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(
+            taskTypeId, taskTypeName
+        );
+        taskTypesDmnEvaluationResponses.add(taskTypesDmnEvaluationResponse);
+
+        when(dmnEvaluationService.evaluateTaskTypesDmn("wa", "wa-task-types-wa-wacasetype"))
+            .thenReturn(taskTypesDmnEvaluationResponses);
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
+
+        //when
+        List<TaskTypeResponse> response = taskTypesService.getTaskTypes(accessControlResponse, "wa");
+
+        //then
+        assertNotNull(response);
+        assertEquals(2, response.size());
+        assertEquals("processApplication", response.get(0).getTaskType().getTaskTypeId());
+        assertEquals("Process Application", response.get(0).getTaskType().getTaskTypeName());
+        assertEquals("reviewAppealSkeletonArgument", response.get(1).getTaskType().getTaskTypeId());
+        assertEquals("Review Appeal Skeleton Argument", response.get(1).getTaskType().getTaskTypeName());
     }
 
     @Test
