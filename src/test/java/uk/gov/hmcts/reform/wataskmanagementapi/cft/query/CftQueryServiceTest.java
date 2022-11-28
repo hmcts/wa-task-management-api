@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -338,7 +337,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
-                .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, false))
+                     .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, false))
                 .thenReturn(taskResourceSummary);
             when(taskResourceDao.getTaskResources(searchTaskRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
@@ -542,9 +541,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
         }
 
-        @ParameterizedTest
-        @EnumSource(value = RequestContext.class, names = {"AVAILABLE_TASK_ONLY", "AVAILABLE_TASKS"})
-        void shouldReturnRequestContextAvailableTasksOnly(RequestContext requestContext) {
+        @Test
+        void shouldReturnRequestContextAvailableTasksOnly() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
                 List.of(
                     new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
@@ -552,7 +550,11 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
                     new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                    new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, requestContext)
+                    new SearchParameterRequestContext(
+                        REQUEST_CONTEXT,
+                        SearchOperator.CONTEXT,
+                        RequestContext.AVAILABLE_TASKS
+                    )
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
             );
@@ -567,7 +569,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
             List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
-                .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, true))
+                     .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, true))
                 .thenReturn(taskResourceSummary);
             when(taskResourceDao.getTaskResources(searchTaskRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
@@ -840,7 +842,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
 
             when(taskResourceDao.getCompletableTaskResources(searchEventAndCase, roleAssignments,
-                permissionsRequired, List.of("reviewTheAppeal")
+                                                             permissionsRequired, List.of("reviewTheAppeal")
             ))
                 .thenReturn(List.of(createTaskResource()));
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());

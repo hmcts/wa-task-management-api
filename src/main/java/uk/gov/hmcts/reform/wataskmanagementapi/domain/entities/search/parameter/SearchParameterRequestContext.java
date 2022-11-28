@@ -32,7 +32,7 @@ public class SearchParameterRequestContext implements SearchParameter<RequestCon
 
     @Schema(
         required = true,
-        allowableValues = "ALL_WORK, AVAILABLE_TASK_ONLY, AVAILABLE_TASKS",
+        allowableValues = "ALL_WORK, AVAILABLE_TASKS",
         example = "ALL_WORK")
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."

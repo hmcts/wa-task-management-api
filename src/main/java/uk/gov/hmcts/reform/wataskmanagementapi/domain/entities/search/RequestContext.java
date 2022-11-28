@@ -15,8 +15,6 @@ import java.util.stream.Stream;
 public enum RequestContext {
     @JsonProperty("ALL_WORK")
     ALL_WORK,
-    @JsonProperty("AVAILABLE_TASK_ONLY")
-    AVAILABLE_TASK_ONLY,
     @JsonProperty("AVAILABLE_TASKS")
     AVAILABLE_TASKS;
 
