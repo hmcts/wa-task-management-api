@@ -141,7 +141,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "searchByJurisdictionLocationAndStateScenario",
         "searchByRoleCategoryScenario",
         "searchByStateScenario",
-        "searchByJurisdictionAndLocationScenario"
+        "searchByJurisdictionAndLocationScenario",
+        "grantTypeWithAvailableTasksRequestContextScenarioHappyPath"
     })
     void should_retrieve_tasks(TaskQueryScenario scenario) {
 
@@ -1270,7 +1271,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
             new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN,
-                RequestContext.AVAILABLE_TASKS)
+                RequestContext.AVAILABLE_TASK_ONLY)
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
@@ -1317,6 +1318,67 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                     "8d6cc5cf-c973-11eb-aaaa-000000000041", "1623278362400041",
                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
                 )
+            ).build();
+
+        return Stream.of(
+            publicClassification,
+            privateClassification,
+            restrictedClassification
+        );
+    }
+
+
+    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksRequestContextScenarioHappyPath() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN, RequestContext.AVAILABLE_TASKS)
+        ));
+
+        final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
+            .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM permission and PUBLIC")
+            .firstResult(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(1)
+            .expectedTotalRecords(1)
+            .userInfo(granularPermissionUserInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
+                                 )
+            ).build();
+
+        final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
+            .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM permission and PRIVATE")
+            .firstResult(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(2)
+            .expectedTotalRecords(2)
+            .userInfo(granularPermissionUserInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000041", "1623278362400041",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
+                                 )
+            ).build();
+
+        final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
+            .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM and "
+                              + "excluded_grant_type_with_classification_as_restricted")
+            .firstResult(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(3)
+            .expectedTotalRecords(3)
+            .userInfo(granularPermissionUserInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000042", "1623278362400042",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000041", "1623278362400041",
+                                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
+                                 )
             ).build();
 
         return Stream.of(

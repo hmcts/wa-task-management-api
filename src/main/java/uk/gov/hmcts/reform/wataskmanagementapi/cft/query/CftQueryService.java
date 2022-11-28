@@ -211,7 +211,8 @@ public class CftQueryService {
             SearchParameterRequestContext context = extractRequestContext(searchTaskRequest);
             if (context == null) {
                 return PermissionRequirementBuilder.builder().buildSingleType(READ);
-            } else if (context.isEqual(RequestContext.AVAILABLE_TASKS)) {
+            } else if (context.isEqual(RequestContext.AVAILABLE_TASK_ONLY)
+                || context.isEqual(RequestContext.AVAILABLE_TASKS)) {
                 return PermissionRequirementBuilder.builder().buildSingleRequirementWithAnd(OWN, CLAIM);
             } else if (context.isEqual(RequestContext.ALL_WORK)) {
                 return PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
@@ -246,7 +247,8 @@ public class CftQueryService {
         if (context == null) {
             return availableTasksOnly != null && availableTasksOnly.getValues();
         } else {
-            return context.isEqual(RequestContext.AVAILABLE_TASKS);
+            return context.isEqual(RequestContext.AVAILABLE_TASK_ONLY)
+                || context.isEqual(RequestContext.AVAILABLE_TASKS);
         }
     }
 

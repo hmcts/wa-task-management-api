@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -541,8 +542,9 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
         }
 
-        @Test
-        void shouldReturnRequestContextAvailableTasksOnly() {
+        @ParameterizedTest
+        @EnumSource(value = RequestContext.class, names = {"AVAILABLE_TASK_ONLY", "AVAILABLE_TASKS"})
+        void shouldReturnRequestContextAvailableTasksOnly(RequestContext requestContext) {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
                 List.of(
                     new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
@@ -550,8 +552,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
                     new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                    new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT,
-                        RequestContext.AVAILABLE_TASKS)
+                    new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, requestContext)
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
             );

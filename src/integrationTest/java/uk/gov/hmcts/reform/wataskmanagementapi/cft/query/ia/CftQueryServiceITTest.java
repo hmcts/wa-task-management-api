@@ -141,7 +141,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "secondaryCaseCategorySortedResultsAscScenario",
         "secondaryCaseCategorySortedResultsDescScenario",
         "grantTypeWithAvailableTasksOnlyOnRequestContextScenarioHappyPath",
-        "grantTypeWithAllWorkOnRequestContextScenarioHappyPath"
+        "grantTypeWithAllWorkOnRequestContextScenarioHappyPath",
+        "grantTypeWithAvailableTasksOnRequestContextScenarioHappyPath"
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
         log.info("Running scenario: {}", scenario.scenarioName);
@@ -975,8 +976,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
             new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN,
-                RequestContext.AVAILABLE_TASKS
-            )
+                RequestContext.AVAILABLE_TASK_ONLY)
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
@@ -1029,6 +1029,72 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                     "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
                     "TestCase2", "Taylor House", "title", null
                 )
+            ).build();
+
+        return Stream.of(
+            publicClassification,
+            privateClassification,
+            restrictedClassification
+        );
+    }
+
+    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnRequestContextScenarioHappyPath() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
+            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN, RequestContext.AVAILABLE_TASKS)
+        ));
+
+        final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
+            .scenarioName("available_tasks_only should return only unassigned and OWN and ClAIM permission and PUBLIC")
+            .firstResult(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(1)
+            .expectedTotalRecords(1)
+            .userInfo(granularPermissionUserInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                                     "TestCase2", "Taylor House", "title", null
+                                 )
+            ).build();
+
+        final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
+            .scenarioName("available_tasks_only should return only unassigned and OWN and ClAIM permission and PRIVATE")
+            .firstResult(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(2)
+            .expectedTotalRecords(2)
+            .userInfo(granularPermissionUserInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                                     "TestCase2", "Taylor House", "title", null,
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                                     "TestCase2", "Taylor House", "title", null
+                                 )
+            ).build();
+
+        final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
+            .scenarioName("available_tasks_only should return only unassigned and OWN and ClAIM permission "
+                              + "excluded_grant_type_with_classification_as_restricted")
+            .firstResult(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(3)
+            .expectedTotalRecords(3)
+            .userInfo(granularPermissionUserInfo)
+            .expectedTaskDetails(newArrayList(
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac111025", "1623278362431025",
+                                     "TestCase3", "Taylor House", "title", null,
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024",
+                                     "TestCase2", "Taylor House", "title", null,
+                                     "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023",
+                                     "TestCase2", "Taylor House", "title", null
+                                 )
             ).build();
 
         return Stream.of(
