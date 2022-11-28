@@ -43,7 +43,7 @@ class PublicHolidaysCollectionTest {
         assertThat(oneCalendarResult.contains(LocalDate.of(2022, 12, 26))).isTrue();
         assertThat(oneCalendarResult.contains(LocalDate.of(2022, 12, 27))).isTrue();
 
-        List<String> twoUris = List.of(CALENDAR_URI, "https://raw.githubusercontent.com/hmcts/wa-task-management-api/RWA-1768-calendar-for-test/src/test/resources/override-working-day-calendar.json");
+        List<String> twoUris = List.of(CALENDAR_URI, "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json");
         Set<LocalDate> twoCalendarResult = publicHolidaysCollection.getPublicHolidays(twoUris);
         assertThat(twoCalendarResult.contains(LocalDate.of(2022, 12, 26))).isFalse();
         assertThat(twoCalendarResult.contains(LocalDate.of(2022, 12, 27))).isTrue();
