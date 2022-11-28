@@ -132,4 +132,7 @@ caffeine:
   timeout:
     duration: 30
     unit: MINUTES
-
+  task-type:
+    timeout:
+      duration: ${TASK_TYPE_CACHE_TIMEOUT_DURATION:60}
+      unit: ${TASK_TYPE_CACHE_TIMEOUT_TIMEUNIT:MINUTES}
