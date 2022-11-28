@@ -301,14 +301,16 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId7");
         //task1
         assertNull(taskResources.get(0).getReconfigureRequestTime());
-        assertNotNull(taskResources.get(0).getLastUpdatedTimestamp());
-        assertEquals(SYSTEM_USER_1, taskResources.get(0).getLastUpdatedUser());
-        assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResources.get(0).getLastUpdatedAction());
+        assertNull(taskResources.get(0).getLastUpdatedTimestamp());
+        assertNull(taskResources.get(0).getLastUpdatedUser());
+        assertNull(taskResources.get(0).getLastUpdatedAction());
+
         //task2
         assertNotNull(taskResources.get(1).getReconfigureRequestTime());
-        assertNull(taskResources.get(1).getLastUpdatedTimestamp());
-        assertNull(taskResources.get(1).getLastUpdatedUser());
-        assertNull(taskResources.get(1).getLastUpdatedAction());
+        assertNotNull(taskResources.get(1).getLastUpdatedTimestamp());
+        assertEquals(SYSTEM_USER_1, taskResources.get(1).getLastUpdatedUser());
+        assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResources.get(1).getLastUpdatedAction());
+
     }
 
     @Test
