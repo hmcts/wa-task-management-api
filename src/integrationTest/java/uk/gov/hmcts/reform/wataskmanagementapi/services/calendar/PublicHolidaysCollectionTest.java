@@ -6,7 +6,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.exceptions.CalendarResourceInvalidException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.exceptions.CalendarResourceNotFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.calendar.PublicHolidaysCollection;
 
 import java.time.LocalDate;
 import java.util.Set;
