@@ -58,6 +58,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -1378,6 +1380,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1421,6 +1424,9 @@ class CFTTaskMapperTest {
             false,
             true
         );
+        TaskResource taskResource = mock(TaskResource.class);
+        when(taskResource.getCaseId()).thenReturn("CASE_ID");
+        taskRoleResource.setTaskResource(taskResource);
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1475,6 +1481,9 @@ class CFTTaskMapperTest {
             false,
             true
         );
+        TaskResource taskResource = mock(TaskResource.class);
+        when(taskResource.getCaseId()).thenReturn("CASE_ID");
+        taskRoleResource.setTaskResource(taskResource);
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1763,6 +1772,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1793,6 +1803,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1823,6 +1834,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1853,6 +1865,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1883,6 +1896,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1913,6 +1927,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1943,6 +1958,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
             "senior-tribunal-caseworker",
             false,
@@ -1955,6 +1971,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource2.setTaskResource(createTaskResource());
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = singletonList(
@@ -1989,6 +2006,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
             "senior-tribunal-caseworker",
             false,
@@ -2001,6 +2019,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = asList(
