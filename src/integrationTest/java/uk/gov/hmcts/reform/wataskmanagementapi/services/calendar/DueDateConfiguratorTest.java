@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
+
 @SpringBootTest
 @ActiveProfiles({"integration"})
 public class DueDateConfiguratorTest {
@@ -56,11 +58,12 @@ public class DueDateConfiguratorTest {
     @Test
     public void shouldCalculateDueDateWhenMultipleDueDateAndTimesAreAvailable() {
 
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String firstDueDate = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String secondDueDate = GIVEN_DATE.plusDays(9).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse defaultDueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .value(CamundaValue.stringValue(firstDueDate + "T16:00"))
             .build();
 
         ConfigurationDmnEvaluationResponse defaultDueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -70,7 +73,7 @@ public class DueDateConfiguratorTest {
 
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T18:00"))
+            .value(CamundaValue.stringValue(secondDueDate + "T18:00"))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -84,23 +87,24 @@ public class DueDateConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T20:00"))
+                                   .value(CamundaValue.stringValue(secondDueDate + "T20:00"))
                                    .build()));
     }
 
     @Test
     public void shouldCalculateDueDateWhenMultipleDueDatesAreAvailable() {
 
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String firstDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String secondDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse defaultDueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .value(CamundaValue.stringValue(firstDueDate + "T16:00"))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T18:00"))
+            .value(CamundaValue.stringValue(secondDueDate + "T18:00"))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
@@ -109,14 +113,12 @@ public class DueDateConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T18:00"))
+                                   .value(CamundaValue.stringValue(secondDueDate + "T18:00"))
                                    .build()));
     }
 
     @Test
     public void shouldCalculateDueDateWhenMultipleDueDateTimesAreAvailable() {
-
-        String expectedDueDate = LocalDateTime.now().plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse defaultDueDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateTime"))
@@ -131,21 +133,23 @@ public class DueDateConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
             .configureDueDate(List.of(defaultDueDateTime, dueDateTime), "WA");
 
+        String defaultDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T18:00"))
+                                   .value(CamundaValue.stringValue(defaultDueDate + "T18:00"))
                                    .build()));
     }
 
     @Test
     public void shouldCalculateDueDateWhenDefaultDueDateWithoutTimeAndTimeAreAvailable() {
 
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String givenDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse defaultDueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate))
+            .value(CamundaValue.stringValue(givenDueDate))
             .build();
 
         ConfigurationDmnEvaluationResponse defaultDueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -159,14 +163,12 @@ public class DueDateConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
                                    .build()));
     }
 
     @Test
-    public void shouldCalculateDueDateWhenOnlyDefaultDueDateTimeIsAvailable() {
-
-        String expectedDueDate = LocalDateTime.now().plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    public void shouldCalculateDueDateWhenOnlyDueDateTimeIsAvailable() {
 
         ConfigurationDmnEvaluationResponse defaultDueDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateTime"))
@@ -176,22 +178,23 @@ public class DueDateConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
             .configureDueDate(List.of(defaultDueDateTime), "WA");
 
+        String defaultDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(defaultDueDate + "T16:00"))
                                    .build()));
     }
-
 
     @Test
     public void shouldCalculateDueDateWhenOnlyDefaultDueDateWithTimeIsAvailable() {
 
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String givenDueDate = GIVEN_DATE.plusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse defaultDueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .value(CamundaValue.stringValue(givenDueDate + "T19:00"))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
@@ -200,18 +203,18 @@ public class DueDateConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(givenDueDate + "T19:00"))
                                    .build()));
     }
 
     @Test
     public void shouldCalculateDueDateWhenOnlyDefaultDueDateWithoutTimeIsAvailable() {
 
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String givenDueDate = GIVEN_DATE.plusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse defaultDueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate))
+            .value(CamundaValue.stringValue(givenDueDate))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
@@ -220,7 +223,7 @@ public class DueDateConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
                                    .build()));
     }
 
@@ -234,11 +237,11 @@ public class DueDateConfiguratorTest {
 
     @Test
     public void shouldReturnDefaultDueDateWhenDueDatePropertiesAreNotAvailableAndJurisdictionIsWA() {
-        String expectedDueDate = LocalDateTime.now().plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
             .configureDueDate(List.of(), "WA");
 
+        String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
@@ -274,11 +277,11 @@ public class DueDateConfiguratorTest {
 
     @Test
     public void shouldCalculateDueDateWhenOnlyDueDateOriginIsProvided() {
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String givenDueDate = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T20:00"))
+            .value(CamundaValue.stringValue(givenDueDate + "T20:00"))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
@@ -287,7 +290,7 @@ public class DueDateConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
                                    .build()));
 
     }
