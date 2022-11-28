@@ -374,7 +374,9 @@ public class TaskManagementService {
     private void updateTaskActionAttributes(TaskResource taskResource, String assigner, Optional<String> newAssignee,
                                             Optional<String> oldAssignee) {
         TaskAction taskAction = buildTaskActionAttributeForAssign(assigner, newAssignee, oldAssignee);
-        setTaskActionAttributes(taskResource, assigner, taskAction);
+        if (taskAction != null) {
+            setTaskActionAttributes(taskResource, assigner, taskAction);
+        }
     }
 
     private boolean verifyActionRequired(Optional<String> currentAssignee,
