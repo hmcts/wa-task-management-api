@@ -975,7 +975,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
             new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN,
-                RequestContext.AVAILABLE_TASK_ONLY)
+                RequestContext.AVAILABLE_TASKS
+            )
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()

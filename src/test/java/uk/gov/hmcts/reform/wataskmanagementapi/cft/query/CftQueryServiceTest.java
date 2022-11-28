@@ -551,7 +551,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
                     new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
                     new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT,
-                        RequestContext.AVAILABLE_TASK_ONLY)
+                        RequestContext.AVAILABLE_TASKS)
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
             );
