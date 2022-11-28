@@ -20,7 +20,8 @@ public enum TaskAction {
     UNCLAIM_ASSIGN("UnclaimAssign"),
     CANCEL("Cancel"),
     AUTO_CANCEL("AutoCancel"),
-    TERMINATE("Terminate");
+    TERMINATE("Terminate"),
+    MARK_FOR_RECONFIGURE("MarkForReconfigure");
 
     private final String value;
 

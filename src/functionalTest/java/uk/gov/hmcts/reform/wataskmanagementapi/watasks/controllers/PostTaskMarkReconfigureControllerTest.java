@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 
 import java.util.List;
 import java.util.UUID;
@@ -88,7 +89,10 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("assigned"))
             .body("task.reconfigure_request_time", notNullValue())
-            .body("task.last_reconfiguration_time", nullValue());
+            .body("task.last_reconfiguration_time", nullValue())
+            .body("task.last_updated_timestamp", notNullValue())
+            .body("task.last_updated_user", equalTo(idamSystemUser))
+            .body("task.last_updated_action", equalTo(TaskAction.MARK_FOR_RECONFIGURE.getValue()));
 
         common.cleanUpTask(taskId);
     }
@@ -147,7 +151,10 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("unassigned"))
             .body("task.reconfigure_request_time", notNullValue())
-            .body("task.last_reconfiguration_time", nullValue());
+            .body("task.last_reconfiguration_time", nullValue())
+            .body("task.last_updated_timestamp", notNullValue())
+            .body("task.last_updated_user", equalTo(idamSystemUser))
+            .body("task.last_updated_action", equalTo(TaskAction.MARK_FOR_RECONFIGURE.getValue()));
 
         common.cleanUpTask(taskId);
     }
