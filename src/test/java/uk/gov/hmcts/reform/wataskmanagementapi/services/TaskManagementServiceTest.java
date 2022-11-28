@@ -81,6 +81,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -430,6 +431,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             doReturn(mockedMappedTask)
                 .when(cftTaskMapper).mapToTaskWithPermissions(eq(taskResource), any());
+
+            when(taskResource.getTaskRoleResources()).thenReturn(new TreeSet<TaskRoleResource>());
 
             Task response = taskManagementService.getTask(taskId, accessControlResponse);
 
