@@ -247,6 +247,52 @@ public class DueDateConfiguratorTest {
     }
 
     @Test
+    public void shouldCalculateDueDateWhenOnlyDueDateAndDueDateOriginBothProvided() {
+        String givenDueDate = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String givenDueDateOrigin = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDate"))
+            .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOrigin"))
+            .value(CamundaValue.stringValue(givenDueDateOrigin + "T20:00"))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
+            .configureDueDate(List.of(dueDate, dueDateOrigin), "WA");
+
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
+            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("dueDate"))
+                                   .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
+                                   .build()));
+
+    }
+
+    @Test
+    public void shouldCalculateDueDateWhenOnlyDueDateOriginIsProvided() {
+        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOrigin"))
+            .value(CamundaValue.stringValue(expectedDueDate + "T20:00"))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
+            .configureDueDate(List.of(dueDateOrigin), "WA");
+
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
+            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("dueDate"))
+                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                                   .build()));
+
+    }
+
+    @Test
     public void shouldCalculateDateFromDueDateEvenWhenDueDateOriginPropertiesAreProvided() {
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
