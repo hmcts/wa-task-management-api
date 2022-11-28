@@ -50,7 +50,7 @@ public final class TaskActionAttributesBuilder {
         } else if (isUnclaimAssign(assigner, newAssignee, oldAssignee)) {
             return TaskAction.UNCLAIM_ASSIGN;
         }
-        return TaskAction.CONFIGURE;
+        return null;
     }
 
     public static boolean isAssign(String assigner, Optional<String> newAssignee, Optional<String> oldAssignee) {
