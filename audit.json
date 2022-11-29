@@ -78,6 +78,7 @@
   "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/notes_POST": "ignore",
   "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/operation_POST": "ignore",
   "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/initiation_POST": "ignore",
+  "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-types?jurisdiction=jurisdiction_GET": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/claim_POST": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id_DELETE": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/complete_POST": "ignore",

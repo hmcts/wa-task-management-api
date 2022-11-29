@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.REFER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_CLAIM;
 
@@ -116,7 +115,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         assertThat(task.isTaskRequiredForEvent()).isTrue();
         assertThat(task.getTasks().get(0).getCaseId()).isEqualTo(caseId);
         assertThat(task.getTasks().get(0).getPermissions().getValues().containsAll(
-            List.of(READ, REFER, OWN, EXECUTE))).isTrue();
+            List.of(READ, OWN, EXECUTE))).isTrue();
 
     }
 
@@ -161,7 +160,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         assertThat(task.isTaskRequiredForEvent()).isTrue();
         assertThat(task.getTasks().get(0).getCaseId()).isEqualTo(caseId);
         assertThat(task.getTasks().get(0).getPermissions().getValues().containsAll(
-            List.of(READ, REFER, OWN, EXECUTE, UNASSIGN_CLAIM, UNASSIGN_ASSIGN))).isTrue();
+            List.of(READ, OWN, EXECUTE, UNASSIGN_CLAIM, UNASSIGN_ASSIGN))).isTrue();
 
     }
 
@@ -420,7 +419,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         assertThat(task.isTaskRequiredForEvent()).isTrue();
         assertThat(task.getTasks().get(0).getCaseId()).isEqualTo(caseId);
         assertThat(task.getTasks().get(0).getPermissions().getValues().containsAll(
-            List.of(READ, REFER, OWN, EXECUTE))).isTrue();
+            List.of(READ, OWN, EXECUTE))).isTrue();
 
     }
 
