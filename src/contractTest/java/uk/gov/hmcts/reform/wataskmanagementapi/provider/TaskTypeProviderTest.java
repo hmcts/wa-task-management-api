@@ -12,6 +12,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractProviderBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskTypesController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskTypeResponse;
 
@@ -61,12 +62,12 @@ public class TaskTypeProviderTest extends SpringBootContractProviderBaseTest {
             .thenReturn(createTaskTypeResponse());
     }
 
-    private List<TaskTypeResponse> createTaskTypeResponse() {
+    private GetTaskTypesResponse createTaskTypeResponse() {
         TaskType taskType = new TaskType("someTaskTypeId", "Some task type name");
 
         TaskTypeResponse taskTypeResponse = new TaskTypeResponse(taskType);
 
-        return List.of(taskTypeResponse);
+        return new GetTaskTypesResponse(List.of(taskTypeResponse));
     }
 
 }
