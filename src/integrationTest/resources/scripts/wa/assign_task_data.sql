@@ -10,18 +10,18 @@ VALUES ('8d6cc5cf-c973-11eb-bdba-0242ac111001', 'SELF','2022-05-09T20:15:45.3458
 
 --Assigner
     INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-            "read", own, "execute", manage, cancel, refer,
+            "read", own, "execute", manage, cancel,
             authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
         values ('8d6cc5cf-c973-11eb-bdba-0242ac115001', 'tribunal-caseworker',
-            false, false , false , true , false, false,
+            false, false , false , true , false,
             null,0, false, 'LEGAL_OPERATIONS', '8d6cc5cf-c973-11eb-bdba-0242ac111001', '2021-05-09T20:15:45.345875+01:00');
 
 --Assignee
     INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-            "read", own, "execute", manage, cancel, refer,
+            "read", own, "execute", manage, cancel,
             authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
         values ('8d6cc5cf-c973-11eb-bdba-0242ac115011', 'tribunal-caseworker',
-            false, true , true , false , false, false,
+            false, true , true , false , false,
             null,0, false, 'LEGAL_OPERATIONS', '8d6cc5cf-c973-11eb-bdba-0242ac111001', '2021-05-09T20:15:45.345875+01:00');
 
 --GRANT_TYPE : CHALLENGED
@@ -36,18 +36,18 @@ VALUES ('8d6cc5cf-c973-11eb-bdba-0242ac111002', 'SELF','2022-05-09T20:15:45.3458
 
 --Assigner
     INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-            "read", own, "execute", manage, cancel, refer,
+            "read", own, "execute", manage, cancel,
             authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
         values ('8d6cc5cf-c973-11eb-bdba-0242ac115002', 'challenged-access-admin',
-            false, false , false , true , false, false,
+            false, false , false , true , false,
             null,0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111002', '2021-05-09T20:15:45.345875+01:00');
 
 --Assignee
     INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-            "read", own, "execute", manage, cancel, refer,
+            "read", own, "execute", manage, cancel,
             authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
         values ('8d6cc5cf-c973-11eb-bdba-0242ac115022', 'challenged-access-admin',
-            false, true , true , false , false, false,
+            false, true , true , false , false,
             null,0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111002', '2021-05-09T20:15:45.345875+01:00');
 
 --GRANT_TYPE : SPECIFIC
@@ -62,26 +62,26 @@ VALUES ('8d6cc5cf-c973-11eb-bdba-0242ac111003', 'SELF','2022-05-09T20:15:45.3458
 
 --Assigner
     INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-            "read", own, "execute", manage, cancel, refer,
+            "read", own, "execute", manage, cancel,
             authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
         values ('8d6cc5cf-c973-11eb-bdba-0242ac115003', 'ftpa-judge',
-            false, false , false , true , false, false,
+            false, false , false , true , false,
             null,0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111003', '2021-05-09T20:15:45.345875+01:00');
 
 --Assignee own permission
     INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-            "read", own, "execute", manage, cancel, refer,
+            "read", own, "execute", manage, cancel,
             authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
         values ('8d6cc5cf-c973-11eb-bdba-0242ac115033', 'case-manager',
-            false, true , false , false , false, false,
+            false, true , false , false , false,
             null,0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111003', '2021-05-09T20:15:45.345875+01:00');
 
 --Assignee execute permission
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-                                    "read", own, "execute", manage, cancel, refer,
+                                    "read", own, "execute", manage, cancel,
                                     authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac115034', 'ftpa-judge',
-        false, false , true , false , false, false,
+        false, false , true , false , false,
         null,0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111003', '2021-05-09T20:15:45.345875+01:00');
 
 --GRANT_TYPE : SPECIFIC
@@ -96,18 +96,18 @@ VALUES ('8d6cc5cf-c973-11eb-bdba-0242ac111004', 'SELF','2022-05-09T20:15:45.3458
 
 --Assigner
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-                                    "read", own, "execute", manage, cancel, refer,
+                                    "read", own, "execute", manage, cancel,
                                     authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac115004', 'ftpa-judge',
-        true, true , true , false , true, true,
+        true, true , true , false , true,
         null,0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111004', '2021-05-09T20:15:45.345875+01:00');
 
 --Assignee
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-                                    "read", own, "execute", manage, cancel, refer,
+                                    "read", own, "execute", manage, cancel,
                                     authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac115044', 'case-manager',
-        true, false , false , true , true, true,
+        true, false , false , true , true,
         null,0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111004', '2021-05-09T20:15:45.345875+01:00');
 
 
@@ -123,18 +123,18 @@ VALUES ('8d6cc5cf-c973-11eb-bdba-0242ac111005', 'SELF','2022-05-09T20:15:45.3458
 
 --Assigner
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-                                    "read", own, "execute", manage, cancel, refer,
+                                    "read", own, "execute", manage, cancel,
                                     authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac115005', 'challenged-access-admin',
-        true, true , true, false, true, true,
+        true, true , true, false, true,
         null,0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111005', '2021-05-09T20:15:45.345875+01:00');
 
 --Assignee
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-                                    "read", own, "execute", manage, cancel, refer,
+                                    "read", own, "execute", manage, cancel,
                                     authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac115025', 'challenged-access-judiciary',
-        true, false , false , true, true, true,
+        true, false , false , true, true,
         null,0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111005', '2021-05-09T20:15:45.345875+01:00');
 
 
@@ -150,16 +150,16 @@ VALUES ('8d6cc5cf-c973-11eb-bdba-0242ac111006', 'SELF','2022-05-09T20:15:45.3458
 
 --Assigner
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-                                    "read", own, "execute", manage, cancel, refer,
+                                    "read", own, "execute", manage, cancel,
                                     authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac115006', 'ftpa-judge',
-        true, true , true , false , true, true,
+        true, true , true , false , true,
         null,0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111006', '2021-05-09T20:15:45.345875+01:00');
 
 --Assignee
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
-                                    "read", own, "execute", manage, cancel, refer,
+                                    "read", own, "execute", manage, cancel,
                                     authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac115066', 'case-manager',
-        true, false , false , true , true, true,
+        true, false , false , true , true,
         null,0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111006', '2021-05-09T20:15:45.345875+01:00');
