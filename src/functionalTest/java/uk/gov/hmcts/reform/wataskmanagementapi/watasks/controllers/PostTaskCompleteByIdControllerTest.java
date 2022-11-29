@@ -34,6 +34,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     private TestAuthenticationCredentials caseworkerCredentials;
     private TestAuthenticationCredentials caseworkerForReadCredentials;
+    private TestAuthenticationCredentials granularPermissionCaseworkerCredentials;
     private String assigneeId;
     private String taskId;
 
@@ -41,6 +42,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
         caseworkerForReadCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
+        granularPermissionCaseworkerCredentials = authorizationProvider
+            .getNewTribunalCaseworker("wa-granular-permission-");
         assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
     }
 
@@ -48,9 +51,11 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void cleanUp() {
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         common.clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
+        common.clearAllRoleAssignments(granularPermissionCaseworkerCredentials.getHeaders());
 
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(caseworkerForReadCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(granularPermissionCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -336,6 +341,82 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_204_when_completing_a_task_by_id_granular_permission() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
+        String taskId = taskVariables.getTaskId();
+
+        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
+
+        initiateTask(taskVariables);
+
+        Response result = restApiActions.post(
+            CLAIM_ENDPOINT,
+            taskId,
+            granularPermissionCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            granularPermissionCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", granularPermissionCaseworkerCredentials.getHeaders());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_403_when_user_does_not_have_granular_permission() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
+
+        initiateTask(taskVariables);
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "case-manager");
+        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders(), "case-manager");
+
+        String taskId = taskVariables.getTaskId();
+
+        Response result = restApiActions.post(
+            CLAIM_ENDPOINT,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            granularPermissionCaseworkerCredentials.getHeaders()
+        );
+
+        UserInfo userInfo = idamService.getUserInfo(caseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
+            .body("message", equalTo(String.format(
+                LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER,
+                taskId, userInfo.getUid()
+            )));
 
         common.cleanUpTask(taskId);
     }
