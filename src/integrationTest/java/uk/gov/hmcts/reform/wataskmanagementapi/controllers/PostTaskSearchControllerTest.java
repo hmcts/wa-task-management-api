@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
@@ -35,6 +36,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -60,12 +62,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -98,6 +98,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @Testcontainers
 @DirtiesContext(classMode = BEFORE_CLASS, hierarchyMode = EXHAUSTIVE)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Order(value = 1)
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
@@ -115,6 +116,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Autowired
+    private TaskResourceRepository tasksRepository;
     @SpyBean
     private CftQueryService cftQueryService;
     @Mock
@@ -146,7 +149,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             roleAssignmentServiceApi
         );
 
-        cftTaskDatabaseService.cleanTasks();
+        tasksRepository.deleteAll();
     }
 
     @ParameterizedTest
@@ -1708,8 +1711,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
         cftTaskDatabaseService.saveTask(taskResource);
-
-        await().atLeast(5, TimeUnit.SECONDS);
     }
 
     private void insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(String caseId, String taskId,
@@ -1747,8 +1748,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
         cftTaskDatabaseService.saveTask(taskResource);
-
-        await().atLeast(5, TimeUnit.SECONDS);
     }
 }
 

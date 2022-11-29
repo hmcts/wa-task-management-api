@@ -225,11 +225,6 @@ public class TaskSearch
 		    "order by [ORDER_BY]t.major_priority desc, t.priority_date desc, t.minor_priority desc\n" +
 		    "offset ? limit ?";
 
-    private static final String ALL_SQL = "" +
-        "select t.task_id, cft_task_db.filter_signatures(t.task_id), cft_task_db.role_signatures(t.task_id)\n" +
-        "from   cft_task_db.tasks t\n" +
-        "where  indexed";
-
 	private static final String SEARCH_SQL_TASK_ALIAS = "t";
 
 	private void buildSearchSqlStatement()
@@ -338,18 +333,6 @@ public class TaskSearch
 	private void runSearch(Connection connection) throws SQLException
 	{
 		searchStatement.execute(connection, r -> tasks.add(makeTask(r)));
-        System.out.println("SEARCH RESULTS " + tasks);
-        PreparedStatement statement = connection.prepareStatement(ALL_SQL);
-        ResultSet results = statement.executeQuery();
-        while (results.next())
-        {
-            System.out.println("ALL RECORDS");
-            ResultSetMetaData metadata = results.getMetaData();
-            for (int i = 1; i <= metadata.getColumnCount(); ++i)
-            {
-                System.out.println(results.getMetaData().getColumnName(i) + " - " + results.getObject(i));
-            }
-        }
 	}
 
 	private void explainSearch(Connection connection) throws SQLException

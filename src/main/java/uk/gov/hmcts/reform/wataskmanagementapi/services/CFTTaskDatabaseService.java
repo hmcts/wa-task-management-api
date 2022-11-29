@@ -66,8 +66,4 @@ public class CFTTaskDatabaseService {
     public Optional<TaskResource> findTaskBySpecification(Specification<TaskResource> specification) {
         return tasksRepository.findOne(specification);
     }
-
-    public void cleanTasks() {
-        tasksRepository.deleteAll();
-    }
 }
