@@ -22,14 +22,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
@@ -91,8 +91,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private IdamWebApi idamWebApi;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
-    private uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi camundaTaskConfig;
     @MockBean
     private CcdDataServiceApi ccdDataServiceApi;
     @MockBean
@@ -177,7 +175,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
             .thenReturn(caseDetails);
 
-        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
                 new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
@@ -188,7 +186,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
-        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
@@ -327,7 +325,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
             .thenReturn(caseDetails);
 
-        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
                 new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
@@ -338,7 +336,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
-        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
@@ -416,7 +414,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].execute").value(false),
                 jsonPath("$.task_role_resources.[0].manage").value(false),
                 jsonPath("$.task_role_resources.[0].cancel").value(false),
-                jsonPath("$.task_role_resources.[0].refer").value(true),
                 jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[1].role_name")
@@ -426,7 +423,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].execute").value(false),
                 jsonPath("$.task_role_resources.[1].manage").value(false),
                 jsonPath("$.task_role_resources.[1].cancel").value(false),
-                jsonPath("$.task_role_resources.[1].refer").value(true),
                 jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
             );
 
@@ -445,7 +441,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
             .thenReturn(caseDetails);
 
-        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
                 new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
@@ -456,7 +452,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
-        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
             .thenReturn(List.of(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("hearing-judge"),
@@ -556,7 +552,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
             .thenReturn(caseDetails);
 
-        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
                 new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
@@ -567,7 +563,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
-        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("case-manager"),
@@ -667,7 +663,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
             .thenReturn(caseDetails);
 
-        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
                 new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
@@ -678,7 +674,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
-        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
@@ -780,7 +776,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
             .thenReturn(caseDetails);
 
-        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
                 new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
@@ -791,7 +787,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
-        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
@@ -894,7 +890,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
             .thenReturn(caseDetails);
 
-        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
                 new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
@@ -905,7 +901,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
-        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
@@ -1000,7 +996,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].execute").value(false),
                 jsonPath("$.task_role_resources.[0].manage").value(false),
                 jsonPath("$.task_role_resources.[0].cancel").value(false),
-                jsonPath("$.task_role_resources.[0].refer").value(true),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[1].role_name")
                     .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
@@ -1008,8 +1003,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].own").value(true),
                 jsonPath("$.task_role_resources.[1].execute").value(false),
                 jsonPath("$.task_role_resources.[1].manage").value(false),
-                jsonPath("$.task_role_resources.[1].cancel").value(false),
-                jsonPath("$.task_role_resources.[1].refer").value(true)
+                jsonPath("$.task_role_resources.[1].cancel").value(false)
             );
     }
 
@@ -1027,7 +1021,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
             .thenReturn(caseDetails);
 
-        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
                 new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
@@ -1038,7 +1032,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
-        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
@@ -1123,7 +1117,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].execute").value(false),
                 jsonPath("$.task_role_resources.[0].manage").value(false),
                 jsonPath("$.task_role_resources.[0].cancel").value(false),
-                jsonPath("$.task_role_resources.[0].refer").value(true),
                 jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[1].role_name")
@@ -1133,7 +1126,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].execute").value(false),
                 jsonPath("$.task_role_resources.[1].manage").value(false),
                 jsonPath("$.task_role_resources.[1].cancel").value(false),
-                jsonPath("$.task_role_resources.[1].refer").value(true),
                 jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
             );
     }

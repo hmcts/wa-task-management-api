@@ -21,8 +21,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -58,18 +61,21 @@ public class TaskActionsController extends BaseController {
     private final TaskManagementService taskManagementService;
     private final AccessControlService accessControlService;
     private final ClientAccessControlService clientAccessControlService;
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final SystemDateProvider systemDateProvider;
 
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
-                                 ClientAccessControlService clientAccessControlService) {
+                                 ClientAccessControlService clientAccessControlService,
+                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
         this.clientAccessControlService = clientAccessControlService;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.")
@@ -163,10 +169,11 @@ public class TaskActionsController extends BaseController {
                                            @RequestBody AssignTaskRequest assignTaskRequest) {
 
         AccessControlResponse assignerAccessControlResponse = accessControlService.getRoles(assignerAuthToken);
-        Optional<AccessControlResponse> assigneeAccessControlResponse = assignTaskRequest.getUserId() == null
-            ? Optional.empty()
-            : Optional.ofNullable(accessControlService.getRolesGivenUserId(assignTaskRequest.getUserId(),
-                                                                           assignerAuthToken));
+        Optional<AccessControlResponse> assigneeAccessControlResponse = getAssigneeAccessControlResponse(
+            assignerAuthToken,
+            assignTaskRequest,
+            assignerAccessControlResponse
+        );
 
         taskManagementService.assignTask(
             taskId,
@@ -320,4 +327,27 @@ public class TaskActionsController extends BaseController {
             ));
     }
 
+    private Optional<AccessControlResponse> getAssigneeAccessControlResponse(
+        String assignerAuthToken,
+        AssignTaskRequest assignTaskRequest,
+        AccessControlResponse assignerAccessControlResponse) {
+
+        UserInfo userInfo = assignerAccessControlResponse.getUserInfo();
+        return assignTaskRequest.getUserId() == null
+            && isGranularPermissionFeatureEnabled(userInfo.getUid(), userInfo.getEmail())
+            ? Optional.empty()
+            : Optional.ofNullable(accessControlService.getRolesGivenUserId(
+            assignTaskRequest.getUserId(),
+            assignerAuthToken
+        ));
+    }
+
+    private boolean isGranularPermissionFeatureEnabled(String userId, String email) {
+        return launchDarklyFeatureFlagProvider
+            .getBooleanValue(
+                FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+                userId,
+                email
+            );
+    }
 }
