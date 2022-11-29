@@ -12,6 +12,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
@@ -1285,6 +1286,7 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1402,6 +1404,7 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1432,6 +1435,7 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1462,6 +1466,8 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
+
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1492,6 +1498,7 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1522,6 +1529,8 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
+
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1552,6 +1561,7 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1582,6 +1592,7 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
             "senior-tribunal-caseworker",
             false,
@@ -1594,6 +1605,7 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource2.setTaskResource(createTaskResource());
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = singletonList(
@@ -1628,6 +1640,7 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
             "senior-tribunal-caseworker",
             false,
@@ -1640,6 +1653,7 @@ class NewCFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource2.setTaskResource(createTaskResource());
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = asList(
@@ -1958,6 +1972,102 @@ class NewCFTTaskMapperTest {
         cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
             "", true);
         assertEquals("nextHearingId", taskResource.getNextHearingId());
+    }
+
+    @Test
+    void should_not_use_specific_role_assignments_from_other_case() {
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            new String[]{},
+            0,
+            true
+        );
+        taskRoleResource.setTaskResource(createTaskResource());
+
+        TaskRoleResource taskRoleResourceSpecific = new TaskRoleResource(
+            "case-manager",
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            new String[]{},
+            0,
+            true
+        );
+        taskRoleResourceSpecific.setTaskResource(createTaskResource());
+
+        Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource, taskRoleResourceSpecific));
+        List<RoleAssignment> roleAssignments = asList(
+            RoleAssignmentCreator.aRoleAssignment("1623278362430412", "tribunal-caseworker",
+                                                  RoleType.ORGANISATION).build(),
+            RoleAssignmentCreator.aRoleAssignment("adifferentcaseId", "case-manager",
+                                                  RoleType.CASE).build());
+
+        Set<PermissionTypes> permissionsUnion =
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+
+        assertFalse(permissionsUnion.isEmpty());
+        assertTrue(permissionsUnion.contains(PermissionTypes.READ));
+        assertFalse(permissionsUnion.contains(PermissionTypes.OWN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
+        assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
+        assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
+    }
+
+    @Test
+    void should_use_specific_role_assignments() {
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            new String[]{},
+            0,
+            true
+        );
+        taskRoleResource.setTaskResource(createTaskResource());
+
+        TaskRoleResource taskRoleResourceSpecific = new TaskRoleResource(
+            "case-manager",
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            new String[]{},
+            0,
+            true
+        );
+        taskRoleResourceSpecific.setTaskResource(createTaskResource());
+
+        Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource, taskRoleResourceSpecific));
+        List<RoleAssignment> roleAssignments = asList(
+            RoleAssignmentCreator.aRoleAssignment("1623278362430412", "tribunal-caseworker",
+                                                  RoleType.ORGANISATION).build(),
+            RoleAssignmentCreator.aRoleAssignment("1623278362430412", "case-manager",
+                                                  RoleType.CASE).build());
+
+        Set<PermissionTypes> permissionsUnion =
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+
+        assertFalse(permissionsUnion.isEmpty());
+        assertTrue(permissionsUnion.contains(PermissionTypes.READ));
+        assertTrue(permissionsUnion.contains(PermissionTypes.OWN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
+        assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
+        assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
     }
 
     private TaskResource createTaskResource() {
