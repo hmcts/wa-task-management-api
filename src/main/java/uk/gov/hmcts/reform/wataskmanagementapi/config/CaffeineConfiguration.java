@@ -65,7 +65,7 @@ public class CaffeineConfiguration {
     public CacheManager calendarCacheManager(Caffeine<Object, Object> calendarCaffeineConfig) {
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
         caffeineCacheManager.setCaffeine(calendarCaffeineConfig);
-        caffeineCacheManager.setCacheNames(List.of("calendar"));
+        caffeineCacheManager.setCacheNames(List.of("calendar_cache"));
         return caffeineCacheManager;
     }
 
