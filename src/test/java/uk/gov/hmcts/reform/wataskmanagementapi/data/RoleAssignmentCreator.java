@@ -22,12 +22,17 @@ public class RoleAssignmentCreator {
     }
 
     public static RoleAssignment.RoleAssignmentBuilder aRoleAssignment() {
+        return aRoleAssignment("acaseid", "tribunal-caseworker", RoleType.ORGANISATION);
+    }
+
+    public static RoleAssignment.RoleAssignmentBuilder aRoleAssignment(String caseId, String roleName,
+                                                                       RoleType roleType) {
         return RoleAssignment.builder()
             .id(UUID.randomUUID().toString())
             .actorIdType(ActorIdType.IDAM)
             .actorId("someActorId")
-            .roleType(RoleType.ORGANISATION)
-            .roleName("tribunal-caseworker")
+            .roleType(roleType)
+            .roleName(roleName)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.SPECIFIC)
             .roleCategory(RoleCategory.LEGAL_OPERATIONS)
@@ -38,7 +43,8 @@ public class RoleAssignmentCreator {
             .authorisations(singletonList("731"))
             .attributes(Map.of(
                 RoleAttributeDefinition.JURISDICTION.value(), "IA",
-                RoleAttributeDefinition.CASE_TYPE.value(), "Asylum"
+                RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+                RoleAttributeDefinition.CASE_ID.value(), caseId
             ));
     }
 
