@@ -408,7 +408,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].execute").value(false),
                 jsonPath("$.task_role_resources.[0].manage").value(false),
                 jsonPath("$.task_role_resources.[0].cancel").value(false),
-                jsonPath("$.task_role_resources.[0].refer").value(true),
                 jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[1].role_name")
@@ -418,7 +417,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].execute").value(false),
                 jsonPath("$.task_role_resources.[1].manage").value(false),
                 jsonPath("$.task_role_resources.[1].cancel").value(false),
-                jsonPath("$.task_role_resources.[1].refer").value(true),
                 jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
             );
 
@@ -976,7 +974,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].execute").value(false),
                 jsonPath("$.task_role_resources.[0].manage").value(false),
                 jsonPath("$.task_role_resources.[0].cancel").value(false),
-                jsonPath("$.task_role_resources.[0].refer").value(true),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[1].role_name")
                     .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
@@ -984,8 +981,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].own").value(true),
                 jsonPath("$.task_role_resources.[1].execute").value(false),
                 jsonPath("$.task_role_resources.[1].manage").value(false),
-                jsonPath("$.task_role_resources.[1].cancel").value(false),
-                jsonPath("$.task_role_resources.[1].refer").value(true)
+                jsonPath("$.task_role_resources.[1].cancel").value(false)
             );
     }
 
@@ -1096,7 +1092,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].execute").value(false),
                 jsonPath("$.task_role_resources.[0].manage").value(false),
                 jsonPath("$.task_role_resources.[0].cancel").value(false),
-                jsonPath("$.task_role_resources.[0].refer").value(true),
                 jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[1].role_name")
@@ -1106,7 +1101,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].execute").value(false),
                 jsonPath("$.task_role_resources.[1].manage").value(false),
                 jsonPath("$.task_role_resources.[1].cancel").value(false),
-                jsonPath("$.task_role_resources.[1].refer").value(true),
                 jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
             );
     }
