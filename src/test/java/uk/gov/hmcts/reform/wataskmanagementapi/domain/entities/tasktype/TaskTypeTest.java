@@ -1,6 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import pl.pojo.tester.api.assertion.Method;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -9,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
+@ExtendWith(OutputCaptureExtension.class)
 class TaskTypeTest {
 
     @Test
@@ -110,6 +115,21 @@ class TaskTypeTest {
         TaskType taskType2 = new TaskType(taskTypeId2, taskTypeName2);
 
         assertNotEquals(taskType.hashCode(), taskType2.hashCode());
+    }
+
+    @Test
+    void should_write_log_when_duplicate_task_type_id_found(CapturedOutput output) {
+        String taskTypeId = "processApplication";
+        String taskTypeName = "process application";
+        String taskTypeId2 = "PROCESSAPPLICATION";
+        String taskTypeName2 = "PROCESS APPLICATION";
+
+        TaskType taskType = new TaskType(taskTypeId, taskTypeName);
+        TaskType taskType2 = new TaskType(taskTypeId2, taskTypeName2);
+        taskType.equals(taskType2);
+        String expectedMessage = "Duplicate task type found for.";
+
+        Assertions.assertThat(output.getOut().contains(expectedMessage));
     }
 
 }
