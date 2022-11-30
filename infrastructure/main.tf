@@ -25,20 +25,27 @@ resource "azurerm_key_vault_secret" "s2s_secret_task_management_api" {
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
 
+locals {
+  computed_tags = {
+    lastUpdated = timestamp()
+  }
+  common_tags = merge(var.common_tags, local.computed_tags)
+}
+
 //Create Database
 module "wa_task_management_api_database" {
   source             = "git@github.com:hmcts/cnp-module-postgres?ref=master"
-  product            = "${var.product}"
+  product            = var.product
   name               = "${var.postgres_db_component_name}-postgres-db"
-  location           = "${var.location}"
-  env                = "${var.env}"
-  database_name      = "${var.postgresql_database_name}"
-  postgresql_user    = "${var.postgresql_user}"
+  location           = var.location
+  env                = var.env
+  database_name      = var.postgresql_database_name
+  postgresql_user    = var.postgresql_user
   postgresql_version = "11"
-  common_tags        = "${merge(var.common_tags, map("lastUpdated", "${timestamp()}"))}"
-  subscription       = "${var.subscription}"
-  sku_capacity       = "${var.database_sku_capacity}"
-  sku_name           = "${var.database_sku_name}"
+  common_tags        = local.common_tags
+  subscription       = var.subscription
+  sku_capacity       = var.database_sku_capacity
+  sku_name           = var.database_sku_name
 }
 
 

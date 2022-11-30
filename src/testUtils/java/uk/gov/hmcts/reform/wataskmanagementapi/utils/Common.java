@@ -551,10 +551,16 @@ public class Common {
     }
 
     public void setupFtpaJudgeForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
+        setupFtpaJudgeForSpecificAccess(headers, caseId, jurisdiction, caseType, true);
+    }
+
+    public void setupFtpaJudgeForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType, boolean clearRoleAssignments) {
         log.info("Creating ftpa-judge Case Role");
 
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        if (clearRoleAssignments) {
+            clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        }
 
         postRoleAssignment(
             caseId,
@@ -584,6 +590,15 @@ public class Common {
             null,
             userInfo.getUid()
         );
+    }
+
+    public void setupFtpaJudgeForCaseAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
+
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        createStandardTribunalCaseworker(userInfo, headers, jurisdiction, caseType);
+        setupFtpaJudgeForSpecificAccess(headers, caseId, jurisdiction, caseType, false);
+        //createFtpaJudge(userInfo, headers, jurisdiction, caseType, caseId);
     }
 
     public void setupHearingPanelJudgeForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
