@@ -84,9 +84,9 @@ class TaskTypesControllerTest {
         TaskType taskType = new TaskType("taskTypeId1", "Task type name");
         TaskTypeResponse taskTypeResponse = new TaskTypeResponse(taskType);
         List<TaskTypeResponse> taskTypeResponses = List.of(taskTypeResponse);
-
+        GetTaskTypesResponse getTaskTypesResponse = new GetTaskTypesResponse(taskTypeResponses);
         when(taskTypesService.getTaskTypes(accessControlResponse, "wa"))
-            .thenReturn(taskTypeResponses);
+            .thenReturn(getTaskTypesResponse);
 
         ResponseEntity<GetTaskTypesResponse> response =
             taskTypesController.getTaskTypes(IDAM_AUTH_TOKEN, "wa");
