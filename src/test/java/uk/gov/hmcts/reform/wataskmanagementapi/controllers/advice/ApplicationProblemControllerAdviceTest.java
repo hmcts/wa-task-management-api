@@ -36,7 +36,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundExcepti
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomizedConstraintViolationException;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -81,12 +80,12 @@ class ApplicationProblemControllerAdviceTest {
     }
 
     @Test
-    void should_handle_feign_server_exception() {
+    void should_handle_feign_service_unavailable_exception() {
         Request request = Request.create(Request.HttpMethod.GET, "url",
             new HashMap<>(), null, new RequestTemplate());
 
-        FeignException exception = new FeignException.BadRequest(
-            "Downstream Dependency Error",
+        FeignException exception = new FeignException.ServiceUnavailable(
+            "Service unavailable",
             request,
             null,
             null);
@@ -103,31 +102,6 @@ class ApplicationProblemControllerAdviceTest {
         assertEquals("Downstream Dependency Error", response.getBody().getTitle());
         assertEquals(ErrorMessages.DOWNSTREAM_DEPENDENCY_ERROR.getDetail(), response.getBody().getDetail());
         assertEquals(BAD_GATEWAY, response.getBody().getStatus());
-    }
-
-    @Test
-    void should_handle_feign_service_unavailable_exception() {
-        Request request = Request.create(Request.HttpMethod.GET, "url",
-            new HashMap<>(), null, new RequestTemplate());
-
-        FeignException exception = new FeignException.ServiceUnavailable(
-            "Service unavailable",
-            request,
-            null,
-            null);
-
-        ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice
-            .handleServiceUnavailableException(exception);
-
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(
-            URI.create("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable"),
-            response.getBody().getType()
-        );
-        assertEquals("Service Unavailable", response.getBody().getTitle());
-        assertEquals(ErrorMessages.SERVICE_UNAVAILABLE.getDetail(), response.getBody().getDetail());
-        assertEquals(SERVICE_UNAVAILABLE, response.getBody().getStatus());
     }
 
     @Test
@@ -157,31 +131,12 @@ class ApplicationProblemControllerAdviceTest {
         CustomConstraintViolationException exception = new CustomConstraintViolationException(violationList);
 
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
-            .handleConstraintViolation(exception);
+            .handleCustomConstraintViolation(exception);
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
             URI.create("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"),
-            response.getBody().getType()
-        );
-        assertEquals("Constraint Violation", response.getBody().getTitle());
-        assertEquals(BAD_REQUEST, response.getBody().getStatus());
-    }
-
-    @Test
-    void should_handle_customized_constraint_violation_exception() {
-
-        List<Violation> violationList = singletonList(new Violation("some.field", "some message"));
-        CustomizedConstraintViolationException exception = new CustomizedConstraintViolationException(violationList);
-
-        ResponseEntity<Problem> response = applicationProblemControllerAdvice
-            .handleConstraintViolation(exception);
-
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(
-            URI.create("https://github.com/hmcts/wa-task-management-api/problem/constraint-violation"),
             response.getBody().getType()
         );
         assertEquals("Constraint Violation", response.getBody().getTitle());

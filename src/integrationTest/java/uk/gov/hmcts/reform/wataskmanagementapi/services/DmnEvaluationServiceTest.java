@@ -44,15 +44,15 @@ public class DmnEvaluationServiceTest {
         when(serviceAuthTokenGenerator.generate())
             .thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnName);
-        dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnName);
-        dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnName);
-        dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnName);
-        dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName);
-        dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName);
-        dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName);
-        dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName);
-        dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName);
+        dmnEvaluationService.getTaskTypesDmn("wa", dmnName);
+        dmnEvaluationService.getTaskTypesDmn("wa", dmnName);
+        dmnEvaluationService.getTaskTypesDmn("wa", dmnName);
+        dmnEvaluationService.getTaskTypesDmn("wa", dmnName);
+        dmnEvaluationService.getTaskTypesDmn("ia", dmnName);
+        dmnEvaluationService.getTaskTypesDmn("ia", dmnName);
+        dmnEvaluationService.getTaskTypesDmn("ia", dmnName);
+        dmnEvaluationService.getTaskTypesDmn("ia", dmnName);
+        dmnEvaluationService.getTaskTypesDmn("ia", dmnName);
 
         verify(camundaServiceApi, times(1))
             .getTaskTypesDmnTable(
@@ -141,7 +141,6 @@ public class DmnEvaluationServiceTest {
                 "sscs",
                 new DmnRequest<>()
             );
-
 
         // when 61 mins later cache expired should call the service 1 more
         TestConfiguration.fakeTicker.advance(61, TimeUnit.MINUTES);

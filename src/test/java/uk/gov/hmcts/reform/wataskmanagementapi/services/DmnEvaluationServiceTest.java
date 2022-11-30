@@ -1,21 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
-import feign.Request;
-import feign.RequestTemplate;
-import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DecisionTableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DmnRequest;
@@ -25,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypes
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnResponse;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -47,7 +39,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTa
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.jsonValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 
-@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
+@ExtendWith(MockitoExtension.class)
 class DmnEvaluationServiceTest {
 
     private static final String BEARER_SERVICE_TOKEN = "Bearer service token";
@@ -55,27 +47,15 @@ class DmnEvaluationServiceTest {
     private static final String TASK_ATTRIBUTES = "{ \"taskTypeId\": " + TASK_TYPE_ID + "}";
     private static final String DMN_NAME = "Task Types DMN";
 
+    DmnEvaluationService dmnEvaluationService;
     @Mock
     private CamundaServiceApi camundaServiceApi;
     @Mock
     private AuthTokenGenerator authTokenGenerator;
-    @Mock
-    private CamundaObjectMapper camundaObjectMapper;
-
-    DmnRequest<DecisionTableRequest> dmnRequest = new DmnRequest<>();
-    DmnEvaluationService dmnEvaluationService;
-    Request request = Request.create(Request.HttpMethod.GET, "url",
-        new HashMap<>(), null, new RequestTemplate());
 
     @BeforeEach
     void setUp() {
-        dmnEvaluationService = new DmnEvaluationService(camundaServiceApi,
-            authTokenGenerator,
-            camundaObjectMapper
-        );
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
-
+        dmnEvaluationService = new DmnEvaluationService(camundaServiceApi, authTokenGenerator);
     }
 
     @Test
@@ -232,7 +212,9 @@ class DmnEvaluationServiceTest {
                 DMN_NAME
             );
 
-        Set<TaskTypesDmnResponse> response = dmnEvaluationService.retrieveTaskTypesDmn(
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
+
+        Set<TaskTypesDmnResponse> response = dmnEvaluationService.getTaskTypesDmn(
             "wa",
             DMN_NAME
         );
@@ -250,71 +232,24 @@ class DmnEvaluationServiceTest {
     }
 
     @Test
-    void should_throw_502_exception_when_retrieving_task_type_dmn_and_camunda_service_throws_an_exception(
-        CapturedOutput output) {
+    void should_throw_exception_when_retrieving_dmn_list() {
 
-        FeignException exception = createFeignExceptionFor502();
-        String jurisdiction = "wa502";
-        doThrow(exception)
+        doThrow(FeignException.class)
             .when(camundaServiceApi)
             .getTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
-                jurisdiction,
+                "wa",
                 DMN_NAME
             );
 
-        CamundaExceptionMessage camundaExceptionMessage = new CamundaExceptionMessage("some_type",
-            "some_message");
-
-        when(camundaObjectMapper.readValue(exception.contentUTF8(), CamundaExceptionMessage.class))
-            .thenReturn(camundaExceptionMessage);
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .retrieveTaskTypesDmn(jurisdiction, DMN_NAME)
+            .getTaskTypesDmn("wa", DMN_NAME)
         )
-            .isInstanceOf(FeignException.BadRequest.class)
-            .hasMessage("Downstream Dependency Error");
-
-        String expectedMessage = String.format("An error occurred when getting task-type dmn. "
-                                               + "Could not get Task Types DMN from camunda for %s. "
-                                               + "Exception: Downstream Dependency Error", jurisdiction);
-
-        Assertions.assertThat(output.getOut().contains(expectedMessage));
-
-
-        expectedMessage = "An error occurred when getting task-type dmn. "
-                          + "CamundaException type:some_type message:some_message";
-
-        Assertions.assertThat(output.getOut().contains(expectedMessage));
-
-    }
-
-    @Test
-    void should_throw_503_exception_when_retrieving_task_type_dmn_and_camunda_service_unavailable(
-        CapturedOutput output) {
-
-        FeignException exception = createFeignExceptionFor503();
-        String jurisdiction = "wa503";
-        doThrow(exception)
-            .when(camundaServiceApi)
-            .getTaskTypesDmnTable(
-                BEARER_SERVICE_TOKEN,
-                jurisdiction,
-                DMN_NAME
-            );
-
-        assertThatThrownBy(() -> dmnEvaluationService
-            .retrieveTaskTypesDmn(jurisdiction, DMN_NAME)
-        )
-            .isInstanceOf(FeignException.ServiceUnavailable.class)
-            .hasMessage("Service unavailable");
-
-        String expectedMessage = String.format(
-            "An error occurred when getting task-type dmn due to service unavailable. "
-            + "Could not get Task Types DMN from camunda for %s. "
-            + "Exception: Service unavailable", jurisdiction);
-
-        Assertions.assertThat(output.getOut().contains(expectedMessage));
+            .isInstanceOf(IllegalStateException.class)
+            .hasCauseInstanceOf(FeignException.class)
+            .hasMessage(String.format("Could not get %s from camunda for %s", DMN_NAME, "wa"));
     }
 
     @Test
@@ -365,66 +300,25 @@ class DmnEvaluationServiceTest {
     }
 
     @Test
-    void should_throw_502_exception_when_evaluating_task_type_dmn_and_camunda_service_throws_an_exception(
-        CapturedOutput output) {
+    void should_throw_exception_when_evaluating_task_type_dmn() {
 
-        FeignException exception = createFeignExceptionFor502();
-        String jurisdiction = "ia502";
-        doThrow(exception)
+        doThrow(FeignException.class)
             .when(camundaServiceApi)
             .evaluateTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
                 DMN_NAME,
-                jurisdiction,
-                dmnRequest
+                "wa",
+                new DmnRequest<>()
             );
 
-        doThrow(NullPointerException.class)
-            .when(camundaObjectMapper)
-            .readValue(exception.contentUTF8(), CamundaExceptionMessage.class);
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .evaluateTaskTypesDmn(jurisdiction, DMN_NAME)
+            .evaluateTaskTypesDmn("wa", DMN_NAME)
         )
-            .isInstanceOf(FeignException.BadRequest.class)
-            .hasMessage("Downstream Dependency Error");
-
-        String expectedMessage = String.format("An error occurred when evaluating task-type dmn. "
-                                               + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
-                                               + "Exception:Downstream Dependency Error", jurisdiction);
-        Assertions.assertThat(output.getOut().contains(expectedMessage));
-
-        expectedMessage = "An error occurred when reading CamundaException. Exception:Downstream Dependency Error";
-        Assertions.assertThat(output.getOut().contains(expectedMessage));
-    }
-
-    @Test
-    void should_throw_503_exception_when_evaluating_task_type_dmn_and_camunda_service_unavailable(
-        CapturedOutput output) {
-
-        FeignException exception = createFeignExceptionFor503();
-
-        String jurisdiction = "ia503";
-        doThrow(exception)
-            .when(camundaServiceApi)
-            .evaluateTaskTypesDmnTable(
-                BEARER_SERVICE_TOKEN,
-                DMN_NAME,
-                jurisdiction,
-                dmnRequest
-            );
-
-        assertThatThrownBy(() -> dmnEvaluationService
-            .evaluateTaskTypesDmn(jurisdiction, DMN_NAME)
-        )
-            .isInstanceOf(FeignException.class)
-            .hasMessage("Service unavailable");
-
-        String expectedMessage = String.format(
-            "An error occurred when evaluating task-type dmn due to service unavailable. "
-            + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
-            + "Exception:Service unavailable", jurisdiction);
-        Assertions.assertThat(output.getOut().contains(expectedMessage));
+            .isInstanceOf(IllegalStateException.class)
+            .hasCauseInstanceOf(FeignException.class)
+            .hasMessage(String.format("Could not evaluate from decision table %s", DMN_NAME));
     }
 
 
@@ -437,24 +331,4 @@ class DmnEvaluationServiceTest {
                + "\"data\": {}"
                + "}";
     }
-
-    private FeignException createFeignExceptionFor502() {
-
-        return new FeignException.BadRequest(
-            "Downstream Dependency Error",
-            request,
-            null,
-            null);
-
-    }
-
-    private FeignException createFeignExceptionFor503() {
-
-        return new FeignException.ServiceUnavailable(
-            "Service unavailable",
-            request,
-            null,
-            null);
-    }
-
 }

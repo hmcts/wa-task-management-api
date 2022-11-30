@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypesResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskTypeResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskTypesService;
+
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -58,11 +61,11 @@ public class TaskTypesController extends BaseController {
         @RequestParam(name = "jurisdiction") String jurisdiction
     ) {
         AccessControlResponse roles = accessControlService.getRoles(authToken);
-        GetTaskTypesResponse response = taskTypesService.getTaskTypes(roles, jurisdiction);
+        List<TaskTypeResponse> taskTypeResponses = taskTypesService.getTaskTypes(roles, jurisdiction);
 
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
-            .body(response);
+            .body(new GetTaskTypesResponse(taskTypeResponses));
     }
 }

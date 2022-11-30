@@ -4,13 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Locale;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ToString
-@Slf4j
 public class TaskType {
 
     private final String taskTypeId;
@@ -41,13 +39,7 @@ public class TaskType {
             return false;
         }
         TaskType taskType = (TaskType) obj;
-
-        boolean isEqual = taskTypeId.equalsIgnoreCase(taskType.taskTypeId);
-
-        if (isEqual) {
-            log.info("Duplicate task type found for. {}", taskType);
-        }
-        return isEqual;
+        return taskTypeId.equalsIgnoreCase(taskType.taskTypeId);
     }
 
     @Override
