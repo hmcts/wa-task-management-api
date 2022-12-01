@@ -10,6 +10,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticatio
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -226,6 +228,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         Consumer<Response> assertConsumer = (result) -> {
             result.prettyPrint();
 
+            String expectedDueDate = ZonedDateTime.of(2022, 10, 25,
+                                                      20, 0, 0, 0,
+                                                      ZoneId.of("Europe/London")
+            ).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"));
+
             result.then().assertThat()
                 .statusCode(HttpStatus.OK.value())
                 .and()
@@ -255,7 +262,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(1000))
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo("2022-10-25T20:00:00+0100"));
+                .body("task.due_date", equalTo(expectedDueDate));
         };
 
         initiateTask(taskVariables, assertConsumer);
