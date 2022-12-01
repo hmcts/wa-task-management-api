@@ -553,7 +553,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             + "        {\n"
             + "            \"key\": \"request_context\",\n"
             + "            \"operator\": \"CONTEXT\",\n"
-            + "            \"value\": \"AVAILABLE_TASK_ONLY\""
+            + "            \"value\": \"AVAILABLE_TASKS\""
             + "        }\n"
             + "    ]\n"
             + "}";
