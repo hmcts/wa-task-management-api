@@ -705,8 +705,9 @@ public class CFTTaskMapper {
                 case DUE_DATE:
                     log.info("due date after calculation {}", value);
                     LocalDateTime dateTime = LocalDateTime.parse((String) value, DUE_DATE_TIME_FORMATTER);
-                    ZonedDateTime zonedDateTime = dateTime.atZone(ZoneId.of("Europe/London"));
-                    OffsetDateTime dueDateTime = zonedDateTime.toOffsetDateTime();
+                    ZoneId systemDefault = ZoneId.systemDefault();
+                    log.info("system default {}", systemDefault);
+                    OffsetDateTime dueDateTime = dateTime.atZone(systemDefault).toOffsetDateTime();
                     log.info("due date during initiation {}", dueDateTime);
                     taskResource.setDueDateTime(dueDateTime);
                     break;
