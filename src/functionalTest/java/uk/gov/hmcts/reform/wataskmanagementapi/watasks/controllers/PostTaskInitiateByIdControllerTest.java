@@ -219,7 +219,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         OffsetDateTime offsetDateTime = OffsetDateTime.now();
         System.out.println("offsetDateTime: " + offsetDateTime.toString());
         ZonedDateTime zonedDateTime = ZonedDateTime.now();
-        System.out.println("zonedDateTime: " + zonedDateTime.toString());
+        System.out.println("zonedDateTime: " + zonedDateTime.toString() + " in zone " + zonedDateTime.getZone());
 
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
