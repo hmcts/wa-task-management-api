@@ -216,16 +216,16 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_201_when_initiating_a_due_date_calculation_task_by_using_due_date_origin() {
+        OffsetDateTime offsetDateTime = OffsetDateTime.now();
+        System.out.println("offsetDateTime: " + offsetDateTime.toString());
+        ZonedDateTime zonedDateTime = ZonedDateTime.now();
+        System.out.println("zonedDateTime: " + zonedDateTime.toString());
+
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                              "calculateDueDate", "Calculate Due Date");
         String taskId = taskVariables.getTaskId();
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
-
-        OffsetDateTime offsetDateTime = OffsetDateTime.now();
-        System.out.println("offsetDateTime: " + offsetDateTime.toString());
-        ZonedDateTime zonedDateTime = ZonedDateTime.now();
-        System.out.println("zonedDateTime: " + zonedDateTime.toString());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
