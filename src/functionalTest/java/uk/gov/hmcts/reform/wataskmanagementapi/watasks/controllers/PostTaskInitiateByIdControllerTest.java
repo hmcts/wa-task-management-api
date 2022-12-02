@@ -222,6 +222,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
+        OffsetDateTime offsetDateTime = OffsetDateTime.now();
+        System.out.println("offsetDateTime: " + offsetDateTime.toString());
+        ZonedDateTime zonedDateTime = ZonedDateTime.now();
+        System.out.println("zonedDateTime: " + zonedDateTime.toString());
+
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
             result.prettyPrint();
