@@ -151,6 +151,7 @@ public class TaskManagementService {
             taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
         );
 
+        log.info("task resource due date before conversion {}", taskResource.getDueDateTime());
         boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
             accessControlResponse.getUserInfo().getUid(),
