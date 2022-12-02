@@ -151,6 +151,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_ASSIGNMENT_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.setTaskActionAttributes;
 
 @ExtendWith(MockitoExtension.class)
 @Slf4j
@@ -3238,6 +3239,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             );
 
             mergedTaskResource.setNotes(mergedNotesList);
+            setTaskActionAttributes(mergedTaskResource, IDAM_SYSTEM_USER, TaskAction.ADD_WARNING);
             when(cftTaskDatabaseService.saveTask(any()))
                 .thenReturn(mergedTaskResource);
 
@@ -3280,7 +3282,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             TaskResource mergedTaskResource = new TaskResource(
                 "taskId", "taskName", "taskType", CFTTaskState.ASSIGNED
             );
-
+            setTaskActionAttributes(mergedTaskResource, IDAM_SYSTEM_USER, TaskAction.ADD_WARNING);
             mergedTaskResource.setNotes(mergedNotesList);
             when(cftTaskDatabaseService.saveTask(any()))
                 .thenReturn(mergedTaskResource);

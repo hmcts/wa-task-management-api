@@ -14,11 +14,13 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -78,7 +80,11 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
-            .body("task.warnings", is(true));
+            .body("task.warnings", is(true))
+            .body("task.last_updated_timestamp", notNullValue())
+            .body("task.last_updated_user", equalTo(idamSystemUser))
+            .body("task.last_updated_action", equalTo(TaskAction.ADD_WARNING.getValue()));
+        ;
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "task.warning_list.values");
@@ -128,7 +134,10 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
-            .body("task.warnings", is(true));
+            .body("task.warnings", is(true))
+            .body("task.last_updated_timestamp", notNullValue())
+            .body("task.last_updated_user", equalTo(idamSystemUser))
+            .body("task.last_updated_action", equalTo(TaskAction.ADD_WARNING.getValue()));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "task.warning_list.values");
