@@ -15,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -129,7 +130,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
     @Mock
     private List<TaskOperationService> taskOperationServices;
-
+    @Mock
+    private IdamTokenGenerator idamTokenGenerator;
 
     @BeforeEach
     void setUp() {
@@ -147,7 +149,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);

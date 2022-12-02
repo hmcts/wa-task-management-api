@@ -301,7 +301,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             List.of(markTaskReconfigurationService, executeTaskReconfigurationService),
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
 
 

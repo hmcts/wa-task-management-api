@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
@@ -61,6 +62,8 @@ class TerminateTaskTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
+    @Mock
+    IdamTokenGenerator idamTokenGenerator;
 
     @BeforeEach
     public void setUp() {
@@ -77,7 +80,8 @@ class TerminateTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
 
 

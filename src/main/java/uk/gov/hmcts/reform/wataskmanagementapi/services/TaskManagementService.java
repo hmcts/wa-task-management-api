@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
@@ -87,6 +88,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_ASSIGNMENT_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.buildTaskActionAttributeForAssign;
@@ -115,6 +117,7 @@ public class TaskManagementService {
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final List<TaskOperationService> taskOperationServices;
     private final RoleAssignmentVerificationService roleAssignmentVerification;
+    private final IdamTokenGenerator idamTokenGenerator;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -128,7 +131,8 @@ public class TaskManagementService {
                                  TaskAutoAssignmentService taskAutoAssignmentService,
                                  RoleAssignmentVerificationService roleAssignmentVerification,
                                  List<TaskOperationService> taskOperationServices,
-                                 EntityManager entityManager) {
+                                 EntityManager entityManager,
+                                 IdamTokenGenerator idamTokenGenerator) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -138,6 +142,7 @@ public class TaskManagementService {
         this.taskOperationServices = taskOperationServices;
         this.roleAssignmentVerification = roleAssignmentVerification;
         this.entityManager = entityManager;
+        this.idamTokenGenerator = idamTokenGenerator;
     }
 
     /**
@@ -802,7 +807,9 @@ public class TaskManagementService {
             noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
         }
         taskResource.setHasWarnings(true);
-
+        String systemUserToken = idamTokenGenerator.generate();
+        String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
+        setTaskActionAttributes(taskResource, systemUserId, ADD_WARNING);
         return cftTaskDatabaseService.saveTask(taskResource);
     }
 

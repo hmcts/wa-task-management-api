@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
@@ -75,6 +76,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
+    @Mock
+    IdamTokenGenerator idamTokenGenerator;
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
@@ -100,7 +103,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
 
 

@@ -102,7 +102,6 @@ class InitiateTaskTest extends CamundaHelpers {
     @Mock
     private UserInfo userInfo;
 
-
     @BeforeEach
     void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
@@ -118,7 +117,8 @@ class InitiateTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
 
 
