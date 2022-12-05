@@ -10,8 +10,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 import javax.validation.constraints.NotNull;
 
 @Schema(
-    name = "SearchParameter",
-    description = "Search parameter containing the key, operator and a list of values"
+    name = "SearchParameterBoolean",
+    description = "Search parameter containing the key, operator and boolean values"
 )
 @EqualsAndHashCode
 @ToString

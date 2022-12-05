@@ -138,3 +138,7 @@ caffeine:
     timeout:
       duration: ${TASK_TYPE_CACHE_TIMEOUT_DURATION:60}
       unit: ${TASK_TYPE_CACHE_TIMEOUT_TIMEUNIT:MINUTES}
+
+bankHolidays:
+    api:
+        url: "https://www.gov.uk"

@@ -139,14 +139,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "sortByFieldScenario",
         "paginatedResultsScenario",
         "searchByWorkTypeScenario",
-        "grantTypeWithAvailableTasksOnlyRequestContextScenarioHappyPath",
         "grantTypeWithAllWorkRequestContextScenarioHappyPath",
         "searchByWorkTypeScenario",
         "searchByCaseIdScenario",
         "searchByJurisdictionLocationAndStateScenario",
         "searchByRoleCategoryScenario",
         "searchByStateScenario",
-        "searchByJurisdictionAndLocationScenario"
+        "searchByJurisdictionAndLocationScenario",
+        "grantTypeWithAvailableTasksRequestContextScenarioHappyPath"
     })
     void should_retrieve_tasks(TaskQueryScenario scenario) {
 
@@ -1270,12 +1270,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyRequestContextScenarioHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksRequestContextScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN,
-                RequestContext.AVAILABLE_TASK_ONLY)
+            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN, RequestContext.AVAILABLE_TASKS)
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
