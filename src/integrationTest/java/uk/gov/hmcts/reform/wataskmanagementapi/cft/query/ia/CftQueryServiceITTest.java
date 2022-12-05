@@ -140,8 +140,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "secondaryTaskTitleSortedResultsDescScenario",
         "secondaryCaseCategorySortedResultsAscScenario",
         "secondaryCaseCategorySortedResultsDescScenario",
-        "grantTypeWithAvailableTasksOnlyOnRequestContextScenarioHappyPath",
-        "grantTypeWithAllWorkOnRequestContextScenarioHappyPath"
+        "grantTypeWithAllWorkOnRequestContextScenarioHappyPath",
+        "grantTypeWithAvailableTasksOnRequestContextScenarioHappyPath"
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
         log.info("Running scenario: {}", scenario.scenarioName);
@@ -970,12 +970,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyOnRequestContextScenarioHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnRequestContextScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN,
-                RequestContext.AVAILABLE_TASK_ONLY)
+            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN, RequestContext.AVAILABLE_TASKS)
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
