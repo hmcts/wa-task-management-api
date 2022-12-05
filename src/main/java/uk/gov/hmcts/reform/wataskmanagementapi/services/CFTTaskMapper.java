@@ -32,7 +32,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePerm
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,6 +91,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator.DUE_DATE_TIME_FORMATTER;
 
 
 @Service
@@ -698,6 +701,15 @@ public class CFTTaskMapper {
                     } else {
                         taskResource.setPriorityDate((OffsetDateTime) value);
                     }
+                    break;
+                case DUE_DATE:
+                    log.info("due date after calculation {}", value);
+                    LocalDateTime dateTime = LocalDateTime.parse((String) value, DUE_DATE_TIME_FORMATTER);
+                    ZoneId systemDefault = ZoneId.systemDefault();
+                    log.info("system default {}", systemDefault);
+                    OffsetDateTime dueDateTime = dateTime.atZone(systemDefault).toOffsetDateTime();
+                    log.info("due date during initiation {}", dueDateTime);
+                    taskResource.setDueDateTime(dueDateTime);
                     break;
                 default:
                     break;
