@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Configura
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateConfigurator;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,14 +32,17 @@ public class CaseConfigurationProviderService {
     private final CcdDataService ccdDataService;
     private final DmnEvaluationService dmnEvaluationService;
     private final ObjectMapper objectMapper;
+    private final DueDateConfigurator dueDateConfigurator;
 
     @Autowired
     public CaseConfigurationProviderService(CcdDataService ccdDataService,
                                             DmnEvaluationService dmnEvaluationService,
-                                            ObjectMapper objectMapper) {
+                                            ObjectMapper objectMapper,
+                                            DueDateConfigurator dueDateConfigurator) {
         this.ccdDataService = ccdDataService;
         this.dmnEvaluationService = dmnEvaluationService;
         this.objectMapper = objectMapper;
+        this.dueDateConfigurator = dueDateConfigurator;
     }
 
     /**
@@ -68,7 +72,7 @@ public class CaseConfigurationProviderService {
             );
 
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
-            = updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults);
+            = updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults, jurisdiction);
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(
@@ -124,7 +128,7 @@ public class CaseConfigurationProviderService {
     }
 
     private List<ConfigurationDmnEvaluationResponse> updateTaskConfigurationDmnResultsForAdditionalProperties(
-        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults) {
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults, String jurisdiction) {
 
         Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
             .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
@@ -140,7 +144,8 @@ public class CaseConfigurationProviderService {
                 CamundaValue.stringValue(writeValueAsString(additionalProperties))
             ));
         }
-        return configResponses;
+
+        return dueDateConfigurator.configureDueDate(configResponses, jurisdiction);
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(
