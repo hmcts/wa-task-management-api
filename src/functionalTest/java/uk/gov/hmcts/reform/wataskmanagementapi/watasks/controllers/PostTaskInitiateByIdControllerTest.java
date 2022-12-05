@@ -215,6 +215,62 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
+    public void should_calculate_due_date_when_initiating_a_multiple_calendar_task_using_due_date() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "multipleCalendarsDueDate", "Multiple calendars");
+        String taskId = taskVariables.getTaskId();
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Multiple calendars"))
+                .body("task.type", equalTo("multipleCalendarsDueDate"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Multiple calendars"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.work_type_id", equalTo("decision_making_work"))
+                .body("task.work_type_label", equalTo("Decision-making work"))
+                .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Execute"))
+                .body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.due_date", notNullValue())
+                .body("task.due_date", equalTo("2022-12-29T18:00:00+0000"));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
     public void should_return_a_201_when_initiating_a_due_date_calculation_task_by_using_due_date_origin() {
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
