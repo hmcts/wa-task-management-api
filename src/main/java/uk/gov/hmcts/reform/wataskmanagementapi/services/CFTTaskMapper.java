@@ -97,8 +97,8 @@ public class CFTTaskMapper {
                 Map.Entry::getValue
             ));
 
-        List<NoteResource> notes = extractWarningNotesNew(attributes);
-        ExecutionTypeResource executionTypeResource = extractExecutionTypeNew(attributes);
+        List<NoteResource> notes = extractWarningNotes(attributes);
+        ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
         OffsetDateTime dueDate = readDate(attributes, DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, CREATED, ZonedDateTime.now().toOffsetDateTime());
         OffsetDateTime priorityDate = readDate(attributes, PRIORITY_DATE, null);
@@ -694,7 +694,7 @@ public class CFTTaskMapper {
         return null;
     }
 
-    private ExecutionTypeResource extractExecutionTypeNew(Map<CamundaVariableDefinition, Object> attributes) {
+    private ExecutionTypeResource extractExecutionType(Map<CamundaVariableDefinition, Object> attributes) {
         String executionTypeName = read(attributes, EXECUTION_TYPE, null);
 
         if (executionTypeName != null) {
@@ -714,7 +714,7 @@ public class CFTTaskMapper {
         return null;
     }
 
-    private List<NoteResource> extractWarningNotesNew(Map<CamundaVariableDefinition, Object> attributes) {
+    private List<NoteResource> extractWarningNotes(Map<CamundaVariableDefinition, Object> attributes) {
         List<NoteResource> notes = null;
         WarningValues warningList = read(attributes, WARNING_LIST, null);
         if (warningList != null) {
