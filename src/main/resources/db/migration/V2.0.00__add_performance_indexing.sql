@@ -18,6 +18,8 @@ alter table cft_task_db.tasks add column indexed boolean not null default false;
  * Simple static view for determining which classifications are
  * >= or <= the others.
  */
+drop view if exists cft_task_db.classifications;
+
 create view cft_task_db.classifications as
 with classifications (lower, higher) as (
   values
@@ -36,6 +38,8 @@ select lower,higher from classifications;
  * no need to include any of the others.  (Note: this will change when
  * we add permissions such as claim, etc.)
  */
+drop view if exists cft_task_db.task_permissions;
+
 create view cft_task_db.task_permissions as
 select task_id as task_id,
        role_name as role_name,
