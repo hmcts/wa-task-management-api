@@ -64,6 +64,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .antMatchers("/task-configuration/**").permitAll()
             .antMatchers(HttpMethod.POST, "/task/{\\\\d+}").permitAll()
             .antMatchers(HttpMethod.POST, "/task/{\\\\d+}/initiation").permitAll()
+            .antMatchers(HttpMethod.POST, "/task/{\\\\d+}/notes").permitAll()
             .antMatchers(HttpMethod.DELETE, "/task/{\\\\d+}").permitAll()
             .anyRequest().authenticated()
             .and()
