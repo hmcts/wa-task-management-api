@@ -79,6 +79,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DESCRIPTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
@@ -433,7 +434,7 @@ class CFTTaskMapperTest {
         assertEquals(5000, taskResource.getMajorPriority());
         assertEquals(500, taskResource.getMinorPriority());
         assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), taskResource.getPriorityDate());
-        assertEquals(OffsetDateTime.parse("2021-05-09T20:15+01:00"), taskResource.getDueDateTime());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15Z"), taskResource.getDueDateTime());
     }
 
     @Test
@@ -2250,7 +2251,7 @@ class CFTTaskMapperTest {
         assertEquals(1, reconfiguredTaskResource.getMajorPriority());
         assertEquals("nextHearingId1", reconfiguredTaskResource.getNextHearingId());
         assertEquals(taskResource.getNextHearingDate(), reconfiguredTaskResource.getNextHearingDate());
-        assertEquals(OffsetDateTime.parse("2021-05-09T20:15+01:00"), reconfiguredTaskResource.getDueDateTime());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15Z"), reconfiguredTaskResource.getDueDateTime());
 
     }
 
