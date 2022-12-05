@@ -602,7 +602,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         searchTaskRequest = new SearchTaskRequest(
             asList(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
-                new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.AVAILABLE_TASK_ONLY),
+                new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.AVAILABLE_TASKS),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
             ),
             List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT))
