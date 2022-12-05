@@ -70,12 +70,13 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true",
-        "true,true"
+        "false,true,T20:00",
+        "true,true,T18:00"
     })
     public void shouldCalculateDueDateWhenMultipleDueDateAndTimesAreAvailable(
         String isReConfigurationRequest,
-        String canConfigure) {
+        String canConfigure,
+        String expectedTime) {
 
         String firstDueDate = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String secondDueDate = GIVEN_DATE.plusDays(9).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -112,7 +113,7 @@ public class DueDateConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(secondDueDate + "T20:00"))
+                                   .value(CamundaValue.stringValue(secondDueDate + expectedTime))
                                    .build()));
     }
 
@@ -296,16 +297,11 @@ public class DueDateConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
-        "false", "true"
-    })
-    public void shouldReturnDefaultDueDateWhenDueDatePropertiesAreNotAvailableAndJurisdictionIsWA(
-        String isReConfigurationRequest
-    ) {
+    @Test
+    public void shouldReturnDefaultDueDateWhenDueDatePropertiesAreNotAvailableAndJurisdictionIsWA() {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(), "WA", Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDueDate(List.of(), "WA", false);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
@@ -479,24 +475,18 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,false,true,true,6,8,T18:00",
-        "false,false,true,true,8,12,T18:00",
-        "false,false,true,false,6,8,T18:00",
+        "false,false,true,true,6,6,T18:00",
+        "false,false,true,true,8,8,T18:00",
+        "false,false,true,false,6,6,T18:00",
         "false,false,false,true,6,6,T18:00",
-        "false,false,false,true,2,4,T18:00",
+        "false,false,false,true,2,2,T18:00",
         "false,false,false,false,6,6,T18:00",
-        "true,true,true,true,6,8,T18:00",
-        "true,true,true,true,8,12,T18:00",
-        "true,true,true,false,6,8,T18:00",
+        "true,true,true,true,6,6,T18:00",
+        "true,true,true,true,8,8,T18:00",
+        "true,true,true,false,6,6,T18:00",
         "true,true,false,true,6,6,T18:00",
-        "true,true,false,true,2,4,T18:00",
-        "true,true,false,false,6,6,T18:00",
-        "true,false,true,true,6,0,T16:00",
-        "true,false,true,true,8,0,T16:00",
-        "true,false,true,false,6,0,T16:00",
-        "true,false,false,true,6,0,T16:00",
-        "true,false,false,true,2,0,T16:00",
-        "true,false,false,false,6,0,T16:00"
+        "true,true,false,true,2,2,T18:00",
+        "true,true,false,false,6,6,T18:00"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvidedAndNonWorkingDayNotConsidered(
         String isReConfigurationRequest,
@@ -583,13 +573,7 @@ public class DueDateConfiguratorTest {
         "true,true,true,false,6,8,T18:00",
         "true,true,false,true,6,6,T18:00",
         "true,true,false,true,2,4,T18:00",
-        "true,true,false,false,6,6,T18:00",
-        "true,false,true,true,6,0,T16:00",
-        "true,false,true,true,8,0,T16:00",
-        "true,false,true,false,6,0,T16:00",
-        "true,false,false,true,6,0,T16:00",
-        "true,false,false,true,2,0,T16:00",
-        "true,false,false,false,6,0,T16:00"
+        "true,true,false,false,6,6,T18:00"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvided(
         String isReConfigurationRequest,
