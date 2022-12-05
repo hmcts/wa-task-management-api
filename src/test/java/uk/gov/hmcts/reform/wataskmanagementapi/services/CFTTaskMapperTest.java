@@ -58,6 +58,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -76,6 +78,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DESCRIPTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
@@ -383,6 +386,7 @@ class CFTTaskMapperTest {
         String nextHearingDate = OffsetDateTime.now().toString();
         mappedValues.put(NEXT_HEARING_DATE.value(), nextHearingDate);
         mappedValues.put(PRIORITY_DATE.value(), OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+        mappedValues.put(DUE_DATE.value(), "2021-05-09T20:15");
         mappedValues.put(MAJOR_PRIORITY.value(), 5000);
         mappedValues.put(MINOR_PRIORITY.value(), 500);
 
@@ -430,6 +434,7 @@ class CFTTaskMapperTest {
         assertEquals(5000, taskResource.getMajorPriority());
         assertEquals(500, taskResource.getMinorPriority());
         assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), taskResource.getPriorityDate());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15Z"), taskResource.getDueDateTime());
     }
 
     @Test
@@ -1376,6 +1381,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1419,6 +1425,9 @@ class CFTTaskMapperTest {
             false,
             true
         );
+        TaskResource taskResource = mock(TaskResource.class);
+        when(taskResource.getCaseId()).thenReturn("CASE_ID");
+        taskRoleResource.setTaskResource(taskResource);
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1473,6 +1482,9 @@ class CFTTaskMapperTest {
             false,
             true
         );
+        TaskResource taskResource = mock(TaskResource.class);
+        when(taskResource.getCaseId()).thenReturn("CASE_ID");
+        taskRoleResource.setTaskResource(taskResource);
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1761,6 +1773,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1791,6 +1804,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1821,6 +1835,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1851,6 +1866,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1881,6 +1897,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1911,6 +1928,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1941,6 +1959,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
             "senior-tribunal-caseworker",
             false,
@@ -1953,6 +1972,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource2.setTaskResource(createTaskResource());
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = singletonList(
@@ -1987,6 +2007,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
             "senior-tribunal-caseworker",
             false,
@@ -1999,6 +2020,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = asList(

@@ -10,6 +10,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -31,7 +32,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePerm
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,6 +91,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator.DUE_DATE_TIME_FORMATTER;
 
 
 @Service
@@ -328,6 +332,7 @@ public class CFTTaskMapper {
             extractUnionOfPermissionsForUser(
                 taskResource.getTaskRoleResources(),
                 roleAssignments,
+                taskResource.getCaseId(),
                 granularPermissionResponseFeature
             );
 
@@ -386,19 +391,41 @@ public class CFTTaskMapper {
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments,
                                                                  boolean granularPermissionResponseFeature) {
-        List<String> userRoleNames = roleAssignments.stream()
-            .map(RoleAssignment::getRoleName)
-            .collect(Collectors.toList());
+        Optional caseId = taskRoleResources.stream()
+            .filter(t -> t.getTaskResource() != null
+                && t.getTaskResource().getCaseId() != null).map(t -> t.getTaskResource().getCaseId())
+            .findFirst();
+        if (caseId.isPresent()) {
+            return extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments,
+                                                    (String) caseId.get(), granularPermissionResponseFeature);
+        } else {
+            return new TreeSet<PermissionTypes>();
+        }
+    }
 
+    private Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
+                                                                 List<RoleAssignment> roleAssignments,
+                                                                 String caseId,
+                                                                 boolean granularPermissionResponseFeature) {
         TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
+        if (caseId != null) {
+            List<String> userRoleNames = roleAssignments.stream()
+                .filter(ra -> !ra.getRoleType().equals(RoleType.CASE) || ra.getAttributes() != null
+                    && ra.getAttributes().get("caseId") != null
+                    && ra.getAttributes().get("caseId").equals(caseId))
+                .map(RoleAssignment::getRoleName)
+                .collect(Collectors.toList());
 
-        if (taskRoleResources != null) {
-            taskRoleResources.forEach(taskRoleResource -> {
-                if (userRoleNames.contains(taskRoleResource.getRoleName())) {
-                    Set<PermissionTypes> permissionTypes = evaluatePermissionsFoundAndCollectResults(taskRoleResource);
-                    permissionsFound.addAll(permissionTypes);
-                }
-            });
+
+            if (taskRoleResources != null) {
+                taskRoleResources.forEach(taskRoleResource -> {
+                    if (userRoleNames.contains(taskRoleResource.getRoleName())) {
+                        Set<PermissionTypes> permissionTypes = evaluatePermissionsFoundAndCollectResults(
+                            taskRoleResource);
+                        permissionsFound.addAll(permissionTypes);
+                    }
+                });
+            }
         }
 
         if (!granularPermissionResponseFeature) {
@@ -674,6 +701,15 @@ public class CFTTaskMapper {
                     } else {
                         taskResource.setPriorityDate((OffsetDateTime) value);
                     }
+                    break;
+                case DUE_DATE:
+                    log.info("due date after calculation {}", value);
+                    LocalDateTime dateTime = LocalDateTime.parse((String) value, DUE_DATE_TIME_FORMATTER);
+                    ZoneId systemDefault = ZoneId.systemDefault();
+                    log.info("system default {}", systemDefault);
+                    OffsetDateTime dueDateTime = dateTime.atZone(systemDefault).toOffsetDateTime();
+                    log.info("due date during initiation {}", dueDateTime);
+                    taskResource.setDueDateTime(dueDateTime);
                     break;
                 default:
                     break;
