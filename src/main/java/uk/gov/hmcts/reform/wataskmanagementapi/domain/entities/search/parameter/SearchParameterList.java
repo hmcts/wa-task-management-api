@@ -11,7 +11,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Schema(
-    name = "SearchParameter",
+    name = "SearchParameterList",
     description = "Search parameter containing the key, operator and a list of values"
 )
 @EqualsAndHashCode
