@@ -100,7 +100,7 @@ class CaseConfigurationProviderServiceTest {
             LocalDate.of(2022, 12, 27)
         );
 
-        lenient().when(publicHolidaysCollection.getPublicHolidays(CALENDAR_URI)).thenReturn(localDates);
+        lenient().when(publicHolidaysCollection.getPublicHolidays(List.of(CALENDAR_URI))).thenReturn(localDates);
     }
 
     public static Stream<Arguments> scenarioProvider() {
