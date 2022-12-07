@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.Value;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
@@ -42,17 +43,19 @@ public class ClientFilter
 		if (clientQuery.getListFilters() != null) searchParameters.addAll(clientQuery.getListFilters());
 		if (clientQuery.getBooleanFilters() != null) searchParameters.addAll(clientQuery.getBooleanFilters());
 		return new ClientFilter(
-				getConstraints(searchParameters, SearchParameterKey.STATE),
-				getConstraints(searchParameters, SearchParameterKey.JURISDICTION),
-				getConstraints(searchParameters, SearchParameterKey.ROLE_CATEGORY),
-				getConstraints(searchParameters, SearchParameterKey.WORK_TYPE),
-				getConstraints(searchParameters, SearchParameterKey.TASK_TYPE),
-				new HashSet<>(), // region not yet required in filter.
-				getConstraints(searchParameters, SearchParameterKey.LOCATION),
-				getConstraints(searchParameters, SearchParameterKey.CASE_ID),
-				getConstraints(searchParameters, SearchParameterKey.USER),
-				availableTasksOnly(clientQuery),
-        allWork(clientQuery));
+            getConstraints(searchParameters, SearchParameterKey.STATE),
+            getConstraints(searchParameters, SearchParameterKey.JURISDICTION),
+            getConstraints(searchParameters, SearchParameterKey.ROLE_CATEGORY),
+            getConstraints(searchParameters, SearchParameterKey.WORK_TYPE),
+            getConstraints(searchParameters, SearchParameterKey.TASK_TYPE),
+            new HashSet<>(), // region not yet required in filter.
+            getConstraints(searchParameters, SearchParameterKey.LOCATION),
+            Stream.concat(getConstraints(searchParameters, SearchParameterKey.CASE_ID).stream(),
+                          getConstraints(searchParameters, SearchParameterKey.CASE_ID_CAMEL_CASE).stream())
+                    .collect(Collectors.toSet()),
+            getConstraints(searchParameters, SearchParameterKey.USER),
+            availableTasksOnly(clientQuery),
+            allWork(clientQuery));
 	}
 
 	private static boolean availableTasksOnly(ClientQuery clientQuery)

@@ -85,6 +85,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
@@ -389,6 +391,102 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("total_records").value(3),
+            jsonPath("$.tasks").isNotEmpty(),
+            jsonPath("$.tasks.length()").value(2)
+        );
+    }
+
+    @Test
+    void should_return_a_200_and_filter_tasks_by_case_id_camel_case() throws Exception {
+        mockServices.mockUserInfo();
+
+        // Role attribute is IA
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .build()
+            )
+            .build();
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            true, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+
+        String caseId1 = "searchCriteriaCaseId7";
+        String caseId2 = "searchCriteriaCaseId8";
+
+        insertDummyTaskInDb(caseId1, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
+        insertDummyTaskInDb(caseId1, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
+        insertDummyTaskInDb(caseId2, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
+        ));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchTaskRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isOk(),
+            jsonPath("total_records").value(3),
+            jsonPath("$.tasks").isNotEmpty(),
+            jsonPath("$.tasks.length()").value(3)
+        );
+
+        searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("IA")),
+            new SearchParameterList(CASE_ID, IN, singletonList(caseId1))
+        ));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchTaskRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isOk(),
+            jsonPath("total_records").value(2),
+            jsonPath("$.tasks").isNotEmpty(),
+            jsonPath("$.tasks.length()").value(2)
+        );
+
+        searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("IA")),
+            new SearchParameterList(CASE_ID_CAMEL_CASE, IN, singletonList(caseId1))
+        ));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchTaskRequest))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().isOk(),
+            jsonPath("total_records").value(2),
             jsonPath("$.tasks").isNotEmpty(),
             jsonPath("$.tasks.length()").value(2)
         );
