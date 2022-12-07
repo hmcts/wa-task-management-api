@@ -214,8 +214,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         common.cleanUpTask(taskId);
     }
-
-    @Ignore
+    
     @Test
     public void should_calculate_due_date_when_initiating_a_multiple_calendar_task_using_due_date() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
