@@ -62,10 +62,11 @@ public class CaffeineConfiguration {
             .ticker(ticker);
     }
 
-    public CacheManager calendarCacheManager(Caffeine<Object, Object> calendarCaffeineConfig) {
+
+    public CacheManager taskTypeCacheManager(Caffeine<Object, Object> taskTypeCaffeineConfig) {
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-        caffeineCacheManager.setCaffeine(calendarCaffeineConfig);
-        caffeineCacheManager.setCacheNames(List.of("calendar_cache"));
+        caffeineCacheManager.setCaffeine(taskTypeCaffeineConfig);
+        caffeineCacheManager.setCacheNames(List.of("task_types"));
         return caffeineCacheManager;
     }
 
@@ -75,13 +76,11 @@ public class CaffeineConfiguration {
             .expireAfterWrite(calendarCacheDuration, calendarCacheDurationUnit)
             .ticker(ticker);
     }
-
-    public CacheManager taskTypeCacheManager(Caffeine<Object, Object> taskTypeCaffeineConfig) {
+    
+    public CacheManager calendarCacheManager(Caffeine<Object, Object> calendarCaffeineConfig) {
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-        caffeineCacheManager.setCaffeine(taskTypeCaffeineConfig);
-        caffeineCacheManager.setCacheNames(List.of("task_types"));
+        caffeineCacheManager.setCaffeine(calendarCaffeineConfig);
+        caffeineCacheManager.setCacheNames(List.of("calendar_cache"));
         return caffeineCacheManager;
     }
-
-
 }
