@@ -54,6 +54,8 @@ public class DueDateConfigurator {
                 .name(CamundaValue.stringValue(DUE_DATE))
                 .value(CamundaValue.stringValue(dateTime.format(DUE_DATE_TIME_FORMATTER)))
                 .build();
+
+            log.info("Due date set in configuration is as {}", dueDateResponse);
             withoutDueDate.add(dueDateResponse);
         }
         return withoutDueDate;
