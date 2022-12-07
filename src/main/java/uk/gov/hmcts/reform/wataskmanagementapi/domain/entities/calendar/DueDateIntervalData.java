@@ -11,7 +11,7 @@ public class DueDateIntervalData {
 
     private String dueDateOrigin;
     private Long dueDateIntervalDays;
-    private String dueDateNonWorkingCalendar;
+    private List<String> dueDateNonWorkingCalendar;
     private List<String> dueDateNonWorkingDaysOfWeek;
     private boolean dueDateSkipNonWorkingDays;
     private boolean dueDateMustBeWorkingDay;
