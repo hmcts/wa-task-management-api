@@ -9,8 +9,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_NON_WORKING_CALENDAR;
 
 public class BankHolidaysTest {
@@ -24,6 +23,9 @@ public class BankHolidaysTest {
         assertTrue(bankHolidays.getEvents().get(0).hashCode() != 0);
         assertNotNull(bankHolidays.getEvents().get(0));
         assertTrue(bankHolidays.getEvents().get(0).equals(bankHolidays.getEvents().get(0)));
+
+        assertFalse(bankHolidays.getEvents().get(0).equals(null));
+        assertFalse(bankHolidays.getEvents().get(0).equals(new Object()));
 
         for (BankHolidays.EventDate eventDate: bankHolidays.getEvents()) {
             assertTrue(isValid(eventDate.getDate()));
