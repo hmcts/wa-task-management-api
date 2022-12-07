@@ -48,4 +48,11 @@ class PublicHolidaysCollectionTest {
         assertThat(twoCalendarResult.contains(LocalDate.of(2022, 12, 26))).isFalse();
         assertThat(twoCalendarResult.contains(LocalDate.of(2022, 12, 27))).isTrue();
     }
+
+    @Test
+    public void should_return_empty_list_with_null() {
+        List<String> nullList = null;
+        Set<LocalDate> oneCalendarResult = publicHolidaysCollection.getPublicHolidays(nullList);
+        assertThat(oneCalendarResult.size()).isEqualTo(0);
+    }
 }

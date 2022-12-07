@@ -12,7 +12,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,34 +31,36 @@ public class PublicHolidaysCollection {
     }
 
     public Set<LocalDate> getPublicHolidays(List<String> uris) {
-        BankHolidays allPublicHolidays = BankHolidays.builder().events(new ArrayList<BankHolidays.EventDate>()).build();
+        List<BankHolidays.EventDate> events = new ArrayList<>();
+        BankHolidays allPublicHolidays = BankHolidays.builder().events(events).build();
         if (uris != null) {
             for (String uri : uris) {
                 BankHolidays publicHolidays = getPublicHolidays(uri);
-                for (BankHolidays.EventDate eventDate : publicHolidays.getEvents()) {
-                    if (eventDate.isWorkingDay()) {
-                        if (allPublicHolidays.getEvents().contains(eventDate)) {
-                            allPublicHolidays.getEvents().remove(eventDate);
-                        }
-                    } else {
-                        allPublicHolidays.getEvents().add(eventDate);
-                    }
-                }
+                processCalendar(publicHolidays, allPublicHolidays);
             }
         }
 
-
-        return Optional.ofNullable(allPublicHolidays).isPresent()
-            ? allPublicHolidays.getEvents().stream()
+        return allPublicHolidays.getEvents().stream()
             .map(item -> LocalDate.parse(item.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-            .collect(Collectors.toSet())
-            : Set.of();
+            .collect(Collectors.toSet());
     }
 
     @Cacheable(value = "public_holidays_uri_cache", key = "#uri", sync = true)
     public BankHolidays getPublicHolidays(String uri) {
         BankHolidaysApi bankHolidaysApi = bankHolidaysApi(uri);
         return bankHolidaysApi.retrieveAll();
+    }
+
+    private void processCalendar(BankHolidays publicHolidays, BankHolidays allPublicHolidays) {
+        for (BankHolidays.EventDate eventDate : publicHolidays.getEvents()) {
+            if (eventDate.isWorkingDay()) {
+                if (allPublicHolidays.getEvents().contains(eventDate)) {
+                    allPublicHolidays.getEvents().remove(eventDate);
+                }
+            } else {
+                allPublicHolidays.getEvents().add(eventDate);
+            }
+        }
     }
 
     private BankHolidaysApi bankHolidaysApi(String uri) {
