@@ -46,7 +46,7 @@ public class SnakeCaseFeignConfiguration {
     public Decoder feignDecoder() {
         MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(objectMapper);
         jacksonConverter.setSupportedMediaTypes(Arrays.asList(TEXT_PLAIN, APPLICATION_JSON,
-            MediaType.valueOf(TEXT_PLAIN_VALUE + ";charset=UTF-8")));
+            MediaType.valueOf(TEXT_PLAIN_VALUE + ";charset=utf-8")));
         ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
         return new ResponseEntityDecoder(new SpringDecoder(objectFactory));
     }
