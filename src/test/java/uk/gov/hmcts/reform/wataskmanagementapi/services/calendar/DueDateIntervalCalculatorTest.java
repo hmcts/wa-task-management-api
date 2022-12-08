@@ -46,7 +46,7 @@ class DueDateIntervalCalculatorTest {
             LocalDate.of(2022, 12, 27)
         );
 
-        lenient().when(publicHolidaysCollection.getPublicHolidays(CALENDAR_URI)).thenReturn(localDates);
+        lenient().when(publicHolidaysCollection.getPublicHolidays(List.of(CALENDAR_URI))).thenReturn(localDates);
     }
 
     @Test
@@ -198,7 +198,7 @@ class DueDateIntervalCalculatorTest {
 
     @Test
     void shouldCalculateWhenSkipNonWorkingDaysFalse() {
-        when(publicHolidaysCollection.getPublicHolidays(CALENDAR_URI))
+        when(publicHolidaysCollection.getPublicHolidays(List.of(CALENDAR_URI)))
             .thenReturn(Set.of(LocalDate.of(2022, 10, 18)));
 
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

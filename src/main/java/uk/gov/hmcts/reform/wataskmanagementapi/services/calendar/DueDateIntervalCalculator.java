@@ -85,7 +85,10 @@ public class DueDateIntervalCalculator implements DateCalculator {
                                            .reduce((a, b) -> b)
                                            .map(ConfigurationDmnEvaluationResponse::getValue)
                                            .map(CamundaValue::getValue)
-                                           .orElse(DEFAULT_NON_WORKING_CALENDAR))
+                                           .map(s -> s.split(","))
+                                           .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
+                                           .map(Arrays::asList)
+                                           .orElse(List.of(DEFAULT_NON_WORKING_CALENDAR)))
             .dueDateNonWorkingDaysOfWeek(dueDateProperties.stream()
                                              .filter(r -> r.getName().getValue().equals(
                                                  DUE_DATE_NON_WORKING_DAYS_OF_WEEK))
