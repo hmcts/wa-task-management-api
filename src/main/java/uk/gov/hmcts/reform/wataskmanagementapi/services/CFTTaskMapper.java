@@ -108,7 +108,7 @@ public class CFTTaskMapper {
             priorityDate = dueDate;
         }
 
-        WorkTypeResource workTypeResource = extractWorkTypeNew(attributes);
+        WorkTypeResource workTypeResource = extractWorkType(attributes);
         return new TaskResource(
             taskId,
             read(attributes, CamundaVariableDefinition.TASK_NAME, null),
@@ -389,7 +389,7 @@ public class CFTTaskMapper {
         return accumulator;
     }
 
-    private WorkTypeResource extractWorkTypeNew(Map<CamundaVariableDefinition, Object> attributes) {
+    private WorkTypeResource extractWorkType(Map<CamundaVariableDefinition, Object> attributes) {
         String workTypeId = read(attributes, WORK_TYPE, null);
         return workTypeId == null ? null : new WorkTypeResource(workTypeId);
     }
