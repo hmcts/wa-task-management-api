@@ -119,7 +119,7 @@ class UnclaimTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,null
         );
 
 

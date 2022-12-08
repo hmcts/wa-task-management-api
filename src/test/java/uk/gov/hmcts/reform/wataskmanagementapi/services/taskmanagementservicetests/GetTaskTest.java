@@ -119,7 +119,7 @@ class GetTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager, null
         );
 
 

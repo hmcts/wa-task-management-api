@@ -107,7 +107,7 @@ class NewInitiateTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager, null
         );
 
 

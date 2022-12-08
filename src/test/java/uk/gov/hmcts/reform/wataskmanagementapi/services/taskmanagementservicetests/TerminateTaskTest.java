@@ -77,7 +77,7 @@ class TerminateTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager, null
         );
 
 
