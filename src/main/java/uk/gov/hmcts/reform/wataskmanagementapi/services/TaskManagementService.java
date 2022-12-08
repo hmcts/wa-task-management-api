@@ -189,11 +189,12 @@ public class TaskManagementService {
         String email = accessControlResponse.getUserInfo().getEmail();
 
         if (workingDayIndicator != null) {
-            workingDayIndicator.isWorkingDay(LocalDate.now(),
+            boolean isWorkingDay = workingDayIndicator.isWorkingDay(LocalDate.now(),
                  List.of("https://www.gov.uk/bank-holidays/england-and-wales.json",
                  "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json"),
                  emptyList()
             );
+            log.info("is today a working day? " + isWorkingDay);
         }
 
         PermissionRequirements permissionsRequired;
