@@ -46,7 +46,7 @@
     <notes>temp</notes>
     <cve>CVE-2022-42252</cve>
   </suppress>
-  <suppress  until ="31-12-2023">
+  <suppress until ="31-12-2023">
     <notes>Wait for updates on dependencies</notes>
     <cve>CVE-2021-37533</cve>
   </suppress>
