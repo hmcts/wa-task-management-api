@@ -35,6 +35,10 @@
     <cve>CVE-2022-42003</cve>
   </suppress>
   <suppress>
+    <notes>CVE-2021-37533 suppression, because service didn't use FTP client</notes>
+    <cve>CVE-2021-37533</cve>
+  </suppress>
+  <suppress>
     <notes>temp</notes>
     <cve>CVE-2022-31690</cve>
   </suppress>
