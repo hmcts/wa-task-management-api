@@ -161,7 +161,7 @@ class CancelTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager, null
+            entityManager
         );
 
 

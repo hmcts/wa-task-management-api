@@ -102,7 +102,7 @@ public class TaskManagementProviderTestConfiguration {
             taskAutoAssignmentService,
             roleAssignmentVerificationService,
             taskOperationServices,
-            entityManager, null
+            entityManager
         );
     }
 

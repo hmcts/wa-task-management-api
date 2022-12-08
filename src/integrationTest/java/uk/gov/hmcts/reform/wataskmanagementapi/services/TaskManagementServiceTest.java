@@ -132,7 +132,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager, null
+            entityManager
         );
 
         mockServices.mockServiceAPIs();

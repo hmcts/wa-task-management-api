@@ -492,7 +492,7 @@ class CompleteTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager, null
+            entityManager
         );
 
 

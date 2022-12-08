@@ -45,10 +45,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteExcepti
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.WorkingDayIndicator;
 
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -113,7 +111,6 @@ public class TaskManagementService {
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final List<TaskOperationService> taskOperationServices;
     private final RoleAssignmentVerificationService roleAssignmentVerification;
-    private final WorkingDayIndicator workingDayIndicator;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -127,8 +124,7 @@ public class TaskManagementService {
                                  TaskAutoAssignmentService taskAutoAssignmentService,
                                  RoleAssignmentVerificationService roleAssignmentVerification,
                                  List<TaskOperationService> taskOperationServices,
-                                 EntityManager entityManager,
-                                 WorkingDayIndicator workingDayIndicator) {
+                                 EntityManager entityManager) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -138,7 +134,6 @@ public class TaskManagementService {
         this.taskOperationServices = taskOperationServices;
         this.roleAssignmentVerification = roleAssignmentVerification;
         this.entityManager = entityManager;
-        this.workingDayIndicator = workingDayIndicator;
     }
 
     /**
@@ -187,15 +182,6 @@ public class TaskManagementService {
         String userId = accessControlResponse.getUserInfo().getUid();
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         String email = accessControlResponse.getUserInfo().getEmail();
-
-        if (workingDayIndicator != null) {
-            boolean isWorkingDay = workingDayIndicator.isWorkingDay(LocalDate.now(),
-                 List.of("https://www.gov.uk/bank-holidays/england-and-wales.json",
-                 "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json"),
-                 emptyList()
-            );
-            log.info("is today a working day? " + isWorkingDay);
-        }
 
         PermissionRequirements permissionsRequired;
         if (isGranularPermissionFeatureEnabled(userId, email)) {
