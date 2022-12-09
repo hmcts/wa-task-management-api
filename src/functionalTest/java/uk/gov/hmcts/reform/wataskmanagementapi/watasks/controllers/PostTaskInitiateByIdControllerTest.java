@@ -319,7 +319,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                                    .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
-        
+
         initiateTask(taskVariables, assertConsumer);
 
         assertions.taskVariableWasUpdated(
