@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -210,11 +211,18 @@ public class TaskManagementService {
         }
         task.setState(CFTTaskState.ASSIGNED);
         task.setAssignee(userId);
+        setTaskActionAttributes(task, userId, TaskAction.CLAIM);
 
         camundaService.assignTask(taskId, userId, false);
 
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
+    }
+
+    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
+        task.setLastUpdatedTimestamp(OffsetDateTime.now());
+        task.setLastUpdatedUser(userId);
+        task.setLastUpdatedAction(action.getValue());
     }
 
     /**
