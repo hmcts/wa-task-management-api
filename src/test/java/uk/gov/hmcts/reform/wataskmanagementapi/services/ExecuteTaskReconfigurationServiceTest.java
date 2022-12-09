@@ -50,8 +50,8 @@ class ExecuteTaskReconfigurationServiceTest {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeIsNotNull(
-            anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(Optional.of(taskResources.get(0)))
             .thenReturn(Optional.of(taskResources.get(1)));
@@ -93,8 +93,8 @@ class ExecuteTaskReconfigurationServiceTest {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeIsNotNull(
-            anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(Optional.empty());
 
@@ -120,8 +120,8 @@ class ExecuteTaskReconfigurationServiceTest {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeIsNotNull(
-            anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(0).getTaskId()))
             .thenReturn(Optional.empty());
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(1).getTaskId()))
@@ -184,8 +184,8 @@ class ExecuteTaskReconfigurationServiceTest {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeIsNotNull(
-            anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(null);
 
@@ -216,8 +216,8 @@ class ExecuteTaskReconfigurationServiceTest {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeIsNotNull(
-            anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(null);
 
@@ -243,8 +243,8 @@ class ExecuteTaskReconfigurationServiceTest {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeIsNotNull(
-            anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources);
 
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
 

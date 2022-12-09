@@ -52,8 +52,8 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
         Objects.requireNonNull(reconfigureDateTime);
 
         List<TaskResource> taskResources = cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeIsNotNull(
-                List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+            .getActiveTasksAndReconfigureRequestTimeGreaterThan(
+                List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), reconfigureDateTime);
 
         List<TaskResource> successfulTaskResources = new ArrayList<>();
 
