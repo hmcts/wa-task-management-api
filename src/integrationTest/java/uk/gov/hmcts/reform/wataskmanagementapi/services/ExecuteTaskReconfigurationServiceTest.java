@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 
-import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -69,7 +68,8 @@ public class ExecuteTaskReconfigurationServiceTest {
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
         ExecuteReconfigureTaskFilter filter = new ExecuteReconfigureTaskFilter(
-            "reconfigure_request_time", OffsetDateTime.parse("2022-10-17T10:19:45.345875+01:00"), TaskFilterOperator.AFTER);
+            "reconfigure_request_time", OffsetDateTime.parse("2022-10-17T10:19:45.345875+01:00"),
+            TaskFilterOperator.AFTER);
         return List.of(filter);
     }
 
