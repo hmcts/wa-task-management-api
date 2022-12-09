@@ -69,7 +69,7 @@ public class ExecuteTaskReconfigurationServiceTest {
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
         ExecuteReconfigureTaskFilter filter = new ExecuteReconfigureTaskFilter(
-            "reconfigure_request_time", OffsetDateTime.now().minus(Duration.ofDays(10)), TaskFilterOperator.AFTER);
+            "reconfigure_request_time", OffsetDateTime.parse("2022-10-17T10:19:45.345875+01:00"), TaskFilterOperator.AFTER);
         return List.of(filter);
     }
 
