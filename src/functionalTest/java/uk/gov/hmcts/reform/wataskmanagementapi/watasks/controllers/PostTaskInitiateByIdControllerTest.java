@@ -10,7 +10,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -318,7 +320,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(1000))
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo("2022-10-25T20:00:00+0000"));
+                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25, 20, 00, 0, 0)
+                                                   .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
         initiateTask(taskVariables, assertConsumer);
