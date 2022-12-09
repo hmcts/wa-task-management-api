@@ -203,7 +203,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
                 .body("task.due_date", notNullValue())
                 .body("task.due_date",
-                      equalTo(LocalDateTime.of(2021, 5, 9, 20, 15, 0, 0)
+                      equalTo(LocalDateTime.of(2022, 12, 11, 18, 00, 0, 0)
                                   .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
