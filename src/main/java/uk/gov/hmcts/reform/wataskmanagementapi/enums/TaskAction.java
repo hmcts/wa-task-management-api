@@ -24,6 +24,7 @@ public enum TaskAction {
     MARK_FOR_RECONFIGURE("MarkForReconfigure"),
     ADD_WARNING("AddWarning");
 
+
     private final String value;
 
     TaskAction(String value) {
