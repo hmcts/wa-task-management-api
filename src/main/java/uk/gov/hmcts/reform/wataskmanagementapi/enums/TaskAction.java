@@ -2,7 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.enums;
 
 public enum TaskAction {
 
-    CLAIM("Claim");
+    CLAIM("Claim"),
+    UNCLAIM("Unclaim");
+
 
     private final String value;
 
