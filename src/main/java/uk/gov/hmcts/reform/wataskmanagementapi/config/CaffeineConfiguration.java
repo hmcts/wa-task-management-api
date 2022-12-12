@@ -62,10 +62,11 @@ public class CaffeineConfiguration {
             .ticker(ticker);
     }
 
+    @Bean
     public CacheManager taskTypeCacheManager(Caffeine<Object, Object> taskTypeCaffeineConfig) {
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
         caffeineCacheManager.setCaffeine(taskTypeCaffeineConfig);
-        caffeineCacheManager.setCacheNames(List.of("task_types"));
+        caffeineCacheManager.setCacheNames(List.of("task_types", "task_types_dmn"));
         return caffeineCacheManager;
     }
 
@@ -76,6 +77,7 @@ public class CaffeineConfiguration {
             .ticker(ticker);
     }
 
+    @Bean
     public CacheManager calendarCacheManager(Caffeine<Object, Object> calendarCaffeineConfig) {
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
         caffeineCacheManager.setCaffeine(calendarCaffeineConfig);

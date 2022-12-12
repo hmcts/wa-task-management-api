@@ -7,8 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -42,6 +44,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles({"integration"})
 class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/task-types";
     private static final String DMN_NAME = "Task Types DMN";

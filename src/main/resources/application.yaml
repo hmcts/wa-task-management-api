@@ -139,7 +139,7 @@ caffeine:
   calendar:
     timeout:
       duration: ${CALENDAR_CACHE_TIMEOUT_DURATION:24}
-      unit: ${CALENDAR_CACHE_TIMEOUT_TIMEUNIT:HOURS
+      unit: ${CALENDAR_CACHE_TIMEOUT_TIMEUNIT:HOURS}
 
 bankHolidays:
     api:
