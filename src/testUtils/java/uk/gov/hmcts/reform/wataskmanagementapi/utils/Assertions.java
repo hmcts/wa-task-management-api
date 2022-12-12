@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.hamcrest.Matcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
@@ -65,6 +66,25 @@ public class Assertions {
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", equalTo(value))
             .log();
+    }
+
+    public void taskAttributesVerifier(String taskId, Map<String, Matcher<?>> fieldValueMap,
+                                       Headers authenticationHeaders) {
+
+        Response result = restApiActions.get(
+            "task/{task-id}",
+            taskId,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE).log();
+
+        fieldValueMap.entrySet().forEach(
+            entry -> result.then().assertThat()
+                .body(entry.getKey(), entry.getValue()).log()
+        );
     }
 
     public void taskFieldWasUpdatedInDatabase(String taskId, String fieldName, String value,
