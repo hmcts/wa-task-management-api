@@ -39,20 +39,20 @@ public class PublicHolidaysCollection {
     public Set<LocalDate> getPublicHolidays(List<String> uris) {
         List<BankHolidays.EventDate> events = new ArrayList<>();
         BankHolidays allPublicHolidays = BankHolidays.builder().events(events).build();
-            if (uris != null) {
-                for (String uri : uris) {
-                    try {
-                        BankHolidays publicHolidays = getPublicHolidays(uri);
-                        processCalendar(publicHolidays, allPublicHolidays);
-                    } catch (DecodeException e) {
-                        log.error("Could not read calendar resource {}", uri, e);
-                        throw new CalendarResourceInvalidException("Could not read calendar resource " + uri, e);
-                    } catch (FeignException e) {
-                        log.error("Could not find calendar resource {}", uri, e);
-                        throw new CalendarResourceNotFoundException("Could not find calendar resource " + uri, e);
-                    }
+        if (uris != null) {
+            for (String uri : uris) {
+                try {
+                    BankHolidays publicHolidays = getPublicHolidays(uri);
+                    processCalendar(publicHolidays, allPublicHolidays);
+                } catch (DecodeException e) {
+                    log.error("Could not read calendar resource {}", uri, e);
+                    throw new CalendarResourceInvalidException("Could not read calendar resource " + uri, e);
+                } catch (FeignException e) {
+                    log.error("Could not find calendar resource {}", uri, e);
+                    throw new CalendarResourceNotFoundException("Could not find calendar resource " + uri, e);
                 }
             }
+        }
 
 
         return allPublicHolidays.getEvents().stream()
