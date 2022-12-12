@@ -19,10 +19,4 @@ public class DueDateIntervalData {
     public static final String DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS = "Previous";
     public static final String DUE_DATE_MUST_BE_WORKING_DAY_NO = "No";
     private String dueDateTime;
-
-    public boolean dueDateMustBeWorkingDayBoolean() {
-        return dueDateMustBeWorkingDay.isEmpty()
-            || DUE_DATE_MUST_BE_WORKING_DAY_NEXT.equalsIgnoreCase(dueDateMustBeWorkingDay)
-            || DUE_DATE_MUST_BE_WORKING_DAY_NEXT.equalsIgnoreCase(dueDateMustBeWorkingDay);
-    }
 }
