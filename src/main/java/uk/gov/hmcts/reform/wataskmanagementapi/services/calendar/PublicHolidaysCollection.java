@@ -45,7 +45,7 @@ public class PublicHolidaysCollection {
             .collect(Collectors.toSet());
     }
 
-    @Cacheable(value = "public_holidays_uri_cache", key = "#uri", sync = true)
+    @Cacheable(value = "calendar_cache", key = "#uri", sync = true)
     public BankHolidays getPublicHolidays(String uri) {
         BankHolidaysApi bankHolidaysApi = bankHolidaysApi(uri);
         return bankHolidaysApi.retrieveAll();
