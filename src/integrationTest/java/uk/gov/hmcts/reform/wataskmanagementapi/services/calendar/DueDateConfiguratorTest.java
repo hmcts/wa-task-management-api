@@ -480,13 +480,15 @@ public class DueDateConfiguratorTest {
         "false,false,true,No,6,6,T18:00",
         "false,false,false,Next,6,6,T18:00",
         "false,false,false,Next,2,2,T18:00",
-        "false,false,false,false,6,6,T18:00",
+        "false,false,false,No,6,6,T18:00",
         "true,true,true,Next,6,6,T18:00",
         "true,true,true,Next,8,8,T18:00",
         "true,true,true,No,6,6,T18:00",
         "true,true,false,Next,6,6,T18:00",
         "true,true,false,Next,2,2,T18:00",
-        "true,true,false,No,6,6,T18:00"
+        "true,true,false,No,6,6,T18:00",
+        "false,false,false,Previous,2,2,T18:00",
+        "true,true,false,Previous,2,2,T18:00"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvidedAndNonWorkingDayNotConsidered(
         String isReConfigurationRequest,
@@ -568,12 +570,14 @@ public class DueDateConfiguratorTest {
         "false,false,false,Next,6,6,T18:00",
         "false,false,false,Next,2,4,T18:00",
         "false,false,false,no,6,6,T18:00",
+        "false,false,false,Previous,2,2,T18:00",
         "true,true,true,Next,6,8,T18:00",
         "true,true,true,Next,8,12,T18:00",
         "true,true,true,No,6,8,T18:00",
         "true,true,false,Next,6,6,T18:00",
         "true,true,false,Next,2,4,T18:00",
-        "true,true,false,No,6,6,T18:00"
+        "true,true,false,No,6,6,T18:00",
+        "true,true,false,Previous,2,2,T18:00"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvided(
         String isReConfigurationRequest,
