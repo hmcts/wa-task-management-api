@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.Application;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceInvalidException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceNotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
@@ -61,6 +64,22 @@ class PublicHolidaysCollectionTest {
         List<String> nullList = null;
         Set<LocalDate> oneCalendarResult = publicHolidaysCollection.getPublicHolidays(nullList);
         assertThat(oneCalendarResult.size()).isEqualTo(0);
+    }
+
+    @Test
+    public void should_throw_calendar_resource_not_found_exception() {
+        String wrongUri = "https://www.gov.uk/bank-holidays/not-a-calendar.json";
+        assertThatThrownBy(() -> publicHolidaysCollection.getPublicHolidays(List.of(wrongUri)))
+            .isInstanceOf(CalendarResourceNotFoundException.class)
+            .hasMessage("Could not find calendar resource " + wrongUri);
+    }
+
+    @Test
+    public void should_throw_resource_invalid_exception() {
+        String uri = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/aab9ae68c9424071d9d49235a8b8f3230b1f89a2/src/integrationTest/resources/calendars/invalid-calendar.json";
+        assertThatThrownBy(() -> publicHolidaysCollection.getPublicHolidays(List.of(uri)))
+            .isInstanceOf(CalendarResourceInvalidException.class)
+            .hasMessage("Could not read calendar resource " + uri);
     }
 
     @Test
