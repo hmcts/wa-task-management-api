@@ -222,6 +222,12 @@ public class TaskManagementService {
         cftTaskDatabaseService.saveTask(task);
     }
 
+    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
+        task.setLastUpdatedTimestamp(OffsetDateTime.now());
+        task.setLastUpdatedUser(userId);
+        task.setLastUpdatedAction(action.getValue());
+    }
+
     /**
      * Unclaims a task in camunda also performs role assignment verifications.
      * This method requires {@link PermissionTypes#MANAGE} permission.
