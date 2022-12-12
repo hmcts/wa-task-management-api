@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CONFIGURE;
