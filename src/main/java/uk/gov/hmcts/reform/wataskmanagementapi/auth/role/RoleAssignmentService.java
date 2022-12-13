@@ -118,7 +118,7 @@ public class RoleAssignmentService {
             List<RoleAssignment> roleAssignments
                 = new ArrayList<>(requireNonNull(responseEntity.getBody()).getRoleAssignmentResponse());
 
-            long totalRecords = Long.parseLong(responseEntity.getHeaders().get(TOTAL_RECORDS).get(0));
+            long totalRecords = Long.parseLong(requireNonNull(responseEntity.getHeaders().get(TOTAL_RECORDS)).get(0));
             long totalPageNumber = totalRecords / maxRoleAssignmentRecords;
             while (totalPageNumber > pageNumber) {
                 pageNumber += 1;
