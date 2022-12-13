@@ -265,8 +265,8 @@ dependencyManagement {
 
 repositories {
   mavenLocal()
-  maven { url 'https://jitpack.io' }
   mavenCentral()
+  maven { url 'https://jitpack.io' }
 }
 
 def versions = [
@@ -308,6 +308,8 @@ dependencies {
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.4'
 
+  implementation('org.springframework.retry:spring-retry')
+
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
 
   implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook
@@ -337,7 +339,7 @@ dependencies {
   implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.12.0'
 
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.0'
-  implementation group: 'org.postgresql', name: 'postgresql', version: '42.5.0'
+  implementation group: 'org.postgresql', name: 'postgresql', version: '42.5.1'
   // required to convert postgres to hibernate types
   implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.20.0'
 
@@ -373,6 +375,7 @@ dependencies {
   testImplementation group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
   testImplementation group: 'com.github.hmcts', name: 'fortify-client', version: '1.2.2'
   testImplementation group: 'com.google.guava', name: 'guava-testlib', version: '31.1-jre'
+
   //Pact contract testing
   contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pactVersion
   contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit', version: versions.pactVersion

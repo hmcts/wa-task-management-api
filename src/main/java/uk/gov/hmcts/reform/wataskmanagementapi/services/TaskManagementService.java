@@ -27,8 +27,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Compl
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -37,12 +39,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorE
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -147,6 +147,7 @@ public class TaskManagementService {
             taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
         );
 
+        log.info("task resource due date before conversion {}", taskResource.getDueDateTime());
         boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
             accessControlResponse.getUserInfo().getUid(),
@@ -205,11 +206,18 @@ public class TaskManagementService {
         }
         task.setState(CFTTaskState.ASSIGNED);
         task.setAssignee(userId);
+        setTaskActionAttributes(task, userId, TaskAction.CLAIM);
 
         camundaService.assignTask(taskId, userId, false);
 
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
+    }
+
+    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
+        task.setLastUpdatedTimestamp(OffsetDateTime.now());
+        task.setLastUpdatedUser(userId);
+        task.setLastUpdatedAction(action.getValue());
     }
 
     /**
@@ -225,7 +233,8 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail()
             );
-
+        log.info("GP for {} and {} is {}", accessControlResponse.getUserInfo().getUid(),
+                 accessControlResponse.getUserInfo().getEmail(), granularPermissionFeatureEnabled);
         PermissionRequirements permissionsRequired;
         if (granularPermissionFeatureEnabled) {
             permissionsRequired = PermissionRequirementBuilder.builder()
@@ -250,14 +259,15 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
-        unClaimTask(taskId, taskHasUnassigned);
+        unclaimTask(taskId, userId, taskHasUnassigned);
     }
 
-    private void unClaimTask(String taskId, boolean taskHasUnassigned) {
+    private void unclaimTask(String taskId, String userId, boolean taskHasUnassigned) {
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);
         task.setState(CFTTaskState.UNASSIGNED);
         task.setAssignee(null);
+        setTaskActionAttributes(task, userId, TaskAction.UNCLAIM);
         //Perform Camunda updates
         camundaService.unclaimTask(taskId, taskHasUnassigned);
         //Commit transaction
@@ -323,7 +333,7 @@ public class TaskManagementService {
             if (assignee.isEmpty()) {
                 String taskState = taskResource.getState().getValue();
                 boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
-                unClaimTask(taskId, taskHasUnassigned);
+                unclaimTask(taskId, assigner.getUid(), taskHasUnassigned);
             } else {
                 requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
 
@@ -544,13 +554,24 @@ public class TaskManagementService {
             task.setState(CFTTaskState.COMPLETED);
 
             //check the state, if not complete, complete
-            boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
-            if (!isTaskCompleted) {
-                //Perform Camunda updates
-                camundaService.completeTask(taskId, taskHasCompleted);
-            }
+            completeCamundaTask(taskId, taskHasCompleted);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
+        }
+    }
+
+    private void completeCamundaTask(String taskId, boolean taskHasCompleted) {
+        try {
+            //Perform Camunda updates
+            camundaService.completeTask(taskId, taskHasCompleted);
+        } catch (TaskCompleteException e) {
+            boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
+            if (!isTaskCompleted) {
+                log.error("Task Completion failed for task ({}) due to {}.", taskId, e.getMessage());
+                throw e;
+            }
+
+            log.error("Task Completion failed for task ({}) as task is already complete", taskId);
         }
     }
 

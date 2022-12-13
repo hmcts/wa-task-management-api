@@ -23,15 +23,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,6 +59,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -157,7 +161,67 @@ class CFTTaskMapperTest {
         assertEquals(false, taskResource.getAutoAssigned());
         assertNull(taskResource.getWorkTypeResource());
         assertNull(taskResource.getRoleCategory());
-        assertEquals(false, taskResource.getHasWarnings());
+        assertEquals(true, taskResource.getHasWarnings());
+        assertNull(taskResource.getAssignmentExpiry());
+        assertEquals("00000", taskResource.getCaseId());
+        assertEquals("someCaseType", taskResource.getCaseTypeId());
+        assertEquals("someCaseName", taskResource.getCaseName());
+        assertEquals("someJurisdiction", taskResource.getJurisdiction());
+        assertEquals("someRegion", taskResource.getRegion());
+        assertNull(taskResource.getRegionName());
+        assertEquals("someStaffLocationId", taskResource.getLocation());
+        assertEquals("someStaffLocationName", taskResource.getLocationName());
+        assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
+        assertNull(taskResource.getBusinessContext());
+        assertNull(taskResource.getTerminationReason());
+        assertEquals(
+            OffsetDateTime.parse(formattedCreatedDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getCreated()
+        );
+        assertEquals(new ExecutionTypeResource(
+            ExecutionType.MANUAL,
+            ExecutionType.MANUAL.getName(),
+            ExecutionType.MANUAL.getDescription()
+        ), taskResource.getExecutionTypeCode());
+        assertNull(taskResource.getTaskRoleResources());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getPriorityDate()
+        );
+    }
+
+    @Test
+    void should_map_initiation_attributes_to_cft_task() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+
+        assertEquals("SOME_TASK_ID", taskResource.getTaskId());
+        assertEquals("someCamundaTaskName", taskResource.getTaskName());
+        assertEquals("someTaskType", taskResource.getTaskType());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getDueDateTime()
+        );
+        assertEquals(CFTTaskState.UNCONFIGURED, taskResource.getState());
+        assertEquals(TaskSystem.SELF, taskResource.getTaskSystem());
+        assertEquals(SecurityClassification.PUBLIC, taskResource.getSecurityClassification());
+        assertEquals("someTitle", taskResource.getTitle());
+        assertEquals("someCamundaTaskDescription", taskResource.getDescription());
+        assertNull(taskResource.getNotes());
+        assertEquals(5000, taskResource.getMajorPriority());
+        assertEquals(500, taskResource.getMinorPriority());
+        assertEquals("someAssignee", taskResource.getAssignee());
+        assertEquals(false, taskResource.getAutoAssigned());
+        assertNull(taskResource.getWorkTypeResource());
+        assertNull(taskResource.getRoleCategory());
+        assertEquals(true, taskResource.getHasWarnings());
+        assertThat(taskResource.getNotes()).isNull();
         assertNull(taskResource.getAssignmentExpiry());
         assertEquals("00000", taskResource.getCaseId());
         assertEquals("someCaseType", taskResource.getCaseTypeId());
@@ -193,11 +257,9 @@ class CFTTaskMapperTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-
         Map<String, Object> attributes = getDefaultAttributesWithWarnings(formattedCreatedDate, formattedDueDate);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
-
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
         assertEquals("someCamundaTaskName", taskResource.getTaskName());
@@ -275,7 +337,6 @@ class CFTTaskMapperTest {
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
 
-
         assertNotNull(task);
         assertTrue(task.getWarnings());
         assertNotNull(task.getWarningList());
@@ -317,6 +378,7 @@ class CFTTaskMapperTest {
         String nextHearingDate = OffsetDateTime.now().toString();
         mappedValues.put(NEXT_HEARING_DATE.value(), nextHearingDate);
         mappedValues.put(PRIORITY_DATE.value(), OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+        mappedValues.put(DUE_DATE.value(), "2021-05-09T20:15");
         mappedValues.put(MAJOR_PRIORITY.value(), 5000);
         mappedValues.put(MINOR_PRIORITY.value(), 500);
 
@@ -364,6 +426,8 @@ class CFTTaskMapperTest {
         assertEquals(5000, taskResource.getMajorPriority());
         assertEquals(500, taskResource.getMinorPriority());
         assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), taskResource.getPriorityDate());
+        LocalDateTime localDateTime = LocalDateTime.of(2021, 5, 9, 20, 15, 0, 0);
+        assertEquals(localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime(), taskResource.getDueDateTime());
     }
 
     @Test
@@ -492,6 +556,16 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(0).getManage());
         assertEquals(true, roleResourcesList.get(0).getCancel());
         assertEquals(true, roleResourcesList.get(0).getRefer());
+        assertEquals(false, roleResourcesList.get(0).getClaim());
+        assertEquals(false, roleResourcesList.get(0).getAssign());
+        assertEquals(false, roleResourcesList.get(0).getUnassign());
+        assertEquals(false, roleResourcesList.get(0).getUnassignAssign());
+        assertEquals(false, roleResourcesList.get(0).getComplete());
+        assertEquals(false, roleResourcesList.get(0).getCompleteOwn());
+        assertEquals(false, roleResourcesList.get(0).getCancelOwn());
+        assertEquals(false, roleResourcesList.get(0).getUnassignClaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaimAssign());
         assertArrayEquals(new String[]{}, roleResourcesList.get(0).getAuthorizations());
         assertEquals("tribunal-caseworker", roleResourcesList.get(1).getRoleName());
         assertEquals(true, roleResourcesList.get(1).getRead());
@@ -500,6 +574,16 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(1).getManage());
         assertEquals(true, roleResourcesList.get(1).getCancel());
         assertEquals(true, roleResourcesList.get(1).getRefer());
+        assertEquals(false, roleResourcesList.get(0).getClaim());
+        assertEquals(false, roleResourcesList.get(0).getAssign());
+        assertEquals(false, roleResourcesList.get(0).getUnassign());
+        assertEquals(false, roleResourcesList.get(0).getUnassignAssign());
+        assertEquals(false, roleResourcesList.get(0).getComplete());
+        assertEquals(false, roleResourcesList.get(0).getCompleteOwn());
+        assertEquals(false, roleResourcesList.get(0).getCancelOwn());
+        assertEquals(false, roleResourcesList.get(0).getUnassignClaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaim());
+        assertEquals(false, roleResourcesList.get(0).getUnclaimAssign());
         assertArrayEquals(new String[]{"IA", "WA"}, roleResourcesList.get(1).getAuthorizations());
         assertNull(taskResource.getNextHearingId());
         assertNull(taskResource.getNextHearingDate());
@@ -639,7 +723,7 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type `uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem` "
-                    + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
+                + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -661,9 +745,9 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type "
-                    + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
-                    + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
-                    + "[PUBLIC, RESTRICTED, PRIVATE]")
+                + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
+                + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
+                + "[PUBLIC, RESTRICTED, PRIVATE]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -771,7 +855,17 @@ class CFTTaskMapperTest {
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER
+                PermissionTypes.REFER,
+                PermissionTypes.CLAIM,
+                PermissionTypes.ASSIGN,
+                PermissionTypes.UNASSIGN,
+                PermissionTypes.UNASSIGN_ASSIGN,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.COMPLETE_OWN,
+                PermissionTypes.CANCEL_OWN,
+                PermissionTypes.UNASSIGN_CLAIM,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.UNCLAIM_ASSIGN
             )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
@@ -818,8 +912,8 @@ class CFTTaskMapperTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        Map<String, Object> attributes =
-            getDefaultAttributesWithoutWithWorkType(formattedCreatedDate, formattedDueDate);
+        Map<String, Object> attributes
+            = getDefaultAttributesWithoutWithWorkType(formattedCreatedDate, formattedDueDate);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         taskResource.setWorkTypeResource(null);
@@ -857,14 +951,12 @@ class CFTTaskMapperTest {
         taskResource.setSecurityClassification(null);
 
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(
-                PermissionTypes.READ,
+            asList(PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER
-            )
+                PermissionTypes.REFER)
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
 
@@ -890,14 +982,12 @@ class CFTTaskMapperTest {
         taskResource.setTaskSystem(null);
 
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(
-                PermissionTypes.READ,
+            asList(PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER
-            )
+                PermissionTypes.REFER)
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
         assertNull(task.getTaskSystem());
@@ -920,14 +1010,12 @@ class CFTTaskMapperTest {
         taskResource.setExecutionTypeCode(null);
 
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(
-                PermissionTypes.READ,
+            asList(PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER
-            )
+                PermissionTypes.REFER)
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
         assertNull(task.getExecutionType());
@@ -1020,6 +1108,10 @@ class CFTTaskMapperTest {
         TaskResource taskResource = createTaskResourceWithRoleResource(roleResource);
         taskResource.setReconfigureRequestTime(OffsetDateTime.now());
         taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+        taskResource.setLastUpdatedAction("someAction");
+        taskResource.setLastUpdatedUser("someUser");
+        OffsetDateTime lastUpdatedTimeStamp = OffsetDateTime.now();
+        taskResource.setLastUpdatedTimestamp(lastUpdatedTimeStamp);
 
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, new HashSet<>());
 
@@ -1052,6 +1144,9 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().isEmpty());
         assertNotNull(task.getReconfigureRequestTime());
         assertNotNull(task.getLastReconfigurationTime());
+        assertEquals(lastUpdatedTimeStamp, task.getLastUpdatedTimestamp().toOffsetDateTime());
+        assertEquals("someAction", task.getLastUpdatedAction());
+        assertEquals("someUser", task.getLastUpdatedUser());
     }
 
     @Test
@@ -1139,6 +1234,9 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN_ASSIGN));
         assertNull(task.getReconfigureRequestTime());
         assertNull(task.getLastReconfigurationTime());
+        assertNull(task.getLastUpdatedTimestamp());
+        assertNull(task.getLastUpdatedAction());
+        assertNull(task.getLastUpdatedUser());
     }
 
     @Test
@@ -1187,7 +1285,7 @@ class CFTTaskMapperTest {
         assertEquals("someStaffLocationId", task.getLocation());
         assertEquals("someStaffLocationName", task.getLocationName());
         assertEquals("someCaseCategory", taskResource.getCaseCategory());
-        assertEquals(false, task.getWarnings());
+        assertEquals(true, task.getWarnings());
         assertEquals(emptyList(), task.getWarningList().getValues());
         assertEquals("someCaseCategory", task.getCaseManagementCategory());
         assertNotNull(task.getDueDate());
@@ -1233,8 +1331,7 @@ class CFTTaskMapperTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate,
-                                                              null
-        );
+                                                              null);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         taskResource.setPriorityDate(null);
@@ -1285,6 +1382,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1301,6 +1399,120 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_extract_permission_union_all_true_with_non_granular_permission() {
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            new String[]{},
+            0,
+            false,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true
+        );
+        TaskResource taskResource = mock(TaskResource.class);
+        when(taskResource.getCaseId()).thenReturn("CASE_ID");
+        taskRoleResource.setTaskResource(taskResource);
+        Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
+
+        Set<PermissionTypes> permissionsUnion =
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+
+        assertFalse(permissionsUnion.isEmpty());
+        assertTrue(permissionsUnion.contains(PermissionTypes.READ));
+        assertTrue(permissionsUnion.contains(PermissionTypes.OWN));
+        assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
+        assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
+        assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
+        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
+
+        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE));
+        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE_OWN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL_OWN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.CLAIM));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM));
+        assertFalse(permissionsUnion.contains(PermissionTypes.ASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM_ASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_ASSIGN));
+    }
+
+    @Test
+    void should_extract_permission_union_all_true_with_granular_permission() {
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            new String[]{},
+            0,
+            false,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true
+        );
+        TaskResource taskResource = mock(TaskResource.class);
+        when(taskResource.getCaseId()).thenReturn("CASE_ID");
+        taskRoleResource.setTaskResource(taskResource);
+        Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
+
+        Set<PermissionTypes> permissionsUnion =
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, true);
+
+        assertFalse(permissionsUnion.isEmpty());
+        assertTrue(permissionsUnion.contains(PermissionTypes.READ));
+        assertTrue(permissionsUnion.contains(PermissionTypes.OWN));
+        assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
+        assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
+        assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
+        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
+
+        assertTrue(permissionsUnion.contains(PermissionTypes.COMPLETE));
+        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE_OWN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL_OWN));
+        assertTrue(permissionsUnion.contains(PermissionTypes.CLAIM));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM));
+        assertTrue(permissionsUnion.contains(PermissionTypes.ASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM_ASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertTrue(permissionsUnion.contains(PermissionTypes.UNASSIGN_ASSIGN));
+    }
+
+    @Test
     void should_extract_union_and_map_to_task() {
 
 
@@ -1314,6 +1526,19 @@ class CFTTaskMapperTest {
             false,
             new String[]{},
             0,
+            false,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
             true
         );
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
@@ -1326,6 +1551,19 @@ class CFTTaskMapperTest {
             true,
             new String[]{},
             0,
+            true,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
             true
         );
 
@@ -1371,7 +1609,7 @@ class CFTTaskMapperTest {
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
-        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments,false);
+        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments, false);
 
         assertNotNull(mappedTask);
 
@@ -1385,6 +1623,140 @@ class CFTTaskMapperTest {
         assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
         assertFalse(permissionsUnion.contains(PermissionTypes.REFER));
+
+        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE));
+        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE_OWN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL_OWN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.CLAIM));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM));
+        assertFalse(permissionsUnion.contains(PermissionTypes.ASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM_ASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_ASSIGN));
+    }
+
+    @Test
+    void should_extract_union_and_map_to_task_granular_permission() {
+
+        TaskRoleResource taskRoleResource1 = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            new String[]{"SPECIFIC", "STANDARD"},
+            0,
+            false,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true
+        );
+        TaskRoleResource taskRoleResource2 = new TaskRoleResource(
+            "senior-tribunal-caseworker",
+            false,
+            true,
+            false,
+            true,
+            true,
+            true,
+            new String[]{},
+            0,
+            true,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+        );
+
+        Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
+        TaskResource taskResource = new TaskResource(
+            "taskId",
+            "aTaskName",
+            "startAppeal",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            CFTTaskState.COMPLETED,
+            TaskSystem.SELF,
+            SecurityClassification.PUBLIC,
+            "title",
+            "a description",
+            null,
+            0,
+            0,
+            "someAssignee",
+            false,
+            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
+            new WorkTypeResource("routine_work", "Routine work"),
+            "JUDICIAL",
+            false,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            "1623278362430412",
+            "Asylum",
+            "TestCase",
+            "IA",
+            "1",
+            "TestRegion",
+            "765324",
+            "Taylor House",
+            BusinessContext.CFT_TASK,
+            "Some termination reason",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            taskRoleResources,
+            "caseCategory",
+            EXPECTED_ADDITIONAL_PROPERTIES,
+            "nextHearingId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+        );
+
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
+
+        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments, true);
+
+        assertNotNull(mappedTask);
+
+        TaskPermissions taskPermissions = mappedTask.getPermissions();
+        assertNotNull(taskPermissions.getValues());
+
+        Set<PermissionTypes> permissionsUnion = taskPermissions.getValues();
+        assertTrue(permissionsUnion.contains(PermissionTypes.READ));
+        assertTrue(permissionsUnion.contains(PermissionTypes.OWN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.EXECUTE));
+        assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
+        assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
+        assertFalse(permissionsUnion.contains(PermissionTypes.REFER));
+
+        assertTrue(permissionsUnion.contains(PermissionTypes.COMPLETE));
+        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE_OWN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL_OWN));
+        assertTrue(permissionsUnion.contains(PermissionTypes.CLAIM));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM));
+        assertTrue(permissionsUnion.contains(PermissionTypes.ASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM_ASSIGN));
+        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertTrue(permissionsUnion.contains(PermissionTypes.UNASSIGN_ASSIGN));
     }
 
     @Test
@@ -1402,6 +1774,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1432,6 +1805,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1462,6 +1836,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1492,6 +1867,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1522,6 +1898,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1552,6 +1929,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource.setTaskResource(createTaskResource());
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1582,6 +1960,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
             "senior-tribunal-caseworker",
             false,
@@ -1594,6 +1973,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource2.setTaskResource(createTaskResource());
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = singletonList(
@@ -1628,6 +2008,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
             "senior-tribunal-caseworker",
             false,
@@ -1640,6 +2021,7 @@ class CFTTaskMapperTest {
             0,
             true
         );
+        taskRoleResource1.setTaskResource(createTaskResource());
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = asList(
@@ -1756,7 +2138,7 @@ class CFTTaskMapperTest {
             "taskId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             false, false, false, false, false, false, false, false, false, false
-            );
+        );
 
         final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource, false);
 
@@ -1960,6 +2342,62 @@ class CFTTaskMapperTest {
         assertEquals("nextHearingId", taskResource.getNextHearingId());
     }
 
+    @Test
+    void should_map_task_role_permissions_for_granular_permissions() {
+        TaskRoleResource roleResource = new TaskRoleResource(
+            "ctsc",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            new String[]{"SPECIFIC", "STANDARD"},
+            0,
+            false,
+            "CTSC",
+            "taskId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+        );
+
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource, true);
+
+        assertEquals("ctsc", taskRolePermissions.getRoleName());
+        assertEquals("CTSC", taskRolePermissions.getRoleCategory());
+        assertNotNull(taskRolePermissions.getPermissions());
+        assertFalse(taskRolePermissions.getPermissions().isEmpty());
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.READ));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.OWN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.MANAGE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CLAIM));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.ASSIGN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN_ASSIGN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.COMPLETE_OWN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL_OWN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.UNASSIGN_CLAIM));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.UNCLAIM));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.UNCLAIM_ASSIGN));
+
+        assertFalse(taskRolePermissions.getAuthorisations().isEmpty());
+        assertTrue(taskRolePermissions.getAuthorisations().contains("SPECIFIC"));
+        assertTrue(taskRolePermissions.getAuthorisations().contains("STANDARD"));
+    }
+
     private TaskResource createTaskResource() {
         return new TaskResource(
             "taskId",
@@ -2156,7 +2594,7 @@ class CFTTaskMapperTest {
         }
         attributes.put(CamundaVariableDefinition.DESCRIPTION.value(), "someCamundaTaskDescription");
         attributes.put(CamundaVariableDefinition.EXECUTION_TYPE.value(), "MANUAL");
-        attributes.put(CamundaVariableDefinition.HAS_WARNINGS.value(), false);
+        attributes.put(CamundaVariableDefinition.HAS_WARNINGS.value(), true);
         attributes.put(CamundaVariableDefinition.JURISDICTION.value(), "someJurisdiction");
         attributes.put(CamundaVariableDefinition.LOCATION.value(), "someStaffLocationId");
         attributes.put(CamundaVariableDefinition.LOCATION_NAME.value(), "someStaffLocationName");

@@ -11,8 +11,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 import javax.validation.constraints.NotNull;
 
 @Schema(
-    name = "SearchParameter",
-    description = "Search parameter containing the key, operator and a list of values"
+    name = "SearchParameterRequestContext",
+    description = "Search parameter containing the key, operator and request context"
 )
 @EqualsAndHashCode
 @ToString
@@ -32,7 +32,6 @@ public class SearchParameterRequestContext implements SearchParameter<RequestCon
 
     @Schema(
         required = true,
-        allowableValues = "ALL_WORK, AVAILABLE_TASK_ONLY",
         example = "ALL_WORK")
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."

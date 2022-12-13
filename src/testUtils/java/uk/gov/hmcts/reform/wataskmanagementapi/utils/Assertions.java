@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.hamcrest.Matcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
@@ -15,6 +16,8 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 
 public class Assertions {
+    private static final String TASK_ENDPOINT_BEING_TESTED = "task/{task-id}";
+    private static final String CAMUNDA_SEARCH_HISTORY_ENDPOINT = "/history/variable-instance";
 
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
@@ -35,7 +38,7 @@ public class Assertions {
         );
 
         Response result = camundaApiActions.post(
-            "/history/variable-instance",
+            CAMUNDA_SEARCH_HISTORY_ENDPOINT,
             request,
             authorizationProvider.getServiceAuthorizationHeader()
         );
@@ -52,7 +55,7 @@ public class Assertions {
     public void taskStateWasUpdatedInDatabase(String taskId, String value, Headers authenticationHeaders) {
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            TASK_ENDPOINT_BEING_TESTED,
             taskId,
             authenticationHeaders
         );
@@ -65,11 +68,30 @@ public class Assertions {
             .log();
     }
 
+    public void taskAttributesVerifier(String taskId, Map<String, Matcher<?>> fieldValueMap,
+                                       Headers authenticationHeaders) {
+
+        Response result = restApiActions.get(
+            "task/{task-id}",
+            taskId,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE).log();
+
+        fieldValueMap.entrySet().forEach(
+            entry -> result.then().assertThat()
+                .body(entry.getKey(), entry.getValue()).log()
+        );
+    }
+
     public void taskFieldWasUpdatedInDatabase(String taskId, String fieldName, String value,
                                               Headers authenticationHeaders) {
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            TASK_ENDPOINT_BEING_TESTED,
             taskId,
             authenticationHeaders
         );

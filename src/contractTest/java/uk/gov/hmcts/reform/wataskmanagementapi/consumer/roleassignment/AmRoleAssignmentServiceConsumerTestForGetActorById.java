@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -35,6 +36,7 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
 
     private static final String ORG_ROLE_ACTOR_ID = "23486";
     private static final String RAS_GET_ACTOR_BY_ID_URL = "/am/role-assignments/actors/";
+    private static final int MAX_ROLE_ASSIGNMENT_RECORDS = 50;
 
     @Autowired
     RoleAssignmentServiceApi roleAssignmentApi;
@@ -42,12 +44,20 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
     @MockBean
     AuthTokenGenerator authTokenGenerator;
 
+    @MockBean
+    IdamTokenGenerator systemUserIdamToken;
+
     private RoleAssignmentService roleAssignmentService;
 
     @BeforeEach
     void setUp() {
         when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
-        roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator);
+        roleAssignmentService = new RoleAssignmentService(
+            roleAssignmentApi,
+            authTokenGenerator,
+            systemUserIdamToken,
+            MAX_ROLE_ASSIGNMENT_RECORDS
+        );
     }
 
     @Test
