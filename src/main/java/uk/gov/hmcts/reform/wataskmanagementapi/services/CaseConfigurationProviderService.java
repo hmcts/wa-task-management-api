@@ -64,7 +64,8 @@ public class CaseConfigurationProviderService {
 
         String caseDataString = writeValueAsString(caseDetails.getData());
         String taskAttributesString = writeValueAsString(taskAttributes);
-
+        log.debug("Case Configuration : case data {}", caseDataString);
+        log.debug("Case Configuration : task Attributes {}", taskAttributesString);
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
             dmnEvaluationService.evaluateTaskConfigurationDmn(
@@ -73,6 +74,7 @@ public class CaseConfigurationProviderService {
                 caseDataString,
                 taskAttributesString
             );
+        log.debug("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
 
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
             = updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults,
@@ -86,7 +88,7 @@ public class CaseConfigurationProviderService {
                 caseDataString,
                 taskAttributesString
             );
-
+        log.debug("Case Configuration : permissionsDmn Results {}", permissionsDmnResults);
         List<PermissionsDmnEvaluationResponse> filteredPermissionDmnResults
             = permissionsDmnResults.stream()
             .filter(dmnResult -> filterBasedOnCaseAccessCategory(caseDetails, dmnResult))
@@ -96,7 +98,7 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResultsWithAdditionalProperties,
             filteredPermissionDmnResults
         );
-
+        log.debug("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
         // Enrich case configuration variables with extra variables
         Map<String, Object> allCaseConfigurationValues = new ConcurrentHashMap<>(caseConfigurationVariables);
         allCaseConfigurationValues.put(SECURITY_CLASSIFICATION.value(), caseDetails.getSecurityClassification());
