@@ -29,7 +29,12 @@ public class DueDateIntervalCalculator implements DateCalculator {
     }
 
     @Override
-    public LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
+    public boolean hasDateName(DateName dateName) {
+        return DateName.DUE_DATE == dateName;
+    }
+
+    @Override
+    public LocalDateTime calculateDateName(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
         DueDateIntervalData dueDateIntervalData = readDueDateOriginFields(dueDateProperties);
 
         LocalDateTime dueDate = LocalDateTime.parse(dueDateIntervalData.getDueDateOrigin(), DUE_DATE_TIME_FORMATTER);

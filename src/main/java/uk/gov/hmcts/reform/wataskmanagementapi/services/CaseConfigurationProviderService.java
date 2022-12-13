@@ -10,7 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Configura
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateConfigurator;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,17 +32,17 @@ public class CaseConfigurationProviderService {
     private final CcdDataService ccdDataService;
     private final DmnEvaluationService dmnEvaluationService;
     private final ObjectMapper objectMapper;
-    private final DueDateConfigurator dueDateConfigurator;
+    private final DateTypeConfigurator dateTypeConfigurator;
 
     @Autowired
     public CaseConfigurationProviderService(CcdDataService ccdDataService,
                                             DmnEvaluationService dmnEvaluationService,
                                             ObjectMapper objectMapper,
-                                            DueDateConfigurator dueDateConfigurator) {
+                                            DateTypeConfigurator dateTypeConfigurator) {
         this.ccdDataService = ccdDataService;
         this.dmnEvaluationService = dmnEvaluationService;
         this.objectMapper = objectMapper;
-        this.dueDateConfigurator = dueDateConfigurator;
+        this.dateTypeConfigurator = dateTypeConfigurator;
     }
 
     /**
@@ -145,7 +145,7 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return dueDateConfigurator.configureDueDate(configResponses, jurisdiction);
+        return dateTypeConfigurator.configureDueDate(configResponses, jurisdiction);
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(

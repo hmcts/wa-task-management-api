@@ -18,8 +18,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Configura
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateConfigurator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateIntervalCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateTimeCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollection;
@@ -75,7 +75,7 @@ class CaseConfigurationProviderServiceTest {
             ccdDataService,
             dmnEvaluationService,
             objectMapper,
-            new DueDateConfigurator(
+            new DateTypeConfigurator(
                 List.of(
                     new DueDateCalculator(),
                     new DueDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection)),

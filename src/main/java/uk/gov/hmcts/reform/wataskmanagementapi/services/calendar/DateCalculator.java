@@ -30,7 +30,9 @@ public interface DateCalculator {
 
     boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
 
-    LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
+    boolean hasDateName(DateName dateName);
+
+    LocalDateTime calculateDateName(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
 
     default ConfigurationDmnEvaluationResponse getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {

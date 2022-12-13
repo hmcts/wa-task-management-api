@@ -90,7 +90,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate);
 
-        Assertions.assertThat(dueDateCalculator.calculateDueDate(evaluationResponses))
+        Assertions.assertThat(dueDateCalculator.calculateDateName(evaluationResponses))
             .isEqualTo(expectedDueDate + "T16:00");
     }
 
@@ -111,7 +111,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        Assertions.assertThat(dueDateCalculator.calculateDueDate(evaluationResponses))
+        Assertions.assertThat(dueDateCalculator.calculateDateName(evaluationResponses))
             .isEqualTo(expectedDueDate + "T20:00");
     }
 
@@ -133,7 +133,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDate2);
 
-        Assertions.assertThat(dueDateCalculator.calculateDueDate(evaluationResponses))
+        Assertions.assertThat(dueDateCalculator.calculateDateName(evaluationResponses))
             .isEqualTo(expectedDueDate2 + "T19:00");
     }
 }
