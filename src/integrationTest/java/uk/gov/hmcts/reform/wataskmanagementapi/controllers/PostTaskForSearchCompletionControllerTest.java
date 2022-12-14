@@ -486,7 +486,8 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
         insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(caseId, taskId, "IA", "Asylum",
-                                                               roleAssignmentId, taskRoleResource);
+                                                               roleAssignmentId, taskRoleResource
+        );
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
             roleAssignments
         );
@@ -654,7 +655,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("tasks.size()").value(1));
+            .andExpect(jsonPath("tasks.size()").value(2));
     }
 
     @Test
@@ -729,7 +730,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 jsonPath("$.status").value(502),
                 jsonPath("$.detail").value(
                     "Downstream dependency did not respond as expected "
-                    + "and the request could not be completed.")
+                        + "and the request could not be completed.")
             );
 
         verify(camundaServiceApi, times(1))
@@ -818,8 +819,8 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         );
 
         List<NoteResource> warnings = List.of(
-            new NoteResource("Code1","WARNING",null,"Text1"),
-            new NoteResource("Code2","WARNING",null,"Text2")
+            new NoteResource("Code1", "WARNING", null, "Text1"),
+            new NoteResource("Code2", "WARNING", null, "Text2")
         );
 
         taskResource.setDescription("aDescription");
