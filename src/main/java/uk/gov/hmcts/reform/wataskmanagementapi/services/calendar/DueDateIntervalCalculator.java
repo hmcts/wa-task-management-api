@@ -25,14 +25,10 @@ public class DueDateIntervalCalculator implements DateCalculator {
     }
 
     @Override
-    public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
-        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isPresent()
+    public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, DateType dateType) {
+        return DUE_DATE == dateType
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isPresent()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty();
-    }
-
-    @Override
-    public boolean hasDateType(DateType dateType) {
-        return DUE_DATE == dateType;
     }
 
     @Override

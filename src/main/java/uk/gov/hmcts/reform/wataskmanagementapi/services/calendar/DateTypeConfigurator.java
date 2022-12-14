@@ -61,8 +61,7 @@ public class DateTypeConfigurator {
     private Optional<DateCalculator> getDueDateCalculator(
         List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType) {
         return dateCalculators.stream()
-            .filter(dateCalculator -> dateCalculator.hasDateType(dateType))
-            .filter(dateCalculator -> dateCalculator.supports(configResponses))
+            .filter(dateCalculator -> dateCalculator.supports(configResponses, dateType))
             .findFirst();
     }
 

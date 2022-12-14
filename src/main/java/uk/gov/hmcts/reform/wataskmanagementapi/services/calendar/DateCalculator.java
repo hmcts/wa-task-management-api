@@ -26,9 +26,7 @@ public interface DateCalculator {
         .withHour(16).withMinute(0).withSecond(0);
     LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
 
-    boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
-
-    boolean hasDateType(DateType dateType);
+    boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, DateType dateType);
 
     LocalDateTime calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
 

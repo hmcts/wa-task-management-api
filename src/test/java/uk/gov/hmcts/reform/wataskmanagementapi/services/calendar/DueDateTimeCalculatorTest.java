@@ -44,7 +44,7 @@ class DueDateTimeCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses)).isFalse();
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, DateType.DUE_DATE)).isFalse();
     }
 
     @Test
@@ -64,7 +64,7 @@ class DueDateTimeCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateOrigin);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses)).isFalse();
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, DateType.DUE_DATE)).isFalse();
     }
 
     @Test
@@ -76,7 +76,7 @@ class DueDateTimeCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses)).isTrue();
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, DateType.DUE_DATE)).isTrue();
     }
 
     @Test
