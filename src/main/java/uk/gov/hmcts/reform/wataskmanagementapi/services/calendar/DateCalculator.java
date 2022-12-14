@@ -10,8 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public interface DateCalculator {
-
-    String DUE_DATE = "dueDate";
     String DUE_DATE_ORIGIN = "dueDateOrigin";
     String DUE_DATE_INTERVAL_DAYS = "dueDateIntervalDays";
     String DUE_DATE_NON_WORKING_CALENDAR = "dueDateNonWorkingCalendar";
@@ -30,9 +28,9 @@ public interface DateCalculator {
 
     boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
 
-    boolean hasDateName(DateName dateName);
+    boolean hasDateType(DateType dateType);
 
-    LocalDateTime calculateDateName(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
+    LocalDateTime calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
 
     default ConfigurationDmnEvaluationResponse getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {

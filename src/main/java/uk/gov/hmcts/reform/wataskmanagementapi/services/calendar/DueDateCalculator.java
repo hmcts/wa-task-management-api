@@ -8,24 +8,26 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+
 @Slf4j
 @Component
 public class DueDateCalculator implements DateCalculator {
 
     @Override
     public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
-        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE)).isPresent();
+        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isPresent();
     }
 
     @Override
-    public boolean hasDateName(DateName dateName) {
-        return DateName.DUE_DATE == dateName;
+    public boolean hasDateType(DateType dateType) {
+        return DUE_DATE == dateType;
     }
 
 
     @Override
-    public LocalDateTime calculateDateName(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
-        var dueDateResponse = getProperty(dueDateProperties, DUE_DATE);
+    public LocalDateTime calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
+        var dueDateResponse = getProperty(dueDateProperties, DUE_DATE.getType());
         var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME);
 
         if (Optional.ofNullable(dueDateTimeResponse).isPresent()) {

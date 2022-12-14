@@ -86,7 +86,7 @@ class DueDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDateName(
+            .calculateDate(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 )
@@ -135,7 +135,7 @@ class DueDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDateName(
+            .calculateDate(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 )
@@ -184,7 +184,7 @@ class DueDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDateName(
+            .calculateDate(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 )
@@ -236,7 +236,7 @@ class DueDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDateName(
+            .calculateDate(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 )
@@ -285,7 +285,7 @@ class DueDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDateName(
+            .calculateDate(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 )
@@ -329,7 +329,7 @@ class DueDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDateName(
+            .calculateDate(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin
                 )
@@ -351,7 +351,7 @@ class DueDateIntervalCalculatorTest {
             .build();
 
 
-        LocalDateTime resultDate = dueDateIntervalCalculator.calculateDateName(List.of(dueDateOrigin));
+        LocalDateTime resultDate = dueDateIntervalCalculator.calculateDate(List.of(dueDateOrigin));
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -372,7 +372,7 @@ class DueDateIntervalCalculatorTest {
             .value(CamundaValue.stringValue("18:00"))
             .build();
 
-        LocalDateTime resultDate = dueDateIntervalCalculator.calculateDateName(List.of(dueDateOrigin, dueDateTime));
+        LocalDateTime resultDate = dueDateIntervalCalculator.calculateDate(List.of(dueDateOrigin, dueDateTime));
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 

@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+
 @Slf4j
 @Component
 public class DueDateIntervalCalculator implements DateCalculator {
@@ -25,16 +27,16 @@ public class DueDateIntervalCalculator implements DateCalculator {
     @Override
     public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
         return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isPresent()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE)).isEmpty();
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty();
     }
 
     @Override
-    public boolean hasDateName(DateName dateName) {
-        return DateName.DUE_DATE == dateName;
+    public boolean hasDateType(DateType dateType) {
+        return DUE_DATE == dateType;
     }
 
     @Override
-    public LocalDateTime calculateDateName(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
+    public LocalDateTime calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
         DueDateIntervalData dueDateIntervalData = readDueDateOriginFields(dueDateProperties);
 
         LocalDateTime dueDate = LocalDateTime.parse(dueDateIntervalData.getDueDateOrigin(), DUE_DATE_TIME_FORMATTER);

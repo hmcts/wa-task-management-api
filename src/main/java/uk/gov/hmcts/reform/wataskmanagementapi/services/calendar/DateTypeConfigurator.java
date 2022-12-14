@@ -7,14 +7,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Configura
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class DateTypeConfigurator {
 
     public static final String IA_JURISDICTION = "IA";
@@ -26,45 +27,54 @@ public class DateTypeConfigurator {
 
     public List<ConfigurationDmnEvaluationResponse> configureDueDate(
         List<ConfigurationDmnEvaluationResponse> configResponses, String jurisdiction) {
-        List<ConfigurationDmnEvaluationResponse> withoutDateNames = new ArrayList<>(configResponses);
-        Arrays.stream(DateName.values()).filter(n -> n.getName().contains(DateName.DUE_DATE.getName()))
-            .forEach(dateName -> {
-                List<ConfigurationDmnEvaluationResponse> dateNameProperties = configResponses.stream()
-                    .filter(r -> r.getName().getValue().contains(dateName.getName()))
-                    .collect(Collectors.toList());
 
-                if (dateNameProperties.isEmpty() && jurisdiction.equals(IA_JURISDICTION)) {
-                    return;
-                }
-                AtomicReference<LocalDateTime> dateValue = new AtomicReference<>();
-                dateValue.set(dateName.getDefaultTime());
+        AtomicReference<List<ConfigurationDmnEvaluationResponse>> responses
+            = new AtomicReference<>(new ArrayList<>(configResponses));
 
-                Optional<DateCalculator> dueCalculator = getDueDateCalculator(dateNameProperties, dateName);
-                dueCalculator.ifPresent(calculator -> dateValue.getAndSet(calculator.calculateDateName(
-                    dateNameProperties)));
+        Stream.of(DateType.values()).forEach(dt -> {
+            List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.stream()
+                .filter(r -> r.getName().getValue().contains(dt.getType()))
+                .collect(Collectors.toList());
 
-                ConfigurationDmnEvaluationResponse dateNameResponse = ConfigurationDmnEvaluationResponse
-                    .builder()
-                    .name(CamundaValue.stringValue(dateName.getName()))
-                    .value(CamundaValue.stringValue(dateValue.get().format(dateName.getDateTimeFormatter())))
-                    .build();
+            if (dateProperties.isEmpty() && jurisdiction.equals(IA_JURISDICTION)) {
+                return;
+            }
+            AtomicReference<LocalDateTime> dateValue = new AtomicReference<>();
+            dateValue.set(dt.getDefaultTime());
 
-                log.info("Due date set in configuration is as {}", dateNameResponse);
-                filterOutDateName(withoutDateNames, dateName);
-                withoutDateNames.add(dateNameResponse);
-            });
-        return withoutDateNames;
+            Optional<DateCalculator> dueCalculator = getDueDateCalculator(dateProperties, dt);
+            dueCalculator.ifPresent(calculator -> dateValue.getAndSet(calculator.calculateDate(dateProperties)));
+
+            ConfigurationDmnEvaluationResponse dateTypeResponse = ConfigurationDmnEvaluationResponse
+                .builder()
+                .name(CamundaValue.stringValue(dt.getType()))
+                .value(CamundaValue.stringValue(dateValue.get().format(dt.getDateTimeFormatter())))
+                .build();
+
+            log.info("Due date set in configuration is as {}", dateTypeResponse);
+            filterOutOldValueAndAddDateType(responses, dt, dateTypeResponse);
+        });
+
+        return responses.get();
     }
 
     private Optional<DateCalculator> getDueDateCalculator(
-        List<ConfigurationDmnEvaluationResponse> configResponses, DateName dateName) {
+        List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType) {
         return dateCalculators.stream()
-            .filter(dateCalculator -> dateCalculator.hasDateName(dateName))
+            .filter(dateCalculator -> dateCalculator.hasDateType(dateType))
             .filter(dateCalculator -> dateCalculator.supports(configResponses))
             .findFirst();
     }
 
-    private void filterOutDateName(List<ConfigurationDmnEvaluationResponse> configResponses, DateName dateName) {
-        configResponses.removeIf(r -> r.getName().getValue().contains(dateName.getName()));
+    private List<ConfigurationDmnEvaluationResponse> filterOutOldValueAndAddDateType(
+        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses,
+        DateType dateType,
+        ConfigurationDmnEvaluationResponse dateTypeResponse) {
+        List<ConfigurationDmnEvaluationResponse> filtered = configResponses.get().stream()
+            .filter(r -> !r.getName().getValue().contains(dateType.getType()))
+            .collect(Collectors.toList());
+
+        filtered.add(dateTypeResponse);
+        return configResponses.getAndSet(filtered);
     }
 }
