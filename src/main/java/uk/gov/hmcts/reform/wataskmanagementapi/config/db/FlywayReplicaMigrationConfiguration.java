@@ -19,15 +19,17 @@ public class FlywayReplicaMigrationConfiguration {
     @Qualifier("replicaDataSource")
     private DataSource replicaDataSource;
 
+    private static final String SCHEMA_NAME = "cft_task_db";
+
     @Bean
     public FlywayMigrationStrategy multiDBMigrateStrategy() {
-        FlywayMigrationStrategy strategy = new FlywayMigrationStrategy() {
+        return new FlywayMigrationStrategy() {
             @Override
             public void migrate(Flyway flyway) {
                 Flyway flywayBase = Flyway.configure()
                     .dataSource(dataSource)
-                    .schemas("cft_task_db")
-                    .defaultSchema("cft_task_db")
+                    .schemas(SCHEMA_NAME)
+                    .defaultSchema(SCHEMA_NAME)
                     .locations("db/migration")
                     .baselineOnMigrate(true)
                     .target(MigrationVersion.LATEST).load();
@@ -36,8 +38,8 @@ public class FlywayReplicaMigrationConfiguration {
 
                 Flyway flywayReplica = Flyway.configure()
                     .dataSource(replicaDataSource)
-                    .schemas("cft_task_db")
-                    .defaultSchema("cft_task_db")
+                    .schemas(SCHEMA_NAME)
+                    .defaultSchema(SCHEMA_NAME)
                     .locations("dbreplica/migration")
                     .baselineOnMigrate(true)
                     .target(MigrationVersion.LATEST).load();
@@ -46,7 +48,5 @@ public class FlywayReplicaMigrationConfiguration {
 
             }
         };
-
-        return strategy;
     }
 }
