@@ -96,6 +96,7 @@ spring:
           in_clause_parameter_padding: true
         default_schema: ${POSTGRES_NAME:cft_task_db}
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
+        physical_naming_strategy: "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy"
   flyway:
     enabled: true
     baselineOnMigrate: true
