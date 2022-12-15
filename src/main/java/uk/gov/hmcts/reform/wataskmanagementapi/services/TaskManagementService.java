@@ -822,15 +822,14 @@ public class TaskManagementService {
         return taskResourceQueryResult.get().getTaskRoleResources().stream()
             .map(r -> cftTaskMapper.mapToTaskRolePermissions(r, granularPermissionResponseFeature))
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
-            .collect(Collectors.toList()
-            );
+            .toList();
     }
 
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         return taskOperationServices.stream()
             .flatMap(taskOperationService -> taskOperationService.performOperation(taskOperationRequest).stream())
             .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
