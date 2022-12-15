@@ -19,7 +19,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticatio
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,7 +61,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         initiateTask(taskVariables);
 
@@ -97,7 +100,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             ENDPOINT_BEING_TESTED,
             taskOperationRequestWithRetryWindowHours(
                 TaskOperationName.EXECUTE_RECONFIGURE,
-                OffsetDateTime.now().minus(Duration.ofDays(1))),
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
             assigneeCredentials.getHeaders()
         );
 
@@ -173,7 +177,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             ENDPOINT_BEING_TESTED,
             taskOperationRequestWithRetryWindowHours(
                 TaskOperationName.EXECUTE_RECONFIGURE,
-                OffsetDateTime.now().minus(Duration.ofDays(1))),
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
             assigneeCredentials.getHeaders()
         );
 
@@ -198,7 +203,9 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .body("task.reconfigure_request_time", nullValue())
             .body("task.last_reconfiguration_time", notNullValue())
             .body("task.due_date", notNullValue())
-            .body("task.due_date", equalTo("2022-10-25T20:00:00+0100"));
+            .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25, 20, 00, 0, 0)
+                                               .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                               .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
 
         common.cleanUpTask(taskId);
     }
@@ -253,10 +260,10 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned",
-            assignerCredentials.getHeaders()
+                                                 assignerCredentials.getHeaders()
         );
         assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee",
-            assigneeId, assignerCredentials.getHeaders()
+                                                 assigneeId, assignerCredentials.getHeaders()
         );
     }
 
