@@ -13,10 +13,11 @@ import java.util.Optional;
 public class DueDateTimeCalculator implements DateCalculator {
 
     @Override
-    public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
+    public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest) {
         return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE)).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME)).isPresent();
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME)).isPresent()
+            && !isReconfigureRequest;
     }
 
     @Override
