@@ -15,16 +15,17 @@ import java.util.List;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 
 @ExtendWith(MockitoExtension.class)
-class DueDateTimeCalculatorTest {
+class DueDateTimeReCalculatorTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final boolean IS_RECONFIGURE_REQUEST = true;
 
-    private DueDateTimeCalculator dueDateTimeCalculator;
+    private DueDateTimeReCalculator dueDateTimeCalculator;
 
 
     @BeforeEach
     public void before() {
-        dueDateTimeCalculator = new DueDateTimeCalculator();
+        dueDateTimeCalculator = new DueDateTimeReCalculator();
     }
 
     @Test
@@ -35,16 +36,40 @@ class DueDateTimeCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateTime"))
             .value(CamundaValue.stringValue("16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, false)).isFalse();
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, IS_RECONFIGURE_REQUEST)).isFalse();
+    }
+
+    @Test
+    void should_supports_when_responses_contains_unconfigurable_due_date() {
+        String expectedDueDate = GIVEN_DATE.plusDays(0)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDate"))
+            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateTime"))
+            .value(CamundaValue.stringValue("16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
+
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, IS_RECONFIGURE_REQUEST)).isTrue();
     }
 
     @Test
@@ -55,16 +80,40 @@ class DueDateTimeCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateTime"))
             .value(CamundaValue.stringValue("16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOrigin"))
             .value(CamundaValue.stringValue(expectedDueDate + "T22:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateOrigin);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, false)).isFalse();
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, IS_RECONFIGURE_REQUEST)).isFalse();
+    }
+
+    @Test
+    void should_supports_when_responses_contains_unconfigurable_due_date_origin() {
+        String expectedDueDate = GIVEN_DATE.plusDays(0)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateTime"))
+            .value(CamundaValue.stringValue("16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOrigin"))
+            .value(CamundaValue.stringValue(expectedDueDate + "T22:00"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateOrigin);
+
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, IS_RECONFIGURE_REQUEST)).isTrue();
     }
 
     @Test
@@ -72,11 +121,25 @@ class DueDateTimeCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateTime"))
             .value(CamundaValue.stringValue("16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, false)).isTrue();
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, IS_RECONFIGURE_REQUEST)).isTrue();
+    }
+
+    @Test
+    void should_not_supports_when_responses_only_contains_unconfigurable_due_date_time() {
+        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateTime"))
+            .value(CamundaValue.stringValue("16:00"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
+
+        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, IS_RECONFIGURE_REQUEST)).isFalse();
     }
 
     @Test

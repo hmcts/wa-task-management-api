@@ -195,6 +195,7 @@ sonarqube {
       "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**," +
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/**"
+    property "sonar.cpd.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/services/calendar/**"
   }
 }
 
