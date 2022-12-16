@@ -19,7 +19,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticatio
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,7 +61,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         initiateTask(taskVariables);
 
@@ -97,7 +100,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             ENDPOINT_BEING_TESTED,
             taskOperationRequestWithRetryWindowHours(
                 TaskOperationName.EXECUTE_RECONFIGURE,
-                OffsetDateTime.now().minus(Duration.ofDays(1))),
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
             assigneeCredentials.getHeaders()
         );
 
@@ -121,6 +125,87 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .body("task.task_state", is("assigned"))
             .body("task.reconfigure_request_time", nullValue())
             .body("task.last_reconfiguration_time", notNullValue());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_recalculate_due_date_when_executed_for_reconfigure() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "calculateDueDate",
+            "Calculate Due Date"
+        );
+
+        common.setupStandardCaseManager(assignerCredentials.getHeaders(),
+                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        );
+        initiateTask(taskVariables);
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        taskId = taskVariables.getTaskId();
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue());
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestWithRetryWindowHours(
+                TaskOperationName.EXECUTE_RECONFIGURE,
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        taskId = taskVariables.getTaskId();
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", nullValue())
+            .body("task.last_reconfiguration_time", notNullValue())
+            .body("task.due_date", notNullValue())
+            .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25, 20, 00, 0, 0)
+                                               .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                               .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
 
         common.cleanUpTask(taskId);
     }
@@ -175,10 +260,10 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned",
-            assignerCredentials.getHeaders()
+                                                 assignerCredentials.getHeaders()
         );
         assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee",
-            assigneeId, assignerCredentials.getHeaders()
+                                                 assigneeId, assignerCredentials.getHeaders()
         );
     }
 

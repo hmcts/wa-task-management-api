@@ -26,7 +26,9 @@ public class DateTypeConfigurator {
     }
 
     public List<ConfigurationDmnEvaluationResponse> configureDueDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, String jurisdiction) {
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        String jurisdiction,
+        boolean isReconfigureRequest) {
 
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> responses
             = new AtomicReference<>(new ArrayList<>(configResponses));
@@ -40,32 +42,40 @@ public class DateTypeConfigurator {
                 return;
             }
             AtomicReference<LocalDateTime> dateValue = new AtomicReference<>();
-            dateValue.set(dt.getDefaultTime());
+            if (!isReconfigureRequest) {
+                dateValue.set(dt.getDefaultTime());
+            }
 
-            Optional<DateCalculator> dueCalculator = getDueDateCalculator(dateProperties, dt);
-            dueCalculator.ifPresent(calculator -> dateValue.getAndSet(calculator.calculateDate(dateProperties)));
+            Optional<DateCalculator> dateCalculator = getDateCalculator(dateProperties, dt, isReconfigureRequest);
+            dateCalculator.ifPresent(calculator -> dateValue.getAndSet(calculator.calculateDate(dateProperties)));
 
-            ConfigurationDmnEvaluationResponse dateTypeResponse = ConfigurationDmnEvaluationResponse
-                .builder()
-                .name(CamundaValue.stringValue(dt.getType()))
-                .value(CamundaValue.stringValue(dateValue.get().format(dt.getDateTimeFormatter())))
-                .build();
+            ConfigurationDmnEvaluationResponse dateTypeResponse = null;
+            LocalDateTime dateTime = dateValue.get();
+            if (dateTime != null) {
+                dateTypeResponse = ConfigurationDmnEvaluationResponse
+                    .builder()
+                    .name(CamundaValue.stringValue(dt.getType()))
+                    .value(CamundaValue.stringValue(dateValue.get().format(dt.getDateTimeFormatter())))
+                    .build();
 
-            log.info("Due date set in configuration is as {}", dateTypeResponse);
+                log.info("Due date set in configuration is as {}", dateTypeResponse);
+            }
             filterOutOldValueAndAddDateType(responses, dt, dateTypeResponse);
         });
 
         return responses.get();
     }
 
-    private Optional<DateCalculator> getDueDateCalculator(
-        List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType) {
+    private Optional<DateCalculator> getDateCalculator(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateType dateType,
+        boolean isReconfigureRequest) {
         return dateCalculators.stream()
-            .filter(dateCalculator -> dateCalculator.supports(configResponses, dateType))
+            .filter(dateCalculator -> dateCalculator.supports(configResponses, dateType, isReconfigureRequest))
             .findFirst();
     }
 
-    private List<ConfigurationDmnEvaluationResponse> filterOutOldValueAndAddDateType(
+    private void filterOutOldValueAndAddDateType(
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses,
         DateType dateType,
         ConfigurationDmnEvaluationResponse dateTypeResponse) {
@@ -73,7 +83,7 @@ public class DateTypeConfigurator {
             .filter(r -> !r.getName().getValue().contains(dateType.getType()))
             .collect(Collectors.toList());
 
-        filtered.add(dateTypeResponse);
-        return configResponses.getAndSet(filtered);
+        Optional.ofNullable(dateTypeResponse).ifPresent(filtered::add);
+        configResponses.getAndSet(filtered);
     }
 }

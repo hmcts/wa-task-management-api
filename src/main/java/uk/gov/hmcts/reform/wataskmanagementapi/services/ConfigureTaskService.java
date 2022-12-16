@@ -36,7 +36,7 @@ public class ConfigureTaskService {
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
         TaskConfigurationResults configurationVariables = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(taskResource.getCaseId(), taskAttributes);
+            .getCaseRelatedConfiguration(taskResource.getCaseId(), taskAttributes, true);
 
         return cftTaskMapper.reconfigureTaskResourceFromDmnResults(taskResource, configurationVariables);
     }

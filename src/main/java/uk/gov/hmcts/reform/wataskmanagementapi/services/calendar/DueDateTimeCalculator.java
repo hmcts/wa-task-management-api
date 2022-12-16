@@ -15,11 +15,16 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 public class DueDateTimeCalculator implements DateCalculator {
 
     @Override
-    public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, DateType dateType) {
+    public boolean supports(
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        DateType dateType,
+        boolean isReconfigureRequest) {
+
         return DUE_DATE == dateType
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME)).isPresent();
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME)).isPresent()
+            && !isReconfigureRequest;
     }
 
     @Override

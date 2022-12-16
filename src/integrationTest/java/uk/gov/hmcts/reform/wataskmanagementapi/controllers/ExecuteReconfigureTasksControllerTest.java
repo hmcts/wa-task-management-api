@@ -49,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -103,7 +104,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     void should_execute_reconfigure_on_task_and_not_update_data_when_can_reconfigure_is_false() throws Exception {
 
         String caseIdToday = "caseId1-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday);
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -133,6 +135,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
             assertNull(task.getNextHearingDate());
             assertNull(task.getNextHearingId());
+            assertNotNull(task.getDueDateTime());
         });
 
         TaskConfigurationResults results = new TaskConfigurationResults(
@@ -140,7 +143,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             configurationDmnResponse(false),
             permissionsResponse()
         );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), eq(true)))
+            .thenReturn(results);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -173,6 +177,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
             assertNull(task.getNextHearingDate());
             assertNull(task.getNextHearingId());
+            assertNotNull(task.getDueDateTime());
         });
     }
 
@@ -180,7 +185,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     void should_execute_reconfigure_on_task_and_update_data_when_can_reconfigure_is_true() throws Exception {
 
         String caseIdToday = "caseId2-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday);
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -208,6 +214,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
             assertNull(task.getNextHearingDate());
             assertNull(task.getNextHearingId());
+            assertNotNull(task.getDueDateTime());
         });
 
         TaskConfigurationResults results = new TaskConfigurationResults(
@@ -215,7 +222,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             configurationDmnResponse(true),
             permissionsResponse()
         );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap())).thenReturn(results);
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), eq(true)))
+            .thenReturn(results);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -231,7 +239,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
-        taskResourcesAfter.forEach(task -> {
+        taskResourcesAfter
+            .forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
                 assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
@@ -253,6 +262,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                     task.getNextHearingDate().toLocalDate()
                 );
                 assertEquals("nextHearingId1", task.getNextHearingId());
+                assertEquals(dueDateTime, task.getDueDateTime());
+
             }
         );
     }
@@ -261,7 +272,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     void should_not_execute_reconfigure_for_past_reconfigure_request_time() throws Exception {
 
         String caseIdToday = "caseId" + OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday);
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -313,7 +325,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
     private List<TaskFilter<?>> executeTaskFilters(OffsetDateTime reconfigureRequestTime) {
         TaskFilter<?> filter = new ExecuteReconfigureTaskFilter("reconfigure_request_time",
-            reconfigureRequestTime, TaskFilterOperator.AFTER
+                                                                reconfigureRequestTime, TaskFilterOperator.AFTER
         );
         return List.of(filter);
     }
@@ -328,7 +340,9 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     private void insertDummyTaskInDb(String jurisdiction,
                                      String caseType,
                                      String caseId,
-                                     String taskId, CFTTaskState cftTaskState,
+                                     String taskId,
+                                     CFTTaskState cftTaskState,
+                                     OffsetDateTime dueDateTime,
                                      TaskRoleResource taskRoleResource) {
         TaskResource taskResource = new TaskResource(
             taskId,
@@ -337,7 +351,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             cftTaskState
         );
         taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(OffsetDateTime.now());
+        taskResource.setDueDateTime(dueDateTime);
         taskResource.setJurisdiction(jurisdiction);
         taskResource.setCaseTypeId(caseType);
         taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
@@ -352,7 +366,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         cftTaskDatabaseService.saveTask(taskResource);
     }
 
-    private void createTaskAndRoleAssignments(CFTTaskState cftTaskState, String caseId) {
+    private void createTaskAndRoleAssignments(CFTTaskState cftTaskState, String caseId, OffsetDateTime dueDateTime) {
         //assigner permission : manage, own, cancel
         TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
@@ -362,7 +376,9 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
         String jurisdiction = "IA";
         String caseType = "Asylum";
-        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignerTaskRoleResource);
+        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, dueDateTime,
+                            assignerTaskRoleResource
+        );
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
@@ -406,31 +422,31 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     private List<ConfigurationDmnEvaluationResponse> configurationDmnResponse(boolean canReconfigure) {
         return asList(
             new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
-                booleanValue(false)
+                                                   booleanValue(false)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("priorityDate"),
@@ -438,13 +454,13 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
-                booleanValue(canReconfigure)
+                                                   booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("nextHearingDate"),
