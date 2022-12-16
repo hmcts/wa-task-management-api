@@ -766,7 +766,7 @@ class CaseConfigurationProviderServiceTest {
             .thenReturn(List.of());
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, Map.of("dueDate", "2022-12-13T13:08:00.170Z"));
+            .getCaseRelatedConfiguration(someCaseId, Map.of("dueDate", "2022-12-13T13:08:00.170Z"), false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
