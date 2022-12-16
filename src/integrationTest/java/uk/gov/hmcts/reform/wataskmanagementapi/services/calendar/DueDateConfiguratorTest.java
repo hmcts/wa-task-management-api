@@ -828,7 +828,7 @@ public class DueDateConfiguratorTest {
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
-                "WA"
+                "WA", false
             );
 
         String expectedDueDate = "2022-10-30T02:30";
@@ -882,7 +882,7 @@ public class DueDateConfiguratorTest {
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
-                "WA"
+                "WA", false
             );
 
         String expectedDueDate = "2023-03-30T01:30";
