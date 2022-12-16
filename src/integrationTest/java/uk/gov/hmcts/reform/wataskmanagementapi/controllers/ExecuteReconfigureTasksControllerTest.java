@@ -159,7 +159,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-
         taskResources.forEach(task -> {
             assertEquals(ASSIGNEE_USER, task.getAssignee());
             assertEquals(CFTTaskState.ASSIGNED, task.getState());
@@ -204,7 +203,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
 
         taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-
         taskResources.forEach(task -> {
             assertNotNull(task.getLastReconfigurationTime());
             assertNull(task.getReconfigureRequestTime());
@@ -272,7 +270,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             configurationDmnResponse(true),
             permissionsResponse()
         );
-
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean()))
             .thenReturn(results);
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
@@ -324,7 +321,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
     @Test
     void should_execute_reconfigure_autoassignment_unassigned_to_assigned() throws Exception {
-
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
@@ -363,6 +359,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean()))
             .thenReturn(results);
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -376,7 +373,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-
         taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
@@ -410,7 +406,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
     @Test
     void should_execute_reconfigure_autoassignment_unassigned_to_unassigned() throws Exception {
-
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
@@ -450,6 +445,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean()))
             .thenReturn(results);
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -463,7 +459,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-
         taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
@@ -497,7 +492,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
     @Test
     void should_execute_reconfigure_autoassignment_assigned_to_assigned_another_user() throws Exception {
-
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, OLD_ASSIGNEE_USER, caseIdToday, dueDateTime);
@@ -551,7 +545,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-
         taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
@@ -585,7 +578,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
 
     @Test
     void should_execute_reconfigure_autoassignment_assigned_to_unassigned() throws Exception {
-
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
@@ -627,6 +619,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean()))
             .thenReturn(results);
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -640,7 +633,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-
         taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
@@ -679,7 +671,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         String caseIdToday = "caseId" + OffsetDateTime.now();
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
-
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -785,13 +776,11 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
         String jurisdiction = "IA";
         String caseType = "Asylum";
-
         insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignee, dueDateTime,
             assignerTaskRoleResource
         );
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
-
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
@@ -804,7 +793,6 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             .build();
 
         createRoleAssignment(assignerRoles, roleAssignmentRequest);
-
     }
 
     private List<PermissionsDmnEvaluationResponse> permissionsResponse() {
