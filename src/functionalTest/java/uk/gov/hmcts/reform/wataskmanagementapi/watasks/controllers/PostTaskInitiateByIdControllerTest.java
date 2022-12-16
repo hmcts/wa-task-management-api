@@ -860,7 +860,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(1000))
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo("2022-10-17T20:00:00+0100"));
+                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
+                                                   .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -916,7 +918,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(1000))
                 .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo("2022-10-17T20:00:00+0100"));
+                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
+                                               .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                               .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
         initiateTask(taskVariables, assertConsumer);
