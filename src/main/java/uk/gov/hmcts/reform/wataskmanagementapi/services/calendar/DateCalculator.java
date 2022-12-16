@@ -28,7 +28,7 @@ public interface DateCalculator {
         .withHour(16).withMinute(0).withSecond(0);
     LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
 
-    boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
+    boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest);
 
     LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
 
@@ -66,5 +66,11 @@ public interface DateCalculator {
             .with(ChronoField.MINUTE_OF_HOUR, Long.parseLong(split.get(1)))
             .with(ChronoField.SECOND_OF_MINUTE, 0)
             .with(ChronoField.NANO_OF_SECOND, 0);
+    }
+
+    default String getConfigurationValue(ConfigurationDmnEvaluationResponse response, boolean isReconfigureRequest) {
+        return isReconfigureRequest && response.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE
+            ? null
+            : response.getValue().getValue();
     }
 }

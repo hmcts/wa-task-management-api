@@ -63,7 +63,7 @@ class CaseRelatedVariablesConfiguratorTest {
             CASE_TYPE_ID.value(), "Asylum"
         );
 
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(caseId, taskAttributes))
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(caseId, taskAttributes, false))
             .thenReturn(new TaskConfigurationResults(expectedValues));
 
         TaskConfigurationResults actual = caseRelatedVariablesConfigurator
@@ -90,7 +90,7 @@ class CaseRelatedVariablesConfiguratorTest {
             CASE_TYPE_ID.value(), "Asylum"
         );
 
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(caseId, null))
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(caseId, null, false))
             .thenReturn(new TaskConfigurationResults(expectedValues));
 
         TaskConfigurationResults actual = caseRelatedVariablesConfigurator
