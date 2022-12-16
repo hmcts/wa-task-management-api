@@ -263,7 +263,7 @@ class DueDateIntervalReCalculatorTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue("true"))
+            .value(CamundaValue.stringValue("Next"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
