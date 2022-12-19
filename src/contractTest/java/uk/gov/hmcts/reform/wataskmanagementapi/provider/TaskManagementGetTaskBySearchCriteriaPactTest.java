@@ -91,7 +91,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         setInitMockForSearchTaskWithWarningsOnly();
     }
 
-    @State({"appropriate tasks are returned by criteria with work-type with warnings only"})
+    @State({"appropriate tasks are returned by criteria with work-type and warnings only"})
     public void getTasksBySearchCriteriaWithWorkTypeWithWarningsOnly() {
         setInitMockForSearchTaskWithWarningsOnly();
     }
@@ -99,6 +99,16 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
     @State({"appropriate tasks are returned by criteria with role category"})
     public void getTasksBySearchCriteriaWithRoleCategory() {
         setInitMockForSearchTaskWithRoleCategory();
+    }
+
+    @State({"appropriate tasks are returned by criteria with context available task only"})
+    public void getTasksBySearchCriteriaWithAvailableTasksOnlyContext() {
+        setInitMockForSearchTask();
+    }
+
+    @State({"appropriate tasks are returned by criteria with context all work"})
+    public void getTasksBySearchCriteriaWithAllWorkOnly() {
+        setInitMockForSearchTask();
     }
 
     public Task createTaskWithNoWarnings() {
