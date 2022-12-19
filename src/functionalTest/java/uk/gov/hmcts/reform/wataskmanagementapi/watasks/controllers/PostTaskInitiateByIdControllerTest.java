@@ -818,4 +818,120 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_calculate_due_date_must_be_working_day_should_default_to_next() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "mustBeWorkingDayDefault", "Must be working day default");
+        String taskId = taskVariables.getTaskId();
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Must be working day default"))
+                .body("task.type", equalTo("mustBeWorkingDayDefault"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Must be working day default"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.work_type_id", equalTo("decision_making_work"))
+                .body("task.work_type_label", equalTo("Decision-making work"))
+                .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Execute"))
+                .body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.due_date", notNullValue())
+                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
+                                                   .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_calculate_due_date_multiple_working_day_should_use_last_entry_in_dmn() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "multipleMustBeWorkingDays", "Multiple must  be working day");
+        String taskId = taskVariables.getTaskId();
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Multiple must  be working day"))
+                .body("task.type", equalTo("multipleMustBeWorkingDays"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Multiple must  be working day"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.work_type_id", equalTo("decision_making_work"))
+                .body("task.work_type_label", equalTo("Decision-making work"))
+                .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Execute"))
+                .body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.due_date", notNullValue())
+                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
+                                               .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                               .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
 }
