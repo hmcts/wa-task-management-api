@@ -7,14 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 
 import java.io.IOException;
@@ -29,11 +26,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.BOOLEAN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
 
 @JsonTest
 @ExtendWith(MockitoExtension.class)
@@ -85,21 +80,6 @@ class SearchRequestCustomDeserializerTest {
     }
 
     @Test
-    void should_deserialize_context_is_operator() throws IOException {
-        when(operatorNode.asText()).thenReturn("CONTEXT");
-        when(searchNode.get("operator")).thenReturn(operatorNode);
-        when(jsonParser.getCodec()).thenReturn(objectMapper);
-        when(objectMapper.readTree(jsonParser)).thenReturn(searchNode);
-        SearchRequestCustomDeserializer deserializer = new SearchRequestCustomDeserializer();
-
-        deserializer.deserialize(jsonParser, deserializationContext);
-
-        verify(objectMapper, times(1)).treeToValue(searchNode, SearchParameterRequestContext.class);
-        verify(objectMapper, never()).treeToValue(searchNode, SearchParameterBoolean.class);
-        verify(objectMapper, never()).treeToValue(searchNode, SearchParameterList.class);
-    }
-
-    @Test
     void should_throw_exception_when_operator_is_null() throws IOException {
         when(searchNode.get("operator")).thenReturn(null);
         when(jsonParser.getCodec()).thenReturn(objectMapper);
@@ -140,23 +120,6 @@ class SearchRequestCustomDeserializerTest {
         assertEquals(JURISDICTION, searchParameter.getKey());
         assertEquals(IN, searchParameter.getOperator());
         assertTrue(searchParameter.getValues().containsAll(of("ia", "sscs")));
-    }
-
-    @ParameterizedTest
-    @EnumSource(RequestContext.class)
-    void should_deserialize_request_context_filter_with_context_operator(RequestContext context) throws IOException {
-        String jsonContent =  "      {\n"
-            + "           \"key\": \"request_context\",\n"
-            + "           \"value\": \"" + context + "\",\n"
-            + "           \"operator\": \"CONTEXT\"\n"
-            + "        }";
-
-        SearchParameterRequestContext searchParameter = (SearchParameterRequestContext) this.json.parse(jsonContent)
-            .getObject();
-
-        assertEquals(REQUEST_CONTEXT, searchParameter.getKey());
-        assertEquals(CONTEXT, searchParameter.getOperator());
-        assertEquals(context, searchParameter.getValues());
     }
 
     @NotNull

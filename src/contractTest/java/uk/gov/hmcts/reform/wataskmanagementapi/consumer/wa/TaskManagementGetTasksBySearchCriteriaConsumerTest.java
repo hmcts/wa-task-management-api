@@ -542,6 +542,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     private String createSearchEventCaseWithAvailableTasksOnlyContext() {
 
         return "{\n"
+            + "    \"request_context\": \"AVAILABLE_TASKS\",\n"
             + "    \"search_parameters\": [\n"
             + "        {\n"
             + "            \"key\": \"jurisdiction\",\n"
@@ -549,11 +550,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             + "            \"values\": [\n"
             + "                \"IA\"\n"
             + "            ]\n"
-            + "        },\n"
-            + "        {\n"
-            + "            \"key\": \"request_context\",\n"
-            + "            \"operator\": \"CONTEXT\",\n"
-            + "            \"value\": \"AVAILABLE_TASKS\""
             + "        }\n"
             + "    ]\n"
             + "}";
@@ -562,6 +558,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     private String createSearchEventCaseWithAllWorkContext() {
 
         return "{\n"
+            + "    \"request_context\": \"ALL_WORK\",\n"
             + "    \"search_parameters\": [\n"
             + "        {\n"
             + "            \"key\": \"jurisdiction\",\n"
@@ -569,11 +566,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             + "            \"values\": [\n"
             + "                \"IA\"\n"
             + "            ]\n"
-            + "        },\n"
-            + "        {\n"
-            + "            \"key\": \"request_context\",\n"
-            + "            \"operator\": \"CONTEXT\",\n"
-            + "            \"value\": \"ALL_WORK\""
             + "        }\n"
             + "    ]\n"
             + "}";
