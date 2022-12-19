@@ -29,12 +29,13 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true",
-        "true,true"
+        "false,true,true",
+        "true,true,false"
     })
     public void shouldCalculateDueDateWhenMultipleDueDateOriginsAreAvailable(
         String isReConfigurationRequest,
-        String canConfigure) {
+        String canConfigure,
+        String initiationDueDateFound) {
 
         String firstDueDate = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String secondDueDate = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -58,7 +59,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDateOrigin, dueDateOrigin, thirdDueDateOrigin), false,
+            .configureDueDate(List.of(defaultDueDateOrigin, dueDateOrigin, thirdDueDateOrigin),
+                              Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
@@ -155,12 +157,13 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true",
-        "true,true"
+        "false,true,true",
+        "true,true,false"
     })
     public void shouldCalculateDueDateWhenMultipleDueDateTimesAreAvailable(
         String isReConfigurationRequest,
-        String canConfigure
+        String canConfigure,
+        String initiationDueDateFound
     ) {
 
 
@@ -177,7 +180,8 @@ public class DueDateConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDateTime, dueDateTime), false,
+            .configureDueDate(List.of(defaultDueDateTime, dueDateTime),
+                              Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
         String defaultDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -191,12 +195,13 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true",
-        "true,true"
+        "false,true,true",
+        "true,true,false"
     })
     public void shouldCalculateDueDateWhenDefaultDueDateWithoutTimeAndTimeAreAvailable(
         String isReConfigurationRequest,
-        String canConfigure
+        String canConfigure,
+        String initiationDueDateFound
     ) {
 
         String givenDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -214,7 +219,8 @@ public class DueDateConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDate, defaultDueDateTime), false,
+            .configureDueDate(List.of(defaultDueDate, defaultDueDateTime),
+                              Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
@@ -226,12 +232,13 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true",
-        "true,true"
+        "false,true,true",
+        "true,true,false"
     })
     public void shouldCalculateDueDateWhenOnlyDueDateTimeIsAvailable(
         String isReConfigurationRequest,
-        String canConfigure
+        String canConfigure,
+        String initiationDueDateFound
     ) {
 
         ConfigurationDmnEvaluationResponse defaultDueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -241,7 +248,8 @@ public class DueDateConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDateTime), false,
+            .configureDueDate(List.of(defaultDueDateTime),
+                              Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest)
             );
 
@@ -256,12 +264,13 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true",
-        "true,true"
+        "false,true,true",
+        "true,true,false"
     })
     public void shouldCalculateDueDateWhenOnlyDefaultDueDateWithTimeIsAvailable(
         String isReConfigurationRequest,
-        String canConfigure
+        String canConfigure,
+        String initiationDueDateFound
     ) {
 
         String givenDueDate = GIVEN_DATE.plusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -273,7 +282,8 @@ public class DueDateConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDate), false,
+            .configureDueDate(List.of(defaultDueDate),
+                              Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest)
             );
 
@@ -314,12 +324,13 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true",
-        "true,true"
+        "false,true,true",
+        "true,true,false"
     })
     public void shouldCalculateDueDateWhenOnlyDueDateAndDueDateOriginBothProvided(
         String isReConfigurationRequest,
-        String canConfigure
+        String canConfigure,
+        String initiationDueDateFound
     ) {
         String givenDueDate = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String givenDueDateOrigin = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -337,7 +348,9 @@ public class DueDateConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(dueDate, dueDateOrigin), false, Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDueDate(List.of(dueDate, dueDateOrigin),
+                              Boolean.parseBoolean(initiationDueDateFound),
+                              Boolean.parseBoolean(isReConfigurationRequest));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
