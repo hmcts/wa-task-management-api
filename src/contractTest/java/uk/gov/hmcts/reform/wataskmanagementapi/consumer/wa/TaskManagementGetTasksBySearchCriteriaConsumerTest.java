@@ -124,7 +124,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQueryWithWorkTypeWithWarnings200(PactDslWithProvider builder) {
         return builder
-            .given("appropriate tasks are returned by criteria with work-type and warnings only")
+            .given("appropriate tasks are returned by criteria with work-type with warnings only")
             .uponReceiving("Provider receives a POST /task request from a WA API")
             .path(WA_SEARCH_QUERY)
             .method(HttpMethod.POST.toString())

@@ -91,7 +91,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         setInitMockForSearchTaskWithWarningsOnly();
     }
 
-    @State({"appropriate tasks are returned by criteria with work-type and warnings only"})
+    @State({"appropriate tasks are returned by criteria with work-type with warnings only"})
     public void getTasksBySearchCriteriaWithWorkTypeWithWarningsOnly() {
         setInitMockForSearchTaskWithWarningsOnly();
     }
