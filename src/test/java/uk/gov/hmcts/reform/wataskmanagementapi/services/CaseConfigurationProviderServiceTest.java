@@ -841,7 +841,7 @@ class CaseConfigurationProviderServiceTest {
                     stringValue("SATURDAY, SUNDAY")
                 ),
                 new ConfigurationDmnEvaluationResponse(stringValue("dueDateSkipNonWorkingDays"), stringValue("true")),
-                new ConfigurationDmnEvaluationResponse(stringValue("dueDateMustBeWorkingDay"), stringValue("true")),
+                new ConfigurationDmnEvaluationResponse(stringValue("dueDateMustBeWorkingDay"), stringValue("Next")),
                 new ConfigurationDmnEvaluationResponse(stringValue("dueDateTime"), stringValue("18:00"))
             ));
 
