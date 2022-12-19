@@ -251,6 +251,10 @@ public class Common {
     }
 
     public void setupWAOrganisationalRoleAssignment(Headers headers, String roleName) {
+        setupWAOrganisationalRoleAssignment(headers, roleName, List.of());
+    }
+
+    public void setupWAOrganisationalRoleAssignment(Headers headers, String roleName, List<String> authorisation) {
 
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -275,7 +279,7 @@ public class Common {
             R2_ROLE_ASSIGNMENT_REQUEST,
             GrantType.STANDARD.name(),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            toJsonString(List.of()),
+            toJsonString(authorisation),
             RoleType.ORGANISATION.name(),
             Classification.PUBLIC.name(),
             "staff-organisational-role-mapping",

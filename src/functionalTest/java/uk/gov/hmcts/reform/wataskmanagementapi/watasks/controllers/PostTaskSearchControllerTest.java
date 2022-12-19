@@ -670,4 +670,73 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(0));
     }
 
+    @Test
+    public void should_return_a_200_with_tasks_matching_to_authorisations() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "firstTask",
+            "First Task"
+        );
+
+        initiateTask(taskVariables);
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
+                                                   "hearing-judge",
+                                                   List.of("SKILL:ABC01:performance-test-skill-1",
+                                                           "SKILL:ABC01:performance-test-skill-3"));
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of(taskVariables.getCaseId()))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT))
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("tasks[0].id", is(taskVariables.getTaskId()))
+            .body("total_records", equalTo(1));
+    }
+
+    @Test
+    public void should_return_a_200_with_empty_tasks_when_authorisations_not_matching() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "firstTask",
+            "First Task"
+        );
+
+        initiateTask(taskVariables);
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
+                                                   "hearing-judge",
+                                                   List.of("SKILL:ABC01:performance-test-skill-3",
+                                                           "SKILL:ABC01:performance-test-skill-4"));
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of(taskVariables.getCaseId()))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT))
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", is(0)) //Default max results
+            .body("total_records", equalTo(0));
+    }
 }
