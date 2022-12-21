@@ -27,8 +27,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CONFIGURE;
-
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -99,10 +97,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "key4", "value4"
                 ))).body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
-                .body("task.last_updated_timestamp", notNullValue())
-                .body("task.last_updated_user", equalTo(idamSystemUser))
-                .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -382,10 +377,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "roleAssignmentId", "roleAssignmentId")))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
-                .body("task.last_updated_timestamp", notNullValue())
-                .body("task.last_updated_user", equalTo(idamSystemUser))
-                .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
         };
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
@@ -502,10 +494,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "key3", "value3",
                     "key4", "value4"
                 ))).body("task.minor_priority", equalTo(500))
-                .body("task.major_priority", equalTo(5000))
-                .body("task.last_updated_timestamp", notNullValue())
-                .body("task.last_updated_user", equalTo(idamSystemUser))
-                .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
+                .body("task.major_priority", equalTo(5000));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -629,10 +618,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.permissions.values.size()", equalTo(3))
                 .body("task.permissions.values", hasItems("Read", "Cancel", "Own"))
                 .body("task.minor_priority", equalTo(500))
-                .body("task.major_priority", equalTo(5000))
-                .body("task.last_updated_timestamp", notNullValue())
-                .body("task.last_updated_user", equalTo(idamSystemUser))
-                .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
+                .body("task.major_priority", equalTo(5000));
         };
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
@@ -709,10 +695,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.next_hearing_date", equalTo("2022-12-07T13:00:00+0000"))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
-                .body("task.last_updated_timestamp", notNullValue())
-                .body("task.last_updated_user", equalTo(idamSystemUser))
-                .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
         };
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
@@ -792,10 +775,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "key3", "value3",
                 "key4", "value4"
             ))).body("task.minor_priority", equalTo(500))
-            .body("task.major_priority", equalTo(1000))
-            .body("task.last_updated_timestamp", notNullValue())
-            .body("task.last_updated_user", equalTo(idamSystemUser))
-            .body("task.last_updated_action", equalTo(CONFIGURE.getValue()));
+            .body("task.major_priority", equalTo(1000));
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
         //Expect to get 503 for database conflict
