@@ -82,7 +82,10 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+
         common.cleanUpTask(taskId);
+
     }
 
     @Test
@@ -111,6 +114,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                 LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_NOT_ASSIGNED,
                 taskId
             )));
+
     }
 
     @Test
@@ -127,18 +131,37 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             HttpStatus.NO_CONTENT
         );
 
-        CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(null);
+        //S2S service name is wa_task_management_api
+        TestAuthenticationCredentials otherUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        common.setupWAOrganisationalRoleAssignment(otherUser.getHeaders());
+
+        CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             completeTaskRequest,
-            caseworkerCredentials.getHeaders()
+            otherUser.getHeaders()
         );
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        UserInfo userInfo = idamService.getUserInfo(caseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .and()
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
+            .body("message", equalTo(String.format(
+                LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER,
+                taskId, userInfo.getUid()
+            )));
+
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(otherUser.getHeaders());
+
     }
 
     @Test
@@ -174,7 +197,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(String.format(
@@ -184,6 +207,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         common.cleanUpTask(taskId);
         common.clearAllRoleAssignments(otherUser.getHeaders());
+
     }
 
     @Test
@@ -208,7 +232,10 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+
         common.cleanUpTask(taskId);
+
     }
 
     @Test
@@ -233,6 +260,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+
         common.cleanUpTask(taskId);
 
     }
@@ -261,6 +290,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+
         common.cleanUpTask(taskId);
     }
 
@@ -324,7 +355,15 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+        assertions.taskStateWasUpdatedInDatabase(
+            taskVariables.getTaskId(), "assigned", caseworkerCredentials.getHeaders()
+        );
+        assertions.taskFieldWasUpdatedInDatabase(
+            taskVariables.getTaskId(), "assignee", assigneeId, caseworkerCredentials.getHeaders()
+        );
+
     }
+
 
 }
 
