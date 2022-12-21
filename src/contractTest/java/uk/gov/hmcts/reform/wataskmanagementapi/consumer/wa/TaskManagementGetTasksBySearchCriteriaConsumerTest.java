@@ -158,7 +158,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQueryWithAvailableTasksOnlyContext200Test(PactDslWithProvider builder) {
         return builder
-            .given("appropriate tasks are returned by criteria with work-type with warnings only")
+            .given("appropriate tasks are returned by criteria with context available task only")
             .uponReceiving("Provider receives a POST /task request from a WA API")
             .path(WA_SEARCH_QUERY)
             .method(HttpMethod.POST.toString())
@@ -175,7 +175,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQueryWithAllWorkContext200Test(PactDslWithProvider builder) {
         return builder
-            .given("appropriate tasks are returned by criteria with work-type with warnings only")
+            .given("appropriate tasks are returned by criteria with context all work")
             .uponReceiving("Provider receives a POST /task request from a WA API")
             .path(WA_SEARCH_QUERY)
             .method(HttpMethod.POST.toString())
@@ -542,6 +542,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     private String createSearchEventCaseWithAvailableTasksOnlyContext() {
 
         return "{\n"
+            + "    \"request_context\": \"AVAILABLE_TASKS\",\n"
             + "    \"search_parameters\": [\n"
             + "        {\n"
             + "            \"key\": \"jurisdiction\",\n"
@@ -549,11 +550,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             + "            \"values\": [\n"
             + "                \"IA\"\n"
             + "            ]\n"
-            + "        },\n"
-            + "        {\n"
-            + "            \"key\": \"request_context\",\n"
-            + "            \"operator\": \"CONTEXT\",\n"
-            + "            \"value\": \"AVAILABLE_TASKS\""
             + "        }\n"
             + "    ]\n"
             + "}";
@@ -562,6 +558,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     private String createSearchEventCaseWithAllWorkContext() {
 
         return "{\n"
+            + "    \"request_context\": \"ALL_WORK\",\n"
             + "    \"search_parameters\": [\n"
             + "        {\n"
             + "            \"key\": \"jurisdiction\",\n"
@@ -569,11 +566,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             + "            \"values\": [\n"
             + "                \"IA\"\n"
             + "            ]\n"
-            + "        },\n"
-            + "        {\n"
-            + "            \"key\": \"request_context\",\n"
-            + "            \"operator\": \"CONTEXT\",\n"
-            + "            \"value\": \"ALL_WORK\""
             + "        }\n"
             + "    ]\n"
             + "}";
