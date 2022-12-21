@@ -1,23 +1,16 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
-import java.util.Map;
-
 import static org.hamcrest.Matchers.equalTo;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CANCEL;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskActionAttributesForAssertion;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -99,12 +92,6 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, null,
-            "cancelled", userInfo.getUid(), CANCEL);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
-
         common.cleanUpTask(taskId);
     }
 
@@ -137,12 +124,6 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        String serviceToken = granularPermissionCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, userInfo.getUid(),
-            "cancelled", userInfo.getUid(), CANCEL);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, granularPermissionCaseworkerCredentials.getHeaders());
-
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
@@ -172,12 +153,6 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
-
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, null,
-            "cancelled", userInfo.getUid(), CANCEL);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }

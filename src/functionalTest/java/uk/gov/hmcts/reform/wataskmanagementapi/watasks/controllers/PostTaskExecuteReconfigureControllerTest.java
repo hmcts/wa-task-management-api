@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -125,10 +124,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", is("assigned"))
             .body("task.reconfigure_request_time", nullValue())
-            .body("task.last_reconfiguration_time", notNullValue())
-            .body("task.last_updated_timestamp", notNullValue())
-            .body("task.last_updated_user", equalTo(idamSystemUser))
-            .body("task.last_updated_action", equalTo(TaskAction.CONFIGURE.getValue()));
+            .body("task.last_reconfiguration_time", notNullValue());
 
         common.cleanUpTask(taskId);
     }
