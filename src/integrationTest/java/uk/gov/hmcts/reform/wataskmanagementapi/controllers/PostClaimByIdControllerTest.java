@@ -30,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -42,6 +43,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -56,6 +60,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -334,7 +339,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Role Assignment Verification: "
-                    + "The request failed the Role Assignment checks performed.")
+                + "The request failed the Role Assignment checks performed.")
         );
     }
 
@@ -411,7 +416,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> roleAssignments =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(singletonList("tribunal-caseworker"),
-                                                                     roleAttributes);
+                roleAttributes);
 
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -435,7 +440,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Role Assignment Verification: "
-                    + "The request failed the Role Assignment checks performed.")
+                + "The request failed the Role Assignment checks performed.")
         );
     }
 
@@ -463,7 +468,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> roleAssignments =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(singletonList("tribunal-caseworker"),
-                                                                     roleAttributes);
+                roleAttributes);
 
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -487,7 +492,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Role Assignment Verification: "
-                    + "The request failed the Role Assignment checks performed.")
+                + "The request failed the Role Assignment checks performed.")
         );
     }
 
@@ -605,6 +610,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         verify(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
         verify(camundaServiceApi).assignTask(anyString(), anyString(), any());
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -669,6 +681,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         verify(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
         verify(camundaServiceApi).assignTask(anyString(), anyString(), any());
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -807,6 +826,12 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         verify(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
         verify(camundaServiceApi).assignTask(anyString(), anyString(), any());
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -868,6 +893,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -940,6 +972,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.message").value(
                 "Task '" + taskId + "' is already claimed by someone else.")
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1006,7 +1045,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Role Assignment Verification: "
-                    + "The request failed the Role Assignment checks performed.")
+                + "The request failed the Role Assignment checks performed.")
         );
     }
 
@@ -1061,6 +1100,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1122,6 +1168,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1255,6 +1308,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1317,6 +1377,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1391,6 +1458,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1477,6 +1551,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
 

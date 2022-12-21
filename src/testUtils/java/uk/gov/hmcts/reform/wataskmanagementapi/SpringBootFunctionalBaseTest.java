@@ -128,7 +128,7 @@ public abstract class SpringBootFunctionalBaseTest {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         workflowApiActions = new RestApiActions(workflowUrl, LOWER_CAMEL_CASE).setUp();
-        assertions = new Assertions(camundaApiActions, restApiActions, authorizationProvider, cftTaskDatabaseService);
+        assertions = new Assertions(camundaApiActions, restApiActions, authorizationProvider);
 
         launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
         documentManagementFiles.prepare();

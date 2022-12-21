@@ -23,8 +23,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -74,10 +72,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskActionAttributesVerifier(taskId, userInfo.getUid(), "assigned", userInfo.getUid(), CLAIM);
-
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -88,10 +82,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskActionAttributesVerifier(taskId, assigneeId, "completed", userInfo.getUid(), COMPLETED);
-
         common.cleanUpTask(taskId);
-
     }
 
     @Test
@@ -147,11 +138,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskActionAttributesVerifier(taskId, assigneeId, "completed", userInfo.getUid(), COMPLETED);
-
         common.cleanUpTask(taskId);
     }
 
@@ -198,7 +184,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         common.cleanUpTask(taskId);
         common.clearAllRoleAssignments(otherUser.getHeaders());
-
     }
 
     @Test
@@ -223,12 +208,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskActionAttributesVerifier(taskId, assigneeId, "completed", userInfo.getUid(), COMPLETED);
-
         common.cleanUpTask(taskId);
-
     }
 
     @Test
@@ -253,10 +233,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskActionAttributesVerifier(taskId, assigneeId, "completed", userInfo.getUid(), COMPLETED);
-
         common.cleanUpTask(taskId);
 
     }
@@ -285,10 +261,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskActionAttributesVerifier(taskId, assigneeId, "completed", userInfo.getUid(), COMPLETED);
-
         common.cleanUpTask(taskId);
     }
 

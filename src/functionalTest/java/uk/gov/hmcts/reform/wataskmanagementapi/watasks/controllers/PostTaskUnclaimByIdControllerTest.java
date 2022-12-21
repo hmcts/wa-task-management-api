@@ -6,7 +6,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
@@ -14,10 +13,7 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.UNCLAIM;
 
 
 public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -147,11 +143,6 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
-
-        String serviceToken = unassignUser.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskActionAttributesVerifier(taskId, null, "unassigned", userInfo.getUid(), UNCLAIM);
-
         common.cleanUpTask(taskId);
     }
 
@@ -185,11 +176,6 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
-
-        String serviceToken = unassignUser.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskActionAttributesVerifier(taskId, null, "unassigned", userInfo.getUid(), UNCLAIM);
-
         common.cleanUpTask(taskId);
     }
 
@@ -226,11 +212,6 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
-
-        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskActionAttributesVerifier(taskId, userInfo.getUid(), "assigned", userInfo.getUid(), CLAIM);
-
         common.cleanUpTask(taskId);
     }
 

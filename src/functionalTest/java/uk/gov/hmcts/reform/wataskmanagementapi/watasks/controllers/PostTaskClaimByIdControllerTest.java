@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import static org.hamcrest.Matchers.equalTo;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
 
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -98,8 +97,6 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
 
-        assertions.taskActionAttributesVerifier(taskId, userInfo.getUid(), "assigned", userInfo.getUid(), CLAIM);
-
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
         common.cleanUpTask(taskId);
@@ -138,10 +135,6 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         result.then().assertThat()
             .statusCode(HttpStatus.CONFLICT.value());
 
-        String serviceToken = currentCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskActionAttributesVerifier(taskId, userInfo.getUid(), "assigned", userInfo.getUid(), CLAIM);
-
         common.cleanUpTask(taskId);
     }
 
@@ -164,10 +157,6 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
-
-        String serviceToken = granularPermissionCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskActionAttributesVerifier(taskId, userInfo.getUid(), "assigned", userInfo.getUid(), CLAIM);
 
         common.cleanUpTask(taskId);
     }

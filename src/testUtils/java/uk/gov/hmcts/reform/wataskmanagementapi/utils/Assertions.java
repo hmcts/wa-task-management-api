@@ -4,14 +4,10 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -28,15 +24,12 @@ public class Assertions {
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
     private final AuthorizationProvider authorizationProvider;
-    private final CFTTaskDatabaseService cftTaskDatabaseService;
 
     public Assertions(RestApiActions camundaApiActions, RestApiActions restApiActions,
-                      AuthorizationProvider authorizationProvider,
-                      CFTTaskDatabaseService cftTaskDatabaseService) {
+                      AuthorizationProvider authorizationProvider) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationProvider = authorizationProvider;
-        this.cftTaskDatabaseService = cftTaskDatabaseService;
     }
 
     public void taskVariableWasUpdated(String processInstanceId, String variable, String value) {
@@ -75,27 +68,6 @@ public class Assertions {
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", equalTo(value))
             .log();
-    }
-
-    public void taskActionAttributesVerifier(String taskId,
-                                             String assigneeId,
-                                             String taskState,
-                                             String lastUpdatedUserId,
-                                             TaskAction taskAction) {
-
-        Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
-
-        if (taskResource.isPresent()) {
-            TaskResource task = taskResource.get();
-            assertAll("taskResource",
-                () -> assertEquals(taskId, task.getTaskId()),
-                () -> assertEquals(taskState, task.getState().getValue()),
-                () -> assertEquals(assigneeId, task.getAssignee()),
-                () -> assertNotNull(task.getLastUpdatedTimestamp()),
-                () -> assertEquals(lastUpdatedUserId, task.getLastUpdatedUser()),
-                () -> assertEquals(taskAction.getValue(), task.getLastUpdatedAction())
-            );
-        }
     }
 
     public void taskFieldWasUpdatedInDatabase(String taskId, String fieldName, String value,
