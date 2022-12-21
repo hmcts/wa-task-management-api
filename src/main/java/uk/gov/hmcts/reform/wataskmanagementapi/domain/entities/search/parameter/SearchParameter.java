@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
     discriminatorProperty = "values",
     discriminatorMapping = {
         @DiscriminatorMapping(value = "SearchParameterBoolean", schema = SearchParameterBoolean.class),
-        @DiscriminatorMapping(value = "SearchParameterRequestContext", schema = SearchParameterRequestContext.class),
         @DiscriminatorMapping(value = "SearchParameterList", schema = SearchParameterList.class)
     }
 )
