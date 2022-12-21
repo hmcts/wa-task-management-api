@@ -2,18 +2,24 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
-import org.hamcrest.Matcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class Assertions {
     private static final String TASK_ENDPOINT_BEING_TESTED = "task/{task-id}";
@@ -22,12 +28,15 @@ public class Assertions {
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
     private final AuthorizationProvider authorizationProvider;
+    private final CFTTaskDatabaseService cftTaskDatabaseService;
 
     public Assertions(RestApiActions camundaApiActions, RestApiActions restApiActions,
-                      AuthorizationProvider authorizationProvider) {
+                      AuthorizationProvider authorizationProvider,
+                      CFTTaskDatabaseService cftTaskDatabaseService) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationProvider = authorizationProvider;
+        this.cftTaskDatabaseService = cftTaskDatabaseService;
     }
 
     public void taskVariableWasUpdated(String processInstanceId, String variable, String value) {
@@ -68,23 +77,25 @@ public class Assertions {
             .log();
     }
 
-    public void taskAttributesVerifier(String taskId, Map<String, Matcher<?>> fieldValueMap,
-                                       Headers authenticationHeaders) {
+    public void taskActionAttributesVerifier(String taskId,
+                                             String assigneeId,
+                                             String taskState,
+                                             String lastUpdatedUserId,
+                                             TaskAction taskAction) {
 
-        Response result = restApiActions.get(
-            "task/{task-id}",
-            taskId,
-            authenticationHeaders
-        );
+        Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE).log();
-
-        fieldValueMap.entrySet().forEach(
-            entry -> result.then().assertThat()
-                .body(entry.getKey(), entry.getValue()).log()
-        );
+        if (taskResource.isPresent()) {
+            TaskResource task = taskResource.get();
+            assertAll("taskResource",
+                () -> assertEquals(taskId, task.getTaskId()),
+                () -> assertEquals(taskState, task.getState().getValue()),
+                () -> assertEquals(assigneeId, task.getAssignee()),
+                () -> assertNotNull(task.getLastUpdatedTimestamp()),
+                () -> assertEquals(lastUpdatedUserId, task.getLastUpdatedUser()),
+                () -> assertEquals(taskAction.getValue(), task.getLastUpdatedAction())
+            );
+        }
     }
 
     public void taskFieldWasUpdatedInDatabase(String taskId, String fieldName, String value,

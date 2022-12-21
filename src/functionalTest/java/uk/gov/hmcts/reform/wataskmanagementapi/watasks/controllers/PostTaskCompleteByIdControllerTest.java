@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +19,6 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -29,8 +26,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildNullTaskActionAttributesForAssertion;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestAssertionsBuilder.buildTaskActionAttributesForAssertion;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -81,10 +76,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-
-        Map<String, Matcher<?>> valueMap = buildTaskActionAttributesForAssertion(taskId, userInfo.getUid(),
-            "assigned", userInfo.getUid(), CLAIM);
-        assertions.taskAttributesVerifier(taskId, valueMap, caseworkerCredentials.getHeaders());
+        assertions.taskActionAttributesVerifier(taskId, userInfo.getUid(), "assigned", userInfo.getUid(), CLAIM);
 
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -96,10 +88,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-
-        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
-            "completed", userInfo.getUid(), COMPLETED);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskActionAttributesVerifier(taskId, assigneeId, "completed", userInfo.getUid(), COMPLETED);
 
         common.cleanUpTask(taskId);
 
@@ -131,9 +120,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                 LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_NOT_ASSIGNED,
                 taskId
             )));
-
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId,"unassigned");
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
     }
 
     @Test
@@ -164,9 +150,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
-            "completed", userInfo.getUid(), COMPLETED);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskActionAttributesVerifier(taskId, assigneeId, "completed", userInfo.getUid(), COMPLETED);
 
         common.cleanUpTask(taskId);
     }
@@ -204,17 +188,13 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(String.format(
                 LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER,
                 taskId, userInfo.getUid()
             )));
-
-        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
-            "assigned", userInfo.getUid(), CLAIM);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
         common.clearAllRoleAssignments(otherUser.getHeaders());
@@ -245,9 +225,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
-            "completed", userInfo.getUid(), COMPLETED);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskActionAttributesVerifier(taskId, assigneeId, "completed", userInfo.getUid(), COMPLETED);
 
         common.cleanUpTask(taskId);
 
@@ -277,9 +255,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
-            "completed", userInfo.getUid(), COMPLETED);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskActionAttributesVerifier(taskId, assigneeId, "completed", userInfo.getUid(), COMPLETED);
 
         common.cleanUpTask(taskId);
 
@@ -311,9 +287,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        Map<String, Matcher<?>> taskValueMap = buildTaskActionAttributesForAssertion(taskId, assigneeId,
-            "completed", userInfo.getUid(), COMPLETED);
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
+        assertions.taskActionAttributesVerifier(taskId, assigneeId, "completed", userInfo.getUid(), COMPLETED);
 
         common.cleanUpTask(taskId);
     }
@@ -360,8 +334,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
-        Map<String, Matcher<?>> taskValueMap = buildNullTaskActionAttributesForAssertion(taskId,"unassigned");
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerForReadCredentials.getHeaders());
         common.cleanUpTask(taskId);
     }
 
@@ -380,19 +352,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-
-        //This need to be changed when assign endpoint story RWA-1582 is played
-        Map<String, Matcher<?>> taskValueMap = Map.of(
-            "task.id", equalTo(taskId),
-            "task.task_state", CoreMatchers.is("assigned"),
-            "task.assignee", equalTo(assigneeId),
-            "task.last_updated_timestamp", nullValue(),
-            "task.last_updated_user", nullValue(),
-            "task.last_updated_action", nullValue()
-        );
-
-        assertions.taskAttributesVerifier(taskId, taskValueMap, caseworkerCredentials.getHeaders());
-
     }
 
 }
