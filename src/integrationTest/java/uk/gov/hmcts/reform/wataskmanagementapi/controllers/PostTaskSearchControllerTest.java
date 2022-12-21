@@ -42,7 +42,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -71,11 +70,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.BOOLEAN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION;
@@ -1522,12 +1519,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .content("{\n"
+                             + "  \"request_context\": \"" + context.toString() + "\",\n"
                              + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"request_context\",\n"
-                             + "      \"operator\": \"CONTEXT\",\n"
-                             + "      \"value\": \"" + context.toString() + "\"\n"
-                             + "    },\n"
                              + "    {\n"
                              + "      \"key\": \"jurisdiction\",\n"
                              + "      \"operator\": \"IN\",\n"
@@ -1539,8 +1532,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpect(status().isOk());
 
         SearchTaskRequest expectedReq = new SearchTaskRequest(
+            context,
             asList(
-                new SearchParameterRequestContext(REQUEST_CONTEXT, CONTEXT, context),
                 new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
             )
         );
@@ -1579,12 +1572,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .content("{\n"
+                             + "  \"request_context\": \"GENERAL_SEARCH\",\n"
                              + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"request_context\",\n"
-                             + "      \"operator\": \"CONTEXT\",\n"
-                             + "      \"value\": \"GENERAL_SEARCH\"\n"
-                             + "    },\n"
                              + "    {\n"
                              + "      \"key\": \"jurisdiction\",\n"
                              + "      \"operator\": \"IN\",\n"
