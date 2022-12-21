@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
 
@@ -25,6 +26,8 @@ public class SearchTaskRequest {
     @NotEmpty(message = "At least one search_parameter element is required.")
     private List<@Valid SearchParameter<?>> searchParameters;
     private List<SortingParameter> sortingParameters;
+    @Schema(allowableValues = "ALL_WORK, AVAILABLE_TASKS", example = "ALL_WORK")
+    private RequestContext requestContext;
 
     private SearchTaskRequest() {
         //Default constructor for deserialization
@@ -35,10 +38,24 @@ public class SearchTaskRequest {
         this.searchParameters = searchParameters;
     }
 
+    public SearchTaskRequest(RequestContext requestContext,
+                             List<SearchParameter<?>> searchParameters) {
+        this.searchParameters = searchParameters;
+        this.requestContext = requestContext;
+    }
+
     public SearchTaskRequest(List<SearchParameter<?>> searchParameters,
                              List<SortingParameter> sortingParameters) {
         this.searchParameters = searchParameters;
         this.sortingParameters = sortingParameters;
+    }
+
+    public SearchTaskRequest(RequestContext requestContext,
+                             List<SearchParameter<?>> searchParameters,
+                             List<SortingParameter> sortingParameters) {
+        this.searchParameters = searchParameters;
+        this.sortingParameters = sortingParameters;
+        this.requestContext = requestContext;
     }
 
     public List<SearchParameter<?>> getSearchParameters() {
@@ -47,5 +64,9 @@ public class SearchTaskRequest {
 
     public List<SortingParameter> getSortingParameters() {
         return sortingParameters;
+    }
+
+    public RequestContext getRequestContext() {
+        return requestContext;
     }
 }
