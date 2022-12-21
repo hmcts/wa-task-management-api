@@ -23,7 +23,8 @@ public final class TaskActionAttributesBuilder {
         if (oldState.equals(CFTTaskState.ASSIGNED) && taskResource.getState().equals(CFTTaskState.ASSIGNED)
             && !StringUtils.equals(oldAssignee, taskResource.getAssignee())) {
             return TaskAction.AUTO_UNASSIGN_ASSIGN;
-        } else if (oldState.equals(CFTTaskState.UNASSIGNED) && taskResource.getState().equals(CFTTaskState.ASSIGNED)) {
+        } else if ((oldState.equals(CFTTaskState.UNCONFIGURED) || oldState.equals(CFTTaskState.UNASSIGNED))
+                   && taskResource.getState().equals(CFTTaskState.ASSIGNED)) {
             return TaskAction.AUTO_ASSIGN;
         } else if (oldState.equals(CFTTaskState.ASSIGNED) && taskResource.getState().equals(CFTTaskState.UNASSIGNED)) {
             return TaskAction.AUTO_UNASSIGN;

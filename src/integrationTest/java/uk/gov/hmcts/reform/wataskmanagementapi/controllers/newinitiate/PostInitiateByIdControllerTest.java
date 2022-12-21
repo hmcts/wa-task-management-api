@@ -31,6 +31,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
@@ -49,6 +50,7 @@ import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -539,6 +541,14 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     "The task requires a case management event to be executed by the user. "
                         + "(Typically this will be in CCD.)")
             );
+
+        Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(taskId);
+        if(optionalTaskResource.isPresent()) {
+            TaskResource taskResource = optionalTaskResource.get();
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
+            assertEquals("system_user1", taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.AUTO_ASSIGN.getValue(), taskResource.getLastUpdatedAction());
+        }
     }
 
     @Test
@@ -650,6 +660,14 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     "The task requires a case management event to be executed by the user. "
                         + "(Typically this will be in CCD.)")
             );
+
+        Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(taskId);
+        if(optionalTaskResource.isPresent()) {
+            TaskResource taskResource = optionalTaskResource.get();
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
+            assertEquals("system_user1", taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.AUTO_ASSIGN.getValue(), taskResource.getLastUpdatedAction());
+        }
     }
 
     @Test
