@@ -17,6 +17,7 @@ class TaskActionAttributeBuilderTest {
     @ParameterizedTest
     @CsvSource({
         "NewAssignee, ASSIGNED, NewAssignee, ASSIGNED, Configure",
+        "NewAssignee, ASSIGNED, , UNCONFIGURED, AutoAssign",
         "NewAssignee, ASSIGNED, , UNASSIGNED, AutoAssign",
         "NewAssignee, ASSIGNED, OldAssignee, ASSIGNED, AutoUnassignAssign",
         ", UNASSIGNED, , UNASSIGNED, Configure",
