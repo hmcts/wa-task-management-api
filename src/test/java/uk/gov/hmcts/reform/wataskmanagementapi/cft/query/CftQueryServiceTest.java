@@ -46,7 +46,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
@@ -91,7 +90,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
@@ -544,17 +542,13 @@ public class CftQueryServiceTest extends CamundaHelpers {
         @Test
         void shouldReturnRequestContextAvailableTasksOnly() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+                RequestContext.AVAILABLE_TASKS,
                 List.of(
                     new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                    new SearchParameterRequestContext(
-                        REQUEST_CONTEXT,
-                        SearchOperator.CONTEXT,
-                        RequestContext.AVAILABLE_TASKS
-                    )
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
             );
@@ -588,13 +582,13 @@ public class CftQueryServiceTest extends CamundaHelpers {
         @Test
         void shouldReturnRequestContextAllWork() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+                RequestContext.ALL_WORK,
                 List.of(
                     new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
                     new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
                     new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                     new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                    new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK)
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
                 ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
             );
