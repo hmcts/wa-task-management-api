@@ -540,7 +540,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void shouldReturnRequestContextAvailableTasksOnly() {
+        void shouldReturnRequestContextAvailableTasks() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
                 RequestContext.AVAILABLE_TASKS,
                 List.of(
@@ -580,7 +580,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void shouldReturnRequestContextAvailableTasksOnlyAndIgnoreSearchParameterAvailableTasksOnly() {
+        void shouldReturnRequestContextAvailableTasksAndIgnoreSearchParameterAvailableTasksOnly() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
                 RequestContext.AVAILABLE_TASKS,
                 List.of(
