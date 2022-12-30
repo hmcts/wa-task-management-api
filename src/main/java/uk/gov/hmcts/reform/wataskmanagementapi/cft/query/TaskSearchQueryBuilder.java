@@ -42,6 +42,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_TYPE;
 
 @Slf4j
 @SuppressWarnings({
@@ -163,6 +164,7 @@ public final class TaskSearchQueryBuilder {
         final SearchParameterList userParam = keyMap.get(USER);
         final SearchParameterList workTypeParam = keyMap.get(WORK_TYPE);
         final SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
+        final SearchParameterList taskTypeParam = keyMap.get(TASK_TYPE);
         ArrayList<Predicate> predicates = new ArrayList<>();
         predicates.add(searchByJurisdiction(
             jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues(),
@@ -193,7 +195,13 @@ public final class TaskSearchQueryBuilder {
         ));
         predicates.add(searchByRoleCategory(
             roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues(),
-            builder, root
+            builder,
+            root
+        ));
+        predicates.add(searchByTaskTypes(
+            taskTypeParam == null ? Collections.emptyList() : taskTypeParam.getValues(),
+            builder,
+            root
         ));
         return builder.and(predicates.toArray(new Predicate[0]));
     }
