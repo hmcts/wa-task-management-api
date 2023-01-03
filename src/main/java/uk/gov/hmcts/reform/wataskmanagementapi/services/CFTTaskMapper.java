@@ -220,11 +220,7 @@ public class CFTTaskMapper {
             taskResource.getReconfigureRequestTime() == null ? null
                 : taskResource.getReconfigureRequestTime().toZonedDateTime(),
             taskResource.getLastReconfigurationTime() == null ? null
-                : taskResource.getLastReconfigurationTime().toZonedDateTime(),
-            taskResource.getLastUpdatedTimestamp() == null ? null
-                : taskResource.getLastUpdatedTimestamp().toZonedDateTime(),
-            taskResource.getLastUpdatedUser() == null ? null : taskResource.getLastUpdatedUser(),
-            taskResource.getLastUpdatedAction() == null ? null : taskResource.getLastUpdatedAction()
+                : taskResource.getLastReconfigurationTime().toZonedDateTime()
         );
     }
 
