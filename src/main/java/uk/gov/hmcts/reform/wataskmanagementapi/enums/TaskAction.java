@@ -3,8 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.enums;
 public enum TaskAction {
 
     CLAIM("Claim"),
-    UNCLAIM("Unclaim");
-
+    UNCLAIM("Unclaim"),
+    COMPLETED("Complete");
 
     private final String value;
 
