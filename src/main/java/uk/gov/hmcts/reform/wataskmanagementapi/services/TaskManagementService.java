@@ -230,11 +230,11 @@ public class TaskManagementService {
     @Transactional
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
         final boolean granularPermissionFeatureEnabled = isGranularPermissionFeatureEnabled(
-                accessControlResponse.getUserInfo().getUid(),
-                accessControlResponse.getUserInfo().getEmail()
-            );
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
         log.info("GP for {} and {} is {}", accessControlResponse.getUserInfo().getUid(),
-                 accessControlResponse.getUserInfo().getEmail(), granularPermissionFeatureEnabled);
+            accessControlResponse.getUserInfo().getEmail(), granularPermissionFeatureEnabled);
         PermissionRequirements permissionsRequired;
         if (granularPermissionFeatureEnabled) {
             permissionsRequired = PermissionRequirementBuilder.builder()
@@ -255,7 +255,7 @@ public class TaskManagementService {
         if (granularPermissionFeatureEnabled
             && taskResource.getAssignee() != null && !userId.equals(taskResource.getAssignee())
             && !checkUserHasUnassignPermission(accessControlResponse.getRoleAssignments(),
-                                               taskResource.getTaskRoleResources())) {
+            taskResource.getTaskRoleResources())) {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
@@ -276,9 +276,9 @@ public class TaskManagementService {
 
     private boolean checkUserHasUnassignPermission(List<RoleAssignment> roleAssignments,
                                                    Set<TaskRoleResource> taskRoleResources) {
-        for (RoleAssignment roleAssignment: roleAssignments) {
+        for (RoleAssignment roleAssignment : roleAssignments) {
             String roleName = roleAssignment.getRoleName();
-            for (TaskRoleResource taskRoleResource: taskRoleResources) {
+            for (TaskRoleResource taskRoleResource : taskRoleResources) {
                 if (roleName.equals(taskRoleResource.getRoleName())
                     && Boolean.TRUE.equals(taskRoleResource.getUnassign())) {
                     return true;
@@ -371,10 +371,10 @@ public class TaskManagementService {
                                          Optional<UserInfo> assignee) {
 
         return (currentAssignee.isPresent()
-            || assignee.isPresent())
-            && (currentAssignee.isEmpty()
-            || assignee.isEmpty()
-            || !currentAssignee.get().equals(assignee.get().getUid()));
+                || assignee.isPresent())
+               && (currentAssignee.isEmpty()
+                   || assignee.isEmpty()
+                   || !currentAssignee.get().equals(assignee.get().getUid()));
     }
 
     private PermissionRequirements assignerPermissionRequirement(boolean granularPermissionEnabled,
@@ -413,7 +413,7 @@ public class TaskManagementService {
                 .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
                 .build();
         } else if (assigner.getUid().equals(currentAssignee)
-            && !assigner.getUid().equals(assigneeUid)) {
+                   && !assigner.getUid().equals(assigneeUid)) {
             //Task is assigned to requester and requester tries to assign it to someone new
             return PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(UNCLAIM_ASSIGN)
@@ -479,7 +479,7 @@ public class TaskManagementService {
             && !taskResource.getTaskRoleResources().stream().anyMatch(permission -> permission.getCancel().equals(true))
             && (taskResource.getAssignee() == null
                 || !userId.equals(taskResource.getAssignee())
-                )
+            )
         ) {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
@@ -600,7 +600,7 @@ public class TaskManagementService {
         //Safe-guard
         if (isGranularPermissionFeatureEnabled) {
             checkAssignee(taskResource, userId, taskId,
-                          accessControlResponse.getRoleAssignments());
+                accessControlResponse.getRoleAssignments());
         } else {
             checkAssignee(taskResource.getAssignee(), userId, taskId);
         }
@@ -616,7 +616,7 @@ public class TaskManagementService {
             } else if (!userId.equals(taskResource.getAssignee())) {
                 throw new TaskStateIncorrectException(
                     String.format("Could not complete task with id: %s as task was assigned to other user %s",
-                                  taskId, taskResource.getAssignee()
+                        taskId, taskResource.getAssignee()
                     )
                 );
             }
@@ -631,7 +631,7 @@ public class TaskManagementService {
         } else if (!userId.equals(taskAssignee)) {
             throw new TaskStateIncorrectException(
                 String.format("Could not complete task with id: %s as task was assigned to other user %s",
-                              taskId, taskAssignee)
+                    taskId, taskAssignee)
             );
         }
     }
@@ -829,7 +829,8 @@ public class TaskManagementService {
 
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         return taskOperationServices.stream()
-            .flatMap(taskOperationService -> taskOperationService.performOperation(taskOperationRequest).stream())
+            .flatMap(taskOperationService -> taskOperationService
+                .performOperation(taskOperationRequest).stream())
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -871,29 +872,7 @@ public class TaskManagementService {
             taskAttributes.put(DUE_DATE.value(), taskResource.getDueDateTime());
 
             taskResource = configureTask(taskResource, taskAttributes);
-            boolean isOldAssigneeValid = false;
-
-            if (taskResource.getAssignee() != null) {
-                log.info("Task '{}' had previous assignee, checking validity.", taskId);
-                //Task had previous assignee
-                isOldAssigneeValid =
-                    taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, taskResource.getAssignee());
-            }
-
-            if (isOldAssigneeValid) {
-                log.info("Task '{}' had previous assignee, and was valid, keeping assignee.", taskId);
-                //Keep old assignee from skeleton task and change state
-                taskResource.setState(CFTTaskState.ASSIGNED);
-            } else {
-                log.info("Task '{}' has an invalid assignee, unassign it before auto-assigning.", taskId);
-                if (taskResource.getAssignee() != null) {
-                    taskResource.setAssignee(null);
-                    taskResource.setState(CFTTaskState.UNASSIGNED);
-                }
-                log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
-                //Otherwise attempt auto-assignment
-                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
-            }
+            taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
