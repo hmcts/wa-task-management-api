@@ -17,7 +17,10 @@ public enum TaskAction {
     UNASSIGN("Unassign"),
     UNASSIGN_ASSIGN("UnassignAssign"),
     UNASSIGN_CLAIM("UnassignClaim"),
-    UNCLAIM_ASSIGN("UnclaimAssign");
+    UNCLAIM_ASSIGN("UnclaimAssign"),
+    CANCEL("Cancel"),
+    AUTO_CANCEL("AutoCancel"),
+    TERMINATE("Terminate");
 
     private final String value;
 
