@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
@@ -54,6 +55,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -151,6 +153,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
     public static final String SOME_ROLE_ASSIGNMENT_ID = "someRoleAssignmentId";
+    public static final String IDAM_SYSTEM_USER = "IDAM_SYSTEM_USER";
 
     @Mock
     CamundaService camundaService;
@@ -204,6 +207,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
     private TypedQuery<TaskResource> query;
     @Captor
     private ArgumentCaptor<TaskResource> taskResourceCaptor;
+    @Mock
+    private IdamTokenGenerator idamTokenGenerator;
+    @Mock
+    private UserInfo userInfo;
 
     @Test
     void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
@@ -226,6 +233,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
         taskResourcesMarked.forEach(taskResource -> {
             assertNotNull(taskResource.getReconfigureRequestTime());
             assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
+            assertEquals(IDAM_SYSTEM_USER, taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResource.getLastUpdatedAction());
         });
     }
 
@@ -266,7 +276,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
         markTaskReconfigurationService = new MarkTaskReconfigurationService(
             cftTaskDatabaseService,
-            caseConfigurationProviderService
+            caseConfigurationProviderService,
+            idamTokenGenerator
         );
 
         executeTaskReconfigurationService = new ExecuteTaskReconfigurationService(
@@ -327,6 +338,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 CamundaValue.booleanValue(true)
             )
         ));
+        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
+        lenient().when(userInfo.getUid()).thenReturn("IDAM_SYSTEM_USER");
     }
 
     private List<TaskResource> taskResources(OffsetDateTime reconfigureTime) {
