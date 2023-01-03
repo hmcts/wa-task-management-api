@@ -97,5 +97,5 @@ public final class TaskActionAttributesBuilder {
                && !StringUtils.equals(newAssignee.get(), assigner)
                && StringUtils.equals(oldAssignee.get(), assigner);
     }
-    
+
 }
