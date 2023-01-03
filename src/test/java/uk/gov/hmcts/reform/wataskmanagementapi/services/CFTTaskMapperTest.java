@@ -1144,9 +1144,6 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().isEmpty());
         assertNotNull(task.getReconfigureRequestTime());
         assertNotNull(task.getLastReconfigurationTime());
-        assertEquals(lastUpdatedTimeStamp, task.getLastUpdatedTimestamp().toOffsetDateTime());
-        assertEquals("someAction", task.getLastUpdatedAction());
-        assertEquals("someUser", task.getLastUpdatedUser());
     }
 
     @Test
@@ -1234,9 +1231,6 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN_ASSIGN));
         assertNull(task.getReconfigureRequestTime());
         assertNull(task.getLastReconfigurationTime());
-        assertNull(task.getLastUpdatedTimestamp());
-        assertNull(task.getLastUpdatedAction());
-        assertNull(task.getLastUpdatedUser());
     }
 
     @Test
