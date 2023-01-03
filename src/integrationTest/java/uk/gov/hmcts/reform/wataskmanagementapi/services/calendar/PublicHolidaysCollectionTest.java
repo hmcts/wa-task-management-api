@@ -76,7 +76,7 @@ class PublicHolidaysCollectionTest {
 
     @Test
     public void should_throw_resource_invalid_exception() {
-        String uri = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/aab9ae68c9424071d9d49235a8b8f3230b1f89a2/src/integrationTest/resources/calendars/invalid-calendar.json";
+        String uri = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/895bb18417be056175ec64727e6d5fd39289d489/src/integrationTest/resources/calendars/invalid-calendar.json";
         assertThatThrownBy(() -> publicHolidaysCollection.getPublicHolidays(List.of(uri)))
             .isInstanceOf(CalendarResourceInvalidException.class)
             .hasMessage("Could not read calendar resource " + uri);
