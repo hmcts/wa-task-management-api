@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 
@@ -76,9 +77,11 @@ public class CaseConfigurationProviderService {
             );
         log.debug("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
 
+        boolean initiationDueDateFound = taskAttributes.containsKey(DUE_DATE.value());
+
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
-            = updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults,
-                                                                       jurisdiction, isReconfigureRequest
+            = updateTaskConfigurationDmnResultsForAdditionalProperties(
+                taskConfigurationDmnResults, initiationDueDateFound, isReconfigureRequest
         );
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
@@ -136,7 +139,7 @@ public class CaseConfigurationProviderService {
 
     private List<ConfigurationDmnEvaluationResponse> updateTaskConfigurationDmnResultsForAdditionalProperties(
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
-        String jurisdiction, boolean isReconfigureRequest) {
+        boolean initiationDueDateFound, boolean isReconfigureRequest) {
 
         Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
             .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
@@ -153,7 +156,7 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return dueDateConfigurator.configureDueDate(configResponses, jurisdiction, isReconfigureRequest);
+        return dueDateConfigurator.configureDueDate(configResponses, initiationDueDateFound, isReconfigureRequest);
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(

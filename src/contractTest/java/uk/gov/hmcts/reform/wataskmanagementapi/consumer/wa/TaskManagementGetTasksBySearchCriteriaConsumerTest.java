@@ -156,16 +156,16 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact executeSearchQueryWithAvailableTasksOnlyContext200Test(PactDslWithProvider builder) {
+    public RequestResponsePact executeSearchQueryWithAvailableTasksContext200Test(PactDslWithProvider builder) {
         return builder
-            .given("appropriate tasks are returned by criteria with context available task only")
+            .given("appropriate tasks are returned by criteria with context available task")
             .uponReceiving("Provider receives a POST /task request from a WA API")
             .path(WA_SEARCH_QUERY)
             .method(HttpMethod.POST.toString())
             .headers(getTaskManagementServiceResponseHeaders())
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseWithAvailableTasksOnlyContext(), String.valueOf(ContentType.JSON))
+            .body(createSearchEventCaseWithAvailableTasksContext(), String.valueOf(ContentType.JSON))
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTaskWithWarnings())
@@ -281,14 +281,14 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithAvailableTasksOnlyContext200Test",
+    @PactTestFor(pactMethod = "executeSearchQueryWithAvailableTasksContext200Test",
         pactVersion = PactSpecVersion.V3)
-    void testSearchQueryWithAvailableTasksOnlyContext200Test(MockServer mockServer) {
+    void testSearchQueryWithAvailableTasksContext200Test(MockServer mockServer) {
         SerenityRest
             .given()
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
-            .body(createSearchEventCaseWithAvailableTasksOnlyContext())
+            .body(createSearchEventCaseWithAvailableTasksContext())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -539,7 +539,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                + "}";
     }
 
-    private String createSearchEventCaseWithAvailableTasksOnlyContext() {
+    private String createSearchEventCaseWithAvailableTasksContext() {
 
         return "{\n"
             + "    \"request_context\": \"AVAILABLE_TASKS\",\n"
