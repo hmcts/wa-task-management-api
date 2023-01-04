@@ -6,7 +6,6 @@ import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.apache.http.entity.ContentType;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
