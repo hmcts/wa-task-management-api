@@ -1549,8 +1549,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_a_400_for_invalid_request_context() throws Exception {
-        UserInfo userInfo = mockServices.mockUserInfo();
-
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
         Map<String, String> roleAttributes = new HashMap<>();
@@ -1560,7 +1558,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> allTestRoles =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
@@ -1582,7 +1579,64 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                              + "  ]\n"
                              + "}\n")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpect(status().isBadRequest());
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isBadRequest(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type")
+                    .value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/bad-request"
+                    ),
+                jsonPath("$.title").value("Bad Request"),
+                jsonPath("$.status").value(400),
+                jsonPath("$.detail").value("Invalid request field: request_context")
+            ));
+    }
+
+    @Test
+    void should_return_a_400_for_empty_request_context() throws Exception {
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content("{\n"
+                             + "  \"request_context\": \"\",\n"
+                             + "  \"search_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"key\": \"jurisdiction\",\n"
+                             + "      \"operator\": \"IN\",\n"
+                             + "      \"values\": [ \"IA\" ]\n"
+                             + "    }\n"
+                             + "  ]\n"
+                             + "}\n")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isBadRequest(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type")
+                    .value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/bad-request"
+                    ),
+                jsonPath("$.title").value("Bad Request"),
+                jsonPath("$.status").value(400),
+                jsonPath("$.detail").value("Invalid request field: request_context")
+            ));
     }
 
     @Test
