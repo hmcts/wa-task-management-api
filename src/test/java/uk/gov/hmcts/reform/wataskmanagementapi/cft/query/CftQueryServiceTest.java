@@ -540,7 +540,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void shouldReturnRequestContextAvailableTasksOnly() {
+        void shouldReturnRequestContextAvailableTasks() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
                 RequestContext.AVAILABLE_TASKS,
                 List.of(
@@ -578,6 +578,48 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertEquals("hearing_work", taskResourceList.getTasks().get(0).getWorkTypeId());
             assertEquals("Hearing work", taskResourceList.getTasks().get(0).getWorkTypeLabel());
         }
+
+        @Test
+        void shouldReturnRequestContextAvailableTasksAndIgnoreSearchParameterAvailableTasksOnly() {
+            final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+                RequestContext.AVAILABLE_TASKS,
+                List.of(
+                    new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                    new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                    new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                    new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
+                    new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
+                ),
+                List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+            );
+
+            List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
+
+            PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithAnd(OWN, READ);
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any(), anyBoolean())).thenReturn(getTask());
+            List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
+            when(taskResourceDao
+                     .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired, true))
+                .thenReturn(taskResourceSummary);
+            when(taskResourceDao.getTaskResources(searchTaskRequest, taskResourceSummary))
+                .thenReturn(List.of(createTaskResource()));
+
+            when(taskResourceDao.getTotalCount(searchTaskRequest, roleAssignments, permissionsRequired, true))
+                .thenReturn(1L);
+            GetTasksResponse<Task> taskResourceList
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, false);
+
+            assertNotNull(taskResourceList);
+            assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
+            assertEquals("hearing_work", taskResourceList.getTasks().get(0).getWorkTypeId());
+            assertEquals("Hearing work", taskResourceList.getTasks().get(0).getWorkTypeLabel());
+        }
+
 
         @Test
         void shouldReturnRequestContextAllWork() {
