@@ -1,9 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import feign.Feign;
+import feign.RequestInterceptor;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import org.apache.http.entity.ContentType;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
@@ -67,6 +70,13 @@ public class PublicHolidaysCollection {
         return Feign.builder()
             .decoder(feignDecoder)
             .encoder(feignEncoder)
+            .requestInterceptor(requestInterceptor())
             .target(BankHolidaysApi.class, uri);
+    }
+
+    public RequestInterceptor requestInterceptor() {
+        return requestTemplate -> {
+            requestTemplate.header("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
+        };
     }
 }
