@@ -9,6 +9,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
@@ -1594,6 +1596,32 @@ class TaskManagementServiceTest extends CamundaHelpers {
             verify(cftTaskDatabaseService, never()).findByIdAndObtainPessimisticWriteLock(taskId);
             verify(cftTaskDatabaseService, never()).saveTask(taskResource);
             verify(camundaService, never()).assignTask(eq(taskId), anyString(), eq(false));
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "newAssignee, , Assigner, Assign",
+            "assigner, , assigner, Claim",
+            ", oldAssignee, assigner, Unassign",
+            ", assigner, assigner, Unclaim",
+            "newAssignee, oldAssignee, assigner, UnassignAssign",
+            "assigner, oldAssignee, assigner, UnassignClaim",
+            "newAssignee, assigner, assigner, UnclaimAssign",
+            "newAssignee, newAssignee, assigner, ",
+            ", , Assigner, ",
+        })
+        void should_build_task_action_correctly_when_task_is_assigned(String newAssignee, String oldAssignee,
+                                                                      String assigner, String taskAction) {
+            TaskResource taskResource = spy(TaskResource.class);
+
+            taskManagementService.updateTaskActionAttributesForAssign(taskResource, assigner,
+                Optional.ofNullable(newAssignee), Optional.ofNullable(oldAssignee));
+
+            if (taskAction != null) {
+                assertEquals(TaskAction.from(taskAction).get().getValue(), taskResource.getLastUpdatedAction());
+            } else {
+                assertNull(taskResource.getLastUpdatedAction());
+            }
         }
     }
 

@@ -362,7 +362,7 @@ public class TaskManagementService {
                 TaskResource task = findByIdAndObtainLock(taskId);
                 task.setState(CFTTaskState.ASSIGNED);
                 task.setAssignee(assignee.get().getUid());
-                updateTaskActionAttributes(task, assigner.getUid(),
+                updateTaskActionAttributesForAssign(task, assigner.getUid(),
                     Optional.of(assignee.get().getUid()), currentAssignee);
                 //Perform Camunda updates
                 camundaService.assignTask(
@@ -377,8 +377,9 @@ public class TaskManagementService {
         }
     }
 
-    private void updateTaskActionAttributes(TaskResource taskResource, String assigner, Optional<String> newAssignee,
-                                            Optional<String> oldAssignee) {
+    protected void updateTaskActionAttributesForAssign(TaskResource taskResource, String assigner,
+                                                    Optional<String> newAssignee,
+                                                    Optional<String> oldAssignee) {
         TaskAction taskAction = buildTaskActionAttributeForAssign(assigner, newAssignee, oldAssignee);
         if (taskAction != null) {
             setTaskActionAttributes(taskResource, assigner, taskAction);
