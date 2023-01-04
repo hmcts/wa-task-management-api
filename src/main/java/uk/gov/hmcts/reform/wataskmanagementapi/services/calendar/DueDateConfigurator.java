@@ -28,12 +28,15 @@ public class DueDateConfigurator {
     }
 
     public List<ConfigurationDmnEvaluationResponse> configureDueDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, String jurisdiction, boolean isReconfigureRequest) {
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean initiationDueDateFound, boolean isReconfigureRequest) {
+
         List<ConfigurationDmnEvaluationResponse> dueDateProperties = configResponses.stream()
             .filter(r -> r.getName().getValue().contains(DUE_DATE))
             .collect(Collectors.toList());
 
-        if (dueDateProperties.isEmpty() && IA_JURISDICTION.equals(jurisdiction)) {
+        if (dueDateProperties.isEmpty() && initiationDueDateFound) {
+            log.info("initiationDueDateFound for configureDueDate");
             return configResponses;
         }
 
