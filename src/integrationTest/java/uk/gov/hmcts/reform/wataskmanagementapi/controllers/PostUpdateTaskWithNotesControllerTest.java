@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
@@ -37,6 +38,7 @@ import java.util.UUID;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -53,7 +55,8 @@ class PostUpdateTaskWithNotesControllerTest extends SpringBootIntegrationBaseTes
 
     private static final String ENDPOINT_PATH = "/task/%s/notes";
     private static String ENDPOINT_BEING_TESTED;
-
+    @MockBean
+    private ClientAccessControlService clientAccessControlService;
     @MockBean
     private IdamWebApi idamWebApi;
     @MockBean
@@ -82,8 +85,6 @@ class PostUpdateTaskWithNotesControllerTest extends SpringBootIntegrationBaseTes
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
-        when(authTokenGenerator.generate())
-            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         when(mockedUserInfo.getUid())
             .thenReturn(IDAM_USER_ID);
         when(mockedUserInfo.getEmail())
@@ -94,13 +95,24 @@ class PostUpdateTaskWithNotesControllerTest extends SpringBootIntegrationBaseTes
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+        mockServices.mockServiceAPIs();
+
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
     }
 
     @Test
-    void user_should_claim_task_when_grant_type_standard() throws Exception {
+    void user_should_add_notes_and_return_204_success() throws Exception {
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            true, true, false, true, true, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource);
 
-        mockServices.mockUserInfo();
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        List<RoleAssignment> roles = new ArrayList<>();
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
@@ -108,29 +120,21 @@ class PostUpdateTaskWithNotesControllerTest extends SpringBootIntegrationBaseTes
                 RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
-                    .caseId("claimCaseId1")
+                    .caseId("addNotesCaseId1")
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        createRoleAssignment(roles, roleAssignmentRequest);
 
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
-        );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource);
+        RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+        //Assigner
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
-        )).thenReturn(accessControlResponse);
+        )).thenReturn(roleAssignmentResource);
 
-        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
         NotesRequest notesRequest = addNotes();
 
         mockMvc.perform(
@@ -143,7 +147,13 @@ class PostUpdateTaskWithNotesControllerTest extends SpringBootIntegrationBaseTes
             status().is(HttpStatus.NO_CONTENT.value())
         );
 
+        NoteResource noteResource = notesRequest.getNoteResource().get(0);
         TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertTrue(taskResource.getHasWarnings());
+        assertEquals(noteResource.getCode(), taskResource.getNotes().get(0).getCode());
+        assertEquals(noteResource.getNoteType(), taskResource.getNotes().get(0).getNoteType());
+        assertEquals(noteResource.getUserId(), taskResource.getNotes().get(0).getUserId());
+        assertEquals(noteResource.getContent(), taskResource.getNotes().get(0).getContent());
         assertNotNull(taskResource.getLastUpdatedTimestamp());
         assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
         assertEquals(TaskAction.ADD_WARNING.getValue(), taskResource.getLastUpdatedAction());
