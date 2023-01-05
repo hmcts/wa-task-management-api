@@ -3,12 +3,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.SnakeCaseFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
 
 import java.time.LocalDate;
@@ -21,9 +18,7 @@ import java.util.stream.Collectors;
 /**
  * Stores all public holidays for england and wales retrieved from Gov uk API: https://www.gov.uk/bank-holidays/england-and-wales.json .
  */
-@Slf4j
 @Component
-@Import(SnakeCaseFeignConfiguration.class)
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class PublicHolidaysCollection {
 
