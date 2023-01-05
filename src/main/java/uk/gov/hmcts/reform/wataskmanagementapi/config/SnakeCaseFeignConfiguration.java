@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.form.spring.SpringFormEncoder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
@@ -22,6 +23,7 @@ import java.util.Arrays;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+@Slf4j
 @Configuration
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class SnakeCaseFeignConfiguration {
@@ -45,7 +47,9 @@ public class SnakeCaseFeignConfiguration {
     public Decoder feignDecoder() {
         MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(objectMapper);
         jacksonConverter.setSupportedMediaTypes(Arrays.asList(MediaType.valueOf(TEXT_PLAIN_VALUE + ";charset=utf-8"),
-                                                              APPLICATION_JSON));
+                                                              APPLICATION_JSON,
+                                                              new MediaType("application", "*+json"),
+                                                              new MediaType("text", "plain")));
         ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
         return new ResponseEntityDecoder(new SpringDecoder(objectFactory));
     }
