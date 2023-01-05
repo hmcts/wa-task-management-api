@@ -56,7 +56,11 @@ public class SnakeCaseFeignConfiguration {
 
     @Bean
     public Encoder feignEncoder() {
-        HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(objectMapper);
+        MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(objectMapper);
+        jacksonConverter.setSupportedMediaTypes(Arrays.asList(MediaType.valueOf(TEXT_PLAIN_VALUE + ";charset=utf-8"),
+                                                              APPLICATION_JSON,
+                                                              new MediaType("application", "*+json"),
+                                                              new MediaType("text", "plain")));
         ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
         return new SpringEncoder(objectFactory);
     }
