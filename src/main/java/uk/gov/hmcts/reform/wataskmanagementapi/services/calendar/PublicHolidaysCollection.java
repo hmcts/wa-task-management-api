@@ -4,6 +4,7 @@ import feign.Feign;
 import feign.RequestInterceptor;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.entity.ContentType;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 /**
  * Stores all public holidays for england and wales retrieved from Gov uk API: https://www.gov.uk/bank-holidays/england-and-wales.json .
  */
+@Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class PublicHolidaysCollection {
@@ -67,14 +69,15 @@ public class PublicHolidaysCollection {
 
     private BankHolidaysApi bankHolidaysApi(String uri) {
         return Feign.builder()
+            .requestInterceptor(requestInterceptor())
             .decoder(feignDecoder)
             .encoder(feignEncoder)
-            .requestInterceptor(requestInterceptor())
             .target(BankHolidaysApi.class, uri);
     }
 
     public RequestInterceptor requestInterceptor() {
         return requestTemplate -> {
+            log.debug("Setting content type to JSON");
             requestTemplate.header("Content-Type", ContentType.APPLICATION_JSON.getMimeType());
         };
     }
