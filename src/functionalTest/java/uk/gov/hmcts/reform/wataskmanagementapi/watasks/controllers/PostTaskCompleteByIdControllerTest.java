@@ -371,15 +371,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables2 = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         initiateTask(taskVariables2);
 
-        //TestVariables taskVariables1 = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
-        //TestVariables taskVariables2 = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication");
-
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
-        //common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
-
-        //initiateTask(taskVariables1);
-        //initiateTask(taskVariables2);
-
+        
         String taskId1 = taskVariables1.getTaskId();
         Response result1 = restApiActions.post(
             CLAIM_ENDPOINT,
