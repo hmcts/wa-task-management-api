@@ -69,5 +69,4 @@ public class PublicHolidaysCollection {
             .encoder(feignEncoder)
             .target(BankHolidaysApi.class, uri);
     }
-
 }
