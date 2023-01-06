@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -94,6 +95,8 @@ class CamundaServiceTest extends CamundaHelpers {
     private CamundaServiceApi camundaServiceApi;
     private CamundaObjectMapper camundaObjectMapper;
     private CamundaService camundaService;
+    @Mock
+    private CamundaHelper camundaHelper;
     private String taskId;
 
     @BeforeEach
@@ -105,7 +108,8 @@ class CamundaServiceTest extends CamundaHelpers {
             camundaServiceApi,
             taskMapper,
             authTokenGenerator,
-            camundaObjectMapper
+            camundaObjectMapper,
+            camundaHelper
         );
 
         lenient().when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -283,7 +287,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskClaimException.class)
                 .hasNoCause()
                 .hasMessage("Task Claim Error: "
-                            + "Task claim failed. Unable to update task state to assigned.");
+                    + "Task claim failed. Unable to update task state to assigned.");
         }
 
         @Test
@@ -299,17 +303,17 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskClaimException.class)
                 .hasNoCause()
                 .hasMessage("Task Claim Error: "
-                            + "Task claim partially succeeded. "
-                            + "The Task state was updated to assigned, but the Task could not be claimed.");
+                    + "Task claim partially succeeded. "
+                    + "The Task state was updated to assigned, but the Task could not be claimed.");
         }
 
         @Test
         void claimTask_should_throw_task_already_claimed_exception_when_camunda_throws_feign_exception() {
 
             String camundaException = "{\n"
-                                      + "    \"type\": \"TaskAlreadyClaimedException\",\n"
-                                      + "    \"message\": \"Task Already Claimed Exception\"\n"
-                                      + "}";
+                + "    \"type\": \"TaskAlreadyClaimedException\",\n"
+                + "    \"message\": \"Task Already Claimed Exception\"\n"
+                + "}";
             Request request = Request.create(Request.HttpMethod.POST, "url",
                 new HashMap<>(), null, new RequestTemplate());
 
@@ -368,7 +372,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskUnclaimException.class)
                 .hasNoCause()
                 .hasMessage("Task Unclaim Error: Task unclaim failed. "
-                            + "Unable to update task state to unassigned.");
+                    + "Unable to update task state to unassigned.");
         }
 
         @Test
@@ -383,7 +387,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskUnclaimException.class)
                 .hasNoCause()
                 .hasMessage("Task Unclaim Error: Task unclaim partially succeeded. "
-                            + "The Task state was updated to unassigned, but the Task could not be unclaimed.");
+                    + "The Task state was updated to unassigned, but the Task could not be unclaimed.");
         }
     }
 
@@ -423,7 +427,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskAssignException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign Error: Task assign failed. "
-                            + "Unable to update task state to assigned.");
+                    + "Unable to update task state to assigned.");
         }
 
         @Test
@@ -438,7 +442,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskAssignException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign Error: Task assign partially succeeded. "
-                            + "The Task state was updated to assigned, but the Task could not be assigned.");
+                    + "The Task state was updated to assigned, but the Task could not be assigned.");
         }
     }
 
@@ -478,7 +482,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. "
-                            + "Unable to update task state to completed.");
+                    + "Unable to update task state to completed.");
         }
 
         @Test
@@ -493,7 +497,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                            + "The Task state was updated to completed, but the Task could not be completed.");
+                    + "The Task state was updated to completed, but the Task could not be completed.");
         }
     }
 
@@ -550,7 +554,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. "
-                            + "Unable to update task state to completed.");
+                    + "Unable to update task state to completed.");
         }
 
         @Test
@@ -566,7 +570,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                            + "The Task state was updated to completed, but the Task could not be completed.");
+                    + "The Task state was updated to completed, but the Task could not be completed.");
         }
     }
 
@@ -718,17 +722,17 @@ class CamundaServiceTest extends CamundaHelpers {
             );
 
             assertThatThrownBy(() ->
-                                   camundaService.assignAndCompleteTask(
-                                       taskId,
-                                       IDAM_USER_ID,
-                                       taskHasUnassigned
-                                   ))
+                camundaService.assignAndCompleteTask(
+                    taskId,
+                    IDAM_USER_ID,
+                    taskHasUnassigned
+                ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: "
-                            + "Task assign and complete partially succeeded. "
-                            + "The Task was assigned to the user making the request but the "
-                            + "Task could not be completed.");
+                    + "Task assign and complete partially succeeded. "
+                    + "The Task was assigned to the user making the request but the "
+                    + "Task could not be completed.");
 
         }
 
@@ -743,11 +747,11 @@ class CamundaServiceTest extends CamundaHelpers {
             );
 
             assertThatThrownBy(() ->
-                                   camundaService.assignAndCompleteTask(
-                                       taskId,
-                                       IDAM_USER_ID,
-                                       taskHasUnassigned
-                                   ))
+                camundaService.assignAndCompleteTask(
+                    taskId,
+                    IDAM_USER_ID,
+                    taskHasUnassigned
+                ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: Unable to assign the Task to the current user.");
@@ -762,17 +766,17 @@ class CamundaServiceTest extends CamundaHelpers {
                 .when(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
 
             assertThatThrownBy(() ->
-                                   camundaService.assignAndCompleteTask(
-                                       taskId,
-                                       IDAM_USER_ID,
-                                       taskHasUnassigned
-                                   ))
+                camundaService.assignAndCompleteTask(
+                    taskId,
+                    IDAM_USER_ID,
+                    taskHasUnassigned
+                ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: "
-                            + "Task assign and complete partially succeeded. "
-                            + "The Task was assigned to the user making the request, "
-                            + "the task state was also updated to completed, but he Task could not be completed.");
+                    + "Task assign and complete partially succeeded. "
+                    + "The Task was assigned to the user making the request, "
+                    + "the task state was also updated to completed, but he Task could not be completed.");
         }
     }
 
@@ -808,6 +812,9 @@ class CamundaServiceTest extends CamundaHelpers {
                 anyMap()
             ))
                 .thenReturn(mockedResponse);
+
+            when(mockedResponse.stream().map(camundaHelper::removeSpaces).collect(Collectors.toList()))
+                .thenCallRealMethod();
 
             List<Map<String, CamundaVariable>> response = camundaService.evaluateTaskCompletionDmn(searchEventAndCase);
             assertEquals(mockedResponse, response);

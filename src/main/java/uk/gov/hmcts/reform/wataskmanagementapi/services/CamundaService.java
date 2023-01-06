@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -80,17 +81,19 @@ public class CamundaService {
     private final TaskMapper taskMapper;
     private final AuthTokenGenerator authTokenGenerator;
     private final CamundaObjectMapper camundaObjectMapper;
+    private final CamundaHelper camundaHelper;
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
                           TaskMapper taskMapper,
                           AuthTokenGenerator authTokenGenerator,
-                          CamundaObjectMapper camundaObjectMapper
-    ) {
+                          CamundaObjectMapper camundaObjectMapper,
+                          CamundaHelper camundaHelper) {
         this.camundaServiceApi = camundaServiceApi;
         this.taskMapper = taskMapper;
         this.authTokenGenerator = authTokenGenerator;
         this.camundaObjectMapper = camundaObjectMapper;
+        this.camundaHelper = camundaHelper;
     }
 
     public <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
@@ -294,12 +297,14 @@ public class CamundaService {
                 searchEventAndCase.getCaseType()
             );
 
-            return camundaServiceApi.evaluateDMN(
+            List<Map<String, CamundaVariable>> dmnResponse = camundaServiceApi.evaluateDMN(
                 authTokenGenerator.generate(),
                 taskCompletionDecisionTableKey,
                 searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT),
                 createEventIdDmnRequest(searchEventAndCase.getEventId())
             );
+
+            return dmnResponse.stream().map(camundaHelper::removeSpaces).collect(Collectors.toList());
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }

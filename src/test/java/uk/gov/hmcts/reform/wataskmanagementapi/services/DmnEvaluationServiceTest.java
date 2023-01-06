@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -62,6 +63,8 @@ class DmnEvaluationServiceTest {
     @Mock
     private CamundaObjectMapper camundaObjectMapper;
 
+    @Mock
+    private CamundaHelper camundaHelper;
     DmnRequest<DecisionTableRequest> dmnRequest = new DmnRequest<>();
     DmnEvaluationService dmnEvaluationService;
     Request request = Request.create(Request.HttpMethod.GET, "url",
@@ -69,9 +72,11 @@ class DmnEvaluationServiceTest {
 
     @BeforeEach
     void setUp() {
-        dmnEvaluationService = new DmnEvaluationService(camundaServiceApi,
+        dmnEvaluationService = new DmnEvaluationService(
+            camundaServiceApi,
             authTokenGenerator,
-            camundaObjectMapper
+            camundaObjectMapper,
+            camundaHelper
         );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -108,6 +113,8 @@ class DmnEvaluationServiceTest {
             "ia",
             new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         );
+        when(mockedResponse.stream().map(camundaHelper::removeSpaces).collect(Collectors.toList()))
+            .thenCallRealMethod();
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
@@ -276,14 +283,14 @@ class DmnEvaluationServiceTest {
             .hasMessage("Downstream Dependency Error");
 
         String expectedMessage = String.format("An error occurred when getting task-type dmn. "
-                                               + "Could not get Task Types DMN from camunda for %s. "
-                                               + "Exception: Downstream Dependency Error", jurisdiction);
+            + "Could not get Task Types DMN from camunda for %s. "
+            + "Exception: Downstream Dependency Error", jurisdiction);
 
         Assertions.assertThat(output.getOut().contains(expectedMessage));
 
 
         expectedMessage = "An error occurred when getting task-type dmn. "
-                          + "CamundaException type:some_type message:some_message";
+            + "CamundaException type:some_type message:some_message";
 
         Assertions.assertThat(output.getOut().contains(expectedMessage));
 
@@ -311,8 +318,8 @@ class DmnEvaluationServiceTest {
 
         String expectedMessage = String.format(
             "An error occurred when getting task-type dmn due to service unavailable. "
-            + "Could not get Task Types DMN from camunda for %s. "
-            + "Exception: Service unavailable", jurisdiction);
+                + "Could not get Task Types DMN from camunda for %s. "
+                + "Exception: Service unavailable", jurisdiction);
 
         Assertions.assertThat(output.getOut().contains(expectedMessage));
     }
@@ -390,8 +397,8 @@ class DmnEvaluationServiceTest {
             .hasMessage("Downstream Dependency Error");
 
         String expectedMessage = String.format("An error occurred when evaluating task-type dmn. "
-                                               + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
-                                               + "Exception:Downstream Dependency Error", jurisdiction);
+            + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
+            + "Exception:Downstream Dependency Error", jurisdiction);
         Assertions.assertThat(output.getOut().contains(expectedMessage));
 
         expectedMessage = "An error occurred when reading CamundaException. Exception:Downstream Dependency Error";
@@ -422,8 +429,8 @@ class DmnEvaluationServiceTest {
 
         String expectedMessage = String.format(
             "An error occurred when evaluating task-type dmn due to service unavailable. "
-            + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
-            + "Exception:Service unavailable", jurisdiction);
+                + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
+                + "Exception:Service unavailable", jurisdiction);
         Assertions.assertThat(output.getOut().contains(expectedMessage));
     }
 
@@ -431,11 +438,11 @@ class DmnEvaluationServiceTest {
     @NotNull
     private String getCcdData() {
         return "{"
-               + "\"jurisdiction\": \"ia\","
-               + "\"case_type_id\": \"Asylum\","
-               + "\"security_classification\": \"PUBLIC\","
-               + "\"data\": {}"
-               + "}";
+            + "\"jurisdiction\": \"ia\","
+            + "\"case_type_id\": \"Asylum\","
+            + "\"security_classification\": \"PUBLIC\","
+            + "\"data\": {}"
+            + "}";
     }
 
     private FeignException createFeignExceptionFor502() {

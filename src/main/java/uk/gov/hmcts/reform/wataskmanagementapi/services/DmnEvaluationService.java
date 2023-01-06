@@ -33,13 +33,16 @@ public class DmnEvaluationService {
     private final CamundaServiceApi camundaServiceApi;
     private final AuthTokenGenerator serviceAuthTokenGenerator;
     private final CamundaObjectMapper camundaObjectMapper;
+    private final CamundaHelper camundaHelper;
 
     public DmnEvaluationService(CamundaServiceApi camundaServiceApi,
                                 AuthTokenGenerator serviceAuthTokenGenerator,
-                                CamundaObjectMapper camundaObjectMapper) {
+                                CamundaObjectMapper camundaObjectMapper,
+                                CamundaHelper camundaHelper) {
         this.camundaServiceApi = camundaServiceApi;
         this.serviceAuthTokenGenerator = serviceAuthTokenGenerator;
         this.camundaObjectMapper = camundaObjectMapper;
+        this.camundaHelper = camundaHelper;
     }
 
     public List<PermissionsDmnEvaluationResponse> evaluateTaskPermissionsDmn(String jurisdiction,
@@ -91,12 +94,13 @@ public class DmnEvaluationService {
         String caseData,
         String taskAttributes) {
         try {
-            return camundaServiceApi.evaluateConfigurationDmnTable(
+            List<ConfigurationDmnEvaluationResponse> dmnResponse = camundaServiceApi.evaluateConfigurationDmnTable(
                 serviceAuthTokenGenerator.generate(),
                 decisionTableKey,
                 jurisdiction.toLowerCase(Locale.ROOT),
                 new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
+            return dmnResponse.stream().map(camundaHelper::removeSpaces).collect(Collectors.toList());
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);
             throw new IllegalStateException(
@@ -112,12 +116,13 @@ public class DmnEvaluationService {
         String caseData,
         String taskAttributes) {
         try {
-            return camundaServiceApi.evaluatePermissionsDmnTable(
+            List<PermissionsDmnEvaluationResponse> dmnResponse = camundaServiceApi.evaluatePermissionsDmnTable(
                 serviceAuthTokenGenerator.generate(),
                 decisionTableKey,
                 jurisdiction.toLowerCase(Locale.ROOT),
                 new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
+            return dmnResponse.stream().map(camundaHelper::removeSpaces).collect(Collectors.toList());
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table {}", decisionTableKey);
             throw new IllegalStateException(
@@ -138,13 +143,13 @@ public class DmnEvaluationService {
             return new HashSet<>(taskTypesDmnResponseList);
         } catch (FeignException.ServiceUnavailable | FeignException.GatewayTimeout ex) {
             log.error("An error occurred when getting task-type dmn due to service unavailable. "
-                      + "Could not get {} from camunda for {}. Exception: {}",
+                    + "Could not get {} from camunda for {}. Exception: {}",
                 dmnNameField, jurisdiction, ex.getMessage());
 
             throw ex;
         } catch (FeignException ex) {
             log.error("An error occurred when getting task-type dmn. "
-                      + "Could not get {} from camunda for {}. Exception: {}",
+                    + "Could not get {} from camunda for {}. Exception: {}",
                 dmnNameField, jurisdiction, ex.getMessage());
 
             Optional<CamundaExceptionMessage> camundaException = readCamundaException(ex);
@@ -169,13 +174,13 @@ public class DmnEvaluationService {
             );
         } catch (FeignException.ServiceUnavailable | FeignException.GatewayTimeout ex) {
             log.error("An error occurred when evaluating task-type dmn due to service unavailable. "
-                      + "jurisdiction:{} - decisionTableKey:{}. Exception:{}",
+                    + "jurisdiction:{} - decisionTableKey:{}. Exception:{}",
                 jurisdiction, decisionTableKey, ex.getMessage());
 
             throw ex;
         } catch (FeignException ex) {
             log.error("An error occurred when evaluating task-type dmn. "
-                      + "jurisdiction:{} - decisionTableKey:{}. Exception:{}",
+                    + "jurisdiction:{} - decisionTableKey:{}. Exception:{}",
                 jurisdiction, decisionTableKey, ex.getMessage());
 
             Optional<CamundaExceptionMessage> camundaException = readCamundaException(ex);
