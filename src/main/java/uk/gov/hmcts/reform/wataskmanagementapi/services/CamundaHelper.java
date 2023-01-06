@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
@@ -11,14 +10,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Service
 @SuppressWarnings({
     "PMD.DataflowAnomalyAnalysis",
     "PMD.AvoidInstantiatingObjectsInLoops"
 })
-public class CamundaHelper {
+public final class CamundaHelper {
 
-    public Map<String, CamundaVariable> removeSpaces(Map<String, CamundaVariable> response) {
+    private CamundaHelper() {
+        //Default constructor
+    }
+
+    public static Map<String, CamundaVariable> removeSpaces(Map<String, CamundaVariable> response) {
 
         for (Map.Entry<String, CamundaVariable> entry : response.entrySet()) {
             String value = entry.getValue().getValue().toString();
@@ -43,7 +45,7 @@ public class CamundaHelper {
         return response;
     }
 
-    public PermissionsDmnEvaluationResponse removeSpaces(PermissionsDmnEvaluationResponse dmnResponse) {
+    public static PermissionsDmnEvaluationResponse removeSpaces(PermissionsDmnEvaluationResponse dmnResponse) {
         PermissionsDmnEvaluationResponse response = new PermissionsDmnEvaluationResponse();
         response.setAuthorisations(checkAndSetStringField(dmnResponse.getAuthorisations()));
         response.setRoleCategory(checkAndSetStringField(dmnResponse.getRoleCategory()));
@@ -55,7 +57,7 @@ public class CamundaHelper {
         return response;
     }
 
-    public ConfigurationDmnEvaluationResponse removeSpaces(ConfigurationDmnEvaluationResponse dmnResponse) {
+    public static ConfigurationDmnEvaluationResponse removeSpaces(ConfigurationDmnEvaluationResponse dmnResponse) {
         ConfigurationDmnEvaluationResponse response = new ConfigurationDmnEvaluationResponse();
         response.setName(checkAndSetStringField(dmnResponse.getName()));
         response.setValue(checkAndSetStringField(dmnResponse.getValue()));
@@ -63,7 +65,7 @@ public class CamundaHelper {
         return response;
     }
 
-    public CamundaValue<String> checkAndSetStringField(CamundaValue<String> field) {
+    private static CamundaValue<String> checkAndSetStringField(CamundaValue<String> field) {
         if (field == null || field.getValue() == null) {
             return field;
         }
@@ -71,11 +73,11 @@ public class CamundaHelper {
         return trim(field.getValue(), field.getType());
     }
 
-    public boolean hasSpaces(String value) {
+    private static boolean hasSpaces(String value) {
         return value.contains(" ") && value.contains(",");
     }
 
-    public CamundaValue<String> trim(String value, String type) {
+    private static CamundaValue<String> trim(String value, String type) {
 
         if (!hasSpaces(value)) {
             return new CamundaValue<>(

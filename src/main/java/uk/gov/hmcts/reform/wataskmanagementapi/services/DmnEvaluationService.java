@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_PERMISSIONS;
@@ -33,16 +34,13 @@ public class DmnEvaluationService {
     private final CamundaServiceApi camundaServiceApi;
     private final AuthTokenGenerator serviceAuthTokenGenerator;
     private final CamundaObjectMapper camundaObjectMapper;
-    private final CamundaHelper camundaHelper;
 
     public DmnEvaluationService(CamundaServiceApi camundaServiceApi,
                                 AuthTokenGenerator serviceAuthTokenGenerator,
-                                CamundaObjectMapper camundaObjectMapper,
-                                CamundaHelper camundaHelper) {
+                                CamundaObjectMapper camundaObjectMapper) {
         this.camundaServiceApi = camundaServiceApi;
         this.serviceAuthTokenGenerator = serviceAuthTokenGenerator;
         this.camundaObjectMapper = camundaObjectMapper;
-        this.camundaHelper = camundaHelper;
     }
 
     public List<PermissionsDmnEvaluationResponse> evaluateTaskPermissionsDmn(String jurisdiction,
@@ -100,7 +98,7 @@ public class DmnEvaluationService {
                 jurisdiction.toLowerCase(Locale.ROOT),
                 new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
-            return dmnResponse.stream().map(camundaHelper::removeSpaces).collect(Collectors.toList());
+            return dmnResponse.stream().map(CamundaHelper::removeSpaces).collect(Collectors.toList());
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);
             throw new IllegalStateException(
@@ -122,7 +120,7 @@ public class DmnEvaluationService {
                 jurisdiction.toLowerCase(Locale.ROOT),
                 new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
-            return dmnResponse.stream().map(camundaHelper::removeSpaces).collect(Collectors.toList());
+            return dmnResponse.stream().map(CamundaHelper::removeSpaces).collect(Collectors.toList());
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table {}", decisionTableKey);
             throw new IllegalStateException(

@@ -33,9 +33,7 @@ public class DmnEvaluationServiceTest {
 
     @MockBean
     private CamundaServiceApi camundaServiceApi;
-
-    @MockBean
-    private CamundaHelper camundaHelper;
+    
     @Autowired
     private DmnEvaluationService dmnEvaluationService;
 

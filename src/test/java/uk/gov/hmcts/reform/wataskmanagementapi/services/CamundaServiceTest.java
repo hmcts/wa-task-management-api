@@ -43,7 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -95,8 +94,6 @@ class CamundaServiceTest extends CamundaHelpers {
     private CamundaServiceApi camundaServiceApi;
     private CamundaObjectMapper camundaObjectMapper;
     private CamundaService camundaService;
-    @Mock
-    private CamundaHelper camundaHelper;
     private String taskId;
 
     @BeforeEach
@@ -108,8 +105,7 @@ class CamundaServiceTest extends CamundaHelpers {
             camundaServiceApi,
             taskMapper,
             authTokenGenerator,
-            camundaObjectMapper,
-            camundaHelper
+            camundaObjectMapper
         );
 
         lenient().when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -812,9 +808,6 @@ class CamundaServiceTest extends CamundaHelpers {
                 anyMap()
             ))
                 .thenReturn(mockedResponse);
-
-            when(mockedResponse.stream().map(camundaHelper::removeSpaces).collect(Collectors.toList()))
-                .thenCallRealMethod();
 
             List<Map<String, CamundaVariable>> response = camundaService.evaluateTaskCompletionDmn(searchEventAndCase);
             assertEquals(mockedResponse, response);

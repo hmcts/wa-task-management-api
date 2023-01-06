@@ -81,19 +81,16 @@ public class CamundaService {
     private final TaskMapper taskMapper;
     private final AuthTokenGenerator authTokenGenerator;
     private final CamundaObjectMapper camundaObjectMapper;
-    private final CamundaHelper camundaHelper;
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
                           TaskMapper taskMapper,
                           AuthTokenGenerator authTokenGenerator,
-                          CamundaObjectMapper camundaObjectMapper,
-                          CamundaHelper camundaHelper) {
+                          CamundaObjectMapper camundaObjectMapper) {
         this.camundaServiceApi = camundaServiceApi;
         this.taskMapper = taskMapper;
         this.authTokenGenerator = authTokenGenerator;
         this.camundaObjectMapper = camundaObjectMapper;
-        this.camundaHelper = camundaHelper;
     }
 
     public <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
@@ -304,7 +301,7 @@ public class CamundaService {
                 createEventIdDmnRequest(searchEventAndCase.getEventId())
             );
 
-            return dmnResponse.stream().map(camundaHelper::removeSpaces).collect(Collectors.toList());
+            return dmnResponse.stream().map(CamundaHelper::removeSpaces).collect(Collectors.toList());
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }

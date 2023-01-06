@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -63,8 +62,6 @@ class DmnEvaluationServiceTest {
     @Mock
     private CamundaObjectMapper camundaObjectMapper;
 
-    @Mock
-    private CamundaHelper camundaHelper;
     DmnRequest<DecisionTableRequest> dmnRequest = new DmnRequest<>();
     DmnEvaluationService dmnEvaluationService;
     Request request = Request.create(Request.HttpMethod.GET, "url",
@@ -75,8 +72,7 @@ class DmnEvaluationServiceTest {
         dmnEvaluationService = new DmnEvaluationService(
             camundaServiceApi,
             authTokenGenerator,
-            camundaObjectMapper,
-            camundaHelper
+            camundaObjectMapper
         );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -113,8 +109,6 @@ class DmnEvaluationServiceTest {
             "ia",
             new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         );
-        when(mockedResponse.stream().map(camundaHelper::removeSpaces).collect(Collectors.toList()))
-            .thenCallRealMethod();
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
@@ -165,7 +159,7 @@ class DmnEvaluationServiceTest {
     void should_succeed_and_return_a_list_of_configurations() {
         String ccdData = getCcdData();
 
-        List<? extends EvaluationResponse> mockedResponse = asList(
+        List<ConfigurationDmnEvaluationResponse> mockedResponse = asList(
             new ConfigurationDmnEvaluationResponse(
                 stringValue("someConfigName1"),
                 stringValue("someConfigValue1")
