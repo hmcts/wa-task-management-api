@@ -37,9 +37,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -51,9 +56,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.UNASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.UNASSIGN_ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.UNASSIGN_CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.UNCLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.UNCLAIM_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
@@ -570,6 +583,15 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+        assertTrue(taskResource.isPresent());
+        assertEquals(ASSIGNED, taskResource.get().getState());
+        assertEquals(SECONDARY_IDAM_USER_ID, taskResource.get().getAssignee());
+        assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+        assertEquals(ASSIGN.getValue(), taskResource.get().getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -772,6 +794,15 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+        assertTrue(taskResource.isPresent());
+        assertEquals(ASSIGNED, taskResource.get().getState());
+        assertEquals(SECONDARY_IDAM_USER_ID, taskResource.get().getAssignee());
+        assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+        assertEquals(ASSIGN.getValue(), taskResource.get().getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -879,6 +910,15 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+        assertTrue(taskResource.isPresent());
+        assertEquals(ASSIGNED, taskResource.get().getState());
+        assertEquals(SECONDARY_IDAM_USER_ID, taskResource.get().getAssignee());
+        assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+        assertEquals(ASSIGN.getValue(), taskResource.get().getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -975,6 +1015,18 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(status.value())
         );
+
+        if (!status.is4xxClientError()) {
+            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(ASSIGNED, taskResource.get().getState());
+            assertEquals(SECONDARY_IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(ASSIGN.getValue(), taskResource.get().getLastUpdatedAction());
+        }
+
     }
 
     @ParameterizedTest
@@ -1063,6 +1115,18 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(status.value())
         );
+
+        if (!status.is4xxClientError()) {
+            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(ASSIGNED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(CLAIM.getValue(), taskResource.get().getLastUpdatedAction());
+        }
+
     }
 
     @ParameterizedTest
@@ -1153,6 +1217,16 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(status.value())
         );
+
+        if (!status.is4xxClientError()) {
+            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+            assertTrue(taskResource.isPresent());
+            assertEquals(ASSIGNED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(UNASSIGN_CLAIM.getValue(), taskResource.get().getLastUpdatedAction());
+        }
     }
 
     @ParameterizedTest
@@ -1252,6 +1326,18 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(status.value())
         );
+
+        if (!status.is4xxClientError()) {
+            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(ASSIGNED, taskResource.get().getState());
+            assertEquals(SECONDARY_IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(UNASSIGN_ASSIGN.getValue(), taskResource.get().getLastUpdatedAction());
+        }
+
     }
 
     @ParameterizedTest
@@ -1351,6 +1437,18 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(status.value())
         );
+
+        if (!status.is4xxClientError()) {
+            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(ASSIGNED, taskResource.get().getState());
+            assertEquals(SECONDARY_IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(UNCLAIM_ASSIGN.getValue(), taskResource.get().getLastUpdatedAction());
+        }
+
     }
 
     @ParameterizedTest
@@ -1426,6 +1524,95 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(status.value())
         );
+
+        if (!status.is4xxClientError()) {
+            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(UNASSIGNED, taskResource.get().getState());
+            assertNull(taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(UNASSIGN.getValue(), taskResource.get().getLastUpdatedAction());
+        }
+
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "false, true, NO_CONTENT",
+        "true, false, NO_CONTENT",
+        "false, false, FORBIDDEN",
+    })
+    public void assigner_should_unclaim_a_already_assigned_task_to_themselves_with_valid_granular_permission(
+        boolean unassign, boolean unclaim, HttpStatus status) throws Exception {
+
+        //assigner permission : assign
+        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
+            false, false, false, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name(),
+            null, null,false,false,false,
+            false, unclaim, false, unassign, false,
+            false, false
+        );
+        insertDummyTaskInDb("WA", "WaCaseType", taskId, assignerTaskRoleResource, IDAM_USER_ID);
+
+        List<RoleAssignment> assignerRoles = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("WA")
+                    .caseType("WaCaseType")
+                    .caseId("caseId1")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+
+        //Assigner
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(assignerRoleAssignmentResource);
+
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+        )).thenReturn(true);
+
+        AssignTaskRequest assignTaskRequest = new AssignTaskRequest();
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(assignTaskRequest))
+        ).andExpectAll(
+            status().is(status.value())
+        );
+
+        if (!status.is4xxClientError()) {
+            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(UNASSIGNED, taskResource.get().getState());
+            assertNull(taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(UNCLAIM.getValue(), taskResource.get().getLastUpdatedAction());
+        }
+
     }
 
     private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId,

@@ -24,7 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -38,7 +37,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 import static java.util.Collections.emptyList;
@@ -208,12 +206,12 @@ public class CftQueryService {
                                                              boolean isGranularPermissionEnabled) {
         if (isGranularPermissionEnabled) {
             //When granular permission feature flag is enabled, request is expected only in new format
-            SearchParameterRequestContext context = extractRequestContext(searchTaskRequest);
+            RequestContext context = searchTaskRequest.getRequestContext();
             if (context == null) {
                 return PermissionRequirementBuilder.builder().buildSingleType(READ);
-            } else if (context.isEqual(RequestContext.AVAILABLE_TASK_ONLY)) {
+            } else if (context.equals(RequestContext.AVAILABLE_TASKS)) {
                 return PermissionRequirementBuilder.builder().buildSingleRequirementWithAnd(OWN, CLAIM);
-            } else if (context.isEqual(RequestContext.ALL_WORK)) {
+            } else if (context.equals(RequestContext.ALL_WORK)) {
                 return PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
             }
             return PermissionRequirementBuilder.builder().buildSingleType(READ);
@@ -226,27 +224,18 @@ public class CftQueryService {
         }
     }
 
-    @Nullable
-    private SearchParameterRequestContext extractRequestContext(SearchTaskRequest searchTaskRequest) {
-
-        return (SearchParameterRequestContext) searchTaskRequest.getSearchParameters()
-            .stream()
-            .filter(SearchParameterRequestContext.class::isInstance)
-            .findFirst().orElse(null);
-    }
-
     // TODO: Once the granular permission feature flag enabled or available_tasks_only parameter is depreciated,
     // this method should only check AVAILABLE_TASK_ONLY context
     private boolean isAvailableTasksOnly(SearchTaskRequest searchTaskRequest) {
         final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap = asEnumMapForBoolean(searchTaskRequest);
         SearchParameterBoolean availableTasksOnly = boolKeyMap.get(AVAILABLE_TASKS_ONLY);
 
-        SearchParameterRequestContext context = extractRequestContext(searchTaskRequest);
+        RequestContext context = searchTaskRequest.getRequestContext();
 
         if (context == null) {
             return availableTasksOnly != null && availableTasksOnly.getValues();
         } else {
-            return context.isEqual(RequestContext.AVAILABLE_TASK_ONLY);
+            return context.equals(RequestContext.AVAILABLE_TASKS);
         }
     }
 

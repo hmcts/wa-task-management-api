@@ -55,6 +55,5 @@ class GetTaskTypesResponseTest {
             .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
-
-
+    
 }

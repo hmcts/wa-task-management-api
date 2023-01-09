@@ -36,7 +36,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -62,7 +61,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.REQUEST_CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_TYPE;
@@ -135,14 +133,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "sortByFieldScenario",
         "paginatedResultsScenario",
         "searchByWorkTypeScenario",
-        "grantTypeWithAvailableTasksOnlyRequestContextScenarioHappyPath",
         "grantTypeWithAllWorkRequestContextScenarioHappyPath",
         "searchByWorkTypeScenario",
         "searchByCaseIdScenario",
         "searchByJurisdictionLocationAndStateScenario",
         "searchByRoleCategoryScenario",
         "searchByStateScenario",
-        "searchByJurisdictionAndLocationScenario"
+        "searchByJurisdictionAndLocationScenario",
+        "grantTypeWithAvailableTasksRequestContextScenarioHappyPath"
     })
     void should_retrieve_tasks(TaskQueryScenario scenario) {
 
@@ -1326,13 +1324,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyRequestContextScenarioHappyPath() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
-            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN,
-                RequestContext.AVAILABLE_TASK_ONLY)
-        ));
+    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksRequestContextScenarioHappyPath() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
+            )
+        );
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
             .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM permission and PUBLIC")
@@ -1388,11 +1387,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     }
 
     private static Stream<TaskQueryScenario> grantTypeWithAllWorkRequestContextScenarioHappyPath() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
-            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-            new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.BOOLEAN, RequestContext.ALL_WORK)
-        ));
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.ALL_WORK,
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
+            )
+        );
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
             .scenarioName("all_work should return only unassigned and MANAGE permission and PUBLIC")

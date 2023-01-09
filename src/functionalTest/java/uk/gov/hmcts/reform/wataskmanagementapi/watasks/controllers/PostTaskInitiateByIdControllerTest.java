@@ -2,20 +2,22 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -151,6 +153,185 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
+    public void should_calculate_due_date_when_initiating_a_follow_up_overdue_respondent_evidence_using_due_date() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "followUpOverdueRespondentEvidence", "Follow-up overdue case building");
+        String taskId = taskVariables.getTaskId();
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Follow-up overdue case building"))
+                .body("task.type", equalTo("followUpOverdueRespondentEvidence"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Follow-up overdue case building"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.work_type_id", equalTo("hearing_work"))
+                .body("task.work_type_label", equalTo("Hearing work"))
+                .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+                .body("task.description", equalTo("[Dummy Activity](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                                  + "trigger/dummyActivity)"))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Own"))
+                .body("task.additional_properties", equalToObject(Map.of(
+                    "key1", "value1",
+                    "key2", "value2",
+                    "key3", "value3",
+                    "key4", "value4"
+                ))).body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.due_date", notNullValue())
+                .body("task.due_date",
+                      equalTo(OffsetDateTime.now().plusDays(2).withHour(18).withMinute(0).withSecond(0).withNano(0)
+                                  .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Ignore
+    @Test
+    public void should_calculate_due_date_when_initiating_a_multiple_calendar_task_using_due_date() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "multipleCalendarsDueDate", "Multiple calendars");
+        String taskId = taskVariables.getTaskId();
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Multiple calendars"))
+                .body("task.type", equalTo("multipleCalendarsDueDate"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Multiple calendars"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.work_type_id", equalTo("decision_making_work"))
+                .body("task.work_type_label", equalTo("Decision-making work"))
+                .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Execute"))
+                .body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.due_date", notNullValue())
+                .body("task.due_date", equalTo("2022-12-29T18:00:00+0000"));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_201_when_initiating_a_due_date_calculation_task_by_using_due_date_origin() {
+        TestVariables taskVariables =
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                             "calculateDueDate", "Calculate Due Date");
+        String taskId = taskVariables.getTaskId();
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Calculate Due Date"))
+                .body("task.type", equalTo("calculateDueDate"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Calculate Due Date"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.case_management_category", equalTo("Protection"))
+                .body("task.description", equalTo(""))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Execute"))
+                .body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.due_date", notNullValue())
+                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25, 20, 00, 0, 0)
+                                                   .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
     public void should_return_a_201_when_initiating_a_specific_access_task_by_id() {
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds(
@@ -261,18 +442,21 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             //Note: this is the TaskResource.class
             result.prettyPrint();
 
-            ZonedDateTime dueDate = ZonedDateTime.parse(
-                result.jsonPath().get("task.due_date"),
-                ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
-            );
-            String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+            // Commenting priority date and due date comparison as there is
+            // business change based on new date calculation
 
-            ZonedDateTime priorityDate = ZonedDateTime.parse(
-                result.jsonPath().get("task.priority_date"),
-                ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
-            );
-            String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
-            Assert.assertEquals(formattedDueDate, formattedPriorityDate);
+            //ZonedDateTime dueDate = ZonedDateTime.parse(
+            //    result.jsonPath().get("task.due_date"),
+            //    ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
+            //);
+            //String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+            //ZonedDateTime priorityDate = ZonedDateTime.parse(
+            //    result.jsonPath().get("task.priority_date"),
+            //    ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
+            //);
+            //String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
+            //Assert.assertEquals(formattedDueDate, formattedPriorityDate);
 
             result.then().assertThat()
                 .statusCode(HttpStatus.OK.value())
@@ -286,6 +470,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.task_title", equalTo("process Application"))
                 .body("task.created_date", notNullValue())
                 .body("task.due_date", notNullValue())
+                .body("task.priority_date", notNullValue())
                 .body("task.auto_assigned", equalTo(false))
                 .body("task.warnings", equalTo(false))
                 .body("task.case_id", equalTo(taskVariables.getCaseId()))
@@ -629,6 +814,122 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[3].role_name", is("challenged-access-legal-ops"))
             .body("roles[3].permissions.size()",  equalTo(5))
             .body("roles[3].permissions", hasItems("Own", "Manage", "Complete", "Assign", "Unassign"));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_calculate_due_date_must_be_working_day_should_default_to_next() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "mustBeWorkingDayDefault", "Must be working day default");
+        String taskId = taskVariables.getTaskId();
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Must be working day default"))
+                .body("task.type", equalTo("mustBeWorkingDayDefault"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Must be working day default"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.work_type_id", equalTo("decision_making_work"))
+                .body("task.work_type_label", equalTo("Decision-making work"))
+                .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Execute"))
+                .body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.due_date", notNullValue())
+                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
+                                                   .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_calculate_due_date_multiple_working_day_should_use_last_entry_in_dmn() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "multipleMustBeWorkingDays", "Multiple must  be working day");
+        String taskId = taskVariables.getTaskId();
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Multiple must  be working day"))
+                .body("task.type", equalTo("multipleMustBeWorkingDays"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("Multiple must  be working day"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.location", equalTo("765324"))
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.work_type_id", equalTo("decision_making_work"))
+                .body("task.work_type_label", equalTo("Decision-making work"))
+                .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+                .body("task.permissions.values.size()", equalTo(2))
+                .body("task.permissions.values", hasItems("Read", "Execute"))
+                .body("task.minor_priority", equalTo(500))
+                .body("task.major_priority", equalTo(1000))
+                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.due_date", notNullValue())
+                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
+                                               .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                               .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
 
         common.cleanUpTask(taskId);
     }

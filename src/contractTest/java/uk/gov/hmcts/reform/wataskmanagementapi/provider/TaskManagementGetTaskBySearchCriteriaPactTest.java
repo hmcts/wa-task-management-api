@@ -101,6 +101,16 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         setInitMockForSearchTaskWithRoleCategory();
     }
 
+    @State({"appropriate tasks are returned by criteria with context available task"})
+    public void getTasksBySearchCriteriaWithAvailableTasksContext() {
+        setInitMockForSearchTaskWithWarningsOnly();
+    }
+
+    @State({"appropriate tasks are returned by criteria with context all work"})
+    public void getTasksBySearchCriteriaWithAllWorkContext() {
+        setInitMockForSearchTaskWithWarningsOnly();
+    }
+
     @State({"appropriate tasks are returned by criteria with task type"})
     public void getTasksBySearchCriteriaWithTaskType() {
         setInitMockForSearchTaskWithTaskType();
