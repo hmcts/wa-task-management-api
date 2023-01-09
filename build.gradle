@@ -251,7 +251,7 @@ dependencyManagement {
       entry 'spring-security-web'
     }
 
-    dependencySet(group: 'org.seleniumhq.selenium', version: '4.2.2') {
+    dependencySet(group: 'org.seleniumhq.selenium', version: '4.7.2') {
       entry 'selenium-java'
       entry 'selenium-remote-driver'
       entry 'selenium-firefox-driver'
