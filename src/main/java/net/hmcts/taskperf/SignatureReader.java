@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,14 +33,24 @@ public class SignatureReader {
             List<Signature> signatures = allLines.stream().map(Signature::new).collect(Collectors.toList());
             System.out.println("Total : " + signatures.size());
 
-            signatures.forEach(s -> s.setAuthorisations("*"));
+            Random ran = new Random();
+
+            signatures.forEach(s -> {
+                char c = (char)(ran.nextInt(26) + 'a');
+                s.setAuthorisations("" + c);
+            });
+            signatures.forEach(s -> {
+                System.out.print(s.toString());
+                System.out.print(",");
+            });
+
             Set<Signature> uniqueSignatureWithoutSkills = new HashSet<>(signatures);
             System.out.println("Unique Signatures Without Skills : " + uniqueSignatureWithoutSkills.size());
             uniqueSignatureWithoutSkills.forEach(s -> System.out.println(s.toString()));
 
             Set<String> caseIds = signatures.stream().map(Signature::getCaseId).collect(Collectors.toSet());
             System.out.println("Case Ids : " + caseIds.size());
-            caseIds.forEach(s -> System.out.println(s));
+            caseIds.forEach(System.out::println);
 
         } catch (IOException e) {
             e.printStackTrace();
