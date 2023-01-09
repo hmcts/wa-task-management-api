@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public class PublicHolidaysCollection {
     @Cacheable(value = "public_holidays_uri_cache", key = "#uri", sync = true)
     public BankHolidays getPublicHolidays(String uri) {
         BankHolidaysApi bankHolidaysApi = bankHolidaysApi(uri);
-        return bankHolidaysApi.retrieveAll();
+        return bankHolidaysApi.retrieveAll(URI.create(uri));
     }
 
     private void processCalendar(BankHolidays publicHolidays, BankHolidays allPublicHolidays) {
