@@ -19,7 +19,9 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 
 import java.util.Arrays;
 
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.ALL;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 @Configuration
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
