@@ -35,7 +35,8 @@ public class CamelCaseFeignConfiguration {
 
     @Bean
     public Decoder feignDecoder() {
-        MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(camelCasedObjectMapper());
+        MappingJackson2HttpMessageConverter jacksonConverter =
+            new MappingJackson2HttpMessageConverter(camelCasedObjectMapper());
         jacksonConverter.setSupportedMediaTypes(Arrays.asList(
             MediaType.valueOf(TEXT_PLAIN_VALUE + ";charset=utf-8"),
             APPLICATION_JSON,
