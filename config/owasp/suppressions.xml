@@ -35,6 +35,10 @@
     <cve>CVE-2022-42003</cve>
   </suppress>
   <suppress>
+    <notes>Currently no patch for this issue (https://nvd.nist.gov/vuln/detail/CVE-2021-4277)  </notes>
+    <cve>CVE-2022-4277</cve>
+  </suppress>
+  <suppress>
     <notes>temp</notes>
     <cve>CVE-2022-31690</cve>
   </suppress>
