@@ -43,6 +43,14 @@
     <cve>CVE-2022-31690</cve>
   </suppress>
   <suppress>
+    <notes>false positive, already using latest version of yaml</notes>
+    <cve>CVE-2022-3064</cve>
+  </suppress>
+  <suppress>
+    <notes>false positive, already using latest version of yaml</notes>
+    <cve>CVE-2021-4235</cve>
+  </suppress>
+  <suppress>
     <notes>temp</notes>
     <cve>CVE-2022-31692</cve>
   </suppress>
