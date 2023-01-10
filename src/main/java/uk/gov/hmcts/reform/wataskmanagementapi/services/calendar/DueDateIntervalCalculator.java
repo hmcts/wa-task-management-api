@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
 
 @Slf4j
@@ -61,8 +63,17 @@ public class DueDateIntervalCalculator implements DateCalculator {
                 dueDateIntervalData.getDueDateNonWorkingCalendar(),
                 dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
             );
-            if (dueDateIntervalData.isDueDateMustBeWorkingDay() && !workingDay) {
+            if (dueDateIntervalData.getDueDateMustBeWorkingDay()
+                .equalsIgnoreCase(DUE_DATE_MUST_BE_WORKING_DAY_NEXT) && !workingDay) {
                 localDate = workingDayIndicator.getNextWorkingDay(
+                    localDate,
+                    dueDateIntervalData.getDueDateNonWorkingCalendar(),
+                    dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
+                );
+            }
+            if (dueDateIntervalData.getDueDateMustBeWorkingDay()
+                .equalsIgnoreCase(DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS) && !workingDay) {
+                localDate = workingDayIndicator.getPreviousWorkingDay(
                     localDate,
                     dueDateIntervalData.getDueDateNonWorkingCalendar(),
                     dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
@@ -123,12 +134,11 @@ public class DueDateIntervalCalculator implements DateCalculator {
                                            .map(Boolean::parseBoolean)
                                            .orElse(false))
             .dueDateMustBeWorkingDay(dueDateProperties.stream()
-                                         .filter(r -> r.getName().getValue().equals(DUE_DATE_MUST_BE_WORKING_DAYS))
-                                         .reduce((a, b) -> b)
-                                         .map(ConfigurationDmnEvaluationResponse::getValue)
-                                         .map(CamundaValue::getValue)
-                                         .map(Boolean::parseBoolean)
-                                         .orElse(false))
+                                          .filter(r -> r.getName().getValue().equals(DUE_DATE_MUST_BE_WORKING_DAYS))
+                                          .reduce((a, b) -> b)
+                                          .map(ConfigurationDmnEvaluationResponse::getValue)
+                                          .map(CamundaValue::getValue)
+                                          .orElse(DUE_DATE_MUST_BE_WORKING_DAY_NEXT))
             .dueDateTime(dueDateProperties.stream()
                              .filter(r -> r.getName().getValue().equals(DUE_DATE_TIME))
                              .reduce((a, b) -> b)

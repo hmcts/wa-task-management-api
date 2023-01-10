@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.Boolean.TRUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
 
 @Slf4j
@@ -65,8 +67,17 @@ public class DueDateIntervalReCalculator implements DateCalculator {
                 dueDateIntervalData.getDueDateNonWorkingCalendar(),
                 dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
             );
-            if (dueDateIntervalData.isDueDateMustBeWorkingDay() && !workingDay) {
+            if (dueDateIntervalData.getDueDateMustBeWorkingDay()
+                .equalsIgnoreCase(DUE_DATE_MUST_BE_WORKING_DAY_NEXT) && !workingDay) {
                 localDate = workingDayIndicator.getNextWorkingDay(
+                    localDate,
+                    dueDateIntervalData.getDueDateNonWorkingCalendar(),
+                    dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
+                );
+            }
+            if (dueDateIntervalData.getDueDateMustBeWorkingDay()
+                .equalsIgnoreCase(DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS) && !workingDay) {
+                localDate = workingDayIndicator.getPreviousWorkingDay(
                     localDate,
                     dueDateIntervalData.getDueDateNonWorkingCalendar(),
                     dueDateIntervalData.getDueDateNonWorkingDaysOfWeek()
@@ -135,8 +146,7 @@ public class DueDateIntervalReCalculator implements DateCalculator {
                                          .reduce((a, b) -> b)
                                          .map(ConfigurationDmnEvaluationResponse::getValue)
                                          .map(CamundaValue::getValue)
-                                         .map(Boolean::parseBoolean)
-                                         .orElse(false))
+                                         .orElse(DUE_DATE_MUST_BE_WORKING_DAY_NEXT))
             .dueDateTime(dueDateProperties.stream()
                              .filter(r -> r.getName().getValue().equals(DUE_DATE_TIME))
                              .filter(r -> r.getCanReconfigure().getValue().booleanValue() == TRUE)
