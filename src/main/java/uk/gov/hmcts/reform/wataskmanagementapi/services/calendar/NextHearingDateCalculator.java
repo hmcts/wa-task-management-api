@@ -9,11 +9,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 
 @Slf4j
 @Component
-public class DueDateTimeCalculator implements DateCalculator {
+public class NextHearingDateCalculator implements DateCalculator {
 
     @Override
     public boolean supports(
@@ -21,22 +21,30 @@ public class DueDateTimeCalculator implements DateCalculator {
         DateType dateType,
         boolean isReconfigureRequest) {
 
-        return DUE_DATE == dateType
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME)).isPresent()
+        return NEXT_HEARING_DATE == dateType
+            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType())).isPresent()
             && !isReconfigureRequest;
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
                                                             DateType dateType) {
-        var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME);
-        LocalDateTime dateTime = addTimeToDate(dueDateTimeResponse, DEFAULT_DATE);
+        var nextHearingDateResponse = getProperty(dueDateProperties, NEXT_HEARING_DATE.getType());
+        LocalDateTime dateTime = calculateDueDateFrom(nextHearingDateResponse);
         return ConfigurationDmnEvaluationResponse
             .builder()
             .name(CamundaValue.stringValue(dateType.getType()))
             .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateTime)))
             .build();
+    }
+
+    private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse nextHearingDateResponse) {
+        String nextHearingDate = nextHearingDateResponse.getValue().getValue();
+        LocalDateTime parsedNextHearingDate = parseDueDateTime(nextHearingDate);
+        if (parsedNextHearingDate.getHour() == 0) {
+            return parsedNextHearingDate.withHour(16).withMinute(0);
+        } else {
+            return parsedNextHearingDate;
+        }
     }
 }

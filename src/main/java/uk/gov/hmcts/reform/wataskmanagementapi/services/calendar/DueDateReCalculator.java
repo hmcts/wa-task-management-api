@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
@@ -27,10 +28,21 @@ public class DueDateReCalculator implements DateCalculator {
     }
 
     @Override
-    public LocalDateTime calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
+    public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+                                                            DateType dateType) {
         var dueDateResponse = getProperty(dueDateProperties, DUE_DATE.getType());
         var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME);
 
+        LocalDateTime dateTime = getDateTime(dueDateResponse, dueDateTimeResponse);
+        return ConfigurationDmnEvaluationResponse
+            .builder()
+            .name(CamundaValue.stringValue(dateType.getType()))
+            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateTime)))
+            .build();
+    }
+
+    private LocalDateTime getDateTime(ConfigurationDmnEvaluationResponse dueDateResponse,
+                                      ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         if (Optional.ofNullable(dueDateTimeResponse).isEmpty()
             || dueDateTimeResponse.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE) {
             return calculateDueDateFrom(dueDateResponse);

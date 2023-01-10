@@ -17,6 +17,7 @@ public interface DateCalculator {
     String DUE_DATE_SKIP_NON_WORKING_DAYS = "dueDateSkipNonWorkingDays";
     String DUE_DATE_MUST_BE_WORKING_DAYS = "dueDateMustBeWorkingDay";
     String DUE_DATE_TIME = "dueDateTime";
+    String PRIORITY_DATE_TIME = "priorityDateTime";
 
     String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     String DEFAULT_DUE_DATE_TIME = "16:00";
@@ -30,7 +31,8 @@ public interface DateCalculator {
                      DateType dateType,
                      boolean isReconfigureRequest);
 
-    LocalDateTime calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
+    ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+                                                     DateType dateType);
 
     default ConfigurationDmnEvaluationResponse getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {

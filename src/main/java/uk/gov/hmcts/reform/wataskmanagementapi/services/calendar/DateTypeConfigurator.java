@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
@@ -42,25 +41,19 @@ public class DateTypeConfigurator {
                 return;
             }
             AtomicReference<LocalDateTime> dateValue = new AtomicReference<>();
-            if (!isReconfigureRequest) {
+            if (isReconfigureRequest) {
+                filterOutOldValueAndAddDateType(responses, dt, null);
+            } else {
                 dateValue.set(dt.getDefaultTime());
             }
 
             Optional<DateCalculator> dateCalculator = getDateCalculator(dateProperties, dt, isReconfigureRequest);
-            dateCalculator.ifPresent(calculator -> dateValue.getAndSet(calculator.calculateDate(dateProperties)));
+            dateCalculator.ifPresent(calculator -> {
+                ConfigurationDmnEvaluationResponse dateTypeResponse = calculator.calculateDate(dateProperties, dt);
 
-            ConfigurationDmnEvaluationResponse dateTypeResponse = null;
-            LocalDateTime dateTime = dateValue.get();
-            if (dateTime != null) {
-                dateTypeResponse = ConfigurationDmnEvaluationResponse
-                    .builder()
-                    .name(CamundaValue.stringValue(dt.getType()))
-                    .value(CamundaValue.stringValue(dateValue.get().format(dt.getDateTimeFormatter())))
-                    .build();
-
-                log.info("Due date set in configuration is as {}", dateTypeResponse);
-            }
-            filterOutOldValueAndAddDateType(responses, dt, dateTypeResponse);
+                log.info("{} based in configuration is as {}", dt.getType(), dateTypeResponse);
+                filterOutOldValueAndAddDateType(responses, dt, dateTypeResponse);
+            });
         });
 
         return responses.get();

@@ -41,7 +41,8 @@ public class DueDateIntervalReCalculator implements DateCalculator {
     }
 
     @Override
-    public LocalDateTime calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
+    public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+                                                            DateType dateType) {
         DueDateIntervalData dueDateIntervalData = readDueDateOriginFields(dueDateProperties);
 
         LocalDateTime dueDate = LocalDateTime.parse(dueDateIntervalData.getDueDateOrigin(), DUE_DATE_TIME_FORMATTER);
@@ -72,7 +73,13 @@ public class DueDateIntervalReCalculator implements DateCalculator {
                 );
             }
         }
-        return localDate.atTime(LocalTime.parse(dueDateIntervalData.getDueDateTime()));
+        LocalDateTime dateTime = localDate.atTime(LocalTime.parse(dueDateIntervalData.getDueDateTime()));
+
+        return ConfigurationDmnEvaluationResponse
+            .builder()
+            .name(CamundaValue.stringValue(dateType.getType()))
+            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateTime)))
+            .build();
     }
 
     private DueDateIntervalData readDueDateOriginFields(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
