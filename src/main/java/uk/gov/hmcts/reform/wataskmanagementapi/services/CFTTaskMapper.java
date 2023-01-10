@@ -220,11 +220,7 @@ public class CFTTaskMapper {
             taskResource.getReconfigureRequestTime() == null ? null
                 : taskResource.getReconfigureRequestTime().toZonedDateTime(),
             taskResource.getLastReconfigurationTime() == null ? null
-                : taskResource.getLastReconfigurationTime().toZonedDateTime(),
-            taskResource.getLastUpdatedTimestamp() == null ? null
-                : taskResource.getLastUpdatedTimestamp().toZonedDateTime(),
-            taskResource.getLastUpdatedUser() == null ? null : taskResource.getLastUpdatedUser(),
-            taskResource.getLastUpdatedAction() == null ? null : taskResource.getLastUpdatedAction()
+                : taskResource.getLastReconfigurationTime().toZonedDateTime()
         );
     }
 
@@ -581,18 +577,22 @@ public class CFTTaskMapper {
                     }
                     break;
                 case DUE_DATE:
-                    log.info("due date after calculation {}", value);
-                    LocalDateTime dateTime = LocalDateTime.parse((String) value, DUE_DATE_TIME_FORMATTER);
-                    ZoneId systemDefault = ZoneId.systemDefault();
-                    log.info("system default {}", systemDefault);
-                    OffsetDateTime dueDateTime = dateTime.atZone(systemDefault).toOffsetDateTime();
-                    log.info("due date during initiation {}", dueDateTime);
-                    taskResource.setDueDateTime(dueDateTime);
+                    mapDueDate(taskResource, value);
                     break;
                 default:
                     break;
             }
         }
+    }
+
+    private static void mapDueDate(TaskResource taskResource, Object value) {
+        log.info("due date after calculation {}", value);
+        LocalDateTime dateTime = LocalDateTime.parse((String) value, DUE_DATE_TIME_FORMATTER);
+        ZoneId systemDefault = ZoneId.systemDefault();
+        log.info("system default {}", systemDefault);
+        OffsetDateTime dueDateTime = dateTime.atZone(systemDefault).toOffsetDateTime();
+        log.info("due date during initiation {}", dueDateTime);
+        taskResource.setDueDateTime(dueDateTime);
     }
 
     void setMajorPriority(Object value, TaskResource taskResource) {
@@ -675,6 +675,9 @@ public class CFTTaskMapper {
                     } else {
                         taskResource.setNextHearingDate((OffsetDateTime) value);
                     }
+                    break;
+                case DUE_DATE:
+                    mapDueDate(taskResource, value);
                     break;
                 default:
                     break;
