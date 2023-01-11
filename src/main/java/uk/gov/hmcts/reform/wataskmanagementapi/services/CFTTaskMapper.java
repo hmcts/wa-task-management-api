@@ -417,7 +417,9 @@ public class CFTTaskMapper {
                 final String permissionsValue = permission.getValue().getValue();
 
                 final Set<PermissionTypes> permissionsFound = Arrays.stream(permissionsValue.split(","))
-                    .map(p -> PermissionTypes.from(p).orElse(null))
+                    .map(String:: trim)
+                    .map(p -> PermissionTypes.from(p).orElseThrow(() -> new IllegalArgumentException(
+                        "Invalid Permission Type:" + p)))
                     .collect(Collectors.toSet());
 
                 List<String> authorisations = new ArrayList<>();
