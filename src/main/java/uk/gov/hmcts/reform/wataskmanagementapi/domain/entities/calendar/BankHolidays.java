@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.context.annotation.Import;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.SnakeCaseFeignConfiguration;
 
 import java.util.List;
 import java.util.Objects;
@@ -13,7 +11,6 @@ import java.util.Objects;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Builder
-@Import(SnakeCaseFeignConfiguration.class)
 public class BankHolidays {
 
     @JsonProperty("division")
