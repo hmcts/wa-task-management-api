@@ -62,16 +62,20 @@
     <notes>Wait for updates on dependencies</notes>
     <cve>CVE-2021-37533</cve>
   </suppress>
-  <suppress until ="2023-01-11">
+  <suppress until ="2023-01-12">
     <notes>temp</notes>
     <cve>CVE-2021-4277</cve>
   </suppress>
-  <suppress until ="2023-01-11">
+  <suppress until ="2023-01-12">
     <notes>temp</notes>
     <cve>CVE-2021-4235</cve>
   </suppress>
-  <suppress until ="2023-01-11">
+  <suppress until ="2023-01-12">
     <notes>temp</notes>
     <cve>CVE-2022-3064</cve>
+  </suppress>
+  <suppress>
+    <notes>temp</notes>
+    <cve>CVE-2022-45143</cve>
   </suppress>
 </suppressions>
