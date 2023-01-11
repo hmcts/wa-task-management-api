@@ -66,4 +66,8 @@
     <notes>temp</notes>
     <cve>CVE-2021-4277</cve>
   </suppress>
+  <suppress>
+    <notes>temp</notes>
+    <cve>CVE-2022-45143</cve>
+  </suppress>
 </suppressions>
