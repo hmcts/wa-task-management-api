@@ -47,14 +47,14 @@ public class DateTypeConfigurator {
                         Optional<ConfigurationDmnEvaluationResponse> dueDate = calculateDueDate(configResponses,
                                                                                                 initiationDueDateFound,
                                                                                                 isReconfigureRequest);
-                        dueDate.ifPresent(d -> filterOutOldValueAndAddDateType(responses, DUE_DATE, d));
+                        filterOutOldValueAndAddDateType(responses, DUE_DATE, dueDate);
                         break;
                     case NEXT_HEARING_DATE:
                     case PRIORITY_DATE:
                         Optional<ConfigurationDmnEvaluationResponse> calculatedDate = calculateDate(configResponses,
                                                                                                 dt,
                                                                                                 isReconfigureRequest);
-                        calculatedDate.ifPresent(d -> filterOutOldValueAndAddDateType(responses, dt, d));
+                        filterOutOldValueAndAddDateType(responses, dt, calculatedDate);
                         break;
                 }
             });
@@ -142,12 +142,12 @@ public class DateTypeConfigurator {
     private void filterOutOldValueAndAddDateType(
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses,
         DateType dateType,
-        ConfigurationDmnEvaluationResponse dateTypeResponse) {
+        Optional<ConfigurationDmnEvaluationResponse> dateTypeResponse) {
         List<ConfigurationDmnEvaluationResponse> filtered = configResponses.get().stream()
             .filter(r -> !r.getName().getValue().contains(dateType.getType()))
             .collect(Collectors.toList());
 
-        Optional.ofNullable(dateTypeResponse).ifPresent(filtered::add);
+        dateTypeResponse.ifPresent(filtered::add);
         configResponses.getAndSet(filtered);
     }
 }
