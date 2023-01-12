@@ -4,15 +4,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import net.hmcts.taskperf.CaseRoleGenerator;
 import net.hmcts.taskperf.model.ClientQuery;
 import net.hmcts.taskperf.model.Expected;
 import net.hmcts.taskperf.model.User;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 
 public class Loader
 {
@@ -33,6 +38,23 @@ public class Loader
 		try (InputStream input = getResourceAsStream("user/user-" + id + ".yml"))
 		{
 			User user = mapper.readValue(input, User.class);
+			int duplicates = user.getCaseRoleDuplicates();
+			if (duplicates > 0)
+			{
+				List<RoleAssignment> roleAssignments = new ArrayList<>();
+				for (RoleAssignment roleAssignment : user.getRoleAssignments())
+				{
+					if (roleAssignment.getRoleType() == RoleType.CASE)
+					{
+						roleAssignments.addAll(CaseRoleGenerator.multiply(roleAssignment, duplicates));
+					}
+					else
+					{
+						roleAssignments.add(roleAssignment);
+					}
+				}
+				user = new User(roleAssignments, 0);
+			}
 			return user;
 		}
 	}
