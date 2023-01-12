@@ -53,7 +53,8 @@ public class DateTypeConfiguratorTest {
         when(priorityDateCalculator.supports(anyList(), eq(DateType.NEXT_HEARING_DATE), eq(false))).thenReturn(false);
         when(nextHearingDateCalculator.supports(anyList(), eq(DateType.NEXT_HEARING_DATE), eq(false))).thenReturn(true);
 
-        dateTypeConfigurator = new DateTypeConfigurator(List.of(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator));
+        dateTypeConfigurator = new DateTypeConfigurator(List.of(dueDateCalculator, priorityDateCalculator,
+                                                                nextHearingDateCalculator));
     }
 
     @Test
@@ -103,4 +104,4 @@ public class DateTypeConfiguratorTest {
         inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE));
         inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(DateType.NEXT_HEARING_DATE));
     }
- }
+}

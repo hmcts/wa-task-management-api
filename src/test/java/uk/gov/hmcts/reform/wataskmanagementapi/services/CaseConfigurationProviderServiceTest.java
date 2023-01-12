@@ -169,7 +169,7 @@ class CaseConfigurationProviderServiceTest {
             ));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate date = LocalDate.now().plusDays(2);
-        String dueDateSet = date.format(formatter) + "T16:00";
+        String defaultDate = date.format(formatter) + "T16:00";
 
         Map<String, Object> expectedMappedData = new HashMap<>();
         expectedMappedData.put("tribunalCaseworker", "Read,Refer,Own,Manage,Cancel");
@@ -177,7 +177,9 @@ class CaseConfigurationProviderServiceTest {
         expectedMappedData.put("securityClassification", "PUBLIC");
         expectedMappedData.put("jurisdiction", "IA");
         expectedMappedData.put("caseTypeId", "Asylum");
-        expectedMappedData.put("dueDate", dueDateSet);
+        expectedMappedData.put("dueDate", defaultDate);
+        expectedMappedData.put("priorityDate", defaultDate);
+        expectedMappedData.put("nextHearingDate", defaultDate);
 
         Map<String, Object> taskAttributes = Map.of();
         TaskConfigurationResults mappedData = caseConfigurationProviderService
@@ -194,7 +196,7 @@ class CaseConfigurationProviderServiceTest {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate date = LocalDate.now().plusDays(2);
-        String dueDateSet = date.format(formatter) + "T16:00";
+        String defaultDate = date.format(formatter) + "T16:00";
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", taskAttributesString))
@@ -209,7 +211,9 @@ class CaseConfigurationProviderServiceTest {
             "securityClassification", "PUBLIC",
             "jurisdiction", "IA",
             "caseTypeId", "Asylum",
-            "dueDate", dueDateSet
+            "dueDate", defaultDate,
+            "priorityDate", defaultDate,
+            "nextHearingDate", defaultDate
         );
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
@@ -515,7 +519,7 @@ class CaseConfigurationProviderServiceTest {
             "value3"
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isNotEmpty()
-            .hasSize(4)
+            .hasSize(6)
             .contains(
                 new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
@@ -563,8 +567,9 @@ class CaseConfigurationProviderServiceTest {
             "roleAssignmentId", roleAssignmentId
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("additionalProperties"))
             .isNotEmpty()
-            .hasSize(2)
+            .hasSize(1)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
@@ -616,8 +621,9 @@ class CaseConfigurationProviderServiceTest {
             "roleAssignmentId", roleAssignmentId
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("additionalProperties"))
             .isNotEmpty()
-            .hasSize(2)
+            .hasSize(1)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
@@ -662,8 +668,9 @@ class CaseConfigurationProviderServiceTest {
             "roleAssignmentId", "roleAssignmentId"
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("additionalProperties"))
             .isNotEmpty()
-            .hasSize(2)
+            .hasSize(1)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
@@ -748,6 +755,7 @@ class CaseConfigurationProviderServiceTest {
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("dueDate"))
             .isNotEmpty()
             .hasSize(1)
             .contains(
@@ -770,6 +778,7 @@ class CaseConfigurationProviderServiceTest {
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("dueDate"))
             .isEmpty();
     }
 
@@ -876,6 +885,7 @@ class CaseConfigurationProviderServiceTest {
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         String expectedDate = GIVEN_DATE.plusDays(8).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("dueDate"))
             .isNotEmpty()
             .hasSize(1)
             .contains(

@@ -56,13 +56,15 @@ public class DateTypeConfigurator {
                                                                                                 isReconfigureRequest);
                         filterOutOldValueAndAddDateType(responses, dt, calculatedDate);
                         break;
+                    default:
                 }
             });
 
         return responses.get();
     }
 
-    private Optional<ConfigurationDmnEvaluationResponse> calculateDueDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+    private Optional<ConfigurationDmnEvaluationResponse> calculateDueDate(List<ConfigurationDmnEvaluationResponse>
+                                                                              configResponses,
                                                                       boolean initiationDueDateFound,
                                                                       boolean isReconfigureRequest) {
         List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.stream()
@@ -83,7 +85,8 @@ public class DateTypeConfigurator {
         return Optional.ofNullable(dateTypeResponse);
     }
 
-    private Optional<ConfigurationDmnEvaluationResponse> calculateDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+    private Optional<ConfigurationDmnEvaluationResponse> calculateDate(List<ConfigurationDmnEvaluationResponse>
+                                                                           configResponses,
                                                                        DateType dateType,
                                                                        boolean isReconfigureRequest) {
         List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.stream()
