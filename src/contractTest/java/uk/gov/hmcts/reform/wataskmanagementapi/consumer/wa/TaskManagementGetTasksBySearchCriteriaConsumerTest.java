@@ -156,6 +156,23 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeSearchQueryWithTaskType200(PactDslWithProvider builder) {
+        return builder
+            .given("appropriate tasks are returned by criteria with task type")
+            .uponReceiving("Provider receives a POST /task request from a WA API for task type")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchWithTaskTypeRequest(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskForTaskType())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQueryWithAvailableTasksContext200Test(PactDslWithProvider builder) {
         return builder
             .given("appropriate tasks are returned by criteria with context available task")
@@ -275,6 +292,19 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
             .body(createSearchByRoleCategoryRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithTaskType200", pactVersion = PactSpecVersion.V3)
+    void testSearchQueryWithTaskType200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchWithTaskTypeRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -588,6 +618,29 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
 
     }
 
+    private String createSearchWithTaskTypeRequest() {
+
+        return "{\n"
+               + "    \"search_parameters\": [\n"
+               + "         {\n"
+               + "             \"key\": \"role_category\",\n"
+               + "             \"operator\": \"IN\",\n"
+               + "             \"values\":"
+               + "                 [\n"
+               + "                     \"processApplication\",\n"
+               + "                     \"reviewAppealSkeletonArgument\",\n"
+               + "                     \"decideOnTimeExtension\",\n"
+               + "                     \"followUpOverdueCaseBuilding\",\n"
+               + "                     \"attendCma\",\n"
+               + "                     \"reviewRespondentResponse\",\n"
+               + "                     \"followUpOverdueRespondentEvidence\"\n"
+               + "                 ]\n"
+               + "          }\n"
+               + "      ]\n"
+               + "  }\n";
+
+    }
+
     private DslPart createResponseForGetTaskForRoleCategory() {
         return newJsonBody(
             o -> o
@@ -618,6 +671,42 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("work_type_id", "hearing_work")
                         .stringType("work_type_label", "Hearing work")
                         .stringValue("role_category", "CTSC")
+                        .stringType("description", "aDescription")
+                        .stringType("next_hearing_id", "nextHearingId")
+                        .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                )).build();
+    }
+
+    private DslPart createResponseForGetTaskForTaskType() {
+        return newJsonBody(
+            o -> o
+                .minArrayLike("tasks", 1, 1,
+                    task -> task
+                        .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
+                        .stringType("name", "review appeal skeleton argument")
+                        .stringType("type", "reviewAppealSkeletonArgument")
+                        .stringType("task_state", "unassigned")
+                        .stringType("task_system", "SELF")
+                        .stringType("security_classification", "PUBLIC")
+                        .stringType("task_title", "review appeal skeleton argument")
+                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .stringType("assignee", "10bac6bf-80a7-4c81-b2db-516aba826be6")
+                        .booleanType("auto_assigned", true)
+                        .stringType("execution_type", "Case Management Task")
+                        .stringType("jurisdiction", "WA")
+                        .stringType("region", "1")
+                        .stringType("location", "765324")
+                        .stringType("location_name", "Taylor House")
+                        .stringType("case_type_id", "WaCaseType")
+                        .stringType("case_id", "1617708245335311")
+                        .stringType("case_category", "Protection")
+                        .stringType("case_name", "Bob Smith")
+                        .booleanType("warnings", false)
+                        .stringType("case_management_category", "Some Case Management Category")
+                        .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
+                        .stringValue("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "aDescription")
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
