@@ -9,18 +9,20 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalc
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DUE_DATE_TIME_FORMATTER;
 
 public enum DateType {
-    DUE_DATE("dueDate", DEFAULT_ZONED_DATE_TIME, DUE_DATE_TIME_FORMATTER),
-    NEXT_HEARING_DATE("nextHearingDate", DEFAULT_ZONED_DATE_TIME, DUE_DATE_TIME_FORMATTER),
-    PRIORITY_DATE("priorityDate", DEFAULT_ZONED_DATE_TIME, DUE_DATE_TIME_FORMATTER);
+    NEXT_HEARING_DATE("nextHearingDate", DEFAULT_ZONED_DATE_TIME, DUE_DATE_TIME_FORMATTER, 1),
+    DUE_DATE("dueDate", DEFAULT_ZONED_DATE_TIME, DUE_DATE_TIME_FORMATTER, 2),
+    PRIORITY_DATE("priorityDate", DEFAULT_ZONED_DATE_TIME, DUE_DATE_TIME_FORMATTER,3);
 
     private final String type;
     private final LocalDateTime defaultTime;
     private final DateTimeFormatter dateTimeFormatter;
+    private final int order;
 
-    DateType(String type, LocalDateTime defaultTime, DateTimeFormatter dateTimeFormatter) {
+    DateType(String type, LocalDateTime defaultTime, DateTimeFormatter dateTimeFormatter, int order) {
         this.type = type;
         this.defaultTime = defaultTime;
         this.dateTimeFormatter = dateTimeFormatter;
+        this.order = order;
     }
 
     public static Optional<DateType> from(String name) {
@@ -39,5 +41,9 @@ public enum DateType {
 
     public DateTimeFormatter getDateTimeFormatter() {
         return dateTimeFormatter;
+    }
+
+    public int getOrder() {
+        return order;
     }
 }

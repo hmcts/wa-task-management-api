@@ -156,7 +156,7 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return dateTypeConfigurator.configureDueDate(configResponses, initiationDueDateFound, isReconfigureRequest);
+        return dateTypeConfigurator.configureDates(configResponses, initiationDueDateFound, isReconfigureRequest);
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(
