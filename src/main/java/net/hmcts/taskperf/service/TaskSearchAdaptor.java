@@ -17,7 +17,6 @@ import org.zalando.problem.violations.Violation;
 
 import net.hmcts.taskperf.model.ClientQuery;
 import net.hmcts.taskperf.model.Pagination;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;

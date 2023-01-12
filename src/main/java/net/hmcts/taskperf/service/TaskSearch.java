@@ -1,7 +1,6 @@
 package net.hmcts.taskperf.service;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -18,7 +17,6 @@ import lombok.Value;
 import net.hmcts.taskperf.model.ClientFilter;
 import net.hmcts.taskperf.model.ClientQuery;
 import net.hmcts.taskperf.model.Pagination;
-import net.hmcts.taskperf.model.SearchRequest;
 import net.hmcts.taskperf.service.sql.SqlStatement;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;

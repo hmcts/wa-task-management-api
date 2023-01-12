@@ -9,4 +9,5 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 public class User
 {
 	private List<RoleAssignment> roleAssignments;
+	private int caseRoleDuplicates;
 }
