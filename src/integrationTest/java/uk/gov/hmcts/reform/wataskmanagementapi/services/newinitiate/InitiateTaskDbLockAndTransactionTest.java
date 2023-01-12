@@ -158,7 +158,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
         when(cftTaskMapper.mapToTaskResource(taskId, taskAttributes)).thenReturn(testTaskResource);
 
-        when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
+        when(taskAutoAssignmentService.performAutoAssignment(any(), any(TaskResource.class)))
             .thenReturn(assignedTask);
 
         when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
@@ -184,7 +184,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         );
 
         inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, taskAttributes);
-        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class));
+        inOrder.verify(taskAutoAssignmentService).performAutoAssignment(any(), any(TaskResource.class));
         inOrder.verify(camundaService).updateCftTaskState(any(), any());
         inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
 
