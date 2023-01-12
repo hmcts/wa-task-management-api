@@ -254,7 +254,8 @@ public class TaskResourceSpecificationTest {
             new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser")),
             new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+            new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList("followUpOverdueCaseBuilding"))
         ));
 
 
@@ -263,7 +264,7 @@ public class TaskResourceSpecificationTest {
             criteriaBuilder, root
         );
 
-        verify(criteriaBuilder, times(7)).equal(any(), anyString());
+        verify(criteriaBuilder, times(8)).equal(any(), anyString());
     }
 
     @Test
@@ -276,7 +277,8 @@ public class TaskResourceSpecificationTest {
             new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser")),
             new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true),
+            new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList("followUpOverdueCaseBuilding"))
         ));
 
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
@@ -287,7 +289,7 @@ public class TaskResourceSpecificationTest {
             criteriaBuilder, root
         );
 
-        verify(criteriaBuilder, times(7)).equal(any(), anyString());
+        verify(criteriaBuilder, times(8)).equal(any(), anyString());
 
     }
 
@@ -432,15 +434,24 @@ public class TaskResourceSpecificationTest {
                 .expectedEqualPredicate(2).expectedConjunctions(12).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
-                new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList("processApplication"))
+            new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList("followUpOverdueCaseBuilding"))
         ));
         final SearchTaskRequestScenario taskType =
-                SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                        .permissionsRequired(readPermissionsRequired).availableTaskOnly(false)
-                        .expectedEqualPredicate(2).expectedConjunctions(12).build();
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
+                .permissionsRequired(readPermissionsRequired).availableTaskOnly(false)
+                .expectedEqualPredicate(2).expectedConjunctions(12).build();
 
-        return Stream.of(jurisdiction, state, location, caseId, user, workType, roleCtg,
-            availableTaskOnly, availableTaskOnlyAsFalse, taskType
+        return Stream.of(
+            jurisdiction,
+            state,
+            location,
+            caseId,
+            user,
+            workType,
+            roleCtg,
+            availableTaskOnly,
+            availableTaskOnlyAsFalse,
+            taskType
         );
 
     }
