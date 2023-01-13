@@ -88,14 +88,25 @@ public class DateTypeConfiguratorTest {
     }
 
     @Test
-    public void should_use_date_calculation_order_when_calculated_date_exist_recheck() {
+    public void should_use_last_date_calculation_order_when_multiple_calculated_date_exist() {
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("calculatedDates"))
+            .value(CamundaValue.stringValue("dueDate,priorityDate,nextHearingDate"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse calculatedDates2 = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("calculatedDates"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate,dueDate"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse calculatedDates3 = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
             .value(CamundaValue.stringValue("priorityDate,dueDate,nextHearingDate"))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(calculatedDates,
-                                                                               dueDate, priorityDate, nextHearingDate);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(calculatedDates,calculatedDates2,
+                                                                               calculatedDates3, dueDate,
+                                                                               priorityDate, nextHearingDate);
         dateTypeConfigurator.configureDates(evaluationResponses, false, false);
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);

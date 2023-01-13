@@ -105,7 +105,7 @@ public class DateTypeConfigurator {
     private List<DateType> readCalculationOrder(List<ConfigurationDmnEvaluationResponse> configResponses) {
         Optional<ConfigurationDmnEvaluationResponse> calculatedDates = configResponses.stream()
             .filter(r -> r.getName().getValue().equals(CALCULATED_DATES))
-            .findFirst();
+            .reduce((a, b) -> b);
 
         DateType[] defaultOrder = DateType.values();
         Arrays.sort(defaultOrder, Comparator.comparing(DateType::getOrder));
