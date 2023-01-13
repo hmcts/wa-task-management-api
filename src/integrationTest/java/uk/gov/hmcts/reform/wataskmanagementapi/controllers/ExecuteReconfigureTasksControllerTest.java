@@ -45,6 +45,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProvide
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -660,7 +661,8 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.AUTO_UNASSIGN.getValue(), task.getLastUpdatedAction());
-                assertEquals(dueDateTime, task.getDueDateTime());
+                LocalDateTime localDateTime = LocalDateTime.of(2021, 5, 9, 20, 15, 0, 0);
+                assertEquals(localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime(), task.getDueDateTime());
             }
         );
     }
