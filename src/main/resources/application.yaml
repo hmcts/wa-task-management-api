@@ -136,6 +136,10 @@ caffeine:
     timeout:
       duration: ${TASK_TYPE_CACHE_TIMEOUT_DURATION:60}
       unit: ${TASK_TYPE_CACHE_TIMEOUT_TIMEUNIT:MINUTES}
+  calendar:
+    timeout:
+      duration: ${CALENDAR_CACHE_TIMEOUT_DURATION:24}
+      unit: ${CALENDAR_CACHE_TIMEOUT_TIMEUNIT:HOURS}
 
 bankHolidays:
     api:
