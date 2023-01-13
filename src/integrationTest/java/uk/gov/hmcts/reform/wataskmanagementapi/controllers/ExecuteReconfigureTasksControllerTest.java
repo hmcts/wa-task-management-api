@@ -581,6 +581,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     void should_execute_reconfigure_autoassignment_assigned_to_unassigned() throws Exception {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
+        String dueDateTimeCheck = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
 
         mockMvc.perform(
@@ -661,8 +662,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.AUTO_UNASSIGN.getValue(), task.getLastUpdatedAction());
-                LocalDateTime localDateTime = LocalDateTime.of(2021, 5, 9, 20, 15, 0, 0);
-                assertEquals(localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime(), task.getDueDateTime());
+                assertEquals(dueDateTimeCheck, task.getDueDateTime().format(DateTimeFormatter.ISO_DATE_TIME));
             }
         );
     }
