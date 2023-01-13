@@ -68,7 +68,7 @@ public class DmnEvaluationService {
         );
     }
 
-    @Cacheable(key = "#jurisdiction", value = "task_types_dmn", sync = true)
+    @Cacheable(key = "#jurisdiction", value = "task_types_dmn", sync = true, cacheManager = "taskTypeCacheManager")
     public Set<TaskTypesDmnResponse> retrieveTaskTypesDmn(String jurisdiction, String dmnNameField) {
         Set<TaskTypesDmnResponse> response = performRetrieveTaskTypesDmn(jurisdiction, dmnNameField);
         log.info("task-types-dmn fetched from camunda-api. jurisdiction:{} - taskTypesDmn: {}",
@@ -76,7 +76,7 @@ public class DmnEvaluationService {
         return response;
     }
 
-    @Cacheable(key = "#jurisdiction", value = "task_types", sync = true)
+    @Cacheable(key = "#jurisdiction", value = "task_types", sync = true, cacheManager = "taskTypeCacheManager")
     public List<TaskTypesDmnEvaluationResponse> evaluateTaskTypesDmn(String jurisdiction, String decisionTableKey) {
         List<TaskTypesDmnEvaluationResponse> response =
             performEvaluateTaskTypesDmnAction(decisionTableKey, jurisdiction);
