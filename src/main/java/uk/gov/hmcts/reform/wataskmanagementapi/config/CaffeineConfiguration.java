@@ -29,6 +29,12 @@ public class CaffeineConfiguration {
     @Value("#{T(java.util.concurrent.TimeUnit).of('${caffeine.task-type.timeout.unit}')}")
     private TimeUnit taskTypeCacheDurationUnit;
 
+    @Value("${caffeine.calendar.timeout.duration}")
+    private Integer calendarCacheDuration;
+
+    @Value("#{T(java.util.concurrent.TimeUnit).of('${caffeine.calendar.timeout.unit}')}")
+    private TimeUnit calendarCacheDurationUnit;
+
     @Bean
     public Ticker ticker() {
         return Ticker.systemTicker();
@@ -56,10 +62,26 @@ public class CaffeineConfiguration {
             .ticker(ticker);
     }
 
+    @Bean
     public CacheManager taskTypeCacheManager(Caffeine<Object, Object> taskTypeCaffeineConfig) {
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
         caffeineCacheManager.setCaffeine(taskTypeCaffeineConfig);
-        caffeineCacheManager.setCacheNames(List.of("task_types"));
+        caffeineCacheManager.setCacheNames(List.of("task_types", "task_types_dmn"));
+        return caffeineCacheManager;
+    }
+
+    @Bean
+    public Caffeine<Object, Object> calendarCaffeineConfig(Ticker ticker) {
+        return Caffeine.newBuilder()
+            .expireAfterWrite(calendarCacheDuration, calendarCacheDurationUnit)
+            .ticker(ticker);
+    }
+
+    @Bean
+    public CacheManager calendarCacheManager(Caffeine<Object, Object> calendarCaffeineConfig) {
+        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
+        caffeineCacheManager.setCaffeine(calendarCaffeineConfig);
+        caffeineCacheManager.setCacheNames(List.of("calendar_cache"));
         return caffeineCacheManager;
     }
 
