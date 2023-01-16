@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -30,6 +32,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -42,6 +46,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -56,6 +62,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -82,6 +89,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @MockBean
+    private AccessControlService accessControlService;
     @MockBean
     private IdamService idamService;
 
@@ -146,6 +155,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -201,6 +212,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
         doNothing()
@@ -266,6 +279,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -318,6 +333,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -334,7 +352,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Role Assignment Verification: "
-                    + "The request failed the Role Assignment checks performed.")
+                + "The request failed the Role Assignment checks performed.")
         );
     }
 
@@ -367,6 +385,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -411,7 +432,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> roleAssignments =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(singletonList("tribunal-caseworker"),
-                                                                     roleAttributes);
+                roleAttributes);
 
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -419,6 +440,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -435,7 +458,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Role Assignment Verification: "
-                    + "The request failed the Role Assignment checks performed.")
+                + "The request failed the Role Assignment checks performed.")
         );
     }
 
@@ -463,7 +486,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> roleAssignments =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(singletonList("tribunal-caseworker"),
-                                                                     roleAttributes);
+                roleAttributes);
 
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -471,6 +494,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -487,12 +512,20 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Role Assignment Verification: "
-                    + "The request failed the Role Assignment checks performed.")
+                + "The request failed the Role Assignment checks performed.")
         );
     }
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() throws Exception {
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource, "CASEID");
+
         List<RoleAssignment> roles = new ArrayList<>();
 
         RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roles);
@@ -501,9 +534,12 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(roleAssignmentResource);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenThrow(new NoRoleAssignmentsFoundException(
+                "User did not have sufficient permissions to perform this action"));
 
         mockMvc.perform(
-            get("/task/" + "taskId")
+            get("/task/" + taskId)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -531,6 +567,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
@@ -591,6 +630,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -605,6 +646,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         verify(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
         verify(camundaServiceApi).assignTask(anyString(), anyString(), any());
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -648,6 +696,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -669,6 +719,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         verify(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
         verify(camundaServiceApi).assignTask(anyString(), anyString(), any());
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -732,6 +789,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -793,6 +852,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -807,6 +868,12 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         verify(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
         verify(camundaServiceApi).assignTask(anyString(), anyString(), any());
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -848,6 +915,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -868,6 +937,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -909,6 +985,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(mockedUser2Info.getUid())
             .thenReturn("IDAM_USER_2_ID");
@@ -926,6 +1004,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+        when(accessControlService.getRoles("IDAM_AUTHORIZATION_2_TOKEN"))
+            .thenReturn(new AccessControlResponse(mockedUser2Info, roleAssignments));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -940,6 +1020,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.message").value(
                 "Task '" + taskId + "' is already claimed by someone else.")
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -983,6 +1070,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -1006,7 +1096,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Role Assignment Verification: "
-                    + "The request failed the Role Assignment checks performed.")
+                + "The request failed the Role Assignment checks performed.")
         );
     }
 
@@ -1050,6 +1140,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1061,6 +1153,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1104,6 +1203,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -1122,6 +1223,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1185,6 +1293,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1244,6 +1354,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1255,6 +1367,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1298,6 +1417,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -1317,6 +1438,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1380,6 +1508,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1391,6 +1521,13 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -1459,6 +1596,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -1477,11 +1616,110 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
+        assertEquals(IDAM_USER_ID, taskResource.getAssignee());
+        assertEquals(ASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.CLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {
+        "IA, Asylum",
+        "WA, WaCaseType"
+    })
+    public void user_should_claim_task_with_case_role_on_one_task_only(
+        String jurisdiction, String caseType)
+        throws Exception {
+
+        mockServices.mockUserInfo();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest1 = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId("claimCaseId1")
+                    .build()
+            )
+            .build();
+
+        RoleAssignmentRequest roleAssignmentRequest2 = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest1);
+        createRoleAssignment(roleAssignments, roleAssignmentRequest2);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+        String taskId1 = UUID.randomUUID().toString();
+        String taskId2 = UUID.randomUUID().toString();
+
+        TaskRoleResource taskRoleResource1 = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        TaskRoleResource taskRoleResource2 = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED.getRoleName(),
+            true, false, false, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(jurisdiction, caseType, taskId1, taskRoleResource1);
+        insertDummyTaskInDb(jurisdiction, caseType, taskId2, taskRoleResource2, UUID.randomUUID().toString());
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        String endpointBeingTested1 = String.format(ENDPOINT_PATH, taskId1);
+        String endpointBeingTested2 = String.format(ENDPOINT_PATH, taskId2);
+
+        mockMvc.perform(
+            post(endpointBeingTested1)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        mockMvc.perform(
+            post(endpointBeingTested2)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpectAll(
+            status().is(HttpStatus.FORBIDDEN.value())
+        );
+    }
 
     private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId,
                                      TaskRoleResource taskRoleResource) {
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource, "claimCaseId1");
+    }
+
+    private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId,
+                                     TaskRoleResource taskRoleResource, String caseId) {
         TaskResource taskResource = new TaskResource(
             taskId,
             "someTaskName",
@@ -1496,7 +1734,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         taskResource.setLocation("765324");
         taskResource.setLocationName("Taylor House");
         taskResource.setRegion("TestRegion");
-        taskResource.setCaseId("claimCaseId1");
+        taskResource.setCaseId(caseId);
 
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);

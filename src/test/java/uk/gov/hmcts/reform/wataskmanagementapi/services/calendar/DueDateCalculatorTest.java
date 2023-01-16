@@ -16,6 +16,7 @@ import java.util.List;
 class DueDateCalculatorTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final boolean IS_NOT_RECONFIGURE_REQUEST = false;
 
     private DueDateCalculator dueDateCalculator;
 
@@ -42,7 +43,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses)).isFalse();
+        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses, IS_NOT_RECONFIGURE_REQUEST)).isFalse();
     }
 
     @Test
@@ -55,7 +56,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses)).isFalse();
+        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses, IS_NOT_RECONFIGURE_REQUEST)).isFalse();
     }
 
     @Test
@@ -75,7 +76,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses)).isTrue();
+        Assertions.assertThat(dueDateCalculator.supports(evaluationResponses, IS_NOT_RECONFIGURE_REQUEST)).isTrue();
     }
 
     @Test

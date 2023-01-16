@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 
+
 public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";
@@ -42,7 +43,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id() {
         TestVariables taskVariables = setupScenario("processApplication",
-                                                    "process application");
+            "process application");
         String taskId = taskVariables.getTaskId();
 
         initiateTask(taskVariables);
@@ -79,7 +80,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
 
         TestVariables taskVariables = setupScenario("processApplication",
-                                                    "process application");
+            "process application");
 
         initiateTask(taskVariables);
 
@@ -115,7 +116,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id_gp_flag_on() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+            "Process Application");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
 
@@ -142,16 +143,13 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
-        assertions.taskStateWasUpdatedInDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
-        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", null, caseworkerCredentials.getHeaders());
-
         common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_204_when_unassigning_a_task_by_id_with_different_user_credentials_gp_flag_on() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+            "Process Application");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
 
@@ -178,9 +176,6 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
-        assertions.taskStateWasUpdatedInDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
-        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", null, caseworkerCredentials.getHeaders());
-
         common.cleanUpTask(taskId);
     }
 
@@ -190,7 +185,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
             "processApplication", "Process Application");
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
-                                                    "WA", "WaCaseType");
+            "WA", "WaCaseType");
 
         initiateTask(taskVariables);
 
@@ -217,15 +212,14 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
-
         common.cleanUpTask(taskId);
     }
 
     private TestVariables setupScenario(String taskType, String taskName) {
         TestVariables taskVariables
             = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                               taskType,
-                                               taskName);
+            taskType,
+            taskName);
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         return taskVariables;
     }

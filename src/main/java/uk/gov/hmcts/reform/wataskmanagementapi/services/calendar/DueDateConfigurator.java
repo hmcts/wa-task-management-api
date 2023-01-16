@@ -28,35 +28,46 @@ public class DueDateConfigurator {
     }
 
     public List<ConfigurationDmnEvaluationResponse> configureDueDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, String jurisdiction) {
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean initiationDueDateFound, boolean isReconfigureRequest) {
+
         List<ConfigurationDmnEvaluationResponse> dueDateProperties = configResponses.stream()
             .filter(r -> r.getName().getValue().contains(DUE_DATE))
             .collect(Collectors.toList());
 
-        if (dueDateProperties.isEmpty() && IA_JURISDICTION.equals(jurisdiction)) {
+        if (dueDateProperties.isEmpty() && initiationDueDateFound) {
+            log.info("initiationDueDateFound for configureDueDate");
             return configResponses;
         }
 
         AtomicReference<LocalDateTime> dueDate = new AtomicReference<>();
-        dueDate.set(DEFAULT_ZONED_DATE_TIME);
+        if (!isReconfigureRequest) {
+            dueDate.set(DEFAULT_ZONED_DATE_TIME);
+        }
 
-        Optional<DateCalculator> dueDateCalculator = getDueDateCalculator(dueDateProperties);
+        Optional<DateCalculator> dueDateCalculator = getDueDateCalculator(dueDateProperties, isReconfigureRequest);
         dueDateCalculator
             .ifPresent(dateCalculator -> dueDate.getAndSet(dateCalculator.calculateDueDate(dueDateProperties)));
 
-        ConfigurationDmnEvaluationResponse dueDateResponse = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue(DUE_DATE))
-            .value(CamundaValue.stringValue(dueDate.get().format(DUE_DATE_TIME_FORMATTER)))
-            .build();
-
         List<ConfigurationDmnEvaluationResponse> withoutDueDate = new ArrayList<>(filterOutDueDate(configResponses));
-        withoutDueDate.add(dueDateResponse);
+
+        LocalDateTime dateTime = dueDate.get();
+        if (dateTime != null) {
+            ConfigurationDmnEvaluationResponse dueDateResponse = ConfigurationDmnEvaluationResponse.builder()
+                .name(CamundaValue.stringValue(DUE_DATE))
+                .value(CamundaValue.stringValue(dateTime.format(DUE_DATE_TIME_FORMATTER)))
+                .build();
+
+            log.info("Due date set in configuration is as {}", dueDateResponse);
+            withoutDueDate.add(dueDateResponse);
+        }
         return withoutDueDate;
     }
 
-    private Optional<DateCalculator> getDueDateCalculator(List<ConfigurationDmnEvaluationResponse> configResponses) {
+    private Optional<DateCalculator> getDueDateCalculator(List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                          boolean isReconfigureRequest) {
         return dateCalculators.stream()
-            .filter(dateCalculator -> dateCalculator.supports(configResponses))
+            .filter(dateCalculator -> dateCalculator.supports(configResponses, isReconfigureRequest))
             .findFirst();
     }
 

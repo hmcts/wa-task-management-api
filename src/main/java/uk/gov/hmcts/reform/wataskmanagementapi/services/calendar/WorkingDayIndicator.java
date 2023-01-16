@@ -23,22 +23,31 @@ public class WorkingDayIndicator {
     /**
      * Verifies if given date is a working day in UK (England and Wales only).
      */
-    public boolean isWorkingDay(LocalDate date, String uri, List<String> nonWorkingDaysOfWeek) {
+    public boolean isWorkingDay(LocalDate date, List<String> uri, List<String> nonWorkingDaysOfWeek) {
         return !isPublicHoliday(date, uri)
                 && !isCustomNonWorkingDay(nonWorkingDaysOfWeek, date);
     }
 
-    private boolean isPublicHoliday(LocalDate date, String uri) {
+    private boolean isPublicHoliday(LocalDate date, List<String> uri) {
         return publicHolidaysCollection.getPublicHolidays(uri).contains(date);
     }
 
-    public LocalDate getNextWorkingDay(LocalDate date, String uri, List<String> nonWorkingDaysOfWeek) {
+    public LocalDate getNextWorkingDay(LocalDate date, List<String> uri, List<String> nonWorkingDaysOfWeek) {
         requireNonNull(date);
         LocalDate updated = date.plusDays(1);
 
         return isWorkingDay(updated, uri, nonWorkingDaysOfWeek)
             ? updated
             : getNextWorkingDay(updated, uri, nonWorkingDaysOfWeek);
+    }
+
+    public LocalDate getPreviousWorkingDay(LocalDate date, List<String> uri, List<String> nonWorkingDaysOfWeek) {
+        requireNonNull(date);
+        LocalDate updated = date.minusDays(1);
+
+        return isWorkingDay(updated, uri, nonWorkingDaysOfWeek)
+            ? updated
+            : getPreviousWorkingDay(updated, uri, nonWorkingDaysOfWeek);
     }
 
     private boolean isCustomNonWorkingDay(List<String> nonWorkingDaysOfWeek, LocalDate localDate) {
