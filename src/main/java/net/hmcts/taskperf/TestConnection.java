@@ -8,15 +8,11 @@ import java.sql.SQLException;
 
 public class TestConnection
 {
-	private static String TASK_DB_JDBC_URL = "jdbc:postgresql://" + Main.DB_HOST + "/postgres";
-	private static String TASK_DB_USER = "postgres";
-	private static String TASK_DB_PASSWORD = "postgres";
-
 	private static Connection getTaskDbConnection()
 	{
 		try
 		{
-			return DriverManager.getConnection(TASK_DB_JDBC_URL, TASK_DB_USER, TASK_DB_PASSWORD);
+			return DriverManager.getConnection(Main.TASK_DB_JDBC_URL, Main.TASK_DB_USER, Main.TASK_DB_PASSWORD);
 		}
 		catch (SQLException e)
 		{

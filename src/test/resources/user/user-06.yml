@@ -1,0 +1,49 @@
+---
+caseRoleDuplicates: 300
+roleAssignments:
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1653578802625247
+    authorisations: ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15"]
+
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: ORGANISATION
+    roleName: tribunal-caseworker
+    classification: PUBLIC
+    grantType: STANDARD
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+    authorisations: ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15"]
+
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: ORGANISATION
+    roleName: task-supervisor
+    classification: PUBLIC
+    grantType: STANDARD
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+    authorisations: ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15"]

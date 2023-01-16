@@ -3,6 +3,7 @@ package net.hmcts.taskperf.service.sql;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,11 @@ public class SqlStatement
 	private StringBuilder sql = new StringBuilder();
 	private List<Object> parameters = new ArrayList<>();
 
+    private static final String SIGNATURE_SQL = "select t.case_id, t.indexed, t.state, " +
+        "cft_task_db.filter_signatures(t.task_id), " +
+        "cft_task_db.role_signatures(t.task_id) " +
+        "from cft_task_db.tasks t ";
+
 	public SqlStatement append(String text)
 	{
 		sql.append(text);
@@ -43,7 +49,9 @@ public class SqlStatement
 	@SuppressWarnings("rawtypes")
 	public void execute(Connection connection, Consumer<ResultSet> resultConsumer) throws SQLException
 	{
-		System.out.println("Executing SQL:");
+//        printIndex(connection);
+
+        System.out.println("Executing SQL:");
 		System.out.println(sql.toString());
 		try (PreparedStatement statement = connection.prepareStatement(sql.toString()))
 		{
@@ -76,8 +84,27 @@ public class SqlStatement
 		}
 	}
 
+    private void printIndex(Connection connection) throws SQLException {
+        System.out.println("All the signatures:");
+        try (PreparedStatement statement = connection.prepareStatement(SIGNATURE_SQL)) {
+            try (ResultSet results = statement.executeQuery())
+            {
+                while (results.next())
+                {
+                    ResultSetMetaData metadata = results.getMetaData();
+                    for (int i = 1; i <= metadata.getColumnCount(); ++i)
+                    {
+                        System.out.println(results.getMetaData().getColumnName(i) + ":" +  results.getObject(i));
+                    }
 
-	@SuppressWarnings("rawtypes")
+                }
+            }
+        }
+        System.out.println("End of signatures");
+    }
+
+
+    @SuppressWarnings("rawtypes")
 	public List<String> explain(Connection connection) throws SQLException
 	{
 		List<String> explanation = new ArrayList<>();
