@@ -130,7 +130,7 @@ public class DmnEvaluationServiceTest {
 
 
         // when 10 mins later use cache response
-        TestConfiguration.fakeTicker.advance(10, TimeUnit.MINUTES);
+        TestConfiguration.fakeTicker.advance(40, TimeUnit.MINUTES);
         dmnEvaluationService.evaluateTaskTypesDmn("sscs", dmnKey);
 
         // then
