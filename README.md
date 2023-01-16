@@ -16,7 +16,8 @@ Provides API endpoints that enable clients manage Tasks in the Camunda Task Data
 
 #### Access Management Process
 
-The general approach and interaction with Access Management is depicted below.  The search endpoints has some slight differences but are similar.
+The general approach and interaction with Access Management is depicted below. The search endpoints has some slight
+differences but are similar.
 
 <!--
     Sequence Diagram Source:
@@ -26,8 +27,8 @@ The general approach and interaction with Access Management is depicted below.  
 
 ![task-management](access-management-process.png)
 
-
-Since Spring Boot 2.1 bean overriding is disabled. If you want to enable it you will need to set `spring.main.allow-bean-definition-overriding` to `true`.
+Since Spring Boot 2.1 bean overriding is disabled. If you want to enable it you will need to
+set `spring.main.allow-bean-definition-overriding` to `true`.
 
 JUnit 5 is now enabled by default in the project. Please refrain from using JUnit4 and use the next generation
 
@@ -43,19 +44,20 @@ To build the project execute the following command:
 ```bash
   ./gradlew build
 ```
+
 This will do compilation, checkstyle, PMD checks , run tests , but not integration or functional tests.
 
 ### Running the application
 
 - Prerequisite:
     - Check if services are running in minikube, if not follow the README in
-    https://github.com/hmcts/wa-kube-environment
+      https://github.com/hmcts/wa-kube-environment
     - Check if minikube IP is set as environment variable.
         ```
         echo $OPEN_ID_IDAM_URL
         ```
-        You should see the ip and port as output, eg: http://192.168.64.14:30196.
-        If you do not see, then from your wa-kube-enviroment map environment variables
+      You should see the ip and port as output, eg: http://192.168.64.14:30196.
+      If you do not see, then from your wa-kube-enviroment map environment variables
         ```
         source .env
         ```
@@ -69,7 +71,7 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
       curl http://localhost:8087/health
     ```
 
-    You should get a response similar to this:
+  You should get a response similar to this:
 
     ```
       {"status":"UP","diskSpace":{"status":"UP","total":249644974080,"free":137188298752,"threshold":10485760}}
@@ -77,11 +79,12 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
 
 - To access any service endpoint, you must set headers Service Authorization, Authorization
     - To set Service Authorization header, from wa-kube-environment Goto wa-kube-environment/scripts/actions
-       and execute command
+      and execute command
        ```
         ./idam-service-token.sh wa_task_management_api
        ```
-      The command will generate a long token prefixed with your name. Copy the token till the name and set in Service Authorization header
+      The command will generate a long token prefixed with your name. Copy the token till the name and set in Service
+      Authorization header
       Service Authorization: Bearer 'your token'
     - To set Authorization header, from the same path execute command
        ```
@@ -99,19 +102,19 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
     ```
   Note: Make sure the BPMN and DMN are deployed onto Camunda locally.
 -
-        BPMN project is wa-standalone-task-bpmn
-        DMN project is wa-task-configuration-template
-        Services wa_workflow_api, wa_task_configuration should be running.
-        And WA Case Type CCD definition from wa-ccd-definitions is uploaded as well.
+      BPMN project is wa-standalone-task-bpmn
+      DMN project is wa-task-configuration-template
+      Services wa_workflow_api should be running.
+      And WA Case Type CCD definition from wa-ccd-definitions is uploaded as well.
 - To run integration tests docker should be running.
 - To run all tests including junit, integration and functional. You can run the command
    ```
        ./gradlew test integration functional
    ```
   or
-      ```
-          ./gradlew tests
-      ```
+  ```
+  ./gradlew tests
+  ```
 
 ### Running contract or pact tests:
 
@@ -133,7 +136,6 @@ and then using it to publish your tests:
 ```
 ./gradlew pactPublish
 ```
-
 
 ## License
 
