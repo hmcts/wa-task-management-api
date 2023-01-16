@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -99,14 +100,18 @@ class AssignTaskTest extends CamundaHelpers {
     @Test
     void assignTask_should_succeed() {
         AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-        List<RoleAssignment> roleAssignmentAssigner = singletonList(mock(RoleAssignment.class));
-        when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigner);
+        RoleAssignment roleAssignmentAssigner = mock(RoleAssignment.class);
+        when(roleAssignmentAssigner.getRoleType()).thenReturn(RoleType.ORGANISATION);
+        List<RoleAssignment> roleAssignmentAssigners = singletonList(roleAssignmentAssigner);
+        when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigners);
         when(assignerAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
         AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
-        List<RoleAssignment> roleAssignmentAssignee = singletonList(mock(RoleAssignment.class));
-        when(assigneeAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssignee);
+        RoleAssignment roleAssignmentAssignee = mock(RoleAssignment.class);
+        when(roleAssignmentAssignee.getRoleType()).thenReturn(RoleType.ORGANISATION);
+        List<RoleAssignment> roleAssignmentAssignees = singletonList(roleAssignmentAssignee);
+        when(assigneeAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssignees);
         when(assigneeAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
@@ -116,6 +121,7 @@ class AssignTaskTest extends CamundaHelpers {
         when(cftQueryService.getTask(
             taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
         ).thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
@@ -135,8 +141,10 @@ class AssignTaskTest extends CamundaHelpers {
     @Test
     void assignTask_should_throw_role_assignment_verification_exception_when_assigner_has_access_returns_false() {
         AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-        List<RoleAssignment> roleAssignmentAssigner = singletonList(mock(RoleAssignment.class));
-        when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigner);
+        RoleAssignment roleAssignmentAssigner = mock(RoleAssignment.class);
+        when(roleAssignmentAssigner.getRoleType()).thenReturn(RoleType.ORGANISATION);
+        List<RoleAssignment> roleAssignmentAssigners = singletonList(roleAssignmentAssigner);
+        when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigners);
         when(assignerAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
@@ -151,8 +159,7 @@ class AssignTaskTest extends CamundaHelpers {
             assignerAccessControlResponse.getRoleAssignments(),
             requirements
         )).thenReturn(Optional.empty());
-        when(cftTaskDatabaseService.findByIdOnly(taskId))
-            .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.assignTask(
                 taskId,
@@ -170,13 +177,17 @@ class AssignTaskTest extends CamundaHelpers {
     @Test
     void assignTask_should_throw_role_assignment_verification_exception_when_assignee_has_access_returns_false() {
         AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-        List<RoleAssignment> roleAssignmentAssigner = singletonList(mock(RoleAssignment.class));
-        when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigner);
+        RoleAssignment roleAssignmentAssigner = mock(RoleAssignment.class);
+        when(roleAssignmentAssigner.getRoleType()).thenReturn(RoleType.ORGANISATION);
+        List<RoleAssignment> roleAssignmentAssigners = singletonList(roleAssignmentAssigner);
+        when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigners);
         when(assignerAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
         AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
-        List<RoleAssignment> roleAssignmentAssignee = singletonList(mock(RoleAssignment.class));
+        RoleAssignment roleAssignment = mock(RoleAssignment.class);
+        when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+        List<RoleAssignment> roleAssignmentAssignee = singletonList(roleAssignment);
         when(assigneeAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssignee);
         when(assigneeAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
@@ -184,6 +195,7 @@ class AssignTaskTest extends CamundaHelpers {
         TaskResource taskResource = spy(TaskResource.class);
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleType(MANAGE);
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(
             taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
         ).thenReturn(Optional.of(taskResource));
@@ -236,6 +248,7 @@ class AssignTaskTest extends CamundaHelpers {
         when(cftQueryService.getTask(
             taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
         ).thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.assignTask(
             taskId,
