@@ -61,12 +61,12 @@ public class ClientFilter
 	private static boolean availableTasksOnly(ClientQuery clientQuery)
 	{
 		return clientQuery.getRequestContext() != null
-            && clientQuery.getRequestContext().isEqual(RequestContext.AVAILABLE_TASKS);
+            && clientQuery.getRequestContext().equals(RequestContext.AVAILABLE_TASKS);
 	}
 
     private static boolean allWork(ClientQuery clientQuery) {
         return clientQuery.getRequestContext() != null
-            && clientQuery.getRequestContext().isEqual(RequestContext.ALL_WORK);
+            && clientQuery.getRequestContext().equals(RequestContext.ALL_WORK);
     }
 
 

@@ -17,18 +17,17 @@ import org.zalando.problem.violations.Violation;
 
 import net.hmcts.taskperf.model.ClientQuery;
 import net.hmcts.taskperf.model.Pagination;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -101,7 +100,7 @@ public class TaskSearchAdaptor {
         ClientQuery clientQuery = new ClientQuery(
         		getSearchParameterLists(searchTaskRequest),
         		getSearchParameterBooleans(searchTaskRequest),
-                getRequestContext(searchTaskRequest),
+                searchTaskRequest.getRequestContext(),
         		new Pagination(firstResult, maxResults),
         		searchTaskRequest.getSortingParameters());
         Connection conn = getConnection();
@@ -183,15 +182,6 @@ public class TaskSearchAdaptor {
     		}
     	}
     	return parameterBooleans;
-    }
-
-    @Nullable
-    private SearchParameterRequestContext getRequestContext(SearchTaskRequest searchTaskRequest) {
-
-        return (SearchParameterRequestContext) searchTaskRequest.getSearchParameters()
-            .stream()
-            .filter(SearchParameterRequestContext.class::isInstance)
-            .findFirst().orElse(null);
     }
 
 	/**

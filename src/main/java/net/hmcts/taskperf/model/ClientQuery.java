@@ -3,10 +3,10 @@ package net.hmcts.taskperf.model;
 import java.util.List;
 
 import lombok.Value;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterRequestContext;
 
 /**
  * A representation of the search query provided by the client.
@@ -19,7 +19,7 @@ public class ClientQuery
 {
 	private List<SearchParameterList> listFilters;
 	private List<SearchParameterBoolean> booleanFilters;
-    private SearchParameterRequestContext requestContext;
+    private RequestContext requestContext;
 	private Pagination pagination;
 	private List<SortingParameter> sort;
 }

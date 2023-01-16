@@ -606,9 +606,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(1));
 
         searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
             asList(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
-                new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.AVAILABLE_TASKS),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
             ),
             List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT))
@@ -641,9 +641,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(0));
 
         searchTaskRequest = new SearchTaskRequest(
+            RequestContext.ALL_WORK,
             asList(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
-                new SearchParameterRequestContext(REQUEST_CONTEXT, SearchOperator.CONTEXT, RequestContext.ALL_WORK),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
             ),
             List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT))
