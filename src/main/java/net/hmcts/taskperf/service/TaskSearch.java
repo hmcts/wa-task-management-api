@@ -1,7 +1,6 @@
 package net.hmcts.taskperf.service;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -18,7 +17,6 @@ import lombok.Value;
 import net.hmcts.taskperf.model.ClientFilter;
 import net.hmcts.taskperf.model.ClientQuery;
 import net.hmcts.taskperf.model.Pagination;
-import net.hmcts.taskperf.model.SearchRequest;
 import net.hmcts.taskperf.service.sql.SqlStatement;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
@@ -77,6 +75,8 @@ public class TaskSearch
 	 * Determines whether to analyse the queries as well as running them.
 	 */
 	private final List<String> queryPlans = new ArrayList<>();
+
+	private final List<String> countQueryPlans = new ArrayList<>();
 
 	/**
 	 * Total number of tasks matching the search.
@@ -340,6 +340,7 @@ public class TaskSearch
 		queryPlans.add("SEARCH QUERY");
 		queryPlans.add("============");
 		queryPlans.addAll(searchStatement.explain(connection));
+        System.out.println(queryPlans);
 	}
 
 	private Task makeTask(ResultSet results)
@@ -390,9 +391,10 @@ public class TaskSearch
 
 	private void explainCount(Connection connection) throws SQLException
 	{
-		queryPlans.add("COUNT QUERY");
-		queryPlans.add("============");
-		queryPlans.addAll(countStatement.explain(connection));
+        countQueryPlans.add("COUNT QUERY");
+        countQueryPlans.add("============");
+        countQueryPlans.addAll(countStatement.explain(connection));
+        System.out.println(countQueryPlans);
 	}
 
 	private int getCount(ResultSet results)

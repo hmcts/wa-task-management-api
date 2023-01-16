@@ -2,6 +2,7 @@ package net.hmcts.taskperf.service;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -202,7 +203,7 @@ public class RoleAssignmentHelper
 		{
 			for (String classification : lowerClassifications(roleAssignment.getClassification()))
 			{
-				for (String authorisation : withWildcard(roleAssignment.getAuthorisations()))
+				for (String authorisation : authorisationsForRoleAssignmentAndPermission(roleAssignment, permission))
 				{
 					String roleSignature = makeRoleSignature(roleAssignment, classification, authorisation, permission);
 					if (roleSignature != null) roleSignatures.add(roleSignature);
@@ -211,13 +212,38 @@ public class RoleAssignmentHelper
 		}
 		else
 		{
-			for (String authorisation : withWildcard(roleAssignment.getAuthorisations()))
+			for (String authorisation : authorisationsForRoleAssignmentAndPermission(roleAssignment, permission))
 			{
 				String classificationAbbreviation = abbreviateClassification(roleAssignment.getClassification());
 				String roleSignature = makeRoleSignature(roleAssignment, classificationAbbreviation, authorisation, permission);
 				if (roleSignature != null) roleSignatures.add(roleSignature);
 			}
 		}
+	}
+
+	/**
+	 * Returns the list of authorisations to be included in signatures for the given role assignment.
+	 * If the query is looking for available tasks, then signatures for organisational roles include
+	 * all the user's authorisations, plus a wildcard ("*").
+	 * 
+	 * For other types of query, and for case roles in all queries, authorisations are ignored, and
+	 * 
+	 */
+	private static Collection<String> authorisationsForRoleAssignmentAndPermission(RoleAssignment roleAssignment, String permission)
+	{
+		boolean isOrganisationalRole = treatAsOrganisationalRole(roleAssignment);
+		boolean isAvailableTasks = "a".equals(permission);
+		Collection<String> authorisations;
+		if (isAvailableTasks && isOrganisationalRole)
+		{
+			authorisations = withWildcard(roleAssignment.getAuthorisations());
+		}
+		else
+		{
+			authorisations = List.of("*");
+		}
+		return authorisations;
+		
 	}
 
 	/**

@@ -6,7 +6,6 @@ import java.sql.SQLException;
 
 import net.hmcts.taskperf.loader.Loader;
 import net.hmcts.taskperf.model.ClientQuery;
-import net.hmcts.taskperf.model.SearchRequest;
 import net.hmcts.taskperf.model.User;
 import net.hmcts.taskperf.service.TaskSearch;
 import net.hmcts.taskperf.service.TaskSearch.Event;
@@ -16,9 +15,9 @@ public class Main
 {
 	public static String DB_HOST = System.getenv("CFT_TASK_DB_HOST");
 	public static boolean EXPLAIN_QUERIES = ("Y".equalsIgnoreCase(System.getenv("EXPLAIN_QUERIES")));
-	private static String TASK_DB_JDBC_URL = "jdbc:postgresql://" + DB_HOST + "/postgres";
-	private static String TASK_DB_USER = "postgres";
-	private static String TASK_DB_PASSWORD = "postgres";
+	static String TASK_DB_JDBC_URL = "jdbc:postgresql://" + DB_HOST + "/postgres";
+	static String TASK_DB_USER = "postgres";
+	static String TASK_DB_PASSWORD = "postgres";
 
 	private static Connection getTaskDbConnection()
 	{
