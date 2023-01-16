@@ -39,7 +39,9 @@ public class SearchParameterRequestContext implements SearchParameter<RequestCon
     private final RequestContext values;
 
     @JsonCreator
-    public SearchParameterRequestContext(@JsonProperty("key") SearchParameterKey key, @JsonProperty("operator") SearchOperator operator, @JsonProperty("value") RequestContext values) {
+    public SearchParameterRequestContext(@JsonProperty("key") SearchParameterKey key,
+                                         @JsonProperty("operator") SearchOperator operator,
+                                         @JsonProperty("value") RequestContext values) {
         this.key = key;
         this.operator = operator;
         this.values = values;
