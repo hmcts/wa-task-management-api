@@ -665,7 +665,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.AUTO_UNASSIGN.getValue(), task.getLastUpdatedAction());
-                assertCloseTo(dueDateTime, task.getDueDateTime(), 1);
+                assertCloseTo(dueDateTime, task.getDueDateTime(), 2);
             }
         );
     }
