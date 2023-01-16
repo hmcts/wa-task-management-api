@@ -577,7 +577,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     }
 
     public static void assertCloseTo(OffsetDateTime expected, OffsetDateTime actual, int offsetSeconds) {
-        assertTrue(expected.minusSeconds(offsetSeconds).isBefore(expected) && expected.plusSeconds(offsetSeconds).isAfter(expected));
+        assertTrue(expected.minusSeconds(offsetSeconds).isBefore(actual) && expected.plusSeconds(offsetSeconds).isAfter(actual));
     }
 
     @Test
@@ -665,7 +665,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.AUTO_UNASSIGN.getValue(), task.getLastUpdatedAction());
-                assertCloseTo(dueDateTime, task.getDueDateTime(), 2);
+                assertCloseTo(dueDateTime, task.getDueDateTime(), 1);
             }
         );
     }
