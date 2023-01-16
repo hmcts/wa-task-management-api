@@ -41,7 +41,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWi
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -580,7 +579,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     void should_execute_reconfigure_autoassignment_assigned_to_unassigned() throws Exception {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        final String dueDateTimeCheck = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        String dueDateTimeCheck = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
 
         mockMvc.perform(
@@ -661,7 +660,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.AUTO_UNASSIGN.getValue(), task.getLastUpdatedAction());
-                assertEquals(dueDateTimeCheck, task.getDueDateTime().format(DateTimeFormatter.ISO_DATE_TIME));
+                assertEquals(dueDateTime, task.getDueDateTime());
             }
         );
     }
