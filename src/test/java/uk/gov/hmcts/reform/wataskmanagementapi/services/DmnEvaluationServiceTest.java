@@ -44,6 +44,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_PERMISSIONS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.jsonValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 
@@ -76,7 +78,6 @@ class DmnEvaluationServiceTest {
         );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
-
     }
 
     @Test
@@ -110,7 +111,6 @@ class DmnEvaluationServiceTest {
             new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         );
 
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         List<PermissionsDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskPermissionsDmn(
             "ia",
@@ -146,8 +146,6 @@ class DmnEvaluationServiceTest {
             new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         )).thenThrow(FeignException.class);
 
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
-
         assertThatThrownBy(() -> dmnEvaluationService
             .evaluateTaskPermissionsDmn("ia", "Asylum", ccdData, TASK_ATTRIBUTES))
             .isInstanceOf(IllegalStateException.class)
@@ -177,8 +175,6 @@ class DmnEvaluationServiceTest {
             new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         );
 
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
-
         List<ConfigurationDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskConfigurationDmn(
             "ia",
             "Asylum",
@@ -204,8 +200,6 @@ class DmnEvaluationServiceTest {
             "ia",
             new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         )).thenThrow(FeignException.class);
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         assertThatThrownBy(() -> dmnEvaluationService
             .evaluateTaskConfigurationDmn("ia", "Asylum", ccdData, TASK_ATTRIBUTES))
@@ -277,14 +271,14 @@ class DmnEvaluationServiceTest {
             .hasMessage("Downstream Dependency Error");
 
         String expectedMessage = String.format("An error occurred when getting task-type dmn. "
-            + "Could not get Task Types DMN from camunda for %s. "
-            + "Exception: Downstream Dependency Error", jurisdiction);
+                                               + "Could not get Task Types DMN from camunda for %s. "
+                                               + "Exception: Downstream Dependency Error", jurisdiction);
 
         Assertions.assertThat(output.getOut().contains(expectedMessage));
 
 
         expectedMessage = "An error occurred when getting task-type dmn. "
-            + "CamundaException type:some_type message:some_message";
+                          + "CamundaException type:some_type message:some_message";
 
         Assertions.assertThat(output.getOut().contains(expectedMessage));
 
@@ -312,8 +306,8 @@ class DmnEvaluationServiceTest {
 
         String expectedMessage = String.format(
             "An error occurred when getting task-type dmn due to service unavailable. "
-                + "Could not get Task Types DMN from camunda for %s. "
-                + "Exception: Service unavailable", jurisdiction);
+            + "Could not get Task Types DMN from camunda for %s. "
+            + "Exception: Service unavailable", jurisdiction);
 
         Assertions.assertThat(output.getOut().contains(expectedMessage));
     }
@@ -340,8 +334,6 @@ class DmnEvaluationServiceTest {
                 DMN_NAME,
                 "wa",
                 dmnRequest);
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         List<TaskTypesDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskTypesDmn(
             "wa",
@@ -391,8 +383,8 @@ class DmnEvaluationServiceTest {
             .hasMessage("Downstream Dependency Error");
 
         String expectedMessage = String.format("An error occurred when evaluating task-type dmn. "
-            + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
-            + "Exception:Downstream Dependency Error", jurisdiction);
+                                               + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
+                                               + "Exception:Downstream Dependency Error", jurisdiction);
         Assertions.assertThat(output.getOut().contains(expectedMessage));
 
         expectedMessage = "An error occurred when reading CamundaException. Exception:Downstream Dependency Error";
@@ -423,20 +415,173 @@ class DmnEvaluationServiceTest {
 
         String expectedMessage = String.format(
             "An error occurred when evaluating task-type dmn due to service unavailable. "
-                + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
-                + "Exception:Service unavailable", jurisdiction);
+            + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
+            + "Exception:Service unavailable", jurisdiction);
         Assertions.assertThat(output.getOut().contains(expectedMessage));
     }
 
 
+    @Test
+    void should_remove_spaces_from_configuration_dmn_response() {
+        String ccdData = "{}";
+
+        List<ConfigurationDmnEvaluationResponse> mockedResponse = asList(
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("key1"),
+                stringValue(" value1, value2, value3,value4   ")
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("key2"),
+                stringValue("value5"),
+                null
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("key3"),
+                stringValue("value6,value7"),
+                booleanValue(true)
+            )
+        );
+
+        String jurisdiction = "wa";
+        String caseTypeId = "wacasetype";
+
+        doReturn(mockedResponse)
+            .when(camundaServiceApi)
+            .evaluateConfigurationDmnTable(
+                BEARER_SERVICE_TOKEN,
+                WA_TASK_CONFIGURATION.getTableKey(jurisdiction, caseTypeId),
+                jurisdiction,
+                new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
+            );
+
+        List<ConfigurationDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskConfigurationDmn(
+            jurisdiction,
+            caseTypeId,
+            ccdData,
+            TASK_ATTRIBUTES
+        );
+
+        assertThat(response.size(), is(3));
+
+        assertThat(response.get(0).getName(), is(stringValue("key1")));
+        assertThat(response.get(0).getValue(), is(stringValue("value1,value2,value3,value4")));
+        assertNull(response.get(0).getCanReconfigure());
+
+        assertThat(response.get(1).getName(), is(stringValue("key2")));
+        assertThat(response.get(1).getValue(), is(stringValue("value5")));
+        assertNull(response.get(1).getCanReconfigure());
+
+        assertThat(response.get(2).getName(), is(stringValue("key3")));
+        assertThat(response.get(2).getValue(), is(stringValue("value6,value7")));
+        assertThat(response.get(2).getCanReconfigure(), is(booleanValue(true)));
+    }
+
+    @Test
+    void should_remove_spaces_from_permission_dmn_response() {
+        String ccdData = "{}";
+
+        List<PermissionsDmnEvaluationResponse> mockedResponse = asList(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("tribunal-caseworker"),
+                stringValue(" Read,  Refer,Own ,   Manage,Cancel "),
+                stringValue("IA,WA"),
+                integerValue(2),
+                booleanValue(true),
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue(null)
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("caseworker"),
+                stringValue("Read"),
+                stringValue(" IA, WA, SSCS "),
+                null,
+                booleanValue(false),
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue(null)
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("senior-tribunal-caseworker"),
+                stringValue("Read,Refer,Own,Manage"),
+                null,
+                null,
+                null,
+                stringValue("CTSC"),
+                stringValue("categoryA")
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("invalid-caseworker"),
+                stringValue("  "),
+                null,
+                null,
+                null,
+                stringValue(" "),
+                stringValue(" categoryA, categoryB ")
+            )
+        );
+
+        String jurisdiction = "wa";
+        String caseTypeId = "wacasetype";
+
+        doReturn(mockedResponse)
+            .when(camundaServiceApi)
+            .evaluatePermissionsDmnTable(
+                BEARER_SERVICE_TOKEN,
+                WA_TASK_PERMISSIONS.getTableKey(jurisdiction, caseTypeId),
+                jurisdiction,
+                new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
+            );
+
+        List<PermissionsDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskPermissionsDmn(
+            jurisdiction,
+            caseTypeId,
+            ccdData,
+            TASK_ATTRIBUTES
+        );
+
+        assertThat(response.size(), is(4));
+
+        assertThat(response.get(0).getName(), is(stringValue("tribunal-caseworker")));
+        assertThat(response.get(0).getValue(), is(stringValue("Read,Refer,Own,Manage,Cancel")));
+        assertThat(response.get(0).getAuthorisations(), is(stringValue("IA,WA")));
+        assertThat(response.get(0).getAssignmentPriority(), is(integerValue(2)));
+        assertThat(response.get(0).getAutoAssignable(), is(booleanValue(true)));
+        assertThat(response.get(0).getRoleCategory(), is(stringValue("LEGAL_OPERATIONS")));
+        assertThat(response.get(0).getCaseAccessCategory(), is(stringValue(null)));
+
+        assertThat(response.get(1).getName(), is(stringValue("caseworker")));
+        assertThat(response.get(1).getValue(), is(stringValue("Read")));
+        assertThat(response.get(1).getAuthorisations(), is(stringValue("IA,WA,SSCS")));
+        assertNull(response.get(1).getAssignmentPriority());
+        assertThat(response.get(1).getAutoAssignable(), is(booleanValue(false)));
+        assertThat(response.get(1).getRoleCategory(), is(stringValue("LEGAL_OPERATIONS")));
+        assertThat(response.get(1).getCaseAccessCategory(), is(stringValue(null)));
+
+        assertThat(response.get(2).getName(), is(stringValue("senior-tribunal-caseworker")));
+        assertThat(response.get(2).getValue(), is(stringValue("Read,Refer,Own,Manage")));
+        assertNull(response.get(2).getAuthorisations());
+        assertNull(response.get(2).getAssignmentPriority());
+        assertNull(response.get(2).getAutoAssignable());
+        assertThat(response.get(2).getRoleCategory(), is(stringValue("CTSC")));
+        assertThat(response.get(2).getCaseAccessCategory(), is(stringValue("categoryA")));
+
+
+        assertThat(response.get(3).getName(), is(stringValue("invalid-caseworker")));
+        assertThat(response.get(3).getValue(), is(stringValue("  ")));
+        assertNull(response.get(3).getAuthorisations());
+        assertNull(response.get(3).getAssignmentPriority());
+        assertNull(response.get(3).getAutoAssignable());
+        assertThat(response.get(3).getRoleCategory(), is(stringValue(" ")));
+        assertThat(response.get(3).getCaseAccessCategory(), is(stringValue("categoryA,categoryB")));
+    }
+
     @NotNull
     private String getCcdData() {
         return "{"
-            + "\"jurisdiction\": \"ia\","
-            + "\"case_type_id\": \"Asylum\","
-            + "\"security_classification\": \"PUBLIC\","
-            + "\"data\": {}"
-            + "}";
+               + "\"jurisdiction\": \"ia\","
+               + "\"case_type_id\": \"Asylum\","
+               + "\"security_classification\": \"PUBLIC\","
+               + "\"data\": {}"
+               + "}";
     }
 
     private FeignException createFeignExceptionFor502() {

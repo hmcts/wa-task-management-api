@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Configura
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,9 +21,11 @@ public final class CamundaHelper {
         //Default constructor
     }
 
-    public static Map<String, CamundaVariable> removeSpaces(Map<String, CamundaVariable> response) {
+    public static Map<String, CamundaVariable> removeSpaces(Map<String, CamundaVariable> dmnResponse) {
 
-        for (Map.Entry<String, CamundaVariable> entry : response.entrySet()) {
+        HashMap<String, CamundaVariable> response = new HashMap<>(dmnResponse);
+
+        for (HashMap.Entry<String, CamundaVariable> entry : response.entrySet()) {
             String value = entry.getValue().getValue().toString();
             if (value.contains(",") && value.contains(" ")) {
                 String[] valueArray = ((String) entry.getValue().getValue()).split(",");
@@ -31,7 +34,6 @@ public final class CamundaHelper {
                     .map(String::trim)
                     .collect(Collectors.toList());
 
-                response.remove(entry.getKey());
                 response.put(
                     entry.getKey(),
                     new CamundaVariable(
