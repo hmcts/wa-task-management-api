@@ -41,7 +41,7 @@ public class NextHearingDateCalculator implements DateCalculator {
 
     private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse nextHearingDateResponse) {
         String nextHearingDate = nextHearingDateResponse.getValue().getValue();
-        LocalDateTime parsedNextHearingDate = parseDueDateTime(nextHearingDate);
+        LocalDateTime parsedNextHearingDate = parseDateTime(nextHearingDate);
         if (parsedNextHearingDate.getHour() == 0) {
             return parsedNextHearingDate.withHour(16).withMinute(0);
         } else {

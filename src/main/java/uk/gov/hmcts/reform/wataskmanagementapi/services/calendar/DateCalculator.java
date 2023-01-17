@@ -1,10 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
+import org.apache.logging.log4j.util.Strings;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.Arrays;
 import java.util.List;
@@ -38,6 +42,7 @@ public interface DateCalculator {
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dueDatePrefix))
+            .filter(r -> Strings.isNotBlank(r.getValue().getValue()))
             .reduce((a, b) -> b)
             .orElse(null);
     }
@@ -48,11 +53,17 @@ public interface DateCalculator {
         return useDateTime(date, dueDateTime);
     }
 
-    default LocalDateTime parseDueDateTime(String dueDate) {
-        if (dateContainsTime(dueDate)) {
-            return LocalDateTime.parse(dueDate, DUE_DATE_TIME_FORMATTER);
-        } else {
-            return LocalDate.parse(dueDate, DUE_DATE_FORMATTER).atStartOfDay();
+    default LocalDateTime parseDateTime(String inputDate) {
+        try {
+            ZoneId zoneId = ZoneId.systemDefault();
+            ZonedDateTime zonedDateTime = ZonedDateTime.parse(inputDate).withZoneSameLocal(zoneId);
+            return zonedDateTime.toLocalDateTime();
+        } catch (DateTimeParseException p) {
+            if (dateContainsTime(inputDate)) {
+                return LocalDateTime.parse(inputDate, DUE_DATE_TIME_FORMATTER);
+            } else {
+                return LocalDate.parse(inputDate, DUE_DATE_FORMATTER).atStartOfDay();
+            }
         }
     }
 

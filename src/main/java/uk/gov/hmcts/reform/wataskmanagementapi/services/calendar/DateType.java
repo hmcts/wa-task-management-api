@@ -10,8 +10,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalc
 
 public enum DateType {
     DUE_DATE("dueDate", DEFAULT_ZONED_DATE_TIME, DUE_DATE_TIME_FORMATTER),
-    NEXT_HEARING_DATE("nextHearingDate", DEFAULT_ZONED_DATE_TIME, DUE_DATE_TIME_FORMATTER),
-    PRIORITY_DATE("priorityDate", DEFAULT_ZONED_DATE_TIME, DUE_DATE_TIME_FORMATTER);
+    NEXT_HEARING_DATE("nextHearingDate", null, DUE_DATE_TIME_FORMATTER),
+    PRIORITY_DATE("priorityDate", null, DUE_DATE_TIME_FORMATTER);
 
     private final String type;
     private final LocalDateTime defaultTime;

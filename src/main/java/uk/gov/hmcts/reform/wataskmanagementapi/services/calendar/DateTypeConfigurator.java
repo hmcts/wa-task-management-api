@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
 @Slf4j
 @Component
@@ -35,10 +35,9 @@ public class DateTypeConfigurator {
             = new AtomicReference<>(new ArrayList<>(configResponses));
 
         Stream.of(DateType.values())
-            .filter(t -> t.equals(DUE_DATE))
-            .forEach(dt -> {
+            .forEach(dateType -> {
                 List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.stream()
-                    .filter(r -> r.getName().getValue().contains(dt.getType()))
+                    .filter(r -> r.getName().getValue().contains(dateType.getType()))
                     .collect(Collectors.toList());
 
                 if (dateProperties.isEmpty() && initiationDueDateFound) {
@@ -46,34 +45,53 @@ public class DateTypeConfigurator {
                     return;
                 }
 
-                ConfigurationDmnEvaluationResponse dateTypeResponse = getDateResponse(
+                ConfigurationDmnEvaluationResponse dateTypeResponse = getResponseFromDateCalculator(
                     isReconfigureRequest,
-                    dt,
-                    dateProperties
+                    dateType,
+                    dateProperties,
+                    responses
                 );
-                log.info("{} based in configuration is as {}", dt.getType(), dateTypeResponse);
-                filterOutOldValueAndAddDateType(responses, dt, dateTypeResponse);
+                log.info("{} based in configuration is as {}", dateType.getType(), dateTypeResponse);
+                filterOutOldValueAndAddDateType(responses, dateType, dateTypeResponse);
             });
 
         return responses.get();
     }
 
-    private ConfigurationDmnEvaluationResponse getDateResponse(
+    private ConfigurationDmnEvaluationResponse getResponseFromDateCalculator(
         boolean isReconfigureRequest,
         DateType dateType,
-        List<ConfigurationDmnEvaluationResponse> dateProperties) {
+        List<ConfigurationDmnEvaluationResponse> dateProperties,
+        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
         Optional<DateCalculator> dateCalculator = getDateCalculator(dateProperties, dateType, isReconfigureRequest);
         if (dateCalculator.isPresent()) {
             return dateCalculator.get().calculateDate(dateProperties, dateType);
-
         } else {
-            return isReconfigureRequest
-                ? null
-                : ConfigurationDmnEvaluationResponse.builder()
-                .name(CamundaValue.stringValue(dateType.getType()))
-                .value(CamundaValue.stringValue(dateType.getDateTimeFormatter()
-                                                    .format(dateType.getDefaultTime()))).build();
+            return isReconfigureRequest ? null : getDefaultValue(dateType, configResponses);
         }
+    }
+
+    private static ConfigurationDmnEvaluationResponse getDefaultValue(
+        DateType dateType,
+        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
+
+        Optional<ConfigurationDmnEvaluationResponse> dueDate = configResponses.get().stream()
+            .filter(r -> r.getName().getValue().equals(DateType.DUE_DATE.getType()))
+            .findFirst();
+
+        if (dateType == PRIORITY_DATE && dueDate.isPresent()) {
+            return ConfigurationDmnEvaluationResponse.builder()
+                .name(CamundaValue.stringValue(PRIORITY_DATE.getType()))
+                .value(dueDate.get().getValue())
+                .build();
+        }
+
+        return dateType.getDefaultTime() == null
+            ? null
+            : ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue(dateType.getType()))
+            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateType.getDefaultTime())))
+            .build();
     }
 
     private Optional<DateCalculator> getDateCalculator(
