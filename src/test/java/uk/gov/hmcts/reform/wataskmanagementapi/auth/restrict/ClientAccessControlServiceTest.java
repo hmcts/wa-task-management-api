@@ -8,8 +8,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.validators.ServiceAuthTokenValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 
 import java.util.Collections;
 
@@ -27,8 +25,6 @@ class ClientAccessControlServiceTest {
     private static final String EXCLUSIVE_ACCESS_SERVICE_NAME = "someExclusiveServiceName";
     private static final String USER_ID = "someUserId";
     private static final String EMAIL = "test@test.com";
-    @Mock
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     private ServiceAuthTokenValidator serviceAuthTokenValidator;
     @Mock
@@ -49,70 +45,9 @@ class ClientAccessControlServiceTest {
 
         clientAccessControlService = new ClientAccessControlService(
             serviceAuthTokenValidator,
-            launchDarklyFeatureFlagProvider,
-            Collections.singletonList(PRIVILEGED_ACCESS_SERVICE_NAME),
             Collections.singletonList(EXCLUSIVE_ACCESS_SERVICE_NAME)
         );
     }
-
-    @Test
-    void hasPrivilegedAccess_should_return_true_if_feature_is_enabled_and_service_whitelisted() {
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID, EMAIL))
-            .thenReturn(true);
-        when(serviceAuthTokenValidator.getServiceName(SERVICE_AUTH_TOKEN))
-            .thenReturn(PRIVILEGED_ACCESS_SERVICE_NAME);
-
-        boolean result = clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN, accessControlResponse);
-
-        assertTrue(result);
-    }
-
-    @Test
-    void hasPrivilegedAccess_should_return_false_if_feature_is_disabled() {
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID, EMAIL))
-            .thenReturn(false);
-
-        boolean result = clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN, accessControlResponse);
-
-        assertFalse(result);
-    }
-
-    @Test
-    void hasPrivilegedAccess_should_return_false_if_feature_is_enabled_and_service_is_not_whitelisted() {
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID, EMAIL))
-            .thenReturn(true);
-        when(serviceAuthTokenValidator.getServiceName(SERVICE_AUTH_TOKEN))
-            .thenReturn("anotherService");
-
-        boolean result = clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN, accessControlResponse);
-
-        assertFalse(result);
-    }
-
-    @Test
-    void hasPrivilegedAccess_should_throw_null_pointer_exception_if_required_parameters_are_null() {
-
-        assertThatThrownBy(() -> clientAccessControlService.hasPrivilegedAccess(
-            null,
-            accessControlResponse
-        ))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessage("ServiceAuthorization must not be null");
-
-        when(userInfo.getUid())
-            .thenReturn(null);
-
-        assertThatThrownBy(() -> clientAccessControlService.hasPrivilegedAccess(
-            SERVICE_AUTH_TOKEN,
-            accessControlResponse
-        ))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessage("UserId must not be null");
-    }
-
 
     @Test
     void hasExclusiveAccess_should_return_true_if_service_whitelisted() {

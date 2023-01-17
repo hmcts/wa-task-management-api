@@ -295,9 +295,6 @@ class TaskActionsControllerTest {
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
 
-        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
-            .thenReturn(true);
-
         CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
 
         ResponseEntity response = taskActionsController.completeTask(
@@ -338,32 +335,6 @@ class TaskActionsControllerTest {
             taskId,
             mockAccessControlResponse
         );
-
-    }
-
-    @Test
-    void should_return_403_throw_insufficient_permission_when_extra_body_parameters_and_no_privileged_access() {
-        AccessControlResponse mockAccessControlResponse =
-            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-
-        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
-            .thenReturn(false);
-
-
-        CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
-
-        assertThatThrownBy(() -> taskActionsController.completeTask(
-            IDAM_AUTH_TOKEN,
-            SERVICE_AUTHORIZATION_TOKEN,
-            taskId,
-            request
-        ))
-            .isInstanceOf(GenericForbiddenException.class)
-            .hasNoCause()
-            .hasMessage("Forbidden: "
-                        + "The action could not be completed because the "
-                        + "client/user had insufficient rights to a resource.");
 
     }
 

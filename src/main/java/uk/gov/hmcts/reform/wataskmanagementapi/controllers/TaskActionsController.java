@@ -206,18 +206,11 @@ public class TaskActionsController extends BaseController {
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
             taskManagementService.completeTask(taskId, accessControlResponse);
         } else {
-            boolean isPrivilegedRequest =
-                clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
-
-            if (isPrivilegedRequest) {
-                taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    completeTaskRequest.getCompletionOptions()
-                );
-            } else {
-                throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
-            }
+            taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                taskId,
+                accessControlResponse,
+                completeTaskRequest.getCompletionOptions()
+            );
         }
         return ResponseEntity
             .noContent()

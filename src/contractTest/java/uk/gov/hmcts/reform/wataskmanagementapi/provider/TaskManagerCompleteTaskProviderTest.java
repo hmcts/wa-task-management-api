@@ -65,14 +65,12 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
         doNothing().when(taskManagementService).completeTask(any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(false);
     }
 
     private void setInitMockWithPrivilegedAccess() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(any(), any(), any());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(true);
 
 
     }
