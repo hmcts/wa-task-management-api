@@ -53,7 +53,7 @@ public class PriorityDateCalculator implements DateCalculator {
 
     private LocalDateTime calculatePriorityDateFrom(ConfigurationDmnEvaluationResponse priorityDateResponse) {
         String priorityDate = priorityDateResponse.getValue().getValue();
-        LocalDateTime parsedPriorityDate = parseDueDateTime(priorityDate);
+        LocalDateTime parsedPriorityDate = parseDateTime(priorityDate);
         if (parsedPriorityDate.getHour() == 0) {
             return parsedPriorityDate.withHour(16).withMinute(0);
         } else {
@@ -64,6 +64,6 @@ public class PriorityDateCalculator implements DateCalculator {
     private LocalDateTime calculatePriorityDateFrom(ConfigurationDmnEvaluationResponse priorityDateResponse,
                                                     ConfigurationDmnEvaluationResponse priorityDateTimeResponse) {
         String dueDate = priorityDateResponse.getValue().getValue();
-        return addTimeToDate(priorityDateTimeResponse, parseDueDateTime(dueDate));
+        return addTimeToDate(priorityDateTimeResponse, parseDateTime(dueDate));
     }
 }

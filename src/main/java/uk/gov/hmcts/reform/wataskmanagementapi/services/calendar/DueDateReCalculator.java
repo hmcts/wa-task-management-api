@@ -53,7 +53,7 @@ public class DueDateReCalculator implements DateCalculator {
 
     private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse) {
         String dueDate = dueDateResponse.getValue().getValue();
-        LocalDateTime parsedDueDate = parseDueDateTime(dueDate);
+        LocalDateTime parsedDueDate = parseDateTime(dueDate);
         if (parsedDueDate.getHour() == 0) {
             return parsedDueDate.withHour(16).withMinute(0);
         } else {
@@ -64,6 +64,6 @@ public class DueDateReCalculator implements DateCalculator {
     private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse,
                                                ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         String dueDate = dueDateResponse.getValue().getValue();
-        return addTimeToDate(dueDateTimeResponse, parseDueDateTime(dueDate));
+        return addTimeToDate(dueDateTimeResponse, parseDateTime(dueDate));
     }
 }

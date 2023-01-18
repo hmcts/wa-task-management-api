@@ -757,7 +757,7 @@ class CaseConfigurationProviderServiceTest {
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
             .filteredOn(r -> r.getName().getValue().equals("dueDate"))
             .isNotEmpty()
-            .hasSize(1)
+            .hasSize(2)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
@@ -887,7 +887,7 @@ class CaseConfigurationProviderServiceTest {
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
             .filteredOn(r -> r.getName().getValue().equals("dueDate"))
             .isNotEmpty()
-            .hasSize(1)
+            .hasSize(2)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),

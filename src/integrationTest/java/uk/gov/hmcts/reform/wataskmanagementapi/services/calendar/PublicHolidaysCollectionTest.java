@@ -1,14 +1,21 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
+import com.github.benmanes.caffeine.cache.Ticker;
+import com.google.common.testing.FakeTicker;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.Application;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,5 +61,35 @@ class PublicHolidaysCollectionTest {
         List<String> nullList = null;
         Set<LocalDate> oneCalendarResult = publicHolidaysCollection.getPublicHolidays(nullList);
         assertThat(oneCalendarResult.size()).isEqualTo(0);
+    }
+
+    @Test
+    public void should_change_after_cache_expiry_external_api() {
+        BankHolidays resultFromApi = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
+
+        PublicHolidaysCollectionTest.TestConfiguration.fakeTicker.advance(10, TimeUnit.HOURS);
+
+        BankHolidays resultFromCache = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
+
+        assertThat(resultFromApi).isSameAs(resultFromCache);
+
+        PublicHolidaysCollectionTest.TestConfiguration.fakeTicker.advance(25, TimeUnit.HOURS);
+
+        BankHolidays resultFromRenewedCache = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
+
+        assertThat(resultFromApi).isSameAs(resultFromCache).isNotSameAs(resultFromRenewedCache);
+    }
+
+    @Configuration
+    @Import(Application.class)
+    public static class TestConfiguration {
+
+        static FakeTicker fakeTicker = new FakeTicker();
+
+        @Bean
+        public Ticker ticker() {
+            return fakeTicker::read;
+        }
+
     }
 }
