@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
@@ -59,7 +60,8 @@ class CancelTaskTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-
+    @Mock
+    IdamTokenGenerator idamTokenGenerator;
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
@@ -83,6 +85,7 @@ class CancelTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleType(CANCEL);
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
@@ -102,7 +105,7 @@ class CancelTaskTest extends CamundaHelpers {
         final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         TaskResource taskResource = spy(TaskResource.class);
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.cancelTask(
             taskId,
@@ -161,7 +164,8 @@ class CancelTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
 
 
