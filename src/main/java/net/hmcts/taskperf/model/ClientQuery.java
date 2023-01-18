@@ -22,4 +22,5 @@ public class ClientQuery
     private RequestContext requestContext;
 	private Pagination pagination;
 	private List<SortingParameter> sort;
+    private boolean granularPermissionResponseFeature;
 }

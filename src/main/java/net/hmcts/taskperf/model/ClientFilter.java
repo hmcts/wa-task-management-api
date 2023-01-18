@@ -36,6 +36,7 @@ public class ClientFilter
 	private Set<String> assignees;
 	private boolean availableTasksOnly;
 	private boolean allWork;
+	private boolean granularPermissionResponseFeature;
 
 	public static ClientFilter of(ClientQuery clientQuery)
 	{
@@ -55,7 +56,8 @@ public class ClientFilter
                     .collect(Collectors.toSet()),
             getConstraints(searchParameters, SearchParameterKey.USER),
             availableTasksOnly(clientQuery),
-            allWork(clientQuery));
+            allWork(clientQuery),
+            clientQuery.isGranularPermissionResponseFeature());
 	}
 
 	private static boolean availableTasksOnly(ClientQuery clientQuery)

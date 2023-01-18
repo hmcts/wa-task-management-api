@@ -52,6 +52,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -117,6 +118,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired
     private TaskResourceRepository tasksRepository;
+    @Autowired
+    private TaskManagementService taskManagementService;
     @SpyBean
     private CftQueryService cftQueryService;
     @Mock
@@ -1851,7 +1854,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
+        TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
+        taskManagementService.updateTaskIndex(savedTask.getTaskId());
     }
 
     private void insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(String caseId, String taskId,
@@ -1888,7 +1892,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
+        TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
+        taskManagementService.updateTaskIndex(savedTask.getTaskId());
     }
 }
 

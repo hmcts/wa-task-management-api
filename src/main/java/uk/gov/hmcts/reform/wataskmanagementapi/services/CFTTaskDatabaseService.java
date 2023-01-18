@@ -54,7 +54,6 @@ public class CFTTaskDatabaseService {
         if (task.getPriorityDate() == null) {
             task.setPriorityDate(task.getDueDateTime());
         }
-        task.setIndexed(true);
         return tasksRepository.save(task);
     }
 

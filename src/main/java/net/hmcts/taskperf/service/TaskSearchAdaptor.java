@@ -102,7 +102,8 @@ public class TaskSearchAdaptor {
         		getSearchParameterBooleans(searchTaskRequest),
                 searchTaskRequest.getRequestContext(),
         		new Pagination(firstResult, maxResults),
-        		searchTaskRequest.getSortingParameters());
+        		searchTaskRequest.getSortingParameters(),
+                granularPermissionResponseFeature);
         Connection conn = getConnection();
         try
         {

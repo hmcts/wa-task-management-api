@@ -3600,4 +3600,29 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     }
 
+    @Nested
+    @DisplayName("updateIndex()")
+    class UpdateIndex {
+
+        @Test
+        void should_succeed() {
+            TaskResource taskResource = new TaskResource(
+                taskId, "taskName", "taskType", CFTTaskState.ASSIGNED
+            );
+            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(any())).thenReturn(taskResource);
+
+            taskManagementService.updateTaskIndex(taskId);
+            assertEquals(true, taskResource.getIndexed());
+        }
+
+        @Test
+        void should_complete_for_null_task() {
+            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.empty());
+            taskManagementService.updateTaskIndex(taskId);
+
+            verify(cftTaskDatabaseService, times(0)).saveTask(any());
+        }
+    }
+
 }

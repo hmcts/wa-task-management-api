@@ -199,7 +199,7 @@ public class TaskSearch
             //'a' represent own and claim permission in role signature
 			permissions.add("a");
 		}
-		else if (clientFilter.isAllWork())
+		else if (clientFilter.isAllWork() && clientFilter.isGranularPermissionResponseFeature())
 		{
             //'m' represent manage permission in role signature
 			permissions.add("m");
@@ -317,7 +317,7 @@ public class TaskSearch
 				{ "casename", "case_name" },
 				{ "case_name", "case_name" },
                 {"next_hearing_date", "next_hearing_date"},
-                {"nextHearingDate", "next_hearing_date"}
+                {"nexthearingdate", "next_hearing_date"}
 			}).collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
 	private static final String getSortColumn(SortField sortField)
