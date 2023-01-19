@@ -39,19 +39,18 @@ public class DateTypeConfigurator {
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> responses
             = new AtomicReference<>(new ArrayList<>(configResponses));
 
-
         calculationOrder
             .forEach(dt -> {
                 switch (dt) {
                     case DUE_DATE:
-                        Optional<ConfigurationDmnEvaluationResponse> dueDate = calculateDueDate(configResponses,
+                        Optional<ConfigurationDmnEvaluationResponse> dueDate = calculateDueDate(responses,
                                                                                                 initiationDueDateFound,
                                                                                                 isReconfigureRequest);
                         filterOutOldValueAndAddDateType(responses, DUE_DATE, dueDate);
                         break;
                     case NEXT_HEARING_DATE:
                     case PRIORITY_DATE:
-                        Optional<ConfigurationDmnEvaluationResponse> calculatedDate = calculateDate(configResponses,
+                        Optional<ConfigurationDmnEvaluationResponse> calculatedDate = calculateDate(responses,
                                                                                                 dt,
                                                                                                 isReconfigureRequest);
                         filterOutOldValueAndAddDateType(responses, dt, calculatedDate);
@@ -63,40 +62,44 @@ public class DateTypeConfigurator {
         return responses.get();
     }
 
-    private Optional<ConfigurationDmnEvaluationResponse> calculateDueDate(List<ConfigurationDmnEvaluationResponse>
+    private Optional<ConfigurationDmnEvaluationResponse> calculateDueDate(AtomicReference
+                                                                              <List<ConfigurationDmnEvaluationResponse>>
                                                                               configResponses,
                                                                       boolean initiationDueDateFound,
                                                                       boolean isReconfigureRequest) {
-        List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.stream()
+        List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.get().stream()
             .filter(r -> r.getName().getValue().contains(DUE_DATE.getType()))
             .collect(Collectors.toList());
 
         if (dateProperties.isEmpty() && initiationDueDateFound) {
-            log.info("initiationDueDateFound for configureDueDate");
+            log.info("initiationDueDateFound for configureDates");
             return Optional.empty();
         }
 
-        ConfigurationDmnEvaluationResponse dateTypeResponse = getDateResponse(
+        ConfigurationDmnEvaluationResponse dateTypeResponse = getResponseFromDateCalculator(
             isReconfigureRequest,
             DUE_DATE,
-            dateProperties
+            dateProperties,
+            configResponses
         );
         log.info("{} based in configuration is as {}", DUE_DATE.getType(), dateTypeResponse);
         return Optional.ofNullable(dateTypeResponse);
     }
 
-    private Optional<ConfigurationDmnEvaluationResponse> calculateDate(List<ConfigurationDmnEvaluationResponse>
+    private Optional<ConfigurationDmnEvaluationResponse> calculateDate(AtomicReference
+                                                                           <List<ConfigurationDmnEvaluationResponse>>
                                                                            configResponses,
                                                                        DateType dateType,
                                                                        boolean isReconfigureRequest) {
-        List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.stream()
+        List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.get().stream()
             .filter(r -> r.getName().getValue().contains(dateType.getType()))
             .collect(Collectors.toList());
 
-        ConfigurationDmnEvaluationResponse dateTypeResponse = getDateResponse(
+        ConfigurationDmnEvaluationResponse dateTypeResponse = getResponseFromDateCalculator(
             isReconfigureRequest,
             dateType,
-            dateProperties
+            dateProperties,
+            configResponses
         );
         log.info("{} based in configuration is as {}", dateType.getType(), dateTypeResponse);
         return Optional.ofNullable(dateTypeResponse);

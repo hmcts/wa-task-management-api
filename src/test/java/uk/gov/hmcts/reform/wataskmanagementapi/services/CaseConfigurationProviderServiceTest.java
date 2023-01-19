@@ -179,7 +179,6 @@ class CaseConfigurationProviderServiceTest {
         expectedMappedData.put("caseTypeId", "Asylum");
         expectedMappedData.put("dueDate", defaultDate);
         expectedMappedData.put("priorityDate", defaultDate);
-        expectedMappedData.put("nextHearingDate", defaultDate);
 
         Map<String, Object> taskAttributes = Map.of();
         TaskConfigurationResults mappedData = caseConfigurationProviderService
@@ -212,8 +211,7 @@ class CaseConfigurationProviderServiceTest {
             "jurisdiction", "IA",
             "caseTypeId", "Asylum",
             "dueDate", defaultDate,
-            "priorityDate", defaultDate,
-            "nextHearingDate", defaultDate
+            "priorityDate", defaultDate
         );
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
@@ -519,7 +517,7 @@ class CaseConfigurationProviderServiceTest {
             "value3"
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isNotEmpty()
-            .hasSize(6)
+            .hasSize(5)
             .contains(
                 new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
@@ -757,7 +755,7 @@ class CaseConfigurationProviderServiceTest {
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
             .filteredOn(r -> r.getName().getValue().equals("dueDate"))
             .isNotEmpty()
-            .hasSize(2)
+            .hasSize(1)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
@@ -887,7 +885,7 @@ class CaseConfigurationProviderServiceTest {
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
             .filteredOn(r -> r.getName().getValue().equals("dueDate"))
             .isNotEmpty()
-            .hasSize(2)
+            .hasSize(1)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
