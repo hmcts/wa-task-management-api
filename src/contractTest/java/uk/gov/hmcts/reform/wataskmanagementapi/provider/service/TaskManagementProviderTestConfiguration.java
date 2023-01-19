@@ -16,6 +16,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.zalando.problem.ProblemModule;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
@@ -69,7 +70,8 @@ public class TaskManagementProviderTestConfiguration {
     private TaskAutoAssignmentService taskAutoAssignmentService;
     @MockBean
     private List<TaskOperationService> taskOperationServices;
-
+    @MockBean
+    private IdamTokenGenerator idamTokenGenerator;
     @MockBean
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     private RoleAssignmentVerificationService roleAssignmentVerificationService;
@@ -102,7 +104,8 @@ public class TaskManagementProviderTestConfiguration {
             taskAutoAssignmentService,
             roleAssignmentVerificationService,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
     }
 
