@@ -28,10 +28,13 @@ public class NextHearingDateCalculator implements DateCalculator {
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-                                                            DateType dateType) {
+    public ConfigurationDmnEvaluationResponse calculateDate(
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        DateType dateType) {
         var nextHearingDateResponse = getProperty(dueDateProperties, NEXT_HEARING_DATE.getType());
-        LocalDateTime dateTime = calculateDueDateFrom(nextHearingDateResponse);
+        var nextHearingDateTimeResponse = getProperty(dueDateProperties, NEXT_HEARING_DATE_TIME);
+
+        LocalDateTime dateTime = getDateTime(nextHearingDateResponse, nextHearingDateTimeResponse);
         return ConfigurationDmnEvaluationResponse
             .builder()
             .name(CamundaValue.stringValue(dateType.getType()))
@@ -39,7 +42,16 @@ public class NextHearingDateCalculator implements DateCalculator {
             .build();
     }
 
-    private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse nextHearingDateResponse) {
+    private LocalDateTime getDateTime(ConfigurationDmnEvaluationResponse nextHearingDateResponse,
+                                      ConfigurationDmnEvaluationResponse nextHearingDateTimeResponse) {
+        if (Optional.ofNullable(nextHearingDateTimeResponse).isPresent()) {
+            return calculateNextHearingDateFrom(nextHearingDateResponse, nextHearingDateTimeResponse);
+        } else {
+            return calculateNextHearingDateFrom(nextHearingDateResponse);
+        }
+    }
+
+    private LocalDateTime calculateNextHearingDateFrom(ConfigurationDmnEvaluationResponse nextHearingDateResponse) {
         String nextHearingDate = nextHearingDateResponse.getValue().getValue();
         LocalDateTime parsedNextHearingDate = parseDateTime(nextHearingDate);
         if (parsedNextHearingDate.getHour() == 0) {
@@ -47,5 +59,11 @@ public class NextHearingDateCalculator implements DateCalculator {
         } else {
             return parsedNextHearingDate;
         }
+    }
+
+    private LocalDateTime calculateNextHearingDateFrom(ConfigurationDmnEvaluationResponse nextHearingDateResponse,
+                                                       ConfigurationDmnEvaluationResponse nextHearingDateTimeResponse) {
+        String dueDate = nextHearingDateResponse.getValue().getValue();
+        return addTimeToDate(nextHearingDateTimeResponse, parseDateTime(dueDate));
     }
 }

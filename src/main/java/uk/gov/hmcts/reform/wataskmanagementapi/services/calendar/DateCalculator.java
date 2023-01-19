@@ -22,6 +22,7 @@ public interface DateCalculator {
     String DUE_DATE_MUST_BE_WORKING_DAYS = "dueDateMustBeWorkingDay";
     String DUE_DATE_TIME = "dueDateTime";
     String PRIORITY_DATE_TIME = "priorityDateTime";
+    String NEXT_HEARING_DATE_TIME = "nextHearingDateTime";
 
     String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     String DEFAULT_DUE_DATE_TIME = "16:00";
