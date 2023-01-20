@@ -14,8 +14,8 @@ spring:
       hibernate:
         default_schema: cft_task_db
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
-#        show_sql: true
-#        format_sql: true
+  #        show_sql: true
+  #        format_sql: true
   flyway:
     enabled: true
     baselineOnMigrate: true
@@ -48,5 +48,5 @@ logging:
     #      engine: debug
     uk.gov.hmcts.reform: debug
 config:
-  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW}
-  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS}
+  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW,EMPLOYMENT}
+  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS,ET_EnglandWales,ET_EnglandWales_Listings,ET_EnglandWales_Multiple,ET_Scotland,ET_Scotland_Listings,ET_Scotland_Multiple,ET_Admin}

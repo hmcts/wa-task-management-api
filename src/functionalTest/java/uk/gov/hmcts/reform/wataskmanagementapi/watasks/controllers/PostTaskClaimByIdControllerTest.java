@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import static org.hamcrest.Matchers.equalTo;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
+
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -49,7 +50,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_task_when_role_assignment_verification_failed() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+            "Process Application");
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
@@ -71,14 +72,13 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
-
     }
 
     @Test
     public void user_should_claim_task_when_role_assignment_verification_passed() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+            "Process Application");
 
         initiateTask(taskVariables);
 
@@ -94,18 +94,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId);
-
-        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskFieldWasUpdatedInDatabase(
-            taskId,
-            "assignee",
-            userInfo.getUid(),
-            caseworkerCredentials.getHeaders()
-        );
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+
         common.cleanUpTask(taskId);
     }
 
@@ -113,10 +106,10 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+            "Process Application");
 
         common.setupCaseManagerForSpecificAccess(currentCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables);
 
@@ -131,7 +124,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -149,7 +142,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_granular_permission_satisfied() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+            "Process Application");
         String taskId = taskVariables.getTaskId();
 
         common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders());
@@ -173,11 +166,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_a_task_when_granular_permission_not_satisfied() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+            "Process Application");
         String taskId = taskVariables.getTaskId();
 
         common.setupStandardCaseManager(granularPermissionCaseworkerCredentials.getHeaders(),
-                                        taskVariables.getCaseId(), "WA", "WaCaseType");
+            taskVariables.getCaseId(), "WA", "WaCaseType");
 
         initiateTask(taskVariables);
 

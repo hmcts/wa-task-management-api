@@ -215,9 +215,9 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         runWorkTypeAssertion(new GetWorkTypesResponse(emptyList()), response);
     }
 
-    @DisplayName("Should return 502 when role assignment service is down")
+    @DisplayName("Should return 503 when role assignment service is down")
     @Test
-    void should_return_502_with_application_problem_response_when_role_assignment_is_down() throws Exception {
+    void should_return_503_with_application_problem_response_when_role_assignment_is_down() throws Exception {
 
         doThrow(FeignException.ServiceUnavailable.class)
             .when(roleAssignmentServiceApi).getRolesForUser(anyString(), anyString(), anyString());
@@ -229,14 +229,12 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpectAll(
-                status().isBadGateway(),
+                status().isServiceUnavailable(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
-                jsonPath("$.title").value("Downstream Dependency Error"),
-                jsonPath("$.status").value(502),
-                jsonPath("$.detail").value(
-                    "Downstream dependency did not respond as expected and the"
-                    + " request could not be completed.")
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable"),
+                jsonPath("$.title").value("Service Unavailable"),
+                jsonPath("$.status").value(503),
+                jsonPath("$.detail").value("Service unavailable.")
             );
     }
 
@@ -274,7 +272,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_401_when_invalid_user_access() throws Exception {
+    void should_return_502_when_invalid_user_access() throws Exception {
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
@@ -292,7 +290,16 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
         ).andExpectAll(
-            status().isUnauthorized()
+            status().isBadGateway(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type")
+                .value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
+            jsonPath("$.title")
+                .value("Downstream Dependency Error"),
+            jsonPath("$.status")
+                .value(502),
+            jsonPath("$.detail")
+                .value("Downstream dependency did not respond as expected and the request could not be completed.")
         );
 
     }
@@ -322,7 +329,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         throws JsonProcessingException, UnsupportedEncodingException {
 
         assertNotNull(expectedResponse);
-        
+
         assertNotNull(response.getResponse().getContentAsString());
 
         assertEquals(
@@ -332,5 +339,4 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     }
 
 }
-
 

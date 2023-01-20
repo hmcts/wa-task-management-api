@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Configura
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateConfigurator;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 
@@ -31,14 +33,17 @@ public class CaseConfigurationProviderService {
     private final CcdDataService ccdDataService;
     private final DmnEvaluationService dmnEvaluationService;
     private final ObjectMapper objectMapper;
+    private final DueDateConfigurator dueDateConfigurator;
 
     @Autowired
     public CaseConfigurationProviderService(CcdDataService ccdDataService,
                                             DmnEvaluationService dmnEvaluationService,
-                                            ObjectMapper objectMapper) {
+                                            ObjectMapper objectMapper,
+                                            DueDateConfigurator dueDateConfigurator) {
         this.ccdDataService = ccdDataService;
         this.dmnEvaluationService = dmnEvaluationService;
         this.objectMapper = objectMapper;
+        this.dueDateConfigurator = dueDateConfigurator;
     }
 
     /**
@@ -48,7 +53,10 @@ public class CaseConfigurationProviderService {
      * @param taskAttributes taskAttributes
      * @return a map with the process variables configuration
      */
-    public TaskConfigurationResults getCaseRelatedConfiguration(String caseId, Map<String, Object> taskAttributes) {
+    public TaskConfigurationResults getCaseRelatedConfiguration(
+        String caseId,
+        Map<String, Object> taskAttributes,
+        boolean isReconfigureRequest) {
         // Obtain case from ccd
         CaseDetails caseDetails = ccdDataService.getCaseData(caseId);
 
@@ -57,7 +65,8 @@ public class CaseConfigurationProviderService {
 
         String caseDataString = writeValueAsString(caseDetails.getData());
         String taskAttributesString = writeValueAsString(taskAttributes);
-
+        log.debug("Case Configuration : case data {}", caseDataString);
+        log.debug("Case Configuration : task Attributes {}", taskAttributesString);
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
             dmnEvaluationService.evaluateTaskConfigurationDmn(
@@ -66,9 +75,14 @@ public class CaseConfigurationProviderService {
                 caseDataString,
                 taskAttributesString
             );
+        log.debug("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
+
+        boolean initiationDueDateFound = taskAttributes.containsKey(DUE_DATE.value());
 
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
-            = updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults);
+            = updateTaskConfigurationDmnResultsForAdditionalProperties(
+                taskConfigurationDmnResults, initiationDueDateFound, isReconfigureRequest
+        );
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(
@@ -77,7 +91,7 @@ public class CaseConfigurationProviderService {
                 caseDataString,
                 taskAttributesString
             );
-
+        log.debug("Case Configuration : permissionsDmn Results {}", permissionsDmnResults);
         List<PermissionsDmnEvaluationResponse> filteredPermissionDmnResults
             = permissionsDmnResults.stream()
             .filter(dmnResult -> filterBasedOnCaseAccessCategory(caseDetails, dmnResult))
@@ -87,7 +101,7 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResultsWithAdditionalProperties,
             filteredPermissionDmnResults
         );
-
+        log.debug("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
         // Enrich case configuration variables with extra variables
         Map<String, Object> allCaseConfigurationValues = new ConcurrentHashMap<>(caseConfigurationVariables);
         allCaseConfigurationValues.put(SECURITY_CLASSIFICATION.value(), caseDetails.getSecurityClassification());
@@ -124,7 +138,8 @@ public class CaseConfigurationProviderService {
     }
 
     private List<ConfigurationDmnEvaluationResponse> updateTaskConfigurationDmnResultsForAdditionalProperties(
-        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults) {
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
+        boolean initiationDueDateFound, boolean isReconfigureRequest) {
 
         Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
             .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
@@ -140,7 +155,8 @@ public class CaseConfigurationProviderService {
                 CamundaValue.stringValue(writeValueAsString(additionalProperties))
             ));
         }
-        return configResponses;
+
+        return dueDateConfigurator.configureDueDate(configResponses, initiationDueDateFound, isReconfigureRequest);
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(

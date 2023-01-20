@@ -14,6 +14,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -29,6 +31,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -40,6 +43,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -90,6 +94,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     private ClientAccessControlService clientAccessControlService;
     private ServiceMocks mockServices;
     private String taskId;
+    @MockBean
+    private AccessControlService accessControlService;
 
     @BeforeEach
     void setUp() {
@@ -156,6 +162,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -176,6 +184,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             assertTrue(taskResource.isPresent());
             assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
 
         @Test
@@ -233,6 +245,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -255,7 +269,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.status").value(403),
                     jsonPath("$.detail").value(
                         "Role Assignment Verification: "
-                            + "The request failed the Role Assignment checks performed.")
+                        + "The request failed the Role Assignment checks performed.")
                 );
         }
 
@@ -292,6 +306,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -312,6 +328,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             assertTrue(taskResource.isPresent());
             assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
 
         @Test
@@ -347,6 +367,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -367,6 +389,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             assertTrue(taskResource.isPresent());
             assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
 
 
@@ -393,6 +419,9 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -448,6 +477,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             lenient().when(mockedUserInfo.getUid())
                 .thenReturn(IDAM_OTHER_USER_ID);
@@ -467,6 +498,15 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             ).andExpectAll(
                 status().isNoContent()
             );
+
+            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_OTHER_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
 
     }
@@ -516,6 +556,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -534,6 +576,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             assertTrue(taskResource.isPresent());
             assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
 
         @Test
@@ -592,6 +638,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -612,7 +660,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.status").value(403),
                     jsonPath("$.detail").value(
                         "Role Assignment Verification: "
-                            + "The request failed the Role Assignment checks performed.")
+                        + "The request failed the Role Assignment checks performed.")
                 );
         }
 
@@ -649,6 +697,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -667,6 +717,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             assertTrue(taskResource.isPresent());
             assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
 
         @Test
@@ -702,6 +756,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -720,6 +776,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             assertTrue(taskResource.isPresent());
             assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
 
         @Test
@@ -755,6 +815,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -773,6 +835,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             assertTrue(taskResource.isPresent());
             assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
 
             mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
@@ -781,6 +847,15 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                         .contentType(APPLICATION_JSON_VALUE)
                 )
                 .andExpect(status().isNoContent());
+
+            taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
 
         @Test
@@ -816,6 +891,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -829,12 +906,12 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                         .contentType(APPLICATION_JSON_VALUE)
                 )
                 .andExpectAll(
-                status().is4xxClientError(),
-                content().contentType(APPLICATION_JSON_VALUE),
-                jsonPath("$.error").value("Forbidden"),
-                jsonPath("$.status").value(403),
-                jsonPath("$.message").value(
-                    "Could not complete task with id: " + taskId + " as task was not previously assigned")
+                    status().is4xxClientError(),
+                    content().contentType(APPLICATION_JSON_VALUE),
+                    jsonPath("$.error").value("Forbidden"),
+                    jsonPath("$.status").value(403),
+                    jsonPath("$.message").value(
+                        "Could not complete task with id: " + taskId + " as task was not previously assigned")
                 );
 
         }
@@ -866,6 +943,9 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -882,7 +962,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.status").value(403),
                 jsonPath("$.detail").value(
                     "Role Assignment Verification: "
-                        + "The request failed the Role Assignment checks performed.")
+                    + "The request failed the Role Assignment checks performed.")
             );
         }
 
@@ -918,6 +998,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             lenient().when(mockedUserInfo.getUid())
                 .thenReturn(IDAM_OTHER_USER_ID);
@@ -994,7 +1076,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.status").value(403),
                     jsonPath("$.detail").value(
                         "Forbidden: The action could not be completed because the client/user "
-                            + "had insufficient rights to a resource.")
+                        + "had insufficient rights to a resource.")
                 );
         }
 
@@ -1022,7 +1104,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             "false, false, false, true,  IDAM_USER_ID_GP",
         })
         void should_succeed_and_return_204_and_update_cft_task_state_gp_flag_on(boolean ownPermission,
-            boolean executePermission, boolean completePermission, boolean completeOwnPermission, String assignee) throws Exception {
+                                                                                boolean executePermission, boolean completePermission, boolean completeOwnPermission, String assignee) throws Exception {
             if (assignee.equals("null")) {
                 assignee = null;
             }
@@ -1066,6 +1148,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -1082,6 +1166,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             assertTrue(taskResource.isPresent());
             assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(assignee, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID_GP, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
 
         @ParameterizedTest
@@ -1092,7 +1180,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             "false, false, false, true,  IDAM_USER_ID",
         })
         void should_succeed_and_return_403_when_no_perms_or_not_assignee_gp_flag_on(boolean ownPermission,
-                                                                                boolean executePermission, boolean completePermission, boolean completeOwnPermission, String assignee) throws Exception {
+                                                                                    boolean executePermission, boolean completePermission, boolean completeOwnPermission, String assignee) throws Exception {
 
             mockServices.mockServiceAPIsGp();
             when(mockedUserInfo.getUid())
@@ -1133,6 +1221,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -1149,7 +1239,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId, TaskRoleResource taskRoleResource) {
-        insertDummyTaskInDb(jurisdiction,caseType, taskId, taskRoleResource, IDAM_USER_ID);
+        insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource, IDAM_USER_ID);
     }
 
     private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId, TaskRoleResource taskRoleResource,

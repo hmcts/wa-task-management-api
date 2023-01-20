@@ -26,6 +26,7 @@ public class CaseRelatedVariablesConfigurator implements TaskConfigurator {
             task.getId()
         ));
 
-        return caseConfigurationProviderService.getCaseRelatedConfiguration(task.getCaseId(), task.getTaskAttributes());
+        return caseConfigurationProviderService
+            .getCaseRelatedConfiguration(task.getCaseId(), task.getTaskAttributes(), false);
     }
 }

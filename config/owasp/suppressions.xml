@@ -35,8 +35,20 @@
     <cve>CVE-2022-42003</cve>
   </suppress>
   <suppress>
+    <notes>Currently no patch for this issue (https://nvd.nist.gov/vuln/detail/CVE-2021-4277)  </notes>
+    <cve>CVE-2021-4277</cve>
+  </suppress>
+  <suppress>
     <notes>temp</notes>
     <cve>CVE-2022-31690</cve>
+  </suppress>
+  <suppress>
+    <notes>false positive, already using latest version of yaml</notes>
+    <cve>CVE-2022-3064</cve>
+  </suppress>
+  <suppress>
+    <notes>false positive, already using latest version of yaml</notes>
+    <cve>CVE-2021-4235</cve>
   </suppress>
   <suppress>
     <notes>temp</notes>
@@ -45,5 +57,9 @@
   <suppress>
     <notes>temp</notes>
     <cve>CVE-2022-42252</cve>
+  </suppress>
+  <suppress until ="2023-12-31">
+    <notes>Wait for updates on dependencies</notes>
+    <cve>CVE-2021-37533</cve>
   </suppress>
 </suppressions>

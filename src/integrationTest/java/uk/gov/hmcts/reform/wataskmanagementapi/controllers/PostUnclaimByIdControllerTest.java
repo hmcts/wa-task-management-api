@@ -29,16 +29,19 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -153,6 +156,14 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isNoContent()
         );
+
+        Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+        if (optionalTaskResource.isPresent()) {
+            TaskResource taskResource = optionalTaskResource.get();
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.UNCLAIM.getValue(), taskResource.getLastUpdatedAction());
+        }
     }
 
     @Test
@@ -204,6 +215,14 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isNoContent()
         );
+
+        Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+        if (optionalTaskResource.isPresent()) {
+            TaskResource taskResource = optionalTaskResource.get();
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.UNCLAIM.getValue(), taskResource.getLastUpdatedAction());
+        }
     }
 
     @Test
@@ -255,6 +274,14 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isNoContent()
         );
+
+        Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+        if (optionalTaskResource.isPresent()) {
+            TaskResource taskResource = optionalTaskResource.get();
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.UNCLAIM.getValue(), taskResource.getLastUpdatedAction());
+        }
     }
 
 
@@ -432,6 +459,10 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
         assertNull(taskResource.getAssignee());
         assertEquals(UNASSIGNED, taskResource.getState());
+
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.UNCLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -511,6 +542,9 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
         assertNull(taskResource.getAssignee());
         assertEquals(UNASSIGNED, taskResource.getState());
+        assertNotNull(taskResource.getLastUpdatedTimestamp());
+        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
+        assertEquals(TaskAction.UNCLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest

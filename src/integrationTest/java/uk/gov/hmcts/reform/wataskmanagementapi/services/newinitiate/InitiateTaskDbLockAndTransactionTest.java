@@ -14,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -130,7 +131,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
     @Mock
     private List<TaskOperationService> taskOperationServices;
-
+    @Mock
+    private IdamTokenGenerator idamTokenGenerator;
 
     @BeforeEach
     void setUp() {
@@ -148,7 +150,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
@@ -158,7 +161,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
         when(cftTaskMapper.mapToTaskResource(taskId, taskAttributes)).thenReturn(testTaskResource);
 
-        when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
+        when(taskAutoAssignmentService.performAutoAssignment(any(), any(TaskResource.class)))
             .thenReturn(assignedTask);
 
         when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
@@ -184,7 +187,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         );
 
         inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, taskAttributes);
-        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class));
+        inOrder.verify(taskAutoAssignmentService).performAutoAssignment(any(), any(TaskResource.class));
         inOrder.verify(camundaService).updateCftTaskState(any(), any());
         inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
 
