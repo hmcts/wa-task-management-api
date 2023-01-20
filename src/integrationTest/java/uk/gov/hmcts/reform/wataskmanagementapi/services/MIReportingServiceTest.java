@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -28,6 +29,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 /**
  * We test logical replication in here.
  */
+@ActiveProfiles("integration")
 class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
@@ -42,10 +44,11 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     TCExtendedContainerDatabaseDriver tcDriver;
 
-    @Value("spring.datasource.jdbcUrl")
+    @Value("${spring.datasource.jdbcUrl}")
     private String primaryJdbcUrl;
 
-    @Value("spring.datasource-replica.jdbcUrl")
+
+    @Value("${spring.datasource-replica.jdbcUrl}")
     private String replicaJdbcUrl;
 
     CFTTaskDatabaseService cftTaskDatabaseService;
