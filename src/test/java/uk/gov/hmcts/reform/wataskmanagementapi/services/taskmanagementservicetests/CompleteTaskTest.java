@@ -6,10 +6,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
@@ -76,7 +78,8 @@ class CompleteTaskTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-
+    @Mock
+    IdamTokenGenerator idamTokenGenerator;
     RoleAssignmentVerificationService roleAssignmentVerification;
 
     TaskManagementService taskManagementService;
@@ -98,6 +101,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
@@ -129,6 +133,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
             .build();
 
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
@@ -162,6 +167,7 @@ class CompleteTaskTest extends CamundaHelpers {
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
 
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
@@ -194,6 +200,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
@@ -224,6 +231,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASEID"));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(true);
@@ -252,6 +260,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASEID"));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
         when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(false);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
@@ -279,6 +288,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
@@ -296,8 +306,10 @@ class CompleteTaskTest extends CamundaHelpers {
     void completeTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
 
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-        List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+        RoleAssignment roleAssignment = mock(RoleAssignment.class);
+        when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+        List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
+        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
         final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
@@ -306,7 +318,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.empty());
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.completeTask(
             taskId,
@@ -331,6 +343,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(taskResource.getAssignee()).thenReturn(null);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -370,6 +383,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
             .build();
 
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(null);
@@ -492,7 +506,8 @@ class CompleteTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
 
 

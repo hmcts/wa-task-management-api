@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
@@ -31,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
@@ -49,6 +51,7 @@ import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -120,6 +123,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
 
         mockServices.mockServiceAPIs();
+        when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid("system_user1").build());
     }
 
     @AfterAll
@@ -161,7 +165,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status").value(403),
             jsonPath("$.detail").value(
                 "Forbidden: The action could not be completed because the client/user "
-                    + "had insufficient rights to a resource.")
+                + "had insufficient rights to a resource.")
         );
     }
 
@@ -265,10 +269,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(someOtherReq)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(someOtherReq)))
             .andExpectAll(
                 status().isServiceUnavailable(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
@@ -307,10 +311,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(print())
             .andExpectAll(status().isInternalServerError());
 
@@ -383,10 +387,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
@@ -411,7 +415,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"),
+                    + "(Typically this will be in CCD.)"),
                 jsonPath("$.task_role_resources.[0].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[0].role_name")
                     .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
@@ -512,10 +516,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -543,8 +547,16 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                    + "(Typically this will be in CCD.)")
             );
+
+        Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(taskId);
+        if (optionalTaskResource.isPresent()) {
+            TaskResource taskResource = optionalTaskResource.get();
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
+            assertEquals("system_user1", taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.AUTO_ASSIGN.getValue(), taskResource.getLastUpdatedAction());
+        }
     }
 
     @Test
@@ -625,10 +637,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -656,8 +668,16 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                    + "(Typically this will be in CCD.)")
             );
+
+        Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(taskId);
+        if (optionalTaskResource.isPresent()) {
+            TaskResource taskResource = optionalTaskResource.get();
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
+            assertEquals("system_user1", taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.AUTO_ASSIGN.getValue(), taskResource.getLastUpdatedAction());
+        }
     }
 
     @Test
@@ -709,16 +729,16 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(
                 List.of(RoleAssignment.builder()
-                            .id("someId")
-                            .actorIdType(ActorIdType.IDAM)
-                            .actorId("someAssignee")
-                            .roleName("tribunal-caseworker")
-                            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                            .grantType(GrantType.SPECIFIC)
-                            .roleType(RoleType.ORGANISATION)
-                            .classification(Classification.PUBLIC)
-                            .authorisations(List.of("IA"))
-                            .build())));
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId("someAssignee")
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(List.of("IA"))
+                    .build())));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
@@ -737,10 +757,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -767,7 +787,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"),
+                    + "(Typically this will be in CCD.)"),
                 jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT")
             );
     }
@@ -856,10 +876,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -886,7 +906,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                    + "(Typically this will be in CCD.)")
             );
     }
 
@@ -972,10 +992,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1002,7 +1022,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"),
+                    + "(Typically this will be in CCD.)"),
                 jsonPath("$.task_role_resources.[0].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[0].role_name")
                     .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
@@ -1095,10 +1115,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc
             .perform(post(ENDPOINT_BEING_TESTED)
-                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1126,7 +1146,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"),
+                    + "(Typically this will be in CCD.)"),
                 jsonPath("$.task_role_resources.[0].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[0].role_name")
                     .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),

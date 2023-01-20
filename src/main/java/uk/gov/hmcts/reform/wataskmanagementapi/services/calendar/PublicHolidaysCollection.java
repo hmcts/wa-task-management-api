@@ -1,12 +1,17 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import feign.Feign;
+import feign.FeignException;
+import feign.codec.DecodeException;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceInvalidException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceNotFoundException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +23,7 @@ import java.util.stream.Collectors;
 /**
  * Stores all public holidays for england and wales retrieved from Gov uk API: https://www.gov.uk/bank-holidays/england-and-wales.json .
  */
+@Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class PublicHolidaysCollection {
@@ -35,17 +41,26 @@ public class PublicHolidaysCollection {
         BankHolidays allPublicHolidays = BankHolidays.builder().events(events).build();
         if (uris != null) {
             for (String uri : uris) {
-                BankHolidays publicHolidays = getPublicHolidays(uri);
-                processCalendar(publicHolidays, allPublicHolidays);
+                try {
+                    BankHolidays publicHolidays = getPublicHolidays(uri);
+                    processCalendar(publicHolidays, allPublicHolidays);
+                } catch (DecodeException e) {
+                    log.error("Could not read calendar resource {}", uri, e);
+                    throw new CalendarResourceInvalidException("Could not read calendar resource " + uri, e);
+                } catch (FeignException e) {
+                    log.error("Could not find calendar resource {}", uri, e);
+                    throw new CalendarResourceNotFoundException("Could not find calendar resource " + uri, e);
+                }
             }
         }
+
 
         return allPublicHolidays.getEvents().stream()
             .map(item -> LocalDate.parse(item.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
             .collect(Collectors.toSet());
     }
 
-    @Cacheable(value = "public_holidays_uri_cache", key = "#uri", sync = true)
+    @Cacheable(value = "calendar_cache", key = "#uri", sync = true, cacheManager = "calendarCacheManager")
     public BankHolidays getPublicHolidays(String uri) {
         BankHolidaysApi bankHolidaysApi = bankHolidaysApi(uri);
         return bankHolidaysApi.retrieveAll();
