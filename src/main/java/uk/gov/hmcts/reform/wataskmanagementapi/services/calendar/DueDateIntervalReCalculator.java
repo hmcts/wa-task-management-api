@@ -47,7 +47,7 @@ public class DueDateIntervalReCalculator implements DateCalculator {
                                                             DateType dateType) {
         DueDateIntervalData dueDateIntervalData = readDueDateOriginFields(dueDateProperties);
 
-        LocalDateTime dueDate = LocalDateTime.parse(dueDateIntervalData.getDueDateOrigin(), DUE_DATE_TIME_FORMATTER);
+        LocalDateTime dueDate = LocalDateTime.parse(dueDateIntervalData.getDueDateOrigin(), DATE_TIME_FORMATTER);
 
         LocalDate localDate = dueDate.toLocalDate();
         if (dueDateIntervalData.isDueDateSkipNonWorkingDays()) {
@@ -101,7 +101,7 @@ public class DueDateIntervalReCalculator implements DateCalculator {
                                .reduce((a, b) -> b)
                                .map(ConfigurationDmnEvaluationResponse::getValue)
                                .map(CamundaValue::getValue)
-                               .orElse(DEFAULT_ZONED_DATE_TIME.format(DUE_DATE_TIME_FORMATTER)))
+                               .orElse(DEFAULT_ZONED_DATE_TIME.format(DATE_TIME_FORMATTER)))
             .dueDateIntervalDays(dueDateProperties.stream()
                                      .filter(r -> r.getName().getValue().equals(DUE_DATE_INTERVAL_DAYS))
                                      .filter(r -> r.getCanReconfigure().getValue().booleanValue() == TRUE)
@@ -153,7 +153,7 @@ public class DueDateIntervalReCalculator implements DateCalculator {
                              .reduce((a, b) -> b)
                              .map(ConfigurationDmnEvaluationResponse::getValue)
                              .map(CamundaValue::getValue)
-                             .orElse(DEFAULT_DUE_DATE_TIME))
+                             .orElse(DEFAULT_DATE_TIME))
             .build();
     }
 }

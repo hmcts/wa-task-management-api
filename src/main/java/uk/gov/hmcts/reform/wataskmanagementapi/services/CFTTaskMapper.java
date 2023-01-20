@@ -55,7 +55,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator.DUE_DATE_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator.DATE_TIME_FORMATTER;
 
 
 @Service
@@ -582,7 +582,7 @@ public class CFTTaskMapper {
             return null;
         }
         log.info("due date after calculation {}", value);
-        LocalDateTime dateTime = LocalDateTime.parse((String) value, DUE_DATE_TIME_FORMATTER);
+        LocalDateTime dateTime = LocalDateTime.parse((String) value, DATE_TIME_FORMATTER);
         ZoneId systemDefault = ZoneId.systemDefault();
         log.info("system default {}", systemDefault);
         OffsetDateTime dueDateTime = dateTime.atZone(systemDefault).toOffsetDateTime();
