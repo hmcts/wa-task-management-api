@@ -15,10 +15,16 @@ public interface TaskHistoryResourceRepository
 
     String CHECK_SUBSCRIPTION =
         "select count(*) from pg_subscription pgp WHERE subname='task_subscription';";
+
+    //String CREATE_SUBSCRIPTION = "CREATE SUBSCRIPTION task_subscription"
+        //+ " CONNECTION 'host=:host port=:port dbname=:dbname user=:username password=:password'"
+        //+ " PUBLICATION task_publication"
+        //+ " WITH (slot_name = main_slot_v1, create_slot = FALSE);";
+
     String CREATE_SUBSCRIPTION = "CREATE SUBSCRIPTION task_subscription"
-        + " CONNECTION 'host=:host port=:port dbname=:dbname user=:username password=:password'"
+        + " CONNECTION 'host=ccd-shared-database-0 port=5432 dbname=cft_task_db user=repl_user password=repl_password'"
         + " PUBLICATION task_publication"
-        + " WITH (slot_name = :slotname, create_slot = FALSE);";
+        + " WITH (slot_name = main_slot_v1, create_slot = FALSE);";
 
     List<TaskHistoryResource> getByTaskId(String taskId);
 
@@ -31,7 +37,6 @@ public interface TaskHistoryResourceRepository
     @Transactional(value = "replicaTransactionManager")
     @Query(value = CREATE_SUBSCRIPTION, nativeQuery = true)
     Object createSubscription(
-        @Param("slotname") String slotName,
         @Param("host") String host,
         @Param("port") String port,
         @Param("dbname") String dbname,

@@ -9,8 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistory
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.schedulers.LogicalReplicationCreatorScheduler;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -119,12 +117,9 @@ public class MIReportingService {
             } else {
                 LOGGER.error("Cannot extract publication URL from the datasource");
             }
-
-            URL url = new URL(connection.getMetaData().getURL());
+            
         } catch (SQLException ex) {
             LOGGER.error("Primary datasource connection exception.", ex);
-        } catch (MalformedURLException mue) {
-            LOGGER.error("Malformed primary datasource URL.", mue);
         }
     }
 
@@ -141,7 +136,7 @@ public class MIReportingService {
             .replace(":dbname", dbName);
         LOGGER.info("Query: " + logQuery);
 
-        taskHistoryRepository.createSubscription("main_slot_v1", host, port, dbName, user, password);
+        taskHistoryRepository.createSubscription(host, port, dbName, user, password);
     }
 
     public interface Patterns {
