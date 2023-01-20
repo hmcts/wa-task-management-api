@@ -98,6 +98,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     @Query(value = CHECK_REPLICATION_SLOT, nativeQuery = true)
     int countReplicationSlots();
 
+    int isReplicationSlotPresent();
+
     @Transactional
     @Query(value = CREATE_REPLICATION_SLOT, nativeQuery = true)
     Object createReplicationSlot();
