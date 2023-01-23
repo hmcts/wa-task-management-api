@@ -99,7 +99,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttribu
     "PMD.ExcessiveParameterList",
     "PMD.ExcessiveClassLength",
     "PMD.GodClass",
-    "PMD.CyclomaticComplexity"})
+    "PMD.UnusedAssignment",
+    "PMD.CyclomaticComplexity",
+    "PMD.CognitiveComplexity"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
 
@@ -848,8 +850,7 @@ public class TaskManagementService {
         return taskResourceQueryResult.get().getTaskRoleResources().stream()
             .map(r -> cftTaskMapper.mapToTaskRolePermissions(r, granularPermissionResponseFeature))
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
-            .collect(Collectors.toList()
-            );
+            .toList();
     }
 
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
@@ -857,7 +858,7 @@ public class TaskManagementService {
             .flatMap(taskOperationService -> taskOperationService
                 .performOperation(taskOperationRequest).stream())
             .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
