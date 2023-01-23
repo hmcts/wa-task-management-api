@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
 @Slf4j
@@ -36,30 +35,23 @@ public class DateTypeConfigurator {
         boolean isReconfigureRequest) {
 
         List<DateType> calculationOrder = readCalculationOrder(configResponses);
-        AtomicReference<List<ConfigurationDmnEvaluationResponse>> responses
+        AtomicReference<List<ConfigurationDmnEvaluationResponse>> atomicResponses
             = new AtomicReference<>(new ArrayList<>(configResponses));
 
         calculationOrder
             .forEach(dt -> {
-                switch (dt) {
-                    case DUE_DATE:
-                        Optional<ConfigurationDmnEvaluationResponse> dueDate = calculateDueDate(responses,
-                                                                                                initiationDueDateFound,
-                                                                                                isReconfigureRequest);
-                        filterOutOldValueAndAddDateType(responses, DUE_DATE, dueDate);
-                        break;
-                    case NEXT_HEARING_DATE:
-                    case PRIORITY_DATE:
-                        Optional<ConfigurationDmnEvaluationResponse> calculatedDate = calculateDate(responses,
-                                                                                                dt,
-                                                                                                isReconfigureRequest);
-                        filterOutOldValueAndAddDateType(responses, dt, calculatedDate);
-                        break;
-                    default:
+                Optional<ConfigurationDmnEvaluationResponse> calculatedDate;
+                if (dt.equals(DUE_DATE)) {
+                    calculatedDate = calculateDueDate(atomicResponses, initiationDueDateFound, isReconfigureRequest);
+                } else {
+                    calculatedDate = calculateDate(atomicResponses, dt, isReconfigureRequest);
                 }
+
+                filterOutOldValueAndAddDateType(atomicResponses, dt, calculatedDate);
+
             });
 
-        return responses.get();
+        return atomicResponses.get();
     }
 
     private Optional<ConfigurationDmnEvaluationResponse> calculateDueDate(AtomicReference
@@ -67,23 +59,15 @@ public class DateTypeConfigurator {
                                                                               configResponses,
                                                                       boolean initiationDueDateFound,
                                                                       boolean isReconfigureRequest) {
-        List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.get().stream()
-            .filter(r -> r.getName().getValue().contains(DUE_DATE.getType()))
-            .collect(Collectors.toList());
+        boolean datePropertyFound = configResponses.get().stream()
+            .anyMatch(r -> r.getName().getValue().contains(DUE_DATE.getType()));
 
-        if (dateProperties.isEmpty() && initiationDueDateFound) {
+        if (!datePropertyFound && initiationDueDateFound) {
             log.info("initiationDueDateFound for configureDates");
             return Optional.empty();
         }
 
-        ConfigurationDmnEvaluationResponse dateTypeResponse = getResponseFromDateCalculator(
-            isReconfigureRequest,
-            DUE_DATE,
-            dateProperties,
-            configResponses
-        );
-        log.info("{} based in configuration is as {}", DUE_DATE.getType(), dateTypeResponse);
-        return Optional.ofNullable(dateTypeResponse);
+        return calculateDate(configResponses, DUE_DATE, isReconfigureRequest);
     }
 
     private Optional<ConfigurationDmnEvaluationResponse> calculateDate(AtomicReference
@@ -91,16 +75,16 @@ public class DateTypeConfigurator {
                                                                            configResponses,
                                                                        DateType dateType,
                                                                        boolean isReconfigureRequest) {
-        List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.get().stream()
-            .filter(r -> r.getName().getValue().contains(dateType.getType()))
-            .collect(Collectors.toList());
+        ConfigurationDmnEvaluationResponse dateTypeResponse = null;
 
-        ConfigurationDmnEvaluationResponse dateTypeResponse = getResponseFromDateCalculator(
-            isReconfigureRequest,
-            dateType,
-            dateProperties,
-            configResponses
-        );
+        Optional<DateCalculator> dateCalculator = getDateCalculator(configResponses, dateType, isReconfigureRequest);
+
+        if (dateCalculator.isPresent()) {
+            dateTypeResponse =  dateCalculator.get().calculateDate(configResponses.get(), dateType);
+        } else if (!isReconfigureRequest) {
+            dateTypeResponse =  getDefaultValue(dateType, configResponses);
+        }
+
         log.info("{} based in configuration is as {}", dateType.getType(), dateTypeResponse);
         return Optional.ofNullable(dateTypeResponse);
     }
@@ -116,19 +100,6 @@ public class DateTypeConfigurator {
         return calculatedDates.map(r -> Arrays.stream(r.getValue().getValue().split(","))
             .map(s -> DateType.from(s).orElseThrow()).collect(Collectors.toList()))
             .orElseGet(() -> Arrays.asList(defaultOrder));
-    }
-
-    private ConfigurationDmnEvaluationResponse getResponseFromDateCalculator(
-        boolean isReconfigureRequest,
-        DateType dateType,
-        List<ConfigurationDmnEvaluationResponse> dateProperties,
-        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
-        Optional<DateCalculator> dateCalculator = getDateCalculator(dateProperties, dateType, isReconfigureRequest);
-        if (dateCalculator.isPresent()) {
-            return dateCalculator.get().calculateDate(dateProperties, dateType);
-        } else {
-            return isReconfigureRequest ? null : getDefaultValue(dateType, configResponses);
-        }
     }
 
     private static ConfigurationDmnEvaluationResponse getDefaultValue(
@@ -155,11 +126,11 @@ public class DateTypeConfigurator {
     }
 
     private Optional<DateCalculator> getDateCalculator(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
+        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses,
         DateType dateType,
         boolean isReconfigureRequest) {
         return dateCalculators.stream()
-            .filter(dateCalculator -> dateCalculator.supports(configResponses, dateType, isReconfigureRequest))
+            .filter(dateCalculator -> dateCalculator.supports(configResponses.get(), dateType, isReconfigureRequest))
             .findFirst();
     }
 

@@ -21,6 +21,7 @@ public interface DateCalculator {
     String DUE_DATE_SKIP_NON_WORKING_DAYS = "dueDateSkipNonWorkingDays";
     String DUE_DATE_MUST_BE_WORKING_DAYS = "dueDateMustBeWorkingDay";
     String DUE_DATE_TIME = "dueDateTime";
+    String DUE_DATE_ORIGIN_LATEST = "dueDateOriginLatest";
     String PRIORITY_DATE_ORIGIN = "priorityDateOrigin";
     String PRIORITY_DATE_INTERVAL_DAYS = "priorityDateIntervalDays";
     String PRIORITY_DATE_NON_WORKING_CALENDAR = "priorityDateNonWorkingCalendar";

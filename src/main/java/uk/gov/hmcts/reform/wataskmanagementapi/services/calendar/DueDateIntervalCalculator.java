@@ -41,13 +41,19 @@ public class DueDateIntervalCalculator implements DateCalculator {
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
                                                             DateType dateType) {
-        return calculateDate(dateType, readDueDateOriginFields(dueDateProperties, false));
+        DateTypeIntervalData dueDateIntervalData = readDueDateOriginFields(dueDateProperties, false);
+        LocalDateTime dueDate = readDueDateOrigin(dueDateProperties, false);
+
+        LocalDateTime dateTime = calculate(dueDateIntervalData, dueDate);
+
+        return ConfigurationDmnEvaluationResponse
+            .builder()
+            .name(CamundaValue.stringValue(dateType.getType()))
+            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateTime)))
+            .build();
     }
 
-    protected ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, DateTypeIntervalData dateTypeIntervalData) {
-        LocalDateTime dueDate = LocalDateTime.parse(dateTypeIntervalData.getDateTypeOrigin(), DATE_TIME_FORMATTER);
-
+    protected LocalDateTime calculate(DateTypeIntervalData dateTypeIntervalData, LocalDateTime dueDate) {
         LocalDate localDate = dueDate.toLocalDate();
         if (dateTypeIntervalData.isDateTypeSkipNonWorkingDays()) {
 
@@ -84,77 +90,73 @@ public class DueDateIntervalCalculator implements DateCalculator {
             }
         }
 
-        LocalDateTime dateTime = localDate.atTime(LocalTime.parse(dateTypeIntervalData.getDateTypeTime()));
-
-        return ConfigurationDmnEvaluationResponse
-            .builder()
-            .name(CamundaValue.stringValue(dateType.getType()))
-            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateTime)))
-            .build();
+        return localDate.atTime(LocalTime.parse(dateTypeIntervalData.getDateTypeTime()));
     }
 
-    protected DateTypeIntervalData readDueDateOriginFields(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean reconfigure) {
+    protected LocalDateTime readDueDateOrigin(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean reconfigure) {
+        return dueDateProperties.stream()
+            .filter(r -> r.getName().getValue().equals(DUE_DATE_ORIGIN))
+            .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+            .reduce((a, b) -> b)
+            .map(r -> LocalDateTime.parse(r.getValue().getValue(), DATE_TIME_FORMATTER))
+            .orElse(DEFAULT_ZONED_DATE_TIME);
+    }
+
+    protected DateTypeIntervalData readDueDateOriginFields(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+                                                        boolean reconfigure) {
         return DateTypeIntervalData.builder()
-            .dateTypeOrigin(dueDateProperties.stream()
-                                .filter(r -> r.getName().getValue().equals(DUE_DATE_ORIGIN))
-                                .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
-                                .reduce((a, b) -> b)
-                                .map(ConfigurationDmnEvaluationResponse::getValue)
-                                .map(CamundaValue::getValue)
-                                .orElse(DEFAULT_ZONED_DATE_TIME.format(DATE_TIME_FORMATTER)))
             .dateTypeIntervalDays(dueDateProperties.stream()
-                                      .filter(r -> r.getName().getValue().equals(DUE_DATE_INTERVAL_DAYS))
-                                      .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
-                                      .reduce((a, b) -> b)
-                                      .map(ConfigurationDmnEvaluationResponse::getValue)
-                                      .map(CamundaValue::getValue)
-                                      .map(Long::valueOf)
-                                      .orElse(0L))
+                                     .filter(r -> r.getName().getValue().equals(DUE_DATE_INTERVAL_DAYS))
+                                     .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
+                                     .reduce((a, b) -> b)
+                                     .map(ConfigurationDmnEvaluationResponse::getValue)
+                                     .map(CamundaValue::getValue)
+                                     .map(Long::valueOf)
+                                     .orElse(0L))
             .dateTypeNonWorkingCalendar(dueDateProperties.stream()
-                                            .filter(r -> r.getName().getValue().equals(DUE_DATE_NON_WORKING_CALENDAR))
-                                            .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
-                                            .reduce((a, b) -> b)
-                                            .map(ConfigurationDmnEvaluationResponse::getValue)
-                                            .map(CamundaValue::getValue)
-                                            .map(s -> s.split(","))
-                                            .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
-                                            .map(Arrays::asList)
-                                            .orElse(List.of(DEFAULT_NON_WORKING_CALENDAR)))
+                                           .filter(r -> r.getName().getValue().equals(DUE_DATE_NON_WORKING_CALENDAR))
+                                           .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
+                                           .reduce((a, b) -> b)
+                                           .map(ConfigurationDmnEvaluationResponse::getValue)
+                                           .map(CamundaValue::getValue)
+                                           .map(s -> s.split(","))
+                                           .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
+                                           .map(Arrays::asList)
+                                           .orElse(List.of(DEFAULT_NON_WORKING_CALENDAR)))
             .dateTypeNonWorkingDaysOfWeek(dueDateProperties.stream()
-                                              .filter(r -> r.getName().getValue().equals(
-                                                  DUE_DATE_NON_WORKING_DAYS_OF_WEEK))
-                                              .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
-                                              .reduce((a, b) -> b)
-                                              .map(ConfigurationDmnEvaluationResponse::getValue)
-                                              .map(CamundaValue::getValue)
-                                              .map(s -> s.split(","))
-                                              .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
-                                              .map(Arrays::asList)
-                                              .orElse(List.of()))
+                                             .filter(r -> r.getName().getValue().equals(
+                                                 DUE_DATE_NON_WORKING_DAYS_OF_WEEK))
+                                             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
+                                             .reduce((a, b) -> b)
+                                             .map(ConfigurationDmnEvaluationResponse::getValue)
+                                             .map(CamundaValue::getValue)
+                                             .map(s -> s.split(","))
+                                             .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
+                                             .map(Arrays::asList)
+                                             .orElse(List.of()))
             .dateTypeSkipNonWorkingDays(dueDateProperties.stream()
-                                            .filter(r -> r.getName().getValue()
-                                                .equals(DUE_DATE_SKIP_NON_WORKING_DAYS))
-                                            .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
-                                            .reduce((a, b) -> b)
-                                            .map(ConfigurationDmnEvaluationResponse::getValue)
-                                            .map(CamundaValue::getValue)
-                                            .map(Boolean::parseBoolean)
-                                            .orElse(false))
+                                           .filter(r -> r.getName().getValue()
+                                               .equals(DUE_DATE_SKIP_NON_WORKING_DAYS))
+                                           .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
+                                           .reduce((a, b) -> b)
+                                           .map(ConfigurationDmnEvaluationResponse::getValue)
+                                           .map(CamundaValue::getValue)
+                                           .map(Boolean::parseBoolean)
+                                           .orElse(false))
             .dateTypeMustBeWorkingDay(dueDateProperties.stream()
-                                          .filter(r -> r.getName().getValue().equals(DUE_DATE_MUST_BE_WORKING_DAYS))
-                                          .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
-                                          .reduce((a, b) -> b)
-                                          .map(ConfigurationDmnEvaluationResponse::getValue)
-                                          .map(CamundaValue::getValue)
-                                          .orElse(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+                                         .filter(r -> r.getName().getValue().equals(DUE_DATE_MUST_BE_WORKING_DAYS))
+                                         .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
+                                         .reduce((a, b) -> b)
+                                         .map(ConfigurationDmnEvaluationResponse::getValue)
+                                         .map(CamundaValue::getValue)
+                                         .orElse(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .dateTypeTime(dueDateProperties.stream()
-                              .filter(r -> r.getName().getValue().equals(DUE_DATE_TIME))
-                              .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
-                              .reduce((a, b) -> b)
-                              .map(ConfigurationDmnEvaluationResponse::getValue)
-                              .map(CamundaValue::getValue)
-                              .orElse(DEFAULT_DATE_TIME))
+                             .filter(r -> r.getName().getValue().equals(DUE_DATE_TIME))
+                             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
+                             .reduce((a, b) -> b)
+                             .map(ConfigurationDmnEvaluationResponse::getValue)
+                             .map(CamundaValue::getValue)
+                             .orElse(DEFAULT_DATE_TIME))
             .build();
     }
 }
