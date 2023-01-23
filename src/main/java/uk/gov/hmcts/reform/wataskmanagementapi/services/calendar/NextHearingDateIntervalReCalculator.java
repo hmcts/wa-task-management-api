@@ -13,36 +13,46 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.Boolean.TRUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.NextHearingDateIntervalData.NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.NextHearingDateIntervalData.NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_PREVIOUS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 
 @Slf4j
 @Component
-public class NextHearingDateIntervalCalculator implements DateCalculator {
+public class NextHearingDateIntervalReCalculator implements DateCalculator {
     private final WorkingDayIndicator workingDayIndicator;
 
-    public NextHearingDateIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
+    public NextHearingDateIntervalReCalculator(WorkingDayIndicator workingDayIndicator) {
         this.workingDayIndicator = workingDayIndicator;
     }
 
     @Override
-    public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
-        DateType dateType,
-        boolean isReconfigureRequest) {
-
+    public boolean supports(List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
+                            DateType dateType,
+                            boolean isReconfigureRequest) {
+        ConfigurationDmnEvaluationResponse nextHearingDateOrigin = getProperty(
+            nextHearingDateProperties,
+            NEXT_HEARING_DATE_ORIGIN
+        );
+        ConfigurationDmnEvaluationResponse nextHearingDate = getProperty(
+            nextHearingDateProperties,
+            NEXT_HEARING_DATE.getType()
+        );
         return NEXT_HEARING_DATE == dateType
-            && Optional.ofNullable(getProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN)).isPresent()
-            && Optional.ofNullable(getProperty(nextHearingDateProperties, NEXT_HEARING_DATE.getType())).isEmpty()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(nextHearingDateOrigin).isPresent()
+            && nextHearingDateOrigin.getCanReconfigure().getValue().booleanValue() == TRUE
+            && (Optional.ofNullable(nextHearingDate).isEmpty()
+            || nextHearingDate.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE)
+            && isReconfigureRequest;
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
         DateType dateType) {
-        var nextHearingDateIntervalData = readNextHearingDateOriginFields(nextHearingDateProperties);
+        NextHearingDateIntervalData nextHearingDateIntervalData
+            = readNextHearingDateOriginFields(nextHearingDateProperties);
 
         LocalDateTime nextHearingDate = LocalDateTime.parse(
             nextHearingDateIntervalData.getNextHearingDateOrigin(),
@@ -84,8 +94,8 @@ public class NextHearingDateIntervalCalculator implements DateCalculator {
                 );
             }
         }
-
-        var dateTime = localDate.atTime(LocalTime.parse(nextHearingDateIntervalData.getNextHearingDateTime()));
+        LocalDateTime dateTime
+            = localDate.atTime(LocalTime.parse(nextHearingDateIntervalData.getNextHearingDateTime()));
 
         return ConfigurationDmnEvaluationResponse
             .builder()
@@ -96,11 +106,10 @@ public class NextHearingDateIntervalCalculator implements DateCalculator {
 
     private NextHearingDateIntervalData readNextHearingDateOriginFields(
         List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties) {
-
         return NextHearingDateIntervalData.builder()
             .nextHearingDateOrigin(nextHearingDateProperties.stream()
-                                       .filter(r -> r.getName().getValue().equals(
-                                           NEXT_HEARING_DATE_ORIGIN))
+                                       .filter(r -> r.getName().getValue().equals(NEXT_HEARING_DATE_ORIGIN))
+                                       .filter(r -> r.getCanReconfigure().getValue().booleanValue() == TRUE)
                                        .reduce((a, b) -> b)
                                        .map(ConfigurationDmnEvaluationResponse::getValue)
                                        .map(CamundaValue::getValue)
@@ -108,14 +117,16 @@ public class NextHearingDateIntervalCalculator implements DateCalculator {
             .nextHearingDateIntervalDays(nextHearingDateProperties.stream()
                                              .filter(r -> r.getName().getValue()
                                                  .equals(NEXT_HEARING_DATE_INTERVAL_DAYS))
+                                             .filter(r -> r.getCanReconfigure().getValue().booleanValue() == TRUE)
                                              .reduce((a, b) -> b)
                                              .map(ConfigurationDmnEvaluationResponse::getValue)
                                              .map(CamundaValue::getValue)
                                              .map(Long::valueOf)
                                              .orElse(0L))
             .nextHearingDateNonWorkingCalendar(nextHearingDateProperties.stream()
-                                                   .filter(r -> r.getName().getValue()
-                                                       .equals(NEXT_HEARING_DATE_NON_WORKING_CALENDAR))
+                                                   .filter(r -> r.getName().getValue().equals(
+                                                       NEXT_HEARING_DATE_NON_WORKING_CALENDAR))
+                                                   .filter(r -> r.getCanReconfigure().getValue().booleanValue() == TRUE)
                                                    .reduce((a, b) -> b)
                                                    .map(ConfigurationDmnEvaluationResponse::getValue)
                                                    .map(CamundaValue::getValue)
@@ -124,33 +135,38 @@ public class NextHearingDateIntervalCalculator implements DateCalculator {
                                                    .map(Arrays::asList)
                                                    .orElse(List.of(DEFAULT_NON_WORKING_CALENDAR)))
             .nextHearingDateNonWorkingDaysOfWeek(nextHearingDateProperties.stream()
-                                                     .filter(r -> r.getName().getValue()
-                                                         .equals(NEXT_HEARING_DATE_NON_WORKING_DAYS_OF_WEEK))
+                                                     .filter(r -> r.getName().getValue().equals(
+                                                         NEXT_HEARING_DATE_NON_WORKING_DAYS_OF_WEEK))
+                                                     .filter(r -> r.getCanReconfigure().getValue()
+                                                         .booleanValue() == TRUE)
                                                      .reduce((a, b) -> b)
                                                      .map(ConfigurationDmnEvaluationResponse::getValue)
                                                      .map(CamundaValue::getValue)
                                                      .map(s -> s.split(","))
-                                                     .map(a -> Arrays.stream(a)
-                                                         .map(String::trim).toArray(String[]::new))
+                                                     .map(a -> Arrays.stream(a).map(String::trim)
+                                                         .toArray(String[]::new))
                                                      .map(Arrays::asList)
                                                      .orElse(List.of()))
             .nextHearingDateSkipNonWorkingDays(nextHearingDateProperties.stream()
                                                    .filter(r -> r.getName().getValue()
                                                        .equals(NEXT_HEARING_DATE_SKIP_NON_WORKING_DAYS))
+                                                   .filter(r -> r.getCanReconfigure().getValue().booleanValue() == TRUE)
                                                    .reduce((a, b) -> b)
                                                    .map(ConfigurationDmnEvaluationResponse::getValue)
                                                    .map(CamundaValue::getValue)
                                                    .map(Boolean::parseBoolean)
                                                    .orElse(false))
             .nextHearingDateMustBeWorkingDay(nextHearingDateProperties.stream()
-                                                 .filter(r -> r.getName().getValue()
-                                                     .equals(NEXT_HEARING_DATE_MUST_BE_WORKING_DAYS))
+                                                 .filter(r -> r.getName().getValue().equals(
+                                                     NEXT_HEARING_DATE_MUST_BE_WORKING_DAYS))
+                                                 .filter(r -> r.getCanReconfigure().getValue().booleanValue() == TRUE)
                                                  .reduce((a, b) -> b)
                                                  .map(ConfigurationDmnEvaluationResponse::getValue)
                                                  .map(CamundaValue::getValue)
                                                  .orElse(NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_NEXT))
             .nextHearingDateTime(nextHearingDateProperties.stream()
                                      .filter(r -> r.getName().getValue().equals(NEXT_HEARING_DATE_TIME))
+                                     .filter(r -> r.getCanReconfigure().getValue().booleanValue() == TRUE)
                                      .reduce((a, b) -> b)
                                      .map(ConfigurationDmnEvaluationResponse::getValue)
                                      .map(CamundaValue::getValue)

@@ -24,6 +24,9 @@ public class NextHearingDateTypeConfiguratorTest {
 
     public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 00, 00);
     public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 03, 26, 18, 00, 00);
+
+    public static final String EXPECTED_DEFAULT_DUE_DATE
+        = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
     private String isReConfigurationRequest = "false";
@@ -58,9 +61,11 @@ public class NextHearingDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultNextHearingDateOrigin, nextHearingDateOrigin, thirdNextHearingDateOrigin),
-                           Boolean.parseBoolean(initiationNextHearingDateFound),
-                           Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(
+                List.of(defaultNextHearingDateOrigin, nextHearingDateOrigin, thirdNextHearingDateOrigin),
+                Boolean.parseBoolean(initiationNextHearingDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -105,18 +110,32 @@ public class NextHearingDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultNextHearingDate, defaultNextHearingDateTime, nextHearingDate, nextHearingDateTime), false,
-                           Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(
+                List.of(
+                    defaultNextHearingDate,
+                    defaultNextHearingDateTime,
+                    nextHearingDate,
+                    nextHearingDateTime
+                ),
+                false,
+                Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(secondNextHearingDate + expectedTime))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(secondNextHearingDate + expectedTime))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(secondNextHearingDate + expectedTime))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 
     @ParameterizedTest
@@ -143,9 +162,11 @@ public class NextHearingDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultNextHearingDate, nextHearingDate),
-                           Boolean.parseBoolean(initiationNextHearingDateFound),
-                           Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(
+                List.of(defaultNextHearingDate, nextHearingDate),
+                Boolean.parseBoolean(initiationNextHearingDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -177,17 +198,15 @@ public class NextHearingDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultNextHearingDateTime, nextHearingDateTime),
-                           Boolean.parseBoolean(initiationNextHearingDateFound),
-                           Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(
+                List.of(defaultNextHearingDateTime, nextHearingDateTime),
+                Boolean.parseBoolean(initiationNextHearingDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
         String defaultNextHearingDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(defaultNextHearingDate + "T18:00"))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
 
     @ParameterizedTest
@@ -214,9 +233,11 @@ public class NextHearingDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultNextHearingDate, defaultNextHearingDateTime),
-                           Boolean.parseBoolean(initiationNextHearingDateFound),
-                           Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(
+                List.of(defaultNextHearingDate, defaultNextHearingDateTime),
+                Boolean.parseBoolean(initiationNextHearingDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -229,7 +250,7 @@ public class NextHearingDateTypeConfiguratorTest {
     @CsvSource(value = {
         "true,true"
     })
-    public void shouldCalculateNextHearingDateWhenOnlyNextHearingDateTimeIsAvailable(
+    public void shouldNotCalculateNextHearingDateWhenOnlyNextHearingDateTimeIsAvailable(
         String canConfigure,
         String initiationNextHearingDateFound
     ) {
@@ -241,17 +262,13 @@ public class NextHearingDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultNextHearingDateTime),
-                           Boolean.parseBoolean(initiationNextHearingDateFound),
-                           Boolean.parseBoolean(isReConfigurationRequest)
+            .configureDate(
+                List.of(defaultNextHearingDateTime),
+                Boolean.parseBoolean(initiationNextHearingDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest)
             );
-        String defaultNextHearingDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(defaultNextHearingDate + "T16:00"))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
 
     @ParameterizedTest
@@ -272,9 +289,10 @@ public class NextHearingDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultNextHearingDate),
-                           Boolean.parseBoolean(initiationNextHearingDateFound),
-                           Boolean.parseBoolean(isReConfigurationRequest)
+            .configureDate(
+                List.of(defaultNextHearingDate),
+                Boolean.parseBoolean(initiationNextHearingDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest)
             );
 
 
@@ -300,18 +318,20 @@ public class NextHearingDateTypeConfiguratorTest {
 
         String expectedNextHearingDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 
     @Test
-    public void shouldReturnDefaultNextHearingDateWhenNextHearingDatePropertiesAreNotAvailableAndInitiationNextHearingDateNotFound() {
+    public void shouldReturnDefaultNextHearingDateWhenPropertiesAreNotAvailableAndInitiationNextHearingDateNotFound() {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDate(List.of(), false, false);
@@ -319,14 +339,16 @@ public class NextHearingDateTypeConfiguratorTest {
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 
     @ParameterizedTest
@@ -353,9 +375,11 @@ public class NextHearingDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(nextHearingDate, nextHearingDateOrigin),
-                           Boolean.parseBoolean(initiationNextHearingDateFound),
-                           Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(
+                List.of(nextHearingDate, nextHearingDateOrigin),
+                Boolean.parseBoolean(initiationNextHearingDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -365,134 +389,141 @@ public class NextHearingDateTypeConfiguratorTest {
 
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
-        "true"
-    })
-    public void shouldCalculateNextHearingDateWhenOnlyNextHearingDateOriginIsProvided(
-        String canConfigure
-    ) {
+    @Test
+    public void shouldCalculateNextHearingDateWhenOnlyNextHearingDateOriginIsProvided() {
         String givenNextHearingDate = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateOrigin"))
             .value(CamundaValue.stringValue(givenNextHearingDate + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(nextHearingDateOrigin), false, Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(List.of(nextHearingDateOrigin), false,
+                           Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(givenNextHearingDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(givenNextHearingDate + "T16:00"))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(givenNextHearingDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
 
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
-        "true"
-    })
-    public void shouldCalculateDateFromNextHearingDateEvenWhenNextHearingDateOriginPropertiesAreProvided(String canConfigure) {
+    @Test
+    public void shouldCalculateDateFromNextHearingDateEvenWhenNextHearingDateOriginPropertiesAreProvided() {
 
         String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse defaultNextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
             .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateOrigin"))
             .value(CamundaValue.stringValue(expectedNextHearingDate + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateTime"))
             .value(CamundaValue.stringValue("18:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDate(List.of(defaultNextHearingDate, nextHearingDateOrigin, nextHearingDateTime), false,
-                           Boolean.parseBoolean(isReConfigurationRequest));
+                           Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + "T18:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + "T18:00"))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(expectedNextHearingDate + "T18:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
-        "true"
-    })
-    public void shouldCalculateNextHearingDateWhenOnlyDefaultNextHearingDateTimeIsAvailable(String canConfigure) {
-
-        String expectedNextHearingDate = LocalDateTime.now().plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    @Test
+    public void shouldNotCalculateNextHearingDateWhenOnlyDefaultNextHearingDateTimeIsAvailable() {
 
         ConfigurationDmnEvaluationResponse defaultNextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateTime"))
             .value(CamundaValue.stringValue("16:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultNextHearingDateTime), false, Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(List.of(defaultNextHearingDateTime), false,
+                           Boolean.parseBoolean(isReConfigurationRequest));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
-        "true,T16:00"
-    })
-    public void shouldCalculateNextHearingDateWhenOnlyDefaultNextHearingDateWithoutTimeIsAvailable(
-        String canConfigure,
-        String time
-    ) {
+    @Test
+    public void shouldCalculateNextHearingDateWhenOnlyDefaultNextHearingDateWithoutTimeIsAvailable() {
 
         String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse defaultNextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
             .value(CamundaValue.stringValue(expectedNextHearingDate))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultNextHearingDate), false, Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(List.of(defaultNextHearingDate), false,
+                           Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + time))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + time))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 
     @ParameterizedTest
@@ -526,26 +557,30 @@ public class NextHearingDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue(intervalDays))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingCalendar
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingDaysOfWeek
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue(""))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateSkipNonWorkingDays
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue(nextHearingDateSkipNonWorkingDaysFlag))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateMustBeWorkingDay
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(nextHearingDateMustBeWorkingDayFlag))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
@@ -559,8 +594,14 @@ public class NextHearingDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDate(
-                List.of(nextHearingDateIntervalDays, nextHearingDateNonWorkingCalendar, nextHearingDateMustBeWorkingDay,
-                        nextHearingDateNonWorkingDaysOfWeek, nextHearingDateSkipNonWorkingDays, nextHearingDateOrigin, nextHearingDateTime
+                List.of(
+                    nextHearingDateIntervalDays,
+                    nextHearingDateNonWorkingCalendar,
+                    nextHearingDateMustBeWorkingDay,
+                    nextHearingDateNonWorkingDaysOfWeek,
+                    nextHearingDateSkipNonWorkingDays,
+                    nextHearingDateOrigin,
+                    nextHearingDateTime
                 ),
                 false,
                 Boolean.parseBoolean(isReConfigurationRequest)
@@ -569,15 +610,21 @@ public class NextHearingDateTypeConfiguratorTest {
         String expectedNextHearingDate = GIVEN_DATE.plusDays(Integer.parseInt(expectedDays))
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + expectedTime))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + expectedTime))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(expectedNextHearingDate + expectedTime))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 
     @ParameterizedTest
@@ -611,23 +658,27 @@ public class NextHearingDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue(intervalDays))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingCalendar
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingDaysOfWeek
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateSkipNonWorkingDays
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue(nextHearingDateSkipNonWorkingDaysFlag))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateMustBeWorkingDay
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(nextHearingDateMustBeWorkingDayFlag))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
@@ -641,8 +692,14 @@ public class NextHearingDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDate(
-                List.of(nextHearingDateIntervalDays, nextHearingDateNonWorkingCalendar, nextHearingDateMustBeWorkingDay,
-                        nextHearingDateNonWorkingDaysOfWeek, nextHearingDateSkipNonWorkingDays, nextHearingDateOrigin, nextHearingDateTime
+                List.of(
+                    nextHearingDateIntervalDays,
+                    nextHearingDateNonWorkingCalendar,
+                    nextHearingDateMustBeWorkingDay,
+                    nextHearingDateNonWorkingDaysOfWeek,
+                    nextHearingDateSkipNonWorkingDays,
+                    nextHearingDateOrigin,
+                    nextHearingDateTime
                 ),
                 false,
                 Boolean.parseBoolean(isReConfigurationRequest)
@@ -651,15 +708,21 @@ public class NextHearingDateTypeConfiguratorTest {
         String expectedNextHearingDate = GIVEN_DATE.plusDays(Integer.parseInt(expectedDays))
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + expectedTime))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + expectedTime))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(expectedNextHearingDate + expectedTime))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 
     @Test
@@ -675,20 +738,24 @@ public class NextHearingDateTypeConfiguratorTest {
             .name(CamundaValue.stringValue("nextHearingDateIntervalDays"))
             .value(CamundaValue.stringValue("6"))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingCalendar
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingDaysOfWeek
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateSkipNonWorkingDays
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateMustBeWorkingDay
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue("true"))
             .build();
@@ -705,15 +772,21 @@ public class NextHearingDateTypeConfiguratorTest {
         String expectedNextHearingDate = GIVEN_DATE.plusDays(Integer.parseInt("8"))
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 
     @Test
@@ -797,7 +870,7 @@ public class NextHearingDateTypeConfiguratorTest {
     }
 
     @Test
-    public void shouldNotReturnDNextHearingDateWhenNextHearingDatePropertiesAreNotAvailableAndJurisdictionIsWAAndIsReconfiguration() {
+    public void shouldNotReturnDNextHearingDateWhenPropertiesAreNotAvailableAndJurisdictionIsWAAndIsReconfiguration() {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDate(List.of(), false, true);
 
@@ -818,20 +891,24 @@ public class NextHearingDateTypeConfiguratorTest {
             .name(CamundaValue.stringValue("nextHearingDateIntervalDays"))
             .value(CamundaValue.stringValue("4"))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingCalendar
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingDaysOfWeek
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue(""))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateSkipNonWorkingDays
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateMustBeWorkingDay
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue("false"))
             .build();
@@ -843,23 +920,35 @@ public class NextHearingDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDate(
-                List.of(nextHearingDateIntervalDays, nextHearingDateNonWorkingCalendar, nextHearingDateMustBeWorkingDay,
-                        nextHearingDateNonWorkingDaysOfWeek, nextHearingDateSkipNonWorkingDays, nextHearingDateOrigin, nextHearingDateTime
+                List.of(
+                    nextHearingDateIntervalDays,
+                    nextHearingDateNonWorkingCalendar,
+                    nextHearingDateMustBeWorkingDay,
+                    nextHearingDateNonWorkingDaysOfWeek,
+                    nextHearingDateSkipNonWorkingDays,
+                    nextHearingDateOrigin,
+                    nextHearingDateTime
                 ),
                 false, false
             );
 
         String expectedNextHearingDate = "2022-10-30T02:30";
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(expectedNextHearingDate))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 
     @Test
@@ -876,20 +965,24 @@ public class NextHearingDateTypeConfiguratorTest {
             .name(CamundaValue.stringValue("nextHearingDateIntervalDays"))
             .value(CamundaValue.stringValue("4"))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingCalendar
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateNonWorkingDaysOfWeek
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue(""))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateSkipNonWorkingDays
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateMustBeWorkingDay
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue("false"))
             .build();
@@ -901,22 +994,34 @@ public class NextHearingDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDate(
-                List.of(nextHearingDateIntervalDays, nextHearingDateNonWorkingCalendar, nextHearingDateMustBeWorkingDay,
-                        nextHearingDateNonWorkingDaysOfWeek, nextHearingDateSkipNonWorkingDays, nextHearingDateOrigin, nextHearingDateTime
+                List.of(
+                    nextHearingDateIntervalDays,
+                    nextHearingDateNonWorkingCalendar,
+                    nextHearingDateMustBeWorkingDay,
+                    nextHearingDateNonWorkingDaysOfWeek,
+                    nextHearingDateSkipNonWorkingDays,
+                    nextHearingDateOrigin,
+                    nextHearingDateTime
                 ),
                 false, false
             );
 
         String expectedNextHearingDate = "2023-03-30T01:30";
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedNextHearingDate))
-                                   .build()));
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(expectedNextHearingDate))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
     }
 }

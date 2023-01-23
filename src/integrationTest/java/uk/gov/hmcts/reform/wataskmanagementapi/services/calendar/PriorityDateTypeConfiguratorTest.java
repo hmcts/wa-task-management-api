@@ -314,7 +314,7 @@ public class PriorityDateTypeConfiguratorTest {
     }
 
     @Test
-    public void shouldReturnDefaultPriorityDateWhenPriorityDatePropertiesAreNotAvailableAndInitiationPriorityDateNotFound() {
+    public void shouldReturnDefaultPriorityDateWhenDatePropertiesAreNotAvailableAndInitiationPriorityDateNotFound() {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDate(List.of(), false, false);
@@ -384,7 +384,8 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateOrigin), false, Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(List.of(priorityDateOrigin), false,
+                           Boolean.parseBoolean(isReConfigurationRequest));
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -400,30 +401,27 @@ public class PriorityDateTypeConfiguratorTest {
 
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
-        "true"
-    })
-    public void shouldCalculateDateFromPriorityDateEvenWhenPriorityDateOriginPropertiesAreProvided(String canConfigure) {
+    @Test
+    public void shouldCalculateDateFromPriorityDateEvenWhenPriorityDateOriginPropertiesAreProvided() {
 
         String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse defaultPriorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(expectedPriorityDate + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("18:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
@@ -493,7 +491,8 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate), false, Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDate(List.of(defaultPriorityDate), false,
+                           Boolean.parseBoolean(isReConfigurationRequest));
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -545,7 +544,8 @@ public class PriorityDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateNonWorkingDaysOfWeek
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue(""))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
@@ -571,9 +571,9 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(
-                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
-                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
+            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+                                   priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
+                                   priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
                 ),
                 false,
                 Boolean.parseBoolean(isReConfigurationRequest)
@@ -631,7 +631,8 @@ public class PriorityDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateNonWorkingDaysOfWeek
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
@@ -654,9 +655,9 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(
-                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
-                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
+            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+                                   priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
+                                   priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
                 ),
                 false,
                 Boolean.parseBoolean(isReConfigurationRequest)
@@ -691,20 +692,24 @@ public class PriorityDateTypeConfiguratorTest {
             .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("6"))
             .build();
-        ConfigurationDmnEvaluationResponse priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateNonWorkingCalendar
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateNonWorkingDaysOfWeek
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .build();
-        ConfigurationDmnEvaluationResponse priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateSkipNonWorkingDays
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
             .build();
-        ConfigurationDmnEvaluationResponse priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateMustBeWorkingDay
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue("true"))
             .build();
@@ -815,7 +820,7 @@ public class PriorityDateTypeConfiguratorTest {
     }
 
     @Test
-    public void shouldNotReturnDPriorityDateWhenPriorityDatePropertiesAreNotAvailableAndJurisdictionIsWAAndIsReconfiguration() {
+    public void shouldNotReturnDPriorityDateWhenDatePropertiesAreNotAvailableAndJurisdictionIsWAAndIsReconfiguration() {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDate(List.of(), false, true);
 
@@ -841,7 +846,8 @@ public class PriorityDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateNonWorkingDaysOfWeek
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue(""))
             .build();
@@ -860,9 +866,9 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(
-                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
-                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
+            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+                                   priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
+                                   priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
                 ),
                 false, false
             );
@@ -900,11 +906,13 @@ public class PriorityDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateNonWorkingDaysOfWeek
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue(""))
             .build();
-        ConfigurationDmnEvaluationResponse priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateSkipNonWorkingDays
+            = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
             .build();
@@ -919,9 +927,9 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(
-                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
-                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
+            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+                                   priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
+                                   priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
                 ),
                 false, false
             );
