@@ -60,6 +60,16 @@ public interface DateCalculator {
             .orElse(null);
     }
 
+    default ConfigurationDmnEvaluationResponse getReConfigurableProperty(
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
+        return dueDateProperties.stream()
+            .filter(r -> r.getName().getValue().equals(dueDatePrefix))
+            .filter(r -> Strings.isNotBlank(r.getValue().getValue()))
+            .filter(r -> r.getCanReconfigure().getValue())
+            .reduce((a, b) -> b)
+            .orElse(null);
+    }
+
     default LocalDateTime addTimeToDate(
         ConfigurationDmnEvaluationResponse dueDateTimeResponse, LocalDateTime date) {
         String dueDateTime = dueDateTimeResponse.getValue().getValue();

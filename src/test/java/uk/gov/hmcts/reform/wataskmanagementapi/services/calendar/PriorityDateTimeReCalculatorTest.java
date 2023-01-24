@@ -173,6 +173,7 @@ class PriorityDateTimeReCalculatorTest {
         ConfigurationDmnEvaluationResponse priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateTime);
@@ -192,11 +193,13 @@ class PriorityDateTimeReCalculatorTest {
         ConfigurationDmnEvaluationResponse priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse priorityDateTime2 = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateTime, priorityDateTime2);
