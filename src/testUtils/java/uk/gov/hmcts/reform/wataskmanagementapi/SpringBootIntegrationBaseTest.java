@@ -28,6 +28,8 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 })
 @TestInstance(PER_CLASS)
 public abstract class SpringBootIntegrationBaseTest extends RoleAssignmentHelper {
+
+    protected static final int MAX_ROLE_ASSIGNMENT_RECORDS = 50;
     protected static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
         "name1",
         "value1",
