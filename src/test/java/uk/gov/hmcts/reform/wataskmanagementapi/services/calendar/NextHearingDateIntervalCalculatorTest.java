@@ -17,9 +17,9 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.NextHearingDateIntervalData.NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.NextHearingDateIntervalData.NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_NO;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.NextHearingDateIntervalData.NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_PREVIOUS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NO;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 
 @ExtendWith(MockitoExtension.class)
@@ -82,7 +82,7 @@ class NextHearingDateIntervalCalculatorTest {
             .build();
         var nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_NEXT))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         var nextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -138,7 +138,7 @@ class NextHearingDateIntervalCalculatorTest {
             .build();
         var nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_NEXT))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         var nextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -194,7 +194,7 @@ class NextHearingDateIntervalCalculatorTest {
             .build();
         var nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_NEXT))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         var nextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -253,7 +253,7 @@ class NextHearingDateIntervalCalculatorTest {
             .build();
         var nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_NEXT))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         var nextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -309,7 +309,7 @@ class NextHearingDateIntervalCalculatorTest {
             .build();
         var nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_NEXT))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         var nextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -365,7 +365,7 @@ class NextHearingDateIntervalCalculatorTest {
             .build();
         var nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_PREVIOUS))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS))
             .build();
 
         var nextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -421,7 +421,7 @@ class NextHearingDateIntervalCalculatorTest {
             .build();
         var nextHearingDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(NEXT_HEARING_DATE_MUST_BE_WORKING_DAY_NO))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NO))
             .build();
 
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateIntervalCalculator

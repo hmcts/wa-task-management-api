@@ -34,7 +34,7 @@ public class DueDateTimeCalculator implements DateCalculator {
         return calculatedDate(dateType, getProperty(dueDateProperties, DUE_DATE_TIME));
     }
 
-    ConfigurationDmnEvaluationResponse calculatedDate(
+    protected ConfigurationDmnEvaluationResponse calculatedDate(
         DateType dateType,
         ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         LocalDateTime dateTime = addTimeToDate(dueDateTimeResponse, DEFAULT_DATE);

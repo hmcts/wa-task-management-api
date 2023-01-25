@@ -28,8 +28,10 @@ public class PriorityDateReCalculator extends DueDateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
         DateType dateType) {
-        var priorityDateResponse = getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE.getType());
-        var priorityDateTimeResponse = getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE_TIME);
-        return calculatedDate(dateType, priorityDateResponse, priorityDateTimeResponse);
+        return calculatedDate(
+            dateType,
+            getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE.getType()),
+            getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE_TIME)
+        );
     }
 }

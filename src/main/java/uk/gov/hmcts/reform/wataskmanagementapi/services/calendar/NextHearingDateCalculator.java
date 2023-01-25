@@ -29,8 +29,10 @@ public class NextHearingDateCalculator extends DueDateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         DateType dateType) {
-        var nextHearingDateResponse = getProperty(dueDateProperties, NEXT_HEARING_DATE.getType());
-        var nextHearingDateTimeResponse = getProperty(dueDateProperties, NEXT_HEARING_DATE_TIME);
-        return calculatedDate(dateType, nextHearingDateResponse, nextHearingDateTimeResponse);
+        return calculatedDate(
+            dateType,
+            getProperty(dueDateProperties, NEXT_HEARING_DATE.getType()),
+            getProperty(dueDateProperties, NEXT_HEARING_DATE_TIME)
+        );
     }
 }

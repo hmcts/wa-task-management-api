@@ -27,8 +27,10 @@ public class DueDateReCalculator extends DueDateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         DateType dateType) {
-        var dueDateResponse = getReConfigurableProperty(dueDateProperties, DUE_DATE.getType());
-        var dueDateTimeResponse = getReConfigurableProperty(dueDateProperties, DUE_DATE_TIME);
-        return calculatedDate(dateType, dueDateResponse, dueDateTimeResponse);
+        return calculatedDate(
+            dateType,
+            getReConfigurableProperty(dueDateProperties, DUE_DATE.getType()),
+            getReConfigurableProperty(dueDateProperties, DUE_DATE_TIME)
+        );
     }
 }

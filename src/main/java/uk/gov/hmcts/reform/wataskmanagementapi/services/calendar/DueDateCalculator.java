@@ -35,7 +35,7 @@ public class DueDateCalculator implements DateCalculator {
         return calculatedDate(dateType, dueDateResponse, dueDateTimeResponse);
     }
 
-    ConfigurationDmnEvaluationResponse calculatedDate(
+    protected ConfigurationDmnEvaluationResponse calculatedDate(
         DateType dateType,
         ConfigurationDmnEvaluationResponse dueDateResponse,
         ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
@@ -47,7 +47,7 @@ public class DueDateCalculator implements DateCalculator {
             .build();
     }
 
-    LocalDateTime calculatedDate(ConfigurationDmnEvaluationResponse dueDateResponse,
+    private LocalDateTime calculatedDate(ConfigurationDmnEvaluationResponse dueDateResponse,
                                  ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         if (Optional.ofNullable(dueDateTimeResponse).isPresent()) {
             return calculateDueDateFrom(dueDateResponse, dueDateTimeResponse);
@@ -56,7 +56,7 @@ public class DueDateCalculator implements DateCalculator {
         }
     }
 
-    LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse) {
+    private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse) {
         String dueDate = dueDateResponse.getValue().getValue();
         LocalDateTime parsedDueDate = parseDateTime(dueDate);
         if (parsedDueDate.getHour() == 0) {
@@ -66,7 +66,7 @@ public class DueDateCalculator implements DateCalculator {
         }
     }
 
-    LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse,
+    private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse,
                                        ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         String dueDate = dueDateResponse.getValue().getValue();
         return addTimeToDate(dueDateTimeResponse, parseDateTime(dueDate));

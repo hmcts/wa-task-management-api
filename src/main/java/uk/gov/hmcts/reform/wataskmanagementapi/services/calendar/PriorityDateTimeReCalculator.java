@@ -33,7 +33,6 @@ public class PriorityDateTimeReCalculator extends DueDateTimeCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
         DateType dateType) {
-        var priorityDateTimeResponse = getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE_TIME);
-        return calculatedDate(dateType, priorityDateTimeResponse);
+        return calculatedDate(dateType, getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE_TIME));
     }
 }
