@@ -62,7 +62,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateC
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
         "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411",
-        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity", "PMD.AvoidDuplicateLiterals"
+        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity", "PMD.AvoidDuplicateLiterals",
+        "PMD.CognitiveComplexity", "PMD.ReturnEmptyCollectionRatherThanNull"
     })
 @Slf4j
 public class CFTTaskMapper {

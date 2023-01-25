@@ -38,6 +38,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService.TOTAL_RECORDS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi.V2_MEDIA_TYPE_POST_ASSIGNMENTS;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -62,7 +63,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
         when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
         when(idamTokenGenerator.generate()).thenReturn(AUTH_TOKEN);
 
-        roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator, idamTokenGenerator);
+        roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator, idamTokenGenerator, 50);
     }
 
     @Pact(provider = "am_roleAssignment_queryAssignment", consumer = "wa_task_management_api")
@@ -85,6 +86,11 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
                 CONTENT_TYPE,
                 "application\\/vnd\\.uk\\.gov\\.hmcts\\.role-assignment-service\\.post-assignment-query-request\\+json\\;charset\\=UTF-8\\;version\\=2\\.0",
                 "application/vnd.uk.gov.hmcts.role-assignment-service.post-assignment-query-request+json;charset=UTF-8;version=2.0"
+            )
+            .matchHeader(
+                TOTAL_RECORDS,
+                "1",
+                "1"
             )
             .status(HttpStatus.OK.value())
             .headers(getResponseHeaders())
@@ -131,6 +137,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     private Map<String, String> getResponseHeaders() {
         Map<String, String> responseHeaders = Maps.newHashMap();
         responseHeaders.put("Content-Type", V2_MEDIA_TYPE_POST_ASSIGNMENTS);
+        responseHeaders.put(TOTAL_RECORDS, "1");
         return responseHeaders;
     }
 
