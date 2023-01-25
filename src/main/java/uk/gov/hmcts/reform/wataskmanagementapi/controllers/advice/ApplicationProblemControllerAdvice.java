@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
 import javax.validation.ConstraintViolationException;
 
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -62,7 +61,7 @@ import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 @RequestMapping(produces = APPLICATION_PROBLEM_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
     "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter", "PMD.CouplingBetweenObjects",
-    "PMD.TooManyMethods"})
+    "PMD.TooManyMethods", "PMD.CognitiveComplexity"})
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice implements ValidationAdviceTrait {
 
     @ExceptionHandler({
@@ -172,7 +171,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
 
         final List<Violation> violations = ex.getConstraintViolations().stream()
             .map(this::createViolation)
-            .collect(toList());
+            .toList();
 
         return ResponseEntity.status(status.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
@@ -200,7 +199,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         List<Violation> violations = streamViolations.stream()
             // sorting to make tests deterministic
             .sorted(comparing(Violation::getField).thenComparing(Violation::getMessage))
-            .collect(toList());
+            .toList();
 
         return ResponseEntity.status(status.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
@@ -249,19 +248,16 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
     private String extractErrors(HttpMessageNotReadableException exception) {
         String msg = null;
         Throwable cause = exception.getCause();
-        if (cause instanceof JsonParseException) {
-            JsonParseException jpe = (JsonParseException) cause;
+        if (cause instanceof JsonParseException jpe) {
             msg = jpe.getOriginalMessage();
-        } else if (cause instanceof MismatchedInputException) {
-            MismatchedInputException mie = (MismatchedInputException) cause;
+        } else if (cause instanceof MismatchedInputException mie) {
             if (mie.getPath() != null && !mie.getPath().isEmpty()) {
                 String fieldName = mie.getPath().stream()
                     .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
                     .collect(Collectors.joining("."));
                 msg = "Invalid request field: " + fieldName;
             }
-        } else if (cause instanceof JsonMappingException) {
-            JsonMappingException jme = (JsonMappingException) cause;
+        } else if (cause instanceof JsonMappingException jme) {
             msg = jme.getOriginalMessage();
             if (jme.getPath() != null && !jme.getPath().isEmpty()) {
                 String fieldName = jme.getPath().stream()

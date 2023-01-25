@@ -31,7 +31,12 @@ public class DueDateTimeCalculator implements DateCalculator {
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
                                                             DateType dateType) {
-        var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME);
+        return calculatedDate(dateType, getProperty(dueDateProperties, DUE_DATE_TIME));
+    }
+
+    protected ConfigurationDmnEvaluationResponse calculatedDate(
+        DateType dateType,
+        ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         LocalDateTime dateTime = addTimeToDate(dueDateTimeResponse, DEFAULT_DATE);
         return ConfigurationDmnEvaluationResponse
             .builder()

@@ -95,7 +95,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DUE_DATE_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DATE_TIME_FORMATTER;
 
 @ExtendWith(MockitoExtension.class)
 class CFTTaskMapperTest {
@@ -376,7 +376,7 @@ class CFTTaskMapperTest {
         mappedValues.put(ADDITIONAL_PROPERTIES.value(), writeValueAsString(EXPECTED_ADDITIONAL_PROPERTIES));
         String nextHearingId = "nextHearingId";
         mappedValues.put(NEXT_HEARING_ID.value(), nextHearingId);
-        String nextHearingDate = OffsetDateTime.now().format(DUE_DATE_TIME_FORMATTER);
+        String nextHearingDate = OffsetDateTime.now().format(DATE_TIME_FORMATTER);
         mappedValues.put(NEXT_HEARING_DATE.value(), nextHearingDate);
         mappedValues.put(PRIORITY_DATE.value(), "2021-05-09T20:15");
         mappedValues.put(DUE_DATE.value(), "2021-05-09T20:15");

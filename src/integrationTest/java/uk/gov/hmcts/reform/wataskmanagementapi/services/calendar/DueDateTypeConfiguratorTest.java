@@ -18,7 +18,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalc
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
-public class DateTypeConfiguratorTest {
+public class DueDateTypeConfiguratorTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
 

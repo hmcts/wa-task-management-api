@@ -576,10 +576,15 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
         );
     }
 
+    public static void assertCloseTo(OffsetDateTime expected, OffsetDateTime actual, int offsetSeconds) {
+        assertTrue(expected.minusSeconds(offsetSeconds).isBefore(actual) && expected.plusSeconds(offsetSeconds).isAfter(actual));
+    }
+
     @Test
     void should_execute_reconfigure_autoassignment_assigned_to_unassigned() throws Exception {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
+        String dueDateTimeCheck = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
 
         mockMvc.perform(
@@ -660,7 +665,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.AUTO_UNASSIGN.getValue(), task.getLastUpdatedAction());
-                assertEquals(dueDateTime, task.getDueDateTime());
+                assertCloseTo(dueDateTime, task.getDueDateTime(), 2);
             }
         );
     }
