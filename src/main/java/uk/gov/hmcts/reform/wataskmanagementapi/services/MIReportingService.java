@@ -7,20 +7,20 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.schedulers.LogicalReplicationCreatorScheduler;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.sql.DataSource;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository.CREATE_SUBSCRIPTION;
 
 @Service
 public class MIReportingService {
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LogicalReplicationCreatorScheduler.class);
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MIReportingService.class);
     public static final String MAIN_SLOT_NAME = "main_slot_v1";
 
     @Autowired
@@ -47,7 +47,7 @@ public class MIReportingService {
         LOGGER.debug("Postgresql logical replication check executed");
         if (!isReplicationSlotPresent()) {
             LOGGER.info("Creating logical replication slot");
-            createPublicationSlot();
+            createReplicationSlot();
         } else {
             if (!isPublicationPresent()) {
                 createPublication();
@@ -64,12 +64,12 @@ public class MIReportingService {
             LOGGER.info("No logical replication slot present for " + MAIN_SLOT_NAME);
             return false;
         } else {
-//            LOGGER.info("Found logical replication slot with name " + MAIN_SLOT_NAME);
+            LOGGER.info("Found logical replication slot with name " + MAIN_SLOT_NAME);
             return true;
         }
     }
 
-    private void createPublicationSlot() {
+    private void createReplicationSlot() {
         taskResourceRepository.createReplicationSlot();
         LOGGER.info("Created logical replication slot " + MAIN_SLOT_NAME);
     }
@@ -80,7 +80,7 @@ public class MIReportingService {
             LOGGER.info("No publication present");
             return false;
         } else {
-//            LOGGER.info("Found publication");
+            LOGGER.info("Found publication");
             return true;
         }
     }
@@ -106,37 +106,59 @@ public class MIReportingService {
             Connection connection = dataSource.getConnection();
             LOGGER.info("Primary datasource URL: " + connection.getMetaData().getURL());
 
+            Connection connection2 = replicaDataSource.getConnection();
+            LOGGER.info("Replica datasource URL: " + connection2.getMetaData().getURL());
+
             Matcher urlMatcher = Patterns.URL_MATCHING_PATTERN.matcher(connection.getMetaData().getURL());
-            if (urlMatcher.matches()) {
+            Matcher replicaUrlMatcher = Patterns.URL_MATCHING_PATTERN.matcher(connection2.getMetaData().getURL());
+            if (urlMatcher.matches() && replicaUrlMatcher.matches()) {
                 String host = urlMatcher.group("hostString");
                 String port = urlMatcher.group("port");
                 String dbName = urlMatcher.group("dbname");
 
-                createSubscription(host, port, dbName);
+                String replicaHost = replicaUrlMatcher.group("hostString");
+                String replicaPort = replicaUrlMatcher.group("port");
+                String replicaDbName = replicaUrlMatcher.group("dbname");
+
+                createSubscription(host, port, dbName, replicaHost, replicaPort, replicaDbName);
                 LOGGER.info("Subscription created for: " + host + ":" + port + "/" + dbName);
             } else {
                 LOGGER.error("Cannot extract publication URL from the datasource");
             }
-            
+
         } catch (SQLException ex) {
             LOGGER.error("Primary datasource connection exception.", ex);
         }
     }
 
-    void createSubscription(String host, String port, String dbName) {
+    void createSubscription(String host, String port, String dbName, String replicaHost, String replicaPort, String rDbName) {
         String user = "repl_user";
         String password = "repl_password";
 
-        String logQuery = CREATE_SUBSCRIPTION
-            .replace(":slotname", "main_slot_v1")
-            .replace(":username", user)
-            .replace(":password", password)
-            .replace(":host", host)
-            .replace(":port", port)
-            .replace(":dbname", dbName);
-        LOGGER.info("Query: " + logQuery);
+        String replicaUrl = "jdbc:postgresql://" + host + ":" + replicaPort + "/" + rDbName + "?user=" + user + "&password=" + password;
+        LOGGER.info("replicaUrl = " + replicaUrl);
 
-        taskHistoryRepository.createSubscription(host, port, dbName, user, password);
+        String subscriptionUrl;
+        if ("5432".equals(port)) {
+            //hard coded host for local environment, will need fixing when we move to remote environments
+            subscriptionUrl = "postgresql://" + "ccd-shared-database-0" + ":" + port + "/" + dbName + "?user=" + user + "&password=" + password;
+        } else {
+            //this is hard coded for integration test locally
+            subscriptionUrl = "postgresql://" + "cft_task_db" + ":" + "5432" + "/" + dbName + "?user=" + user + "&password=" + password;
+        }
+
+        try (Connection subscriptionConn = DriverManager.getConnection(replicaUrl);
+             Statement subscriptionStatement = subscriptionConn.createStatement();) {
+
+            String sql = "CREATE SUBSCRIPTION task_subscription CONNECTION '" + subscriptionUrl + "' PUBLICATION task_publication WITH (slot_name = main_slot_v1, create_slot = FALSE);";
+            LOGGER.info("CREATE SUBSCRIPTION SQL = " + sql);
+            subscriptionStatement.execute(sql);
+
+            LOGGER.info("Subscription created");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     public interface Patterns {
