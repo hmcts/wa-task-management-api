@@ -39,7 +39,7 @@ public class NextHearingDateIntervalReCalculator extends NextHearingDateInterval
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
         DateType dateType) {
-        var nextHearingDateIntervalData = readNextHearingDateOriginFields(nextHearingDateProperties, true);
+        var nextHearingDateIntervalData = readDateTypeOriginFields(nextHearingDateProperties, true);
         return calculateDate(dateType, nextHearingDateIntervalData);
     }
 }

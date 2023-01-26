@@ -37,10 +37,11 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
         DateType dateType) {
-        return calculateDate(dateType, readPriorityDateOriginFields(priorityDateProperties, false));
+        return calculateDate(dateType, readDateTypeOriginFields(priorityDateProperties, false));
     }
 
-    protected DateTypeIntervalData readPriorityDateOriginFields(
+    @Override
+    protected DateTypeIntervalData readDateTypeOriginFields(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties, boolean reconfigure) {
 
         return DateTypeIntervalData.builder()

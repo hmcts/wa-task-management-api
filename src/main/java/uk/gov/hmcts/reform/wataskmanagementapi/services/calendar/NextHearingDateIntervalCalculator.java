@@ -37,11 +37,12 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
         DateType dateType) {
-        var nextHearingDateIntervalData = readNextHearingDateOriginFields(nextHearingDateProperties, false);
+        var nextHearingDateIntervalData = readDateTypeOriginFields(nextHearingDateProperties, false);
         return calculateDate(dateType, nextHearingDateIntervalData);
     }
 
-    protected DateTypeIntervalData readNextHearingDateOriginFields(
+    @Override
+    protected DateTypeIntervalData readDateTypeOriginFields(
         List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties, boolean reconfigure) {
 
         return DateTypeIntervalData.builder()

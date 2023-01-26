@@ -34,6 +34,6 @@ public class PriorityDateIntervalReCalculator extends PriorityDateIntervalCalcul
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
         DateType dateType) {
-        return calculateDate(dateType, readPriorityDateOriginFields(priorityDateProperties, true));
+        return calculateDate(dateType, readDateTypeOriginFields(priorityDateProperties, true));
     }
 }

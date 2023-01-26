@@ -3,9 +3,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-@Builder
+@Builder(toBuilder = true)
 @Getter
 public class DateTypeIntervalData {
 
@@ -19,4 +20,5 @@ public class DateTypeIntervalData {
     public static final String DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS = "Previous";
     public static final String DATE_TYPE_MUST_BE_WORKING_DAY_NO = "No";
     private String dateTypeTime;
+    private LocalDateTime calculatedRefDate;
 }
