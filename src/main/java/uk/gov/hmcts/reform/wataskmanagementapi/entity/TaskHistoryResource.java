@@ -44,6 +44,9 @@ public class TaskHistoryResource {
     private String roleCategory;
     private Boolean hasWarnings = false;
 
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime assignmentExpiry;
+
     @EqualsAndHashCode.Include()
     private String caseId;
     private String caseTypeId;
