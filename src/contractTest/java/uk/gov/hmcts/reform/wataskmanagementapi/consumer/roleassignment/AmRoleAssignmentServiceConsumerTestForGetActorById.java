@@ -36,6 +36,7 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
 
     private static final String ORG_ROLE_ACTOR_ID = "23486";
     private static final String RAS_GET_ACTOR_BY_ID_URL = "/am/role-assignments/actors/";
+    private static final int MAX_ROLE_ASSIGNMENT_RECORDS = 50;
 
     @Autowired
     RoleAssignmentServiceApi roleAssignmentApi;
@@ -51,7 +52,12 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
     @BeforeEach
     void setUp() {
         when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
-        roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator, systemUserIdamToken);
+        roleAssignmentService = new RoleAssignmentService(
+            roleAssignmentApi,
+            authTokenGenerator,
+            systemUserIdamToken,
+            MAX_ROLE_ASSIGNMENT_RECORDS
+        );
     }
 
     @Test
