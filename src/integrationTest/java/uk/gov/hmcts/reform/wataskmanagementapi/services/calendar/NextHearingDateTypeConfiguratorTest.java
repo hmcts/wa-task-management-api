@@ -124,12 +124,12 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(secondNextHearingDate + expectedTime))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -407,12 +407,12 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(givenNextHearingDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -453,12 +453,12 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate + "T18:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -512,12 +512,12 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -613,12 +613,12 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate + expectedTime))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -711,12 +711,12 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate + expectedTime))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -775,12 +775,12 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -937,12 +937,12 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -1011,12 +1011,12 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))

@@ -155,7 +155,8 @@ class PriorityDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = priorityDateOriginRefCalculator
-            .calculateDate(readPriorityDateOriginFields(priorityDateOriginRef, nextHearingDate), PRIORITY_DATE);
+            .calculateDate(readPriorityDateOriginFields(priorityDateOriginRef, nextHearingDate), PRIORITY_DATE
+            );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 

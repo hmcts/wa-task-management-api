@@ -31,8 +31,8 @@ public class DueDateIntervalReCalculator extends DueDateIntervalCalculator {
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+    public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> configResponses,
                                                             DateType dateType) {
-        return calculateDate(dateType, readDateTypeOriginFields(dueDateProperties, true));
+        return calculateDate(dateType, readDateTypeOriginFields(configResponses, true));
     }
 }

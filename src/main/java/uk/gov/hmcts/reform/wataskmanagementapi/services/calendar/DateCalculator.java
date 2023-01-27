@@ -52,8 +52,9 @@ public interface DateCalculator {
                      DateType dateType,
                      boolean isReconfigureRequest);
 
-    ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-                                                     DateType dateType);
+    ConfigurationDmnEvaluationResponse calculateDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateType dateType);
 
     default ConfigurationDmnEvaluationResponse getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {

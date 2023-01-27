@@ -156,7 +156,8 @@ class NextHearingDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = nextHearingDateOriginRefCalculator
-            .calculateDate(readPriorityDateOriginFields(nextHearingDateOriginRef, nextHearingDate), NEXT_HEARING_DATE);
+            .calculateDate(readPriorityDateOriginFields(nextHearingDateOriginRef, nextHearingDate), NEXT_HEARING_DATE
+            );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 

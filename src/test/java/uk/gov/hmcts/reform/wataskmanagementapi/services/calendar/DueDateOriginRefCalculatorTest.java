@@ -218,7 +218,7 @@ class DueDateOriginRefCalculatorTest {
             .name(CamundaValue.stringValue("dueDateIntervalDays"))
             .value(CamundaValue.stringValue("3"))
             .build();
-        
+
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginRefCalculator
                                                            .calculateDate(
                                                                readDueDateOriginFields(

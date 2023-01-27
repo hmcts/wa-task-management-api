@@ -25,12 +25,12 @@ public class DueDateReCalculator extends DueDateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateType dateType) {
         return calculatedDate(
             dateType,
-            getReConfigurableProperty(dueDateProperties, DUE_DATE.getType()),
-            getReConfigurableProperty(dueDateProperties, DUE_DATE_TIME)
+            getReConfigurableProperty(configResponses, DUE_DATE.getType()),
+            getReConfigurableProperty(configResponses, DUE_DATE_TIME)
         );
     }
 }

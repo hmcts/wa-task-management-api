@@ -29,9 +29,9 @@ public class DueDateTimeCalculator implements DateCalculator {
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+    public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> configResponses,
                                                             DateType dateType) {
-        return calculatedDate(dateType, getProperty(dueDateProperties, DUE_DATE_TIME));
+        return calculatedDate(dateType, getProperty(configResponses, DUE_DATE_TIME));
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(
