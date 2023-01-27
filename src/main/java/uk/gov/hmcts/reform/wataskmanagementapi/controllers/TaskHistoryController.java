@@ -10,7 +10,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Controller
 public class TaskHistoryController {
-    private MIReportingService taskHistoryService;
+    private final MIReportingService taskHistoryService;
 
     public TaskHistoryController(MIReportingService taskHistoryService) {
         this.taskHistoryService = taskHistoryService;

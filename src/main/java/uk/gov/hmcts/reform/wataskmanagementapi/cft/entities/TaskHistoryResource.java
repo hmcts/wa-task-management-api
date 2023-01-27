@@ -15,6 +15,7 @@ import javax.persistence.Id;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "taskHistory")
+@SuppressWarnings({"PMD.TooManyFields"})
 public class TaskHistoryResource {
     public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 
@@ -32,7 +33,7 @@ public class TaskHistoryResource {
 
     private String state;
     private String taskSystem;
-    private String security_classification;
+    private String securityClassification;
     private String title;
     private Integer majorPriority;
     private Integer minorPriority;
@@ -44,7 +45,7 @@ public class TaskHistoryResource {
     private Boolean hasWarnings = false;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
-    private OffsetDateTime assignment_expiry;
+    private OffsetDateTime assignmentExpiry;
 
     @EqualsAndHashCode.Include()
     private String caseId;

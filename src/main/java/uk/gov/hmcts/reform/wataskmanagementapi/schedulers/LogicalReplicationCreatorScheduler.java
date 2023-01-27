@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
 
 /**
- * This scheduler checks if logical replication is in place
+ * This scheduler checks if logical replication is in place.
  */
 @Component
 public class LogicalReplicationCreatorScheduler {
