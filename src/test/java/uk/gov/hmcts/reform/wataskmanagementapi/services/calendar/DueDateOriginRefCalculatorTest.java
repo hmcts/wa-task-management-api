@@ -119,12 +119,11 @@ class DueDateOriginRefCalculatorTest {
 
     @Test
     void should_supports_when_responses_only_contains_due_date_origin_ref() {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String expectedDueDate = GIVEN_DATE.plusDays(0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginRef"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .value(CamundaValue.stringValue("nextHearingDate"))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -132,7 +131,7 @@ class DueDateOriginRefCalculatorTest {
             .value(CamundaValue.stringValue("16:00"))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDateTime);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOriginRef, dueDateTime);
 
         assertThat(dueDateOriginRefCalculator.supports(evaluationResponses, DUE_DATE, false))
             .isTrue();
@@ -144,7 +143,7 @@ class DueDateOriginRefCalculatorTest {
 
         ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginRef"))
-            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .value(CamundaValue.stringValue("nextHearingDate"))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
@@ -219,8 +218,7 @@ class DueDateOriginRefCalculatorTest {
             .name(CamundaValue.stringValue("dueDateIntervalDays"))
             .value(CamundaValue.stringValue("3"))
             .build();
-
-
+        
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginRefCalculator
                                                            .calculateDate(
                                                                readDueDateOriginFields(
