@@ -73,7 +73,8 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
             .atMost(10, SECONDS)
             .until(
                 () -> {
-                    List<TaskHistoryResource> taskHistoryResourceList = miReportingService.findByTaskId(taskResource.getTaskId());
+                    List<TaskHistoryResource> taskHistoryResourceList
+                        = miReportingService.findByTaskId(taskResource.getTaskId());
 
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals(1, taskHistoryResourceList.size());

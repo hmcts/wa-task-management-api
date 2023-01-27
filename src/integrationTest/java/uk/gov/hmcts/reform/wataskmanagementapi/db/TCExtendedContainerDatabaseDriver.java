@@ -33,7 +33,6 @@ import javax.script.ScriptException;
 
 /**
  * This extension is used as an alternative only because TC one doesn't make it easy to add a file to the container.
- *
  * We need wal_level = logical and will be added as an override.conf file to
  * the folder in the bitnami container ./opt/bitnami/postgresql/conf/conf.d/override.conf
  */
@@ -218,9 +217,8 @@ public class TCExtendedContainerDatabaseDriver implements Driver {
                 Method method = initFunctionClazz.getMethod(methodName, Connection.class);
 
                 method.invoke(null, connection);
-            } catch (
-                ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e
-            ) {
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
+                     | InvocationTargetException e) {
                 LOGGER.error("Error while executing init function: {}::{}", className, methodName, e);
                 throw new SQLException("Error while executing init function: " + className + "::" + methodName, e);
             }
@@ -256,7 +254,8 @@ public class TCExtendedContainerDatabaseDriver implements Driver {
     }
 
     /**
-     * Utility method to kill ALL database containers directly from test support code. It shouldn't be necessary to use this,
+     * Utility method to kill ALL database containers directly from test support code.
+     * It shouldn't be necessary to use this,
      * but it is provided for convenience - e.g. for situations where many different database containers are being
      * tested and cleanup is needed to limit resource usage.
      */
@@ -270,8 +269,10 @@ public class TCExtendedContainerDatabaseDriver implements Driver {
     }
 
     /**
-     * Utility method to kill a database container directly from test support code. It shouldn't be necessary to use this,
-     * but it is provided for convenience - e.g. for situations where many different database containers are being
+     * Utility method to kill a database container directly from test support code.
+     * It shouldn't be necessary to use this,
+     * but it is provided for convenience - e.g. for situations where many different
+     * database containers are being
      * tested and cleanup is needed to limit resource usage.
      *
      * @param jdbcUrl the JDBC URL of the container which should be killed
