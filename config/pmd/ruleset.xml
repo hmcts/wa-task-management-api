@@ -9,6 +9,7 @@
   <rule ref="category/java/bestpractices.xml">
     <exclude name="GuardLogStatement"/>
     <exclude name="JUnitTestContainsTooManyAsserts"/>
+    <exclude name="LiteralsFirstInComparisons"/>
   </rule>
   <rule ref="category/java/codestyle.xml">
     <exclude name="AtLeastOneConstructor"/>
@@ -68,5 +69,4 @@
   <rule ref="category/java/multithreading.xml"/>
   <rule ref="category/java/performance.xml"/>
   <rule ref="category/java/security.xml"/>
-
 </ruleset>
