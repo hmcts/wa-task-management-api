@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -85,8 +86,7 @@ public class CamundaService {
     public CamundaService(CamundaServiceApi camundaServiceApi,
                           TaskMapper taskMapper,
                           AuthTokenGenerator authTokenGenerator,
-                          CamundaObjectMapper camundaObjectMapper
-    ) {
+                          CamundaObjectMapper camundaObjectMapper) {
         this.camundaServiceApi = camundaServiceApi;
         this.taskMapper = taskMapper;
         this.authTokenGenerator = authTokenGenerator;
@@ -294,12 +294,14 @@ public class CamundaService {
                 searchEventAndCase.getCaseType()
             );
 
-            return camundaServiceApi.evaluateDMN(
+            List<Map<String, CamundaVariable>> dmnResponse = camundaServiceApi.evaluateDMN(
                 authTokenGenerator.generate(),
                 taskCompletionDecisionTableKey,
                 searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT),
                 createEventIdDmnRequest(searchEventAndCase.getEventId())
             );
+
+            return dmnResponse.stream().map(CamundaHelper::removeSpaces).collect(Collectors.toList());
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }
