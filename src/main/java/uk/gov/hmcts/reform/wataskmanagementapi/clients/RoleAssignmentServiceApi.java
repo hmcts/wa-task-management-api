@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.clients;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,9 +57,11 @@ public interface RoleAssignmentServiceApi {
         value = "/am/role-assignments/query",
         consumes = V2_MEDIA_TYPE_POST_ASSIGNMENTS,
         produces = V2_MEDIA_TYPE_POST_ASSIGNMENTS)
-    RoleAssignmentResource queryRoleAssignments(
+    ResponseEntity<RoleAssignmentResource> queryRoleAssignments(
         @RequestHeader(AUTHORIZATION) String userToken,
         @RequestHeader(SERVICE_AUTHORIZATION) String s2sToken,
+        @RequestHeader("pageNumber") Integer pageNumber,
+        @RequestHeader("size") Integer size,
         @RequestBody MultipleQueryRequest queryRequest
     );
 }
