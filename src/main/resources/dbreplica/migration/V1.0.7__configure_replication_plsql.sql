@@ -6,13 +6,7 @@ create or replace function cft_task_db.add_task_history(l_task cft_task_db.tasks
   language plpgsql
 as $$
 declare
-l_update_id bigint;
-  -- l_updated_by text := case when l_is_delete then null else l_task.updated_by end;
-  -- l_updated timestamp := case when l_is_delete then now() else l_task.updated end;
-  -- l_update_action text := case when l_is_delete then 'DELETE' else l_task.update_action end;
-  l_updated_by text := case when l_is_delete then null else 'tasks.updated_by field to be added' end;
-  l_updated timestamp := case when l_is_delete then now() else now() end;
-  l_update_action text := case when l_is_delete then 'DELETE' else 'tasks.update_action field to be added' end;
+  l_update_id bigint;
 begin
 insert into cft_task_db.task_history
 (task_id, task_name, task_type, due_date_time,
@@ -32,8 +26,8 @@ values
    l_task.role_category, l_task.has_warnings, l_task.assignment_expiry,
    l_task.case_id, l_task.case_type_id, l_task.case_category, l_task.case_name,
    l_task.jurisdiction, l_task.region, l_task.location, l_task.business_context,
-   l_task.termination_reason, l_task.created, l_updated_by, l_updated,
-   l_update_action)
+   l_task.termination_reason, l_task.created, l_task.last_updated_user, l_task.last_updated_timestamp,
+   l_task.last_updated_action)
   returning update_id into l_update_id;
 return l_update_id;
 end $$;
@@ -67,7 +61,7 @@ DROP TRIGGER IF EXISTS trg_on_task_upsert ON cft_task_db.tasks;
 -- Add the task upsert trigger.
 --
 CREATE TRIGGER trg_on_task_upsert before insert or update on cft_task_db.tasks
-  for each row execute function on_task_upsert();
+  for each row when (NEW.case_id is not null) execute function on_task_upsert();
 alter table cft_task_db.tasks enable always trigger trg_on_task_upsert;
 
 DROP TRIGGER IF EXISTS trg_on_task_delete ON cft_task_db.tasks;
