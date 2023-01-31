@@ -9,8 +9,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver;
@@ -42,6 +44,8 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     TaskHistoryResourceRepository taskHistoryResourceRepository;
+    @Autowired
+    ReportableTaskRepository reportableTaskRepository;
 
     @Autowired
     TCExtendedContainerDatabaseDriver tcDriver;
@@ -59,6 +63,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
     @BeforeEach
     void setUp() {
         miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
+                                                    reportableTaskRepository,
                                                     "repl_user", "repl_password");
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
 
@@ -89,10 +94,32 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_save_task_and_get_task_from_reportable_task() {
+        TaskResource taskResource = createAndSaveTask();
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(taskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
+
+                    return true;
+                });
+    }
+
+    @Test
     void given_zero_publications_should_return_false() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countPublications()).thenReturn(0);
         miReportingService = new MIReportingService(null, taskResourceRepository,
+                                                    reportableTaskRepository,
                                                     "repl_user", "repl_password");
 
         assertFalse(miReportingService.isPublicationPresent());
@@ -104,6 +131,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
             "someTaskName",
             "someTaskType",
             UNCONFIGURED,
+            "987654",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResource.setCreated(OffsetDateTime.now());

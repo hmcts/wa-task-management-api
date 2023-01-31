@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ReplicationException;
@@ -37,20 +39,27 @@ public class MIReportingService {
 
     private final TaskHistoryResourceRepository taskHistoryRepository;
     private final TaskResourceRepository taskResourceRepository;
+    private final ReportableTaskRepository reportableTaskRepository;
 
 
     public MIReportingService(TaskHistoryResourceRepository tasksHistoryRepository,
                               TaskResourceRepository taskResourceRepository,
+                              ReportableTaskRepository reportableTaskRepository,
                               @Value("${replication.username}") String user,
                               @Value("${replication.password}") String password) {
         this.taskHistoryRepository = tasksHistoryRepository;
         this.taskResourceRepository = taskResourceRepository;
+        this.reportableTaskRepository = reportableTaskRepository;
         this.user = user;
         this.password = password;
     }
 
     public List<TaskHistoryResource> findByTaskId(String taskId) {
-        return taskHistoryRepository.getByTaskId(taskId);
+        return taskHistoryRepository.findAllByTaskIdOrderByUpdatedAsc(taskId);
+    }
+
+    public List<ReportableTaskResource> findByReportingTaskId(String taskId) {
+        return reportableTaskRepository.findAllByTaskIdOrderByUpdatedAsc(taskId);
     }
 
     public void logicalReplicationCheck() {
