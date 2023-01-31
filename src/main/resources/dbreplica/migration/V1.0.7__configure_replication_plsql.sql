@@ -63,7 +63,7 @@ DROP TRIGGER IF EXISTS trg_on_task_upsert ON cft_task_db.tasks;
 -- Add the task upsert trigger.
 --
 CREATE TRIGGER trg_on_task_upsert before insert or update on cft_task_db.tasks
-  for each row execute function on_task_upsert();
+  for each row when (NEW.case_id is not null) execute function on_task_upsert();
 alter table cft_task_db.tasks enable always trigger trg_on_task_upsert;
 
 DROP TRIGGER IF EXISTS trg_on_task_delete ON cft_task_db.tasks;
