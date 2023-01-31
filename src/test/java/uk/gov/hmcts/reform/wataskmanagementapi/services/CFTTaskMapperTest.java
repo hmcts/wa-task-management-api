@@ -415,7 +415,7 @@ class CFTTaskMapperTest {
         assertEquals("someCaseCategory", taskResource.getCaseCategory());
         assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
         assertEquals(nextHearingId, taskResource.getNextHearingId());
-        assertEquals(OffsetDateTime.parse(nextHearingDate + "Z"), taskResource.getNextHearingDate());
+        assertEquals(nextHearingDate, taskResource.getNextHearingDate().format(DATE_TIME_FORMATTER));
         assertNull(taskResource.getBusinessContext());
         assertNull(taskResource.getTerminationReason());
         assertEquals(new ExecutionTypeResource(
