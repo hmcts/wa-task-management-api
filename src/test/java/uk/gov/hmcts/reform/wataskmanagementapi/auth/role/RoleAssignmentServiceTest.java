@@ -11,6 +11,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.MultipleQueryRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.QueryRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
@@ -36,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
@@ -53,12 +56,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService.TOTAL_RECORDS;
 
 @ExtendWith(MockitoExtension.class)
 class RoleAssignmentServiceTest {
 
     private static final String IDAM_USER_TOKEN = "IDAM_USER_TOKEN";
     private static final String S2S_TOKEN = "S2S_SERVICE_TOKEN";
+    public static final int MAX_ROLE_ASSIGNMENT_RECORDS = 50;
 
     @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
@@ -72,13 +77,20 @@ class RoleAssignmentServiceTest {
     private RoleAssignmentService roleAssignmentService;
     @Captor
     private ArgumentCaptor<MultipleQueryRequest> captor;
-    
+
     private List<Classification> classifications;
+    private String caseId;
 
     @BeforeEach
     void setUp() {
-        roleAssignmentService = new RoleAssignmentService(roleAssignmentServiceApi,
-            authTokenGenerator, idamTokenGenerator);
+        roleAssignmentService = new RoleAssignmentService(
+            roleAssignmentServiceApi,
+            authTokenGenerator,
+            idamTokenGenerator,
+            MAX_ROLE_ASSIGNMENT_RECORDS
+        );
+
+        caseId = UUID.randomUUID().toString();
 
         lenient().when(idamTokenGenerator.generate()).thenReturn(IDAM_USER_TOKEN);
         lenient().when(authTokenGenerator.generate()).thenReturn(S2S_TOKEN);
@@ -111,16 +123,20 @@ class RoleAssignmentServiceTest {
         when(roleAssignmentServiceApi.getRolesForUser(idamUserId, authToken, serviceAuthToken))
             .thenThrow(FeignException.class);
 
-        assertThrows(UnAuthorizedException.class,
-            () -> roleAssignmentService.getRolesForUser(idamUserId, authToken));
+        assertThrows(
+            UnAuthorizedException.class,
+            () -> roleAssignmentService.getRolesForUser(idamUserId, authToken)
+        );
     }
 
     @Test
     void testGetRolesForUserThrowsNullPointerWhenIdamUserIdIsNull() {
         String authToken = "token";
 
-        assertThrows(NullPointerException.class,
-            () -> roleAssignmentService.getRolesForUser(null, authToken));
+        assertThrows(
+            NullPointerException.class,
+            () -> roleAssignmentService.getRolesForUser(null, authToken)
+        );
     }
 
     @NotNull
@@ -129,7 +145,7 @@ class RoleAssignmentServiceTest {
         createdRolesForUser.add(getRoleAssignment());
         return createdRolesForUser;
     }
-    
+
 
     @ParameterizedTest
     @CsvSource({
@@ -147,7 +163,8 @@ class RoleAssignmentServiceTest {
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskResource taskResource = createTestTaskWithRoleResources(
             securityClassification,
-            singleton(taskRoleResource("tribunal-caseworker", true))
+            singleton(taskRoleResource("tribunal-caseworker", true)),
+            caseId
         );
 
         RoleAssignment roleAssignment = getRoleAssignment(Classification.valueOf(securityClassificationInput));
@@ -156,18 +173,25 @@ class RoleAssignmentServiceTest {
             singletonList(roleAssignment)
         );
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
-            any(MultipleQueryRequest.class)))
-            .thenReturn(roleAssignmentResource);
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1").body(roleAssignmentResource));
 
         List<RoleAssignment> roleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
 
         assertNotNull(roleAssignments);
+        assertEquals(1, roleAssignments.size());
 
         verify(roleAssignmentServiceApi).queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -204,7 +228,8 @@ class RoleAssignmentServiceTest {
         taskRoleResource.setOwn(false);
         TaskResource taskResource = createTestTaskWithRoleResources(
             securityClassification,
-            singleton(taskRoleResource)
+            singleton(taskRoleResource),
+            caseId
         );
 
         RoleAssignment roleAssignment = getRoleAssignment(Classification.valueOf(securityClassificationInput));
@@ -213,18 +238,26 @@ class RoleAssignmentServiceTest {
             singletonList(roleAssignment)
         );
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
-            any(MultipleQueryRequest.class)))
-            .thenReturn(roleAssignmentResource);
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1")
+                            .body(roleAssignmentResource));
 
         List<RoleAssignment> roleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
 
         assertNotNull(roleAssignments);
+        assertEquals(1, roleAssignments.size());
 
         verify(roleAssignmentServiceApi).queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -261,7 +294,8 @@ class RoleAssignmentServiceTest {
         taskRoleResource.setOwn(false);
         TaskResource taskResource = createTestTaskWithRoleResources(
             securityClassification,
-            singleton(taskRoleResource)
+            singleton(taskRoleResource),
+            caseId
         );
 
         RoleAssignment roleAssignment = getRoleAssignment(Classification.valueOf(securityClassificationInput));
@@ -270,18 +304,26 @@ class RoleAssignmentServiceTest {
             singletonList(roleAssignment)
         );
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
-            any(MultipleQueryRequest.class)))
-            .thenReturn(roleAssignmentResource);
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1")
+                            .body(roleAssignmentResource));
 
         List<RoleAssignment> roleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
 
         assertNotNull(roleAssignments);
+        assertEquals(1, roleAssignments.size());
 
         verify(roleAssignmentServiceApi).queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -317,7 +359,8 @@ class RoleAssignmentServiceTest {
         TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
         TaskResource taskResource = createTestTaskWithRoleResources(
             securityClassification,
-            singleton(taskRoleResource)
+            singleton(taskRoleResource),
+            caseId
         );
 
         RoleAssignment roleAssignment = getRoleAssignment(Classification.valueOf(securityClassificationInput));
@@ -326,18 +369,25 @@ class RoleAssignmentServiceTest {
             singletonList(roleAssignment)
         );
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
-            any(MultipleQueryRequest.class)))
-            .thenReturn(roleAssignmentResource);
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "1").body(roleAssignmentResource));
 
         List<RoleAssignment> roleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
 
         assertNotNull(roleAssignments);
+        assertEquals(1, roleAssignments.size());
 
         verify(roleAssignmentServiceApi).queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -373,20 +423,29 @@ class RoleAssignmentServiceTest {
         TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
         TaskResource taskResource = createTestTaskWithRoleResources(
             securityClassification,
-            singleton(taskRoleResource)
+            singleton(taskRoleResource),
+            "someCaseId"
         );
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
-            any(MultipleQueryRequest.class)))
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
+            any(MultipleQueryRequest.class)
+        ))
             .thenThrow(FeignException.class);
 
-        assertThrows(ServerErrorException.class,
-            () -> roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource));
+        assertThrows(
+            ServerErrorException.class,
+            () -> roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource)
+        );
 
         verify(roleAssignmentServiceApi).queryRoleAssignments(
             eq(IDAM_USER_TOKEN),
             eq(S2S_TOKEN),
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
             captor.capture()
         );
 
@@ -403,6 +462,67 @@ class RoleAssignmentServiceTest {
             classifications,
             equalTo(queryRequests.getQueryRequests().get(0).getClassification())
         );
+    }
+
+    @Test
+    void should_search_roles_by_case_id_with_total_records_more_than_50() {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        IntStream.range(0, MAX_ROLE_ASSIGNMENT_RECORDS).forEach((i) -> roleAssignments.add(getRoleAssignment()));
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "75")
+                            .body(new RoleAssignmentResource(roleAssignments)));
+
+        List<RoleAssignment> secondIteration = new ArrayList<>();
+        IntStream.range(0, 25).forEach((i) -> secondIteration.add(getRoleAssignment()));
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            eq(1),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
+            any(MultipleQueryRequest.class)
+        ))
+            .thenReturn(ResponseEntity.ok().header(TOTAL_RECORDS, "75")
+                            .body(new RoleAssignmentResource(secondIteration)));
+
+        TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
+        taskRoleResource.setOwn(false);
+        TaskResource taskResource = createTestTaskWithRoleResources(
+            SecurityClassification.PUBLIC,
+            singleton(taskRoleResource),
+            caseId
+        );
+
+        final List<RoleAssignment> actualRoleAssignments
+            = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
+
+        assertNotNull(actualRoleAssignments);
+        assertEquals(75, actualRoleAssignments.size());
+
+        verify(roleAssignmentServiceApi).queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            eq(0),
+            eq(MAX_ROLE_ASSIGNMENT_RECORDS),
+            captor.capture()
+        );
+
+        MultipleQueryRequest queryRequests = captor.getValue();
+
+        assertThat(queryRequests).isNotNull();
+        assertThat(queryRequests.getQueryRequests()).isNotEmpty();
+        QueryRequest actualQueryRequest = queryRequests.getQueryRequests().get(0);
+        assertThat(actualQueryRequest.getValidAt()).isBefore(LocalDateTime.now());
+        assertThat(actualQueryRequest.getHasAttributes()).isNull();
+        assertThat(actualQueryRequest.getAttributes()).isNotNull();
+        assertThat(actualQueryRequest.getAttributes().get("caseId")).contains(caseId);
     }
 
     private RoleAssignment getRoleAssignment() {
@@ -432,13 +552,14 @@ class RoleAssignmentServiceTest {
 
     private TaskResource createTestTaskWithRoleResources(
         SecurityClassification classification,
-        Set<TaskRoleResource> taskResourceList) {
+        Set<TaskRoleResource> taskResourceList,
+        String caseId) {
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
             "someTaskName",
             "someTaskType",
             CFTTaskState.UNCONFIGURED,
-            "someCaseId",
+            caseId,
             taskResourceList
         );
         taskResource.setSecurityClassification(classification);
@@ -459,5 +580,5 @@ class RoleAssignmentServiceTest {
             autoAssign
         );
     }
-    
+
 }

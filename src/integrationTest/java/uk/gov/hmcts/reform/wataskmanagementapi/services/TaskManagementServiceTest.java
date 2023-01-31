@@ -14,6 +14,8 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -109,6 +111,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ServiceMocks mockServices;
     @MockBean
     private List<TaskOperationService> taskOperationServices;
+    @MockBean(name = "systemUserIdamInfo")
+    UserIdamTokenGeneratorInfo systemUserIdamInfo;
+    @Autowired
+    private IdamTokenGenerator systemUserIdamToken;
 
     @BeforeEach
     void setUp() {
@@ -133,7 +139,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,
+            systemUserIdamToken
         );
 
         mockServices.mockServiceAPIs();

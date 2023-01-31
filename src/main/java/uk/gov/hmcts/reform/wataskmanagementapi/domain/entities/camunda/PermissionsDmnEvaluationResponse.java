@@ -63,4 +63,32 @@ public final class PermissionsDmnEvaluationResponse implements EvaluationRespons
     public CamundaValue<String> getCaseAccessCategory() {
         return caseAccessCategory;
     }
+
+    public void setName(CamundaValue<String> name) {
+        this.name = name;
+    }
+
+    public void setValue(CamundaValue<String> value) {
+        this.value = value;
+    }
+
+    public void setAssignmentPriority(CamundaValue<Integer> assignmentPriority) {
+        this.assignmentPriority = assignmentPriority;
+    }
+
+    public void setAutoAssignable(CamundaValue<Boolean> autoAssignable) {
+        this.autoAssignable = autoAssignable;
+    }
+
+    public void setRoleCategory(CamundaValue<String> roleCategory) {
+        this.roleCategory = roleCategory;
+    }
+
+    public void setCaseAccessCategory(CamundaValue<String> caseAccessCategory) {
+        this.caseAccessCategory = caseAccessCategory;
+    }
+
+    public void setAuthorisations(CamundaValue<String> authorisations) {
+        this.authorisations = authorisations;
+    }
 }

@@ -44,4 +44,16 @@ public final class ConfigurationDmnEvaluationResponse implements EvaluationRespo
     public CamundaValue<Boolean> getCanReconfigure() {
         return canReconfigure;
     }
+
+    public void setName(CamundaValue<String> name) {
+        this.name = name;
+    }
+
+    public void setValue(CamundaValue<String> value) {
+        this.value = value;
+    }
+
+    public void setCanReconfigure(CamundaValue<Boolean> canReconfigure) {
+        this.canReconfigure = canReconfigure;
+    }
 }
