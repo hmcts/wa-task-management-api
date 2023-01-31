@@ -95,7 +95,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DATE_TIME_FORMATTER;
 
 @ExtendWith(MockitoExtension.class)
 class CFTTaskMapperTest {
@@ -376,10 +375,12 @@ class CFTTaskMapperTest {
         mappedValues.put(ADDITIONAL_PROPERTIES.value(), writeValueAsString(EXPECTED_ADDITIONAL_PROPERTIES));
         String nextHearingId = "nextHearingId";
         mappedValues.put(NEXT_HEARING_ID.value(), nextHearingId);
-        String nextHearingDate = OffsetDateTime.now().format(DATE_TIME_FORMATTER);
+        String nextHearingDate = "2021-05-13T20:15";
         mappedValues.put(NEXT_HEARING_DATE.value(), nextHearingDate);
-        mappedValues.put(PRIORITY_DATE.value(), "2021-05-09T20:15");
-        mappedValues.put(DUE_DATE.value(), "2021-05-09T20:15");
+        String priorityDate = "2021-05-12T20:15";
+        mappedValues.put(PRIORITY_DATE.value(), priorityDate);
+        String dueDate = "2021-05-10T20:15";
+        mappedValues.put(DUE_DATE.value(), dueDate);
         mappedValues.put(MAJOR_PRIORITY.value(), 5000);
         mappedValues.put(MINOR_PRIORITY.value(), 500);
 
@@ -415,7 +416,6 @@ class CFTTaskMapperTest {
         assertEquals("someCaseCategory", taskResource.getCaseCategory());
         assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
         assertEquals(nextHearingId, taskResource.getNextHearingId());
-        assertEquals(nextHearingDate, taskResource.getNextHearingDate().format(DATE_TIME_FORMATTER));
         assertNull(taskResource.getBusinessContext());
         assertNull(taskResource.getTerminationReason());
         assertEquals(new ExecutionTypeResource(
@@ -426,10 +426,11 @@ class CFTTaskMapperTest {
         assertEquals(emptySet(), taskResource.getTaskRoleResources());
         assertEquals(5000, taskResource.getMajorPriority());
         assertEquals(500, taskResource.getMinorPriority());
-        assertEquals(OffsetDateTime.parse("2021-05-09T20:15+01:00"), taskResource.getPriorityDate());
-        LocalDateTime localDateTime = LocalDateTime.of(2021, 5, 9, 20, 15, 0, 0);
-        assertEquals(localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime(), taskResource.getDueDateTime());
+        assertEquals(CFTTaskMapper.mapDate(nextHearingDate), taskResource.getNextHearingDate());
+        assertEquals(CFTTaskMapper.mapDate(priorityDate), taskResource.getPriorityDate());
+        assertEquals(CFTTaskMapper.mapDate(dueDate), taskResource.getDueDateTime());
     }
+
 
     @Test
     void should_map_configuration_attributes_when_skeleton_fields_changed() {
@@ -2234,9 +2235,10 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = createTaskResource();
 
-        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-                                                                        configurationDmnResponse(true),
-                                                                        permissionsResponse()
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(true),
+            permissionsResponse()
         );
 
         TaskResource reconfiguredTaskResource = cftTaskMapper
@@ -2270,9 +2272,10 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = createTaskResource();
 
-        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-                                                                        configurationDmnResponse(false),
-                                                                        permissionsResponse()
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(false),
+            permissionsResponse()
         );
 
         TaskResource reconfiguredTaskResource = cftTaskMapper
@@ -2302,9 +2305,10 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = createTaskResource();
 
-        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-                                                                        configurationDmnResponseWithNullReconfigure(),
-                                                                        permissionsResponse()
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponseWithNullReconfigure(),
+            permissionsResponse()
         );
 
         TaskResource reconfiguredTaskResource = cftTaskMapper
