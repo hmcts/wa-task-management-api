@@ -475,8 +475,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
             ));
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(emptyList()));
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok()
+                            .header(TOTAL_RECORDS, "0")
+                            .body(new RoleAssignmentResource(emptyList())));
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
