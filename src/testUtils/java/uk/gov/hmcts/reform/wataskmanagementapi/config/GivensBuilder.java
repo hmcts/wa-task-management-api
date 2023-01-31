@@ -368,7 +368,7 @@ public class GivensBuilder {
 
             caseDataString = caseDataString.replace(
                 "{NEXT_HEARING_DATE}",
-                OffsetDateTime.now().plusMinutes((int) (Math.random() * 10)).toString()
+                OffsetDateTime.now().plusHours((int) (Math.random() * 10)).toString()
             );
 
             caseDataString = caseDataString.replace(
