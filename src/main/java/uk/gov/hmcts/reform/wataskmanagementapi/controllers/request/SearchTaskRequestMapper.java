@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomCo
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -52,8 +53,6 @@ public final class SearchTaskRequestMapper {
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (availableTasksOnly) {
             cftTaskStates.add(CFTTaskState.UNASSIGNED);
-            //TODO: Remove this once the available_tasks_only parameter is depreciated
-            requestContext = RequestContext.AVAILABLE_TASKS;
         } else {
             SearchParameterList stateParam = keyMap.get(STATE);
             cftTaskStates = getCftTaskStates(stateParam);
