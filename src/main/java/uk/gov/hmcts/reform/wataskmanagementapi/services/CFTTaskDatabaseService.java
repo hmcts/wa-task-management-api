@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,6 +32,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder.AS
 @Slf4j
 @Service
 public class CFTTaskDatabaseService {
+
+
     private final TaskResourceRepository tasksRepository;
     private final CFTTaskMapper cftTaskMapper;
 
@@ -93,29 +96,28 @@ public class CFTTaskDatabaseService {
         return Optional.empty();
     }
 
-    public GetTasksResponse<Task> searchForTasks(SearchRequest searchRequest,
+    public GetTasksResponse<Task> searchForTasks(int firstResult,
+                                                 int maxResults,
+                                                 SearchRequest searchRequest,
                                                  AccessControlResponse accessControlResponse,
                                                  boolean granularPermissionResponseFeature) {
 
         List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
-        Set<String> filters = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
-        Set<String> roles = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
+        Set<String> filterSignature = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
+        Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
+        List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
 
-        String[] filterSignature = filters.toArray(new String[0]);
-        String[] roleSignature = roles.toArray(new String[0]);
-
-        List<String> taskIds = tasksRepository.searchTasksIds(filterSignature, roleSignature);
+        List<String> taskIds = tasksRepository.searchTasksIds(firstResult, maxResults, filterSignature, roleSignature,
+            excludeCaseIds, searchRequest);
 
         if (isEmpty(taskIds)) {
             return new GetTasksResponse<>(List.of(), 0);
         }
 
-        Sort sort = getOrders(searchRequest);
+        Long count = tasksRepository.searchTasksCount(filterSignature, roleSignature, excludeCaseIds, searchRequest);
 
-        final List<TaskResource> taskResources
-            = tasksRepository.findAllByTaskIdIn(taskIds, sort);
-
-        Long count = tasksRepository.searchTasksCount(filterSignature, roleSignature);
+        Sort sort = TaskSearchSortProvider.getSortOrders(searchRequest);
+        final List<TaskResource> taskResources = tasksRepository.findAllByTaskIdIn(taskIds, sort);
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
@@ -130,22 +132,13 @@ public class CFTTaskDatabaseService {
         return new GetTasksResponse<>(tasks, count);
     }
 
-    private Sort getOrders(SearchRequest searchRequest) {
-        List<Sort.Order> orders = Stream.ofNullable(searchRequest.getSortingParameters())
-            .flatMap(Collection::stream)
-            .filter(s -> s.getSortOrder() != null)
-            .map(sortingParameter -> {
-                if (sortingParameter.getSortOrder() == ASCENDANT) {
-                    return Sort.Order.asc(sortingParameter.getSortBy().getCftVariableName());
-                } else {
-                    return Sort.Order.desc(sortingParameter.getSortBy().getCftVariableName());
-                }
-            }).collect(Collectors.toList());
 
-        Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
-            .map(s -> Sort.Order.asc(s.value()))
-            .collect(Collectors.toCollection(() -> orders));
 
-        return Sort.by(orders);
+    private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
+        return roleAssignments.stream()
+            .filter(ra -> ra.getGrantType() == GrantType.EXCLUDED)
+            .map(ra -> ra.getAttributes().get(RoleAttributeDefinition.CASE_ID.value()))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 }

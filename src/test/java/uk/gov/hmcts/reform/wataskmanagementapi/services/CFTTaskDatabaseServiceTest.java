@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -203,19 +204,22 @@ class CFTTaskDatabaseServiceTest {
 
     @Test
     void should_return_empty_list_when_search_not_find_any_task() {
-        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"},
-            new String[]{"*:*:*:hmcts-judiciary:*:r:U:*"}))
-            .thenReturn(List.of());
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        when(accessControlResponse.getRoleAssignments())
-            .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
-
         SearchRequest searchRequest = SearchRequest.builder()
             .jurisdictions(List.of("IA"))
             .locations(List.of("765324"))
             .build();
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        when(taskResourceRepository.searchTasksIds(1, 25,
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest))
+            .thenReturn(List.of());
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlResponse.getRoleAssignments())
+            .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
             accessControlResponse,
             false);
         assertEquals(0, response.getTotalRecords());
@@ -224,7 +228,7 @@ class CFTTaskDatabaseServiceTest {
 
     @Test
     void should_return_task_list_and_count_when_search_find_some_task_and_sort_default_order() {
-        List<String> taskIds = List.of("1", "2");
+        List<String> taskIds = List.of("1");
         List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
             .map(s -> Sort.Order.asc(s.value()))
             .collect(Collectors.toList());
@@ -232,16 +236,26 @@ class CFTTaskDatabaseServiceTest {
         Task task = mock(Task.class);
         List<TaskResource> taskResources = List.of(taskResource);
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("IA"))
+            .locations(List.of("765324"))
+            .build();
+
         when(accessControlResponse.getRoleAssignments())
             .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
-        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"},
-            new String[]{"*:*:*:hmcts-judiciary:*:r:U:*"}))
+        when(taskResourceRepository.searchTasksIds(1, 25,
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest))
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
-        when(taskResourceRepository.searchTasksCount(new String[]{"*:IA:*:*:*:765324"},
-            new String[]{"*:*:*:hmcts-judiciary:*:r:U:*"}))
+        when(taskResourceRepository.searchTasksCount(Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
@@ -249,13 +263,7 @@ class CFTTaskDatabaseServiceTest {
             eq(false)
         )).thenReturn(task);
 
-
-        SearchRequest searchRequest = SearchRequest.builder()
-            .jurisdictions(List.of("IA"))
-            .locations(List.of("765324"))
-            .build();
-
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
             accessControlResponse,
             false);
         assertEquals(1, response.getTotalRecords());
@@ -265,7 +273,7 @@ class CFTTaskDatabaseServiceTest {
 
     @Test
     void should_return_task_list_and_count_when_search_find_some_task_and_sort_request_order() {
-        List<String> taskIds = List.of("1", "2");
+        List<String> taskIds = List.of("1");
         List<Sort.Order> orders = Stream.of(CASE_NAME, MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
             .map(s -> Sort.Order.asc(s.value()))
             .collect(Collectors.toList());
@@ -273,16 +281,27 @@ class CFTTaskDatabaseServiceTest {
         Task task = mock(Task.class);
         List<TaskResource> taskResources = List.of(taskResource);
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("IA"))
+            .locations(List.of("765324"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .build();
+
         when(accessControlResponse.getRoleAssignments())
             .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
-        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"},
-            new String[]{"*:*:*:hmcts-judiciary:*:r:U:*"}))
+        when(taskResourceRepository.searchTasksIds(1, 25,
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest))
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
-        when(taskResourceRepository.searchTasksCount(new String[]{"*:IA:*:*:*:765324"},
-            new String[]{"*:*:*:hmcts-judiciary:*:r:U:*"}))
+        when(taskResourceRepository.searchTasksCount(Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
@@ -290,14 +309,53 @@ class CFTTaskDatabaseServiceTest {
             eq(false)
         )).thenReturn(task);
 
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
+            accessControlResponse,
+            false);
+        assertEquals(1, response.getTotalRecords());
+        assertEquals(1, response.getTasks().size());
+        assertEquals(task, response.getTasks().get(0));
+    }
 
+    @Test
+    void should_return_task_list_and_count_when_search_find_some_task_other_than_from_excluded_case() {
+        List<String> taskIds = List.of("1");
+        List<String> caseIds = List.of("1623278362431003");
+        List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+            .map(s -> Sort.Order.asc(s.value()))
+            .collect(Collectors.toList());
+        TaskResource taskResource = mock(TaskResource.class);
+        Task task = mock(Task.class);
+        List<TaskResource> taskResources = List.of(taskResource);
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         SearchRequest searchRequest = SearchRequest.builder()
             .jurisdictions(List.of("IA"))
             .locations(List.of("765324"))
-            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
             .build();
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        when(accessControlResponse.getRoleAssignments())
+            .thenReturn(roleAssignmentWithStandardGrantType(Classification.PUBLIC));
+
+        when(taskResourceRepository.searchTasksIds(1, 25,
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("IA:1:765324:hmcts-judiciary:*:r:U:*"),
+            caseIds,
+            searchRequest))
+            .thenReturn(taskIds);
+        when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
+            .thenReturn(taskResources);
+        when(taskResourceRepository.searchTasksCount(Set.of("*:IA:*:*:*:765324"),
+            Set.of("IA:1:765324:hmcts-judiciary:*:r:U:*"),
+            caseIds,
+            searchRequest))
+            .thenReturn(1L);
+        when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+            eq(taskResource),
+            anyList(),
+            eq(false)
+        )).thenReturn(task);
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
             accessControlResponse,
             false);
         assertEquals(1, response.getTotalRecords());
