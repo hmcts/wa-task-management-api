@@ -61,6 +61,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @AfterEach
     void tearDown() {
+        taskRoleResourceRepository.deleteAll();
         taskResourceRepository.deleteAll();
     }
 
@@ -162,7 +163,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals(taskId, taskResource.getTaskId()),
             () -> assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeCode().getExecutionCode()),
             () -> assertEquals(SecurityClassification.PUBLIC, taskResource.getSecurityClassification()),
-            () -> assertEquals(CFTTaskState.COMPLETED, taskResource.getState()),
+            () -> assertEquals(CFTTaskState.ASSIGNED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
             () -> assertEquals(ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties()),
@@ -204,6 +205,19 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertFalse(taskRoleResource.getUnassignAssign());
     }
 
+    @Test
+    void given_task_is_created_when_search_by_role_and_filter_signature_then_task_id_is_returned() {
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            taskResourceRepository.save(task);
+        });
+
+        String[] filterSignature = {"*:IA:*:*:1:765324"};
+        String[] roleSignature = {"IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*"};
+
+        List<String> taskIds = taskResourceRepository.searchTasks(filterSignature, roleSignature);
+        assertEquals(taskId, taskIds.get(0));
+    }
 
     private void checkTaskWasSaved(String taskId) {
         assertTrue(taskResourceRepository.getByTaskId(taskId).isPresent());
@@ -222,7 +236,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             "aTaskName",
             "startAppeal",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-            CFTTaskState.COMPLETED,
+            CFTTaskState.ASSIGNED,
             TaskSystem.SELF,
             SecurityClassification.PUBLIC,
             "title",

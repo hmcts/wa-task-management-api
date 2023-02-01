@@ -60,4 +60,14 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
         @Param("priority_date") OffsetDateTime priorityDate
     );
 
+    @Query(value = "SELECT t.task_id "
+                   + "FROM {h-schema}tasks t "
+                   + "WHERE indexed "
+                   + "AND state IN ('ASSIGNED','UNASSIGNED') "
+                   + "AND {h-schema}filter_signatures(t.task_id) && :filter_signature "
+                   + "AND {h-schema}role_signatures(t.task_id) && :role_signature",
+        nativeQuery = true)
+    @Transactional
+    List<String> searchTasks(@Param("filter_signature") String[] filterSignature,
+                             @Param("role_signature") String[] roleSignature);
 }

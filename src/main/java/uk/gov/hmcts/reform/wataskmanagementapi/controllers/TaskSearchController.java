@@ -27,8 +27,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 
 import java.util.Optional;
@@ -116,12 +118,21 @@ public class TaskSearchController extends BaseController {
             accessControlResponse.getUserInfo().getEmail()
         );
 
+        boolean isGranularPermissionEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, isGranularPermissionEnabled);
+
         response = cftQueryService.searchForTasks(
             Optional.ofNullable(firstResult).orElse(0),
             Optional.ofNullable(maxResults).orElse(defaultMaxResults),
-            searchTaskRequest,
+            searchRequest,
             accessControlResponse,
-            granularPermissionResponseFeature
+            granularPermissionResponseFeature,
+            isGranularPermissionEnabled
         );
 
         return ResponseEntity
