@@ -374,7 +374,7 @@ public class GivensBuilder {
             );
 
             // This code is mad next hearing date sortable
-            if (nextHearingDateCounter.get() >10){
+            if (nextHearingDateCounter.get() > 10) {
                 nextHearingDateCounter.set(0);
             }
 
