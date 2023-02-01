@@ -34,9 +34,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
@@ -1311,11 +1313,14 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             )
         );
 
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq, false);
+
         verify(cftQueryService, times(1)).searchForTasks(
             0,
             50,
-            expectedReq,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
     }
@@ -1367,12 +1372,14 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
             )
         );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq, false);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,
             50,
-            expectedReq,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
     }
@@ -1425,12 +1432,14 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             ),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
         );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq, false);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,
             50,
-            expectedReq,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
     }
@@ -1483,12 +1492,14 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             ),
             singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.ASCENDANT))
         );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq, false);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,
             50,
-            expectedReq,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
     }
@@ -1538,11 +1549,14 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             )
         );
 
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq, true);
+
         verify(cftQueryService, times(1)).searchForTasks(
             0,
             50,
-            expectedReq,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
     }

@@ -26,8 +26,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
@@ -343,7 +345,7 @@ class TaskResourceDaoTest {
                 new SortingParameter(SortField.LOCATION_NAME_CAMEL_CASE, SortOrder.DESCENDANT)
             )
         );
-
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
@@ -353,7 +355,7 @@ class TaskResourceDaoTest {
 
         List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
             10,
-            searchTaskRequest,
+            searchRequest,
             roleAssignments,
             permissionsRequired,
             false);
@@ -377,6 +379,8 @@ class TaskResourceDaoTest {
             List.of()
         );
 
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
@@ -386,7 +390,7 @@ class TaskResourceDaoTest {
 
         List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
             10,
-            searchTaskRequest,
+            searchRequest,
             roleAssignments,
             permissionsRequired,
             false);
@@ -409,7 +413,7 @@ class TaskResourceDaoTest {
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, null))
         );
-
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
@@ -419,7 +423,7 @@ class TaskResourceDaoTest {
 
         List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
             10,
-            searchTaskRequest,
+            searchRequest,
             roleAssignments,
             permissionsRequired,
             false);
@@ -442,11 +446,11 @@ class TaskResourceDaoTest {
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
-
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
         when(query.getResultList()).thenReturn(List.of(createTaskResource()));
 
         List<TaskResource> taskResources = taskResourceDao.getTaskResources(
-            searchTaskRequest,
+            searchRequest,
             List.<Object[]>of(createTaskResourceSummary())
         );
 
@@ -494,14 +498,14 @@ class TaskResourceDaoTest {
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
-
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleType(PermissionTypes.READ);
 
         when(countQuery.getSingleResult()).thenReturn(1L);
 
         Long totalCount = taskResourceDao.getTotalCount(
-            searchTaskRequest,
+            searchRequest,
             roleAssignmentWithAllGrantTypes(),
             permissionsRequired,
             false
@@ -547,14 +551,14 @@ class TaskResourceDaoTest {
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
-
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleType(PermissionTypes.READ);
 
         assertThatThrownBy(() -> taskResourceDao.getTaskResourceSummary(
             0,
             0,
-            searchTaskRequest,
+            searchRequest,
             roleAssignmentWithAllGrantTypes(),
             permissionsRequired,
             false
@@ -576,14 +580,14 @@ class TaskResourceDaoTest {
             ),
             List.of()
         );
-
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleType(PermissionTypes.READ);
 
         assertThatThrownBy(() -> taskResourceDao.getTaskResourceSummary(
             -1,
             25,
-            searchTaskRequest,
+            searchRequest,
             roleAssignmentWithAllGrantTypes(),
             permissionsRequired,
             false
