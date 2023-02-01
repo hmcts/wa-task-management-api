@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
@@ -52,6 +53,7 @@ public class GivensBuilder {
     private final AuthorizationProvider authorizationProvider;
     private final DocumentManagementFiles documentManagementFiles;
 
+    private final AtomicInteger nextHearingDateCounter = new AtomicInteger();
     private final CcdRetryableClient ccdRetryableClient;
 
 
@@ -368,8 +370,13 @@ public class GivensBuilder {
 
             caseDataString = caseDataString.replace(
                 "{NEXT_HEARING_DATE}",
-                OffsetDateTime.now().plusHours((int) (Math.random() * 10)).toString()
+                OffsetDateTime.now().plusMinutes(nextHearingDateCounter.incrementAndGet()).toString()
             );
+
+            // This code is mad next hearing date sortable
+            if (nextHearingDateCounter.get() >10){
+                nextHearingDateCounter.set(0);
+            }
 
             caseDataString = caseDataString.replace(
                 "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
