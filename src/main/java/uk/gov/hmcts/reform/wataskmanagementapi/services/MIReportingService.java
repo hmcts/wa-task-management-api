@@ -169,7 +169,7 @@ public class MIReportingService {
         String subscriptionUrl;
         if ("5432".equals(port)) {
             //hard coded host for local environment, will need fixing when we move to remote environments
-            subscriptionUrl = "postgresql://" + "ccd-shared-database-0" + ":" + port + "/" + dbName
+            subscriptionUrl = "postgresql://" + host + ":" + port + "/" + dbName
                 + "?user=" + user + "&password=" + password;
         } else {
             //this is hard coded for integration test locally
