@@ -528,9 +528,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
         transactionHelper.doInNewTransaction(() -> {
             task.setIndexed(true);
-            createdTask.setIndexed(true);
             taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
         });
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324", "*:WA:*:*:1:765324");
