@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskType;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskTypeResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskTypeResponse;
 
 import java.util.List;
 
@@ -55,5 +55,5 @@ class GetTaskTypesResponseTest {
             .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
-    
+
 }

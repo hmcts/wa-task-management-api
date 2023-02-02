@@ -3,10 +3,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.WorkTypeQuerySpecification;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.WorkTypeResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.WorkTypeResourceRepository;
 
 import java.util.List;
 import java.util.Optional;

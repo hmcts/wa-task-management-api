@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.enums;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
