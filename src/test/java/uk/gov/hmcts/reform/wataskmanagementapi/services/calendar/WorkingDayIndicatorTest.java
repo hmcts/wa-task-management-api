@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollection;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.WorkingDayIndicator;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

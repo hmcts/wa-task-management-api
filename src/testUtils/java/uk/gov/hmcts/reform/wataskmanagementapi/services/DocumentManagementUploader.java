@@ -10,7 +10,7 @@ import uk.gov.hmcts.reform.document.DocumentUploadClientApi;
 import uk.gov.hmcts.reform.document.domain.UploadResponse;
 import uk.gov.hmcts.reform.document.utils.InMemoryMultipartFile;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.documents.Document;
 
 import java.io.IOException;
 import java.util.Collections;

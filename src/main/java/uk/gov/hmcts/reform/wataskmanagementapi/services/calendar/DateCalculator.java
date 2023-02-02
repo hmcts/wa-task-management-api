@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

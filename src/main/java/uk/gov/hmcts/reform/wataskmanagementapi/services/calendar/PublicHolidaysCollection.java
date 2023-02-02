@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.BankHolidays;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceInvalidException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceNotFoundException;
 

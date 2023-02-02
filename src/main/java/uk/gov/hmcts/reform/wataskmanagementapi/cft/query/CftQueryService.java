@@ -9,14 +9,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
@@ -32,17 +32,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_TYPE;
 
 @Slf4j
 @Service
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
 public class CftQueryService {
-    public static final List<String> ALLOWED_WORK_TYPES = List.of(
-        "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
-        "applications", "priority", "access_requests", "error_management",
-        "review_case", "evidence", "follow_up"
-    );
 
     private final CamundaService camundaService;
     private final CFTTaskMapper cftTaskMapper;

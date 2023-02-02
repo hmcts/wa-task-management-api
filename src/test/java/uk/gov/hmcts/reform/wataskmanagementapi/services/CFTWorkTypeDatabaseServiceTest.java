@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.WorkTypeResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.WorkTypeResourceRepository;
 
 import java.util.List;
 import java.util.Optional;

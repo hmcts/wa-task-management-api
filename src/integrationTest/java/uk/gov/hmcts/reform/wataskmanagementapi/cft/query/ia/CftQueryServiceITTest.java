@@ -32,15 +32,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfigu
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterBoolean;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
@@ -58,12 +58,12 @@ import javax.persistence.EntityManager;
 import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.USER;
 
 @ActiveProfiles("integration")
 @DataJpaTest

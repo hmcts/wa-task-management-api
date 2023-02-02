@@ -20,9 +20,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 

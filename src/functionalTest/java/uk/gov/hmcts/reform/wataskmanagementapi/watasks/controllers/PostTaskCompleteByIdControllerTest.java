@@ -10,8 +10,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,7 +22,7 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -453,7 +453,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         initiateTask(taskVariables2);
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
-        
+
         String taskId1 = taskVariables1.getTaskId();
         Response result1 = restApiActions.post(
             CLAIM_ENDPOINT,

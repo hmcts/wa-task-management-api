@@ -2,9 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DueDateIntervalData;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,8 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS;
 
 @Slf4j
 @Component

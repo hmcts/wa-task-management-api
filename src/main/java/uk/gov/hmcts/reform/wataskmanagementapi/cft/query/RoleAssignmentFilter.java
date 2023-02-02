@@ -11,9 +11,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentForSearch;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
