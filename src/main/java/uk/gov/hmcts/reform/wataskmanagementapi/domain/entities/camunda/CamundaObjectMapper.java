@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -16,7 +16,7 @@ public class CamundaObjectMapper {
 
     public CamundaObjectMapper() {
         //Hide constructor
-        this.defaultMapper = new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        this.defaultMapper = new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         this.camundaMapper = new ObjectMapper();
     }
 
