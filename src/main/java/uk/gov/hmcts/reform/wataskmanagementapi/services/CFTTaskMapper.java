@@ -578,7 +578,7 @@ public class CFTTaskMapper {
         }
     }
 
-    private static OffsetDateTime mapDate(Object value) {
+    public static OffsetDateTime mapDate(Object value) {
         if (Objects.isNull(value) || value instanceof String && Strings.isBlank((String) value)) {
             return null;
         }

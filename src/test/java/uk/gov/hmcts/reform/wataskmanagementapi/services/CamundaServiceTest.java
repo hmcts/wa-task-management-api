@@ -718,11 +718,11 @@ class CamundaServiceTest extends CamundaHelpers {
             );
 
             assertThatThrownBy(() ->
-                                   camundaService.assignAndCompleteTask(
-                                       taskId,
-                                       IDAM_USER_ID,
-                                       taskHasUnassigned
-                                   ))
+                camundaService.assignAndCompleteTask(
+                    taskId,
+                    IDAM_USER_ID,
+                    taskHasUnassigned
+                ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: "
@@ -743,11 +743,11 @@ class CamundaServiceTest extends CamundaHelpers {
             );
 
             assertThatThrownBy(() ->
-                                   camundaService.assignAndCompleteTask(
-                                       taskId,
-                                       IDAM_USER_ID,
-                                       taskHasUnassigned
-                                   ))
+                camundaService.assignAndCompleteTask(
+                    taskId,
+                    IDAM_USER_ID,
+                    taskHasUnassigned
+                ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: Unable to assign the Task to the current user.");
@@ -762,11 +762,11 @@ class CamundaServiceTest extends CamundaHelpers {
                 .when(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
 
             assertThatThrownBy(() ->
-                                   camundaService.assignAndCompleteTask(
-                                       taskId,
-                                       IDAM_USER_ID,
-                                       taskHasUnassigned
-                                   ))
+                camundaService.assignAndCompleteTask(
+                    taskId,
+                    IDAM_USER_ID,
+                    taskHasUnassigned
+                ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: "
@@ -842,6 +842,46 @@ class CamundaServiceTest extends CamundaHelpers {
                 .isInstanceOf(ServerErrorException.class)
                 .hasCauseInstanceOf(FeignException.class)
                 .hasMessage("There was a problem evaluating DMN");
+
+        }
+
+        @Test
+        void should_trim_dmn_response() {
+
+            SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+                "someCaseId",
+                "someEventId",
+                "wa",
+                "wacasetype"
+            );
+
+            List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+                "key1", new CamundaVariable("value1, value2", "String"),
+                "key2", new CamundaVariable("value1, value2,value3, value4 ", "String")
+            ));
+
+            List<Map<String, CamundaVariable>> expectedResponse = asList(Map.of(
+                "key1", new CamundaVariable("value1,value2", "String"),
+                "key2", new CamundaVariable("value1,value2,value3,value4", "String")
+            ));
+
+            when(camundaServiceApi.evaluateDMN(
+                eq(BEARER_SERVICE_TOKEN),
+                eq("wa-task-completion-wa-wacasetype"),
+                eq("wa"),
+                anyMap()
+            )).thenReturn(mockedResponse);
+
+            List<Map<String, CamundaVariable>> actualResponse =
+                camundaService.evaluateTaskCompletionDmn(searchEventAndCase);
+
+            Map<String, CamundaVariable> expectedMap = expectedResponse.get(0);
+            Map<String, CamundaVariable> actualMap = actualResponse.get(0);
+            assertTrue(
+                expectedMap.entrySet().stream()
+                    .allMatch(entry -> expectedMap.get(entry.getKey()).getValue()
+                        .equals(actualMap.get(entry.getKey()).getValue()))
+            );
 
         }
     }
