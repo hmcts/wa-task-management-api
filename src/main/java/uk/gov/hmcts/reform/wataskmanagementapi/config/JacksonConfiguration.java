@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -42,7 +42,7 @@ public class JacksonConfiguration {
         module.addDeserializer(SearchParameter.class, searchRequestCustomDeserializer);
 
         return new Jackson2ObjectMapperBuilder()
-            .propertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .serializationInclusion(JsonInclude.Include.NON_ABSENT)
             .featuresToEnable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .featuresToEnable(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
