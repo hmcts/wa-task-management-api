@@ -47,7 +47,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
 
     protected ConfigurationDmnEvaluationResponse calculateDate(
         DateType dateType, DateTypeIntervalData dateTypeIntervalData) {
-        LocalDateTime dueDate = getCalculatedRefElseOriginDate(dateTypeIntervalData);
+        LocalDateTime dueDate = getReferenceDateForCalculation(dateTypeIntervalData);
 
         LocalDate localDate = dueDate.toLocalDate();
         if (dateTypeIntervalData.isDateTypeSkipNonWorkingDays()) {
@@ -94,11 +94,16 @@ public class DueDateIntervalCalculator implements DateCalculator {
             .build();
     }
 
-    private static LocalDateTime getCalculatedRefElseOriginDate(DateTypeIntervalData dateTypeIntervalData) {
+    private static LocalDateTime getReferenceDateForCalculation(DateTypeIntervalData dateTypeIntervalData) {
         LocalDateTime calculatedRefDate = dateTypeIntervalData.getCalculatedRefDate();
-        return Optional.ofNullable(calculatedRefDate).isPresent()
-            ? calculatedRefDate
-            : LocalDateTime.parse(dateTypeIntervalData.getDateTypeOrigin(), DATE_TIME_FORMATTER);
+        LocalDateTime calculatedEarliestDate = dateTypeIntervalData.getCalculatedEarliestDate();
+        if (Optional.ofNullable(calculatedRefDate).isPresent()) {
+            return calculatedRefDate;
+        } else if (Optional.ofNullable(calculatedEarliestDate).isPresent()) {
+            return calculatedEarliestDate;
+        } else {
+            return LocalDateTime.parse(dateTypeIntervalData.getDateTypeOrigin(), DATE_TIME_FORMATTER);
+        }
     }
 
     protected DateTypeIntervalData readDateTypeOriginFields(
