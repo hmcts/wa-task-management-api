@@ -71,6 +71,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_MANAGEMENT_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
@@ -611,7 +612,7 @@ class CFTTaskMapperTest {
             asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("  Read , Refer , Own , Manage , Cancel   "),
                     stringValue("IA,WA"),
                     integerValue(2),
                     booleanValue(true),
@@ -678,6 +679,44 @@ class CFTTaskMapperTest {
         assertEquals("LEGAL_OPERATIONS", actualRoleResources.get(2).getRoleCategory());
         assertNull(taskResource.getNextHearingId());
         assertNull(taskResource.getNextHearingDate());
+    }
+
+    @Test
+    void should_throw_exception_when_permission_type_enum_is_not_mapped() {
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(CASE_ID.value(), "otherCaseId");
+        mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
+        mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
+
+        List<PermissionsDmnEvaluationResponse> permissionsDmnEvaluationResponses =
+            asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("senior-tribunal-caseworker"),
+                    stringValue(" Read , Refer,Own,Manage, somePermissionType"),
+                    null,
+                    null,
+                    null,
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            );
+
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        assertThatThrownBy(() -> cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses
+            )
+        )).isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Invalid Permission Type:somePermissionType")
+            .hasNoCause();
     }
 
     @Test
