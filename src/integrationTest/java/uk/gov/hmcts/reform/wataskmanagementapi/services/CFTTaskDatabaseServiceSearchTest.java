@@ -646,7 +646,6 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
                     .baseLocation("765325")
                     .build()
             )
-            .authorisations(List.of("skill2"))
             .build();
 
         createRoleAssignment(roleAssignments, roleAssignmentRequest);
@@ -681,34 +680,6 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
-
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_LEGAL)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(WA_JURISDICTION)
-                    .baseLocation(PRIMARY_LOCATION)
-                    .region("1")
-                    .caseId("1623278362400044")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
-
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_LEGAL)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(WA_JURISDICTION)
-                    .baseLocation(PRIMARY_LOCATION)
-                    .region("1")
-                    .caseId("1623278362400045")
                     .build()
             )
             .build();

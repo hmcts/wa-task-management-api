@@ -610,6 +610,88 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertEquals("caseCategoryB", tasksResult.get(2).getCaseCategory());
     }
 
+    @Test
+    void given_task_is_created_when_count_by_role_signature_then_correct_count_returned() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2);
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        String[] filterSignature = {"*:IA:*:*:1:765324"};
+        //String[] roleSignature = {"IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*"};
+
+        Long taskCount = taskResourceRepository.searchTasksCount(filterSignature);
+        assertEquals(2, taskCount);
+    }
+
+    @Test
+    void given_multiple_tasks_created_when_find_by_task_ids_then_return_ordered_task_list() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2);
+        createdTask.setCaseName("TestCaseB");
+
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        Sort sort = Sort.by(Sort.Order.asc("caseName"));
+        List<TaskResource> tasksResult = taskResourceRepository.findAllByTaskIdIn(List.of(taskId), sort);
+        assertEquals(1, tasksResult.size());
+
+        sort = Sort.by(Sort.Order.asc("caseName"));
+        tasksResult = taskResourceRepository.findAllByTaskIdIn(List.of(taskId, taskId2), sort);
+        assertEquals(2, tasksResult.size());
+        assertEquals(taskId, tasksResult.get(0).getTaskId());
+        assertEquals(taskId2, tasksResult.get(1).getTaskId());
+        assertEquals("TestCaseA", tasksResult.get(0).getCaseName());
+        assertEquals("TestCaseB", tasksResult.get(1).getCaseName());
+
+        sort = Sort.by(Sort.Order.desc("caseName"));
+        tasksResult = taskResourceRepository.findAllByTaskIdIn(List.of(taskId, taskId2), sort);
+        assertEquals(2, tasksResult.size());
+        assertEquals(taskId2, tasksResult.get(0).getTaskId());
+        assertEquals(taskId, tasksResult.get(1).getTaskId());
+        assertEquals("TestCaseB", tasksResult.get(0).getCaseName());
+        assertEquals("TestCaseA", tasksResult.get(1).getCaseName());
+    }
+
+    @Test
+    void given_multiple_tasks_created_when_find_task_with_multiple_order_filed_then_return_ordered_task_list() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2);
+        createdTask.setCaseName("TestCaseB");
+        createdTask.setCaseCategory("caseCategoryB");
+
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        String taskId3 = UUID.randomUUID().toString();
+        TaskResource createdTask2 = createTask(taskId3);
+        createdTask2.setCaseName("TestCaseB");
+        createdTask2.setCaseCategory("caseCategoryC");
+
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask2));
+
+        Sort sort = Sort.by(Sort.Order.asc("caseName"),
+            Sort.Order.desc("caseCategory"));
+        List<TaskResource> tasksResult = taskResourceRepository.findAllByTaskIdIn(List.of(taskId, taskId2, taskId3),
+            sort);
+
+        assertEquals(3, tasksResult.size());
+        assertEquals(taskId, tasksResult.get(0).getTaskId());
+        assertEquals(taskId3, tasksResult.get(1).getTaskId());
+        assertEquals(taskId2, tasksResult.get(2).getTaskId());
+        assertEquals("TestCaseA", tasksResult.get(0).getCaseName());
+        assertEquals("TestCaseB", tasksResult.get(1).getCaseName());
+        assertEquals("TestCaseB", tasksResult.get(2).getCaseName());
+        assertEquals("caseCategoryA", tasksResult.get(0).getCaseCategory());
+        assertEquals("caseCategoryC", tasksResult.get(1).getCaseCategory());
+        assertEquals("caseCategoryB", tasksResult.get(2).getCaseCategory());
+    }
+
     private void checkTaskWasSaved(String taskId) {
         assertTrue(taskResourceRepository.getByTaskId(taskId).isPresent());
     }
