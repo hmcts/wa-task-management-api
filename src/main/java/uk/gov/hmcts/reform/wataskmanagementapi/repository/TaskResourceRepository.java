@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
@@ -31,6 +32,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     Optional<TaskResource> getByTaskId(String id);
 
     List<TaskResource> getByCaseId(String caseId);
+
+    List<TaskResource> findAllByTaskIdIn(List<String> taskIds, Sort order);
 
     List<TaskResource> findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(
         List<String> caseIds, List<CFTTaskState> states);
@@ -64,10 +67,21 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
                    + "FROM {h-schema}tasks t "
                    + "WHERE indexed "
                    + "AND state IN ('ASSIGNED','UNASSIGNED') "
-                   + "AND {h-schema}filter_signatures(t.task_id) && :filter_signature "
-                   + "AND {h-schema}role_signatures(t.task_id) && :role_signature",
+                   + "AND {h-schema}filter_signatures(t.task_id) && :filter_signature ",
+        //+ "AND {h-schema}role_signatures(t.task_id) && :role_signature",
         nativeQuery = true)
     @Transactional
-    List<String> searchTasks(@Param("filter_signature") String[] filterSignature,
-                             @Param("role_signature") String[] roleSignature);
+    List<String> searchTasksIds(@Param("filter_signature") String[] filterSignature);
+    //@Param("role_signature") String[] roleSignature
+
+    @Query(value = "SELECT count(*) "
+                   + "FROM {h-schema}tasks t "
+                   + "WHERE indexed "
+                   + "AND state IN ('ASSIGNED','UNASSIGNED') "
+                   + "AND {h-schema}filter_signatures(t.task_id) && :filter_signature ",
+        //+ "AND {h-schema}role_signatures(t.task_id) && :role_signature",
+        nativeQuery = true)
+    @Transactional
+    Long searchTasksCount(@Param("filter_signature") String[] filterSignature);
+    //@Param("role_signature") String[] roleSignature
 }

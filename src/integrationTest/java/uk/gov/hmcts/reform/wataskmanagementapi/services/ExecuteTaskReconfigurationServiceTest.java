@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,11 +35,13 @@ public class ExecuteTaskReconfigurationServiceTest {
     private TaskAutoAssignmentService taskAutoAssignmentService;
     @Autowired
     TaskResourceRepository taskResourceRepository;
+
     private ExecuteTaskReconfigurationService executeTaskReconfigurationService;
 
     @BeforeEach
     void setUp() {
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository,cftTaskMapper);
         executeTaskReconfigurationService = new ExecuteTaskReconfigurationService(
             cftTaskDatabaseService,
             configureTaskService,

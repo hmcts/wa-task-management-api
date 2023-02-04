@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
@@ -240,6 +241,7 @@ public class TaskResourceSpecificationTest {
         );
 
         verify(criteriaBuilder, times(7)).equal(any(), anyString());
+        verify(criteriaBuilder, times(1)).equal(any(), any(CFTTaskState.class));
     }
 
     @Test
@@ -263,6 +265,7 @@ public class TaskResourceSpecificationTest {
         );
 
         verify(criteriaBuilder, times(8)).equal(any(), anyString());
+        verify(criteriaBuilder, times(1)).equal(any(), any(CFTTaskState.class));
     }
 
     @Test
@@ -289,7 +292,7 @@ public class TaskResourceSpecificationTest {
         );
 
         verify(criteriaBuilder, times(8)).equal(any(), anyString());
-
+        verify(criteriaBuilder, times(1)).equal(any(), any(CFTTaskState.class));
     }
 
     @Test
