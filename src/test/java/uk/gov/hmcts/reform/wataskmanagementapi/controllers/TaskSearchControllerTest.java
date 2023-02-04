@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.util.List;
 import java.util.Optional;
@@ -59,6 +60,8 @@ class TaskSearchControllerTest {
     @Mock
     private CftQueryService cftQueryService;
     @Mock
+    private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     private TaskSearchController taskSearchController;
@@ -69,6 +72,7 @@ class TaskSearchControllerTest {
         taskSearchController = new TaskSearchController(
             accessControlService,
             cftQueryService,
+            cftTaskDatabaseService,
             launchDarklyFeatureFlagProvider
         );
     }

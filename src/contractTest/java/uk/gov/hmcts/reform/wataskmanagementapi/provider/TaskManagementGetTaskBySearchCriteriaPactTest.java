@@ -50,6 +50,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         testTarget.setControllers(new TaskSearchController(
             accessControlService,
             cftQueryService,
+            cftTaskDatabaseService,
             launchDarklyFeatureFlagProvider
         ));
 

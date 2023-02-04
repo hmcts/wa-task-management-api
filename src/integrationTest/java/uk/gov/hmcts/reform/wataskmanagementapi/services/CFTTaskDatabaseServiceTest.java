@@ -20,12 +20,14 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     TaskResourceRepository taskResourceRepository;
+    @Autowired
+    CFTTaskMapper cftTaskMapper;
 
     CFTTaskDatabaseService cftTaskDatabaseService;
 
     @BeforeEach
     void setUp() {
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
+        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
     }
 
     @Test

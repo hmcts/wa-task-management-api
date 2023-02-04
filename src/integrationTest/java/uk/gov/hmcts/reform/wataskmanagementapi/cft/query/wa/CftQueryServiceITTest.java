@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.wa;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,6 +73,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/search_tasks_data.sql")
+@Slf4j
 public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
@@ -1994,6 +1996,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "searchByTaskTypeScenario"
     })
     void should_retrieve_tasks(TaskQueryScenario scenario) {
+        log.info("Running scenario: {}", scenario.scenarioName);
 
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
