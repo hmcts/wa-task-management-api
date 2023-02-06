@@ -169,7 +169,8 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchEventAndCase))
+                    .content("{\"case_id\":\"some-caseId\",\"event_id\":\"decideAnApplication\","
+                                 + "\"case_jurisdiction\":\"ia\",\"case_type\":\"asylum\"}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
