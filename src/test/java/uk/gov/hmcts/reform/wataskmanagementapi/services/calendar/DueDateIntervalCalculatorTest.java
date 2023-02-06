@@ -432,7 +432,7 @@ class DueDateIntervalCalculatorTest {
         String expectedDueDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T16:00");
+        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T20:00");
     }
 
     @Test
@@ -450,7 +450,7 @@ class DueDateIntervalCalculatorTest {
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T16:00");
+        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T20:00");
     }
 
     @Test

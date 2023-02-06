@@ -47,7 +47,8 @@ public class DueDateIntervalCalculator implements DateCalculator {
     protected ConfigurationDmnEvaluationResponse calculateDate(
         DateType dateType, DateTypeIntervalData dateTypeIntervalData) {
 
-        LocalDate referenceDate = getReferenceDateForCalculation(dateTypeIntervalData).toLocalDate();
+        LocalDateTime baseReferenceDate = getReferenceDateForCalculation(dateTypeIntervalData);
+        LocalDate referenceDate = baseReferenceDate.toLocalDate();
         if (dateTypeIntervalData.isDateTypeSkipNonWorkingDays()) {
 
             for (int counter = 0; counter < dateTypeIntervalData.getDateTypeIntervalDays(); counter++) {
@@ -83,13 +84,27 @@ public class DueDateIntervalCalculator implements DateCalculator {
             }
         }
 
-        LocalDateTime dateTime = referenceDate.atTime(LocalTime.parse(dateTypeIntervalData.getDateTypeTime()));
+        LocalDateTime calculateIntervalTime = calculateIntervalTime(dateTypeIntervalData.getDateTypeTime(),
+                                                       baseReferenceDate, referenceDate);
 
         return ConfigurationDmnEvaluationResponse
             .builder()
             .name(CamundaValue.stringValue(dateType.getType()))
-            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateTime)))
+            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(calculateIntervalTime)))
             .build();
+    }
+
+    private static LocalDateTime calculateIntervalTime(
+        String dateTypeTime, LocalDateTime baseReferenceDate, LocalDate referenceDate) {
+        LocalTime baseReferenceTime = baseReferenceDate.toLocalTime();
+        LocalDateTime dateTime = referenceDate.atTime(baseReferenceTime);
+
+        if (Optional.ofNullable(dateTypeTime).isPresent()) {
+            dateTime = referenceDate.atTime(LocalTime.parse(dateTypeTime));
+        } else if (dateTime.getHour() == 0) {
+            dateTime = referenceDate.atTime(LocalTime.parse(DEFAULT_DATE_TIME));
+        }
+        return dateTime;
     }
 
     private static LocalDateTime getReferenceDateForCalculation(DateTypeIntervalData dateTypeIntervalData) {
@@ -165,7 +180,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
                               .reduce((a, b) -> b)
                               .map(ConfigurationDmnEvaluationResponse::getValue)
                               .map(CamundaValue::getValue)
-                              .orElse(DEFAULT_DATE_TIME))
+                              .orElse(null))
             .build();
     }
 }

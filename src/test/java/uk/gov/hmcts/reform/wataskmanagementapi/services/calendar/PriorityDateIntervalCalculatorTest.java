@@ -433,7 +433,7 @@ class PriorityDateIntervalCalculatorTest {
         String expectedPriorityDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T16:00");
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T20:00");
     }
 
     @Test
@@ -451,7 +451,7 @@ class PriorityDateIntervalCalculatorTest {
 
         String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T16:00");
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T20:00");
     }
 
     @Test

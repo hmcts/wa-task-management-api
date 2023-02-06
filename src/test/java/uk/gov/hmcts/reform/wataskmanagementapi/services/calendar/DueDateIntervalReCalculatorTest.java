@@ -39,35 +39,35 @@ class DueDateIntervalReCalculatorTest {
     private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0() {
         return Stream.of(
             new ConfigurableScenario(true, GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00")
+            new ConfigurableScenario(false, GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T20:00")
         );
     }
 
     private static Stream<ConfigurableScenario> getConfigurablesWithoutDueDate() {
         return Stream.of(
-            new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T16:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00")
+            new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T20:00")
         );
     }
 
     private static Stream<ConfigurableScenario> getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
         return Stream.of(
             new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T18:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00")
+            new ConfigurableScenario(false, GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T20:00")
         );
     }
 
     private static Stream<ConfigurableScenario> getConfigurablesSkipNonWorkingDaysFalse() {
         return Stream.of(
             new ConfigurableScenario(true, GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00")
+            new ConfigurableScenario(false, GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T20:00")
         );
     }
 
     private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0AndGivenHolidays() {
         return Stream.of(
             new ConfigurableScenario(true, GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00")
+            new ConfigurableScenario(false, GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T20:00")
         );
     }
 
@@ -94,7 +94,7 @@ class DueDateIntervalReCalculatorTest {
     @ParameterizedTest
     @CsvSource({
         "true, T18:00",
-        "false, T16:00"
+        "false, T20:00"
     })
     void shouldCalculateWhenDefaultValueProvided(String configurable, String time) {
         boolean isConfigurable = Boolean.parseBoolean(configurable);
@@ -447,13 +447,13 @@ class DueDateIntervalReCalculatorTest {
 
         String expectedDueDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        assertThat(resultDate).isEqualTo(expectedDueDate + "T16:00");
+        assertThat(resultDate).isEqualTo(expectedDueDate + "T20:00");
     }
 
     @ParameterizedTest
     @CsvSource({
         "true, T18:00",
-        "false, T16:00"
+        "false, T20:00"
     })
     void shouldCalculateWhenOnlyDueDateOriginAndTimeProvided(String configurable, String time) {
         boolean isConfigurable = Boolean.parseBoolean(configurable);

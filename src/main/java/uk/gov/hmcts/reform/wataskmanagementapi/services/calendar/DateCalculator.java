@@ -78,8 +78,7 @@ public interface DateCalculator {
             .orElse(null);
     }
 
-    default LocalDateTime addTimeToDate(
-        ConfigurationDmnEvaluationResponse dueDateTimeResponse, LocalDateTime date) {
+    default LocalDateTime addTimeToDate(ConfigurationDmnEvaluationResponse dueDateTimeResponse, LocalDateTime date) {
         String dueDateTime = dueDateTimeResponse.getValue().getValue();
         return useDateTime(date, dueDateTime);
     }

@@ -104,7 +104,7 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
                               .reduce((a, b) -> b)
                               .map(ConfigurationDmnEvaluationResponse::getValue)
                               .map(CamundaValue::getValue)
-                              .orElse(DEFAULT_DATE_TIME))
+                              .orElse(null))
             .build();
     }
 }

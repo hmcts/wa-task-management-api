@@ -433,7 +433,7 @@ class NextHearingDateIntervalCalculatorTest {
         String expectedNextHearingDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        assertThat(resultDate).isEqualTo(expectedNextHearingDate + "T16:00");
+        assertThat(resultDate).isEqualTo(expectedNextHearingDate + "T20:00");
     }
 
     @Test
@@ -451,7 +451,7 @@ class NextHearingDateIntervalCalculatorTest {
 
         String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        assertThat(resultDate).isEqualTo(expectedNextHearingDate + "T16:00");
+        assertThat(resultDate).isEqualTo(expectedNextHearingDate + "T20:00");
     }
 
     @Test

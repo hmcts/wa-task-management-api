@@ -44,7 +44,7 @@ class PriorityDateIntervalReCalculatorTest {
             ),
             new ConfigurableScenario(
                 false,
-                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
+                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T20:00"
             )
         );
     }
@@ -53,11 +53,11 @@ class PriorityDateIntervalReCalculatorTest {
         return Stream.of(
             new ConfigurableScenario(
                 true,
-                GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T16:00"
+                GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"
             ),
             new ConfigurableScenario(
                 false,
-                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
+                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T20:00"
             )
         );
     }
@@ -70,7 +70,7 @@ class PriorityDateIntervalReCalculatorTest {
             ),
             new ConfigurableScenario(
                 false,
-                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
+                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T20:00"
             )
         );
     }
@@ -83,7 +83,7 @@ class PriorityDateIntervalReCalculatorTest {
             ),
             new ConfigurableScenario(
                 false,
-                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
+                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T20:00"
             )
         );
     }
@@ -96,7 +96,7 @@ class PriorityDateIntervalReCalculatorTest {
             ),
             new ConfigurableScenario(
                 false,
-                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
+                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T20:00"
             )
         );
     }
@@ -125,7 +125,7 @@ class PriorityDateIntervalReCalculatorTest {
     @ParameterizedTest
     @CsvSource({
         "true, T18:00",
-        "false, T16:00"
+        "false, T20:00"
     })
     void shouldCalculateWhenDefaultValueProvided(String configurable, String time) {
         boolean isConfigurable = Boolean.parseBoolean(configurable);
@@ -527,13 +527,13 @@ class PriorityDateIntervalReCalculatorTest {
 
         String expectedPriorityDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T16:00");
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T20:00");
     }
 
     @ParameterizedTest
     @CsvSource({
         "true, T18:00",
-        "false, T16:00"
+        "false, T20:00"
     })
     void shouldCalculateWhenOnlyPriorityDateOriginAndTimeProvided(String configurable, String time) {
         boolean isConfigurable = Boolean.parseBoolean(configurable);
