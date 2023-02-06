@@ -84,6 +84,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.buildTaskActionAttributeForAssign;
@@ -226,7 +228,9 @@ public class TaskManagementService {
     private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
         task.setLastUpdatedTimestamp(OffsetDateTime.now());
         task.setLastUpdatedUser(userId);
-        task.setLastUpdatedAction(action.getValue());
+        if (action != null) {
+            task.setLastUpdatedAction(action.getValue());
+        }
     }
 
     /**
@@ -753,6 +757,19 @@ public class TaskManagementService {
             task.setTerminationReason(terminateInfo.getTerminateReason());
             //Perform Camunda updates
             camundaService.deleteCftTaskState(taskId);
+
+            switch (terminateInfo.getTerminateReason()) {
+                case "cancelled":
+                    setSystemUserTaskActionAttributes(task, AUTO_CANCEL);
+                    break;
+                case "completed":
+                    setSystemUserTaskActionAttributes(task, TERMINATE);
+                    break;
+                default:
+                    setSystemUserTaskActionAttributes(task, null);
+                    break;
+            }
+
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
         }
@@ -792,10 +809,14 @@ public class TaskManagementService {
             noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
         }
         taskResource.setHasWarnings(true);
+        setSystemUserTaskActionAttributes(taskResource, ADD_WARNING);
+        return cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private void setSystemUserTaskActionAttributes(TaskResource taskResource, TaskAction taskAction) {
         String systemUserToken = idamTokenGenerator.generate();
         String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
-        setTaskActionAttributes(taskResource, systemUserId, ADD_WARNING);
-        return cftTaskDatabaseService.saveTask(taskResource);
+        setTaskActionAttributes(taskResource, systemUserId, taskAction);
     }
 
     public Optional<TaskResource> getTaskById(String taskId) {
