@@ -56,8 +56,8 @@ public interface DateCalculator {
                      boolean isReconfigureRequest);
 
     ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType);
+        DateType dateType,
+        List<ConfigurationDmnEvaluationResponse> configResponses);
 
     default ConfigurationDmnEvaluationResponse getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
@@ -110,12 +110,6 @@ public interface DateCalculator {
             .with(ChronoField.MINUTE_OF_HOUR, Long.parseLong(split.get(1)))
             .with(ChronoField.SECOND_OF_MINUTE, 0)
             .with(ChronoField.NANO_OF_SECOND, 0);
-    }
-
-    default String getConfigurationValue(ConfigurationDmnEvaluationResponse response, boolean isReconfigureRequest) {
-        return isReconfigureRequest && response.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE
-            ? null
-            : response.getValue().getValue();
     }
 
     default Optional<LocalDateTime> getOriginRefDate(

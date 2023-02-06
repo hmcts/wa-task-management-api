@@ -155,7 +155,7 @@ class DueDateTimeReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String responseValue = dueDateTimeCalculator.calculateDate(evaluationResponses, DUE_DATE).getValue().getValue();
+        String responseValue = dueDateTimeCalculator.calculateDate(DUE_DATE, evaluationResponses).getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + "T16:00");
     }
 
@@ -178,7 +178,7 @@ class DueDateTimeReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateTime2);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String responseValue = dueDateTimeCalculator.calculateDate(evaluationResponses, DUE_DATE).getValue().getValue();
+        String responseValue = dueDateTimeCalculator.calculateDate(DUE_DATE, evaluationResponses).getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + "T20:00");
     }
 }

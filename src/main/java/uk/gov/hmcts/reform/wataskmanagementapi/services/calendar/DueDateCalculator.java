@@ -28,8 +28,7 @@ public class DueDateCalculator implements DateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType) {
+            DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         var dueDateResponse = getProperty(configResponses, DUE_DATE.getType());
         var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME);
         return calculatedDate(dateType, dueDateResponse, dueDateTimeResponse);

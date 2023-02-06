@@ -33,8 +33,7 @@ public class DueDateOriginRefReCalculator extends DueDateIntervalCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType) {
+        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         ConfigurationDmnEvaluationResponse originRefResponse
             = getReConfigurableProperty(configResponses, DUE_DATE_ORIGIN_REF);
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(configResponses, originRefResponse);

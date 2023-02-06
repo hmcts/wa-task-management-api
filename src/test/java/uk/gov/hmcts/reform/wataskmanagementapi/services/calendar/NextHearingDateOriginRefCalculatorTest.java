@@ -99,7 +99,7 @@ class NextHearingDateOriginRefCalculatorTest {
         );
 
         assertThat(nextHearingDateOriginRefCalculator
-                .supports(evaluationResponses, NEXT_HEARING_DATE, false)).isFalse();
+                       .supports(evaluationResponses, NEXT_HEARING_DATE, false)).isFalse();
     }
 
     @Test
@@ -156,7 +156,7 @@ class NextHearingDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = nextHearingDateOriginRefCalculator
-            .calculateDate(readPriorityDateOriginFields(nextHearingDateOriginRef, nextHearingDate), NEXT_HEARING_DATE
+            .calculateDate(NEXT_HEARING_DATE, readPriorityDateOriginFields(nextHearingDateOriginRef, nextHearingDate)
             );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -186,12 +186,11 @@ class NextHearingDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = nextHearingDateOriginRefCalculator.calculateDate(
-            readPriorityDateOriginFields(
+            NEXT_HEARING_DATE, readPriorityDateOriginFields(
                 nextHearingDateOriginRef,
                 dueDate,
                 priorityDate
-            ),
-            NEXT_HEARING_DATE
+            )
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -231,14 +230,13 @@ class NextHearingDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateOriginRefCalculator
                                                            .calculateDate(
-                                                               readPriorityDateOriginFields(
+                                                               NEXT_HEARING_DATE, readPriorityDateOriginFields(
                                                                    nextHearingDateOriginRef,
                                                                    priorityDate,
                                                                    calculatedDate,
                                                                    dueDate,
                                                                    nextHearingDateIntervalDays
-                                                               ),
-                                                               NEXT_HEARING_DATE
+                                                               )
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(3)
@@ -289,7 +287,7 @@ class NextHearingDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateOriginRefCalculator
                                                            .calculateDate(
-                                                               readPriorityDateOriginFields(
+                                                               NEXT_HEARING_DATE, readPriorityDateOriginFields(
                                                                    nextHearingDateOriginRef,
                                                                    priorityDate,
                                                                    calculatedDate,
@@ -297,8 +295,7 @@ class NextHearingDateOriginRefCalculatorTest {
                                                                    nextHearingDateNonWorkingDaysOfWeek,
                                                                    nextHearingDateIntervalDays,
                                                                    nextHearingDateSkipNonWorkingDays
-                                                               ),
-                                                               NEXT_HEARING_DATE
+                                                               )
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(7)
@@ -344,15 +341,14 @@ class NextHearingDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateOriginRefCalculator
                                                            .calculateDate(
-                                                               readPriorityDateOriginFields(
+                                                               NEXT_HEARING_DATE, readPriorityDateOriginFields(
                                                                    nextHearingDateOriginRef,
                                                                    dueDate,
                                                                    priorityDate,
                                                                    nextHearingDateIntervalDays,
                                                                    nextHearingDateNonWorkingDaysOfWeek,
                                                                    nextHearingDateSkipNonWorkingDays
-                                                               ),
-                                                               NEXT_HEARING_DATE
+                                                               )
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -402,7 +398,7 @@ class NextHearingDateOriginRefCalculatorTest {
             .build();
 
         String dateValue = nextHearingDateOriginRefCalculator.calculateDate(
-            readPriorityDateOriginFields(
+            NEXT_HEARING_DATE, readPriorityDateOriginFields(
                 nextHearingDateOriginRef,
                 priorityDate,
                 calculatedDate,
@@ -411,8 +407,7 @@ class NextHearingDateOriginRefCalculatorTest {
                 nextHearingDateNonWorkingDaysOfWeek,
                 nextHearingDateSkipNonWorkingDays,
                 nextHearingDateIntervalDays
-            ),
-            NEXT_HEARING_DATE
+            )
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -459,7 +454,7 @@ class NextHearingDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = nextHearingDateOriginRefCalculator.calculateDate(
-            readPriorityDateOriginFields(
+            NEXT_HEARING_DATE, readPriorityDateOriginFields(
                 nextHearingDateOriginRef,
                 dueDate,
                 priorityDate,
@@ -467,8 +462,7 @@ class NextHearingDateOriginRefCalculatorTest {
                 nextHearingDateMustBeWorkingDay,
                 nextHearingDateNonWorkingDaysOfWeek,
                 nextHearingDateSkipNonWorkingDays
-            ),
-            NEXT_HEARING_DATE
+            )
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 

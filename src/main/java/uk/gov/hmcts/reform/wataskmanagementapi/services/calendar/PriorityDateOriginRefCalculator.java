@@ -33,8 +33,7 @@ public class PriorityDateOriginRefCalculator extends PriorityDateIntervalCalcula
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType) {
+        DateType dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
         var originRefResponse = getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN_REF);
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(priorityDateProperties, originRefResponse);
         DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(priorityDateProperties, false);

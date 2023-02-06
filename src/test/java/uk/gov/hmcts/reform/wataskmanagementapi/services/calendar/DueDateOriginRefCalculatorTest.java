@@ -152,7 +152,7 @@ class DueDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = dueDateOriginRefCalculator
-            .calculateDate(readDueDateOriginFields(dueDateOriginRef, nextHearingDate), DUE_DATE);
+            .calculateDate(DUE_DATE, readDueDateOriginFields(dueDateOriginRef, nextHearingDate));
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -182,12 +182,11 @@ class DueDateOriginRefCalculatorTest {
 
 
         var configurationDmnEvaluationResponse = dueDateOriginRefCalculator.calculateDate(
-            readDueDateOriginFields(
+            DUE_DATE, readDueDateOriginFields(
                 dueDateOriginRef,
                 nextHearingDate,
                 priorityDate
-            ),
-            DUE_DATE
+            )
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -221,13 +220,12 @@ class DueDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginRefCalculator
                                                            .calculateDate(
-                                                               readDueDateOriginFields(
+                                                               DUE_DATE, readDueDateOriginFields(
                                                                    dueDateOriginRef,
                                                                    nextHearingDate,
                                                                    priorityDate,
                                                                    dueDateIntervalDays
-                                                               ),
-                                                               DUE_DATE
+                                                               )
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(3)
@@ -273,15 +271,14 @@ class DueDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginRefCalculator
                                                            .calculateDate(
-                                                               readDueDateOriginFields(
+                                                               DUE_DATE, readDueDateOriginFields(
                                                                    dueDateOriginRef,
                                                                    nextHearingDate,
                                                                    priorityDate,
                                                                    dueDateNonWorkingDaysOfWeek,
                                                                    dueDateIntervalDays,
                                                                    dueDateSkipNonWorkingDays
-                                                               ),
-                                                               DUE_DATE
+                                                               )
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(7)
@@ -327,15 +324,14 @@ class DueDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginRefCalculator
                                                            .calculateDate(
-                                                               readDueDateOriginFields(
+                                                               DUE_DATE, readDueDateOriginFields(
                                                                    dueDateOriginRef,
                                                                    nextHearingDate,
                                                                    priorityDate,
                                                                    dueDateIntervalDays,
                                                                    dueDateNonWorkingDaysOfWeek,
                                                                    dueDateSkipNonWorkingDays
-                                                               ),
-                                                               DUE_DATE
+                                                               )
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -380,7 +376,7 @@ class DueDateOriginRefCalculatorTest {
             .build();
 
         String dateValue = dueDateOriginRefCalculator.calculateDate(
-            readDueDateOriginFields(
+            DUE_DATE, readDueDateOriginFields(
                 dueDateOriginRef,
                 nextHearingDate,
                 priorityDate,
@@ -388,8 +384,7 @@ class DueDateOriginRefCalculatorTest {
                 dueDateNonWorkingDaysOfWeek,
                 dueDateSkipNonWorkingDays,
                 dueDateIntervalDays
-            ),
-            DUE_DATE
+            )
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -436,7 +431,7 @@ class DueDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = dueDateOriginRefCalculator.calculateDate(
-            readDueDateOriginFields(
+            DUE_DATE, readDueDateOriginFields(
                 dueDateOriginRef,
                 nextHearingDate,
                 priorityDate,
@@ -444,8 +439,7 @@ class DueDateOriginRefCalculatorTest {
                 dueDateMustBeWorkingDay,
                 dueDateNonWorkingDaysOfWeek,
                 dueDateSkipNonWorkingDays
-            ),
-            DUE_DATE
+            )
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 

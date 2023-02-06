@@ -81,7 +81,7 @@ public class DateTypeConfigurator {
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
         Optional<DateCalculator> dateCalculator = getDateCalculator(dateProperties, dateType, isReconfigureRequest);
         if (dateCalculator.isPresent()) {
-            return dateCalculator.get().calculateDate(configResponses.get(), dateType);
+            return dateCalculator.get().calculateDate(dateType, configResponses.get());
         } else {
             return isReconfigureRequest ? null : getDefaultValue(dateType, configResponses);
         }

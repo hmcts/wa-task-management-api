@@ -28,8 +28,7 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType) {
+        DateType dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
         return calculatedDate(dateType, getProperty(priorityDateProperties, PRIORITY_DATE_TIME));
     }
 }

@@ -27,8 +27,7 @@ public class NextHearingDateCalculator extends DueDateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType) {
+        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         return calculatedDate(
             dateType,
             getProperty(configResponses, NEXT_HEARING_DATE.getType()),

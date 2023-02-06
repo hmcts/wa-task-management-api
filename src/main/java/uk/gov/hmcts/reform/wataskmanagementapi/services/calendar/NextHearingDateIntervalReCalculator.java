@@ -37,9 +37,7 @@ public class NextHearingDateIntervalReCalculator extends NextHearingDateInterval
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
-        DateType dateType) {
-        var nextHearingDateIntervalData = readDateTypeOriginFields(nextHearingDateProperties, true);
-        return calculateDate(dateType, nextHearingDateIntervalData);
+            DateType dateType, List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties) {
+        return calculateDate(dateType, readDateTypeOriginFields(nextHearingDateProperties, true));
     }
 }

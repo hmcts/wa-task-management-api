@@ -40,52 +40,50 @@ public class DueDateIntervalCalculator implements DateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType) {
+        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         return calculateDate(dateType, readDateTypeOriginFields(configResponses, false));
     }
 
     protected ConfigurationDmnEvaluationResponse calculateDate(
         DateType dateType, DateTypeIntervalData dateTypeIntervalData) {
-        LocalDateTime dueDate = getReferenceDateForCalculation(dateTypeIntervalData);
 
-        LocalDate localDate = dueDate.toLocalDate();
+        LocalDate referenceDate = getReferenceDateForCalculation(dateTypeIntervalData).toLocalDate();
         if (dateTypeIntervalData.isDateTypeSkipNonWorkingDays()) {
 
             for (int counter = 0; counter < dateTypeIntervalData.getDateTypeIntervalDays(); counter++) {
-                localDate = workingDayIndicator.getNextWorkingDay(
-                    localDate,
+                referenceDate = workingDayIndicator.getNextWorkingDay(
+                    referenceDate,
                     dateTypeIntervalData.getDateTypeNonWorkingCalendar(),
                     dateTypeIntervalData.getDateTypeNonWorkingDaysOfWeek()
                 );
             }
         } else {
 
-            localDate = localDate.plusDays(dateTypeIntervalData.getDateTypeIntervalDays());
+            referenceDate = referenceDate.plusDays(dateTypeIntervalData.getDateTypeIntervalDays());
             boolean workingDay = workingDayIndicator.isWorkingDay(
-                localDate,
+                referenceDate,
                 dateTypeIntervalData.getDateTypeNonWorkingCalendar(),
                 dateTypeIntervalData.getDateTypeNonWorkingDaysOfWeek()
             );
             if (dateTypeIntervalData.getDateTypeMustBeWorkingDay()
                 .equalsIgnoreCase(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT) && !workingDay) {
-                localDate = workingDayIndicator.getNextWorkingDay(
-                    localDate,
+                referenceDate = workingDayIndicator.getNextWorkingDay(
+                    referenceDate,
                     dateTypeIntervalData.getDateTypeNonWorkingCalendar(),
                     dateTypeIntervalData.getDateTypeNonWorkingDaysOfWeek()
                 );
             }
             if (dateTypeIntervalData.getDateTypeMustBeWorkingDay()
                 .equalsIgnoreCase(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS) && !workingDay) {
-                localDate = workingDayIndicator.getPreviousWorkingDay(
-                    localDate,
+                referenceDate = workingDayIndicator.getPreviousWorkingDay(
+                    referenceDate,
                     dateTypeIntervalData.getDateTypeNonWorkingCalendar(),
                     dateTypeIntervalData.getDateTypeNonWorkingDaysOfWeek()
                 );
             }
         }
 
-        LocalDateTime dateTime = localDate.atTime(LocalTime.parse(dateTypeIntervalData.getDateTypeTime()));
+        LocalDateTime dateTime = referenceDate.atTime(LocalTime.parse(dateTypeIntervalData.getDateTypeTime()));
 
         return ConfigurationDmnEvaluationResponse
             .builder()

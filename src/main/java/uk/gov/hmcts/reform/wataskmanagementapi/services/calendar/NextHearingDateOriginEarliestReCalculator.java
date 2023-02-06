@@ -13,7 +13,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 
 @Slf4j
 @Component
-public class NextHearingDateOriginEarliestReCalculator extends DueDateIntervalCalculator {
+public class NextHearingDateOriginEarliestReCalculator extends NextHearingDateIntervalCalculator {
 
     public NextHearingDateOriginEarliestReCalculator(WorkingDayIndicator workingDayIndicator) {
         super(workingDayIndicator);
@@ -34,11 +34,10 @@ public class NextHearingDateOriginEarliestReCalculator extends DueDateIntervalCa
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType) {
+        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         var originEarliestResponse = getReConfigurableProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);
+        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, true);
         if (dueDateOriginEarliest.isPresent()) {
             dateTypeIntervalData = dateTypeIntervalData.toBuilder()
                 .calculatedEarliestDate(dueDateOriginEarliest.get()).build();

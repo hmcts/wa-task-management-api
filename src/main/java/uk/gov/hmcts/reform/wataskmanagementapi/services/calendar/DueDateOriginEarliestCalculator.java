@@ -33,8 +33,7 @@ public class DueDateOriginEarliestCalculator extends DueDateIntervalCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType) {
+            DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         var originEarliestResponse = getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
         DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);

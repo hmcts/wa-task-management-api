@@ -26,8 +26,7 @@ public class PriorityDateReCalculator extends DueDateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType) {
+        DateType dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
         return calculatedDate(
             dateType,
             getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE.getType()),

@@ -36,6 +36,71 @@ class NextHearingDateIntervalReCalculatorTest {
 
     private NextHearingDateIntervalReCalculator nextHearingDateIntervalReCalculator;
 
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0() {
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
+            )
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWithoutNextHearingDate() {
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T16:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
+            )
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
+            )
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesSkipNonWorkingDaysFalse() {
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
+            )
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0AndGivenHolidays() {
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
+            )
+        );
+    }
+
     @BeforeEach
     public void before() {
         nextHearingDateIntervalReCalculator
@@ -112,15 +177,15 @@ class NextHearingDateIntervalReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateIntervalReCalculator
                                                            .calculateDate(
-                                                               List.of(nextHearingDateIntervalDays,
-                                                                       nextHearingDateNonWorkingCalendar,
-                                                                       nextHearingDateMustBeWorkingDay,
-                                                                       nextHearingDateNonWorkingDaysOfWeek,
-                                                                       nextHearingDateSkipNonWorkingDays,
-                                                                       nextHearingDateOrigin,
-                                                                       nextHearingDateTime
-                                                               ),
-                                                               NEXT_HEARING_DATE
+                                                               NEXT_HEARING_DATE, List.of(
+                                                                   nextHearingDateIntervalDays,
+                                                                   nextHearingDateNonWorkingCalendar,
+                                                                   nextHearingDateMustBeWorkingDay,
+                                                                   nextHearingDateNonWorkingDaysOfWeek,
+                                                                   nextHearingDateSkipNonWorkingDays,
+                                                                   nextHearingDateOrigin,
+                                                                   nextHearingDateTime
+                                                               )
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
@@ -180,15 +245,15 @@ class NextHearingDateIntervalReCalculatorTest {
 
         String nextHearingDateValue = nextHearingDateIntervalReCalculator
             .calculateDate(
-                List.of(nextHearingDateIntervalDays,
-                        nextHearingDateNonWorkingCalendar,
-                        nextHearingDateMustBeWorkingDay,
-                        nextHearingDateNonWorkingDaysOfWeek,
-                        nextHearingDateSkipNonWorkingDays,
-                        nextHearingDateOrigin,
-                        nextHearingDateTime
-                ),
-                NEXT_HEARING_DATE
+                NEXT_HEARING_DATE, List.of(
+                    nextHearingDateIntervalDays,
+                    nextHearingDateNonWorkingCalendar,
+                    nextHearingDateMustBeWorkingDay,
+                    nextHearingDateNonWorkingDaysOfWeek,
+                    nextHearingDateSkipNonWorkingDays,
+                    nextHearingDateOrigin,
+                    nextHearingDateTime
+                )
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDateValue)).isEqualTo(scenario.expectedDate);
@@ -246,15 +311,15 @@ class NextHearingDateIntervalReCalculatorTest {
 
         String nextHearingDateValue = nextHearingDateIntervalReCalculator
             .calculateDate(
-                List.of(nextHearingDateIntervalDays,
-                        nextHearingDateNonWorkingCalendar,
-                        nextHearingDateMustBeWorkingDay,
-                        nextHearingDateNonWorkingDaysOfWeek,
-                        nextHearingDateSkipNonWorkingDays,
-                        nextHearingDateOrigin,
-                        nextHearingDateTime
-                ),
-                NEXT_HEARING_DATE
+                NEXT_HEARING_DATE, List.of(
+                    nextHearingDateIntervalDays,
+                    nextHearingDateNonWorkingCalendar,
+                    nextHearingDateMustBeWorkingDay,
+                    nextHearingDateNonWorkingDaysOfWeek,
+                    nextHearingDateSkipNonWorkingDays,
+                    nextHearingDateOrigin,
+                    nextHearingDateTime
+                )
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -313,15 +378,15 @@ class NextHearingDateIntervalReCalculatorTest {
 
         String nextHearingDateValue = nextHearingDateIntervalReCalculator
             .calculateDate(
-                List.of(nextHearingDateIntervalDays,
-                        nextHearingDateNonWorkingCalendar,
-                        nextHearingDateMustBeWorkingDay,
-                        nextHearingDateNonWorkingDaysOfWeek,
-                        nextHearingDateSkipNonWorkingDays,
-                        nextHearingDateOrigin,
-                        nextHearingDateTime
-                ),
-                NEXT_HEARING_DATE
+                NEXT_HEARING_DATE, List.of(
+                    nextHearingDateIntervalDays,
+                    nextHearingDateNonWorkingCalendar,
+                    nextHearingDateMustBeWorkingDay,
+                    nextHearingDateNonWorkingDaysOfWeek,
+                    nextHearingDateSkipNonWorkingDays,
+                    nextHearingDateOrigin,
+                    nextHearingDateTime
+                )
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDateValue)).isEqualTo(scenario.expectedDate);
@@ -379,15 +444,15 @@ class NextHearingDateIntervalReCalculatorTest {
 
         String nextHearingDateValue = nextHearingDateIntervalReCalculator
             .calculateDate(
-                List.of(nextHearingDateIntervalDays,
-                        nextHearingDateNonWorkingCalendar,
-                        nextHearingDateMustBeWorkingDay,
-                        nextHearingDateNonWorkingDaysOfWeek,
-                        nextHearingDateSkipNonWorkingDays,
-                        nextHearingDateOrigin,
-                        nextHearingDateTime
-                ),
-                NEXT_HEARING_DATE
+                NEXT_HEARING_DATE, List.of(
+                    nextHearingDateIntervalDays,
+                    nextHearingDateNonWorkingCalendar,
+                    nextHearingDateMustBeWorkingDay,
+                    nextHearingDateNonWorkingDaysOfWeek,
+                    nextHearingDateSkipNonWorkingDays,
+                    nextHearingDateOrigin,
+                    nextHearingDateTime
+                )
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDateValue)).isEqualTo(scenario.expectedDate);
@@ -438,14 +503,14 @@ class NextHearingDateIntervalReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateIntervalReCalculator
                                                            .calculateDate(
-                                                               List.of(nextHearingDateIntervalDays,
-                                                                       nextHearingDateNonWorkingCalendar,
-                                                                       nextHearingDateMustBeWorkingDay,
-                                                                       nextHearingDateNonWorkingDaysOfWeek,
-                                                                       nextHearingDateSkipNonWorkingDays,
-                                                                       nextHearingDateOrigin
-                                                               ),
-                                                               NEXT_HEARING_DATE
+                                                               NEXT_HEARING_DATE, List.of(
+                                                                   nextHearingDateIntervalDays,
+                                                                   nextHearingDateNonWorkingCalendar,
+                                                                   nextHearingDateMustBeWorkingDay,
+                                                                   nextHearingDateNonWorkingDaysOfWeek,
+                                                                   nextHearingDateSkipNonWorkingDays,
+                                                                   nextHearingDateOrigin
+                                                               )
                                                            ).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -464,8 +529,7 @@ class NextHearingDateIntervalReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime
             .parse(nextHearingDateIntervalReCalculator.calculateDate(
-                List.of(nextHearingDateOrigin),
-                NEXT_HEARING_DATE
+                NEXT_HEARING_DATE, List.of(nextHearingDateOrigin)
             ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
@@ -494,10 +558,10 @@ class NextHearingDateIntervalReCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-        String nextHearingDateValue = nextHearingDateIntervalReCalculator.calculateDate(List.of(
+        String nextHearingDateValue = nextHearingDateIntervalReCalculator.calculateDate(NEXT_HEARING_DATE, List.of(
                 nextHearingDateOrigin,
                 nextHearingDateTime
-            ), NEXT_HEARING_DATE)
+            ))
             .getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateValue);
         String expectedNextHearingDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
@@ -630,7 +694,6 @@ class NextHearingDateIntervalReCalculatorTest {
         )).isFalse();
     }
 
-
     static class ConfigurableScenario {
         boolean configurable;
         String expectedDate;
@@ -639,70 +702,5 @@ class NextHearingDateIntervalReCalculatorTest {
             this.configurable = configurable;
             this.expectedDate = expectedDate;
         }
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
-            )
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWithoutNextHearingDate() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T16:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
-            )
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T18:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
-            )
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesSkipNonWorkingDaysFalse() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
-            )
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0AndGivenHolidays() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.format(DATE_TIME_FORMATTER) + "T16:00"
-            )
-        );
     }
 }

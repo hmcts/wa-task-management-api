@@ -33,8 +33,7 @@ public class NextHearingDateOriginRefCalculator extends NextHearingDateIntervalC
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
-        DateType dateType) {
+        DateType dateType, List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties) {
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(
             nextHearingDateProperties,
             getProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN_REF)

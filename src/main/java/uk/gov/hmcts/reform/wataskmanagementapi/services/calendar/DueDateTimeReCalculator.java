@@ -31,8 +31,8 @@ public class DueDateTimeReCalculator extends DueDateTimeCalculator {
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> configResponses,
-                                                            DateType dateType) {
+    public ConfigurationDmnEvaluationResponse calculateDate(
+        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         return calculatedDate(dateType, getReConfigurableProperty(configResponses, DUE_DATE_TIME));
     }
 }

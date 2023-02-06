@@ -27,8 +27,7 @@ public class PriorityDateCalculator extends DueDateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType) {
+        DateType dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
         var priorityDateResponse = getProperty(priorityDateProperties, PRIORITY_DATE.getType());
         var priorityDateTimeResponse = getProperty(priorityDateProperties, PRIORITY_DATE_TIME);
         return calculatedDate(dateType, priorityDateResponse, priorityDateTimeResponse);

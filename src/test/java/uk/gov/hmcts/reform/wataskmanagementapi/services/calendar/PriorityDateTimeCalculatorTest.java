@@ -95,8 +95,7 @@ class PriorityDateTimeCalculatorTest {
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         assertThat(LocalDateTime.parse(priorityDateTimeCalculator.calculateDate(
-            evaluationResponses,
-            PRIORITY_DATE
+            PRIORITY_DATE, evaluationResponses
         ).getValue().getValue()))
             .isEqualTo(expectedDueDate + "T16:00");
     }
@@ -119,8 +118,7 @@ class PriorityDateTimeCalculatorTest {
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         assertThat(LocalDateTime.parse(priorityDateTimeCalculator.calculateDate(
-            evaluationResponses,
-            PRIORITY_DATE
+            PRIORITY_DATE, evaluationResponses
         ).getValue().getValue()))
             .isEqualTo(expectedDueDate + "T20:00");
     }

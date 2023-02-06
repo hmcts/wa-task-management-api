@@ -92,8 +92,7 @@ class DueDateTimeCalculatorTest {
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         assertThat(LocalDateTime.parse(dueDateTimeCalculator.calculateDate(
-            evaluationResponses,
-            DUE_DATE
+            DUE_DATE, evaluationResponses
         ).getValue().getValue()))
             .isEqualTo(expectedDueDate + "T16:00");
     }
@@ -116,8 +115,7 @@ class DueDateTimeCalculatorTest {
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         assertThat(LocalDateTime.parse(dueDateTimeCalculator.calculateDate(
-            evaluationResponses,
-            DUE_DATE
+            DUE_DATE, evaluationResponses
         ).getValue().getValue()))
             .isEqualTo(expectedDueDate + "T20:00");
     }
