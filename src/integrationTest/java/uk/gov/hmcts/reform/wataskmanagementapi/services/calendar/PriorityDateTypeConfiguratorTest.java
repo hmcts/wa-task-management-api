@@ -66,7 +66,7 @@ public class PriorityDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(thirdPriorityDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(thirdPriorityDate + "T10:00"))
                                    .build()));
     }
 
@@ -396,7 +396,7 @@ public class PriorityDateTypeConfiguratorTest {
                                    .build(),
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(givenPriorityDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(givenPriorityDate + "T20:00"))
                                    .build()));
 
     }
@@ -735,7 +735,7 @@ public class PriorityDateTypeConfiguratorTest {
                                    .build(),
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(expectedPriorityDate + "T20:00"))
                                    .build()));
     }
 
