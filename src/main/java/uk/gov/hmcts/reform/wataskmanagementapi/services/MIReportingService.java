@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import org.postgresql.Driver;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,8 +15,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Properties;
 import javax.sql.DataSource;
 
 
@@ -34,18 +34,6 @@ public class MIReportingService {
     private final TaskHistoryResourceRepository taskHistoryRepository;
     private final TaskResourceRepository taskResourceRepository;
 
-    private final Pattern urlMatchingPattern = Pattern.compile(
-        "jdbc:(tc:)?"
-            + "(?<databaseType>[a-z0-9]+)"
-            + "(:(?<imageTag>[^:]+))?"
-            + "://"
-            + "(?<hostString>[^?]+)"
-            + ":"
-            + "(?<port>[^?]+)"
-            + "/"
-            + "(?<dbname>[^?]+)"
-            + "(?<queryParameters>\\?.*)?"
-    );
 
     public MIReportingService(TaskHistoryResourceRepository tasksHistoryRepository,
                               TaskResourceRepository taskResourceRepository) {
@@ -78,6 +66,7 @@ public class MIReportingService {
             LOGGER.info("No logical replication slot present for " + MAIN_SLOT_NAME);
             return false;
         } else {
+            LOGGER.info("Found logical replication slot with name " + MAIN_SLOT_NAME);
             return true;
         }
     }
@@ -93,6 +82,7 @@ public class MIReportingService {
             LOGGER.info("No publication present");
             return false;
         } else {
+            LOGGER.info("Found publication");
             return true;
         }
     }
@@ -108,6 +98,7 @@ public class MIReportingService {
             LOGGER.info("No subscription present");
             return false;
         } else {
+            LOGGER.info("Found subscription");
             return true;
         }
     }
@@ -119,22 +110,20 @@ public class MIReportingService {
             LOGGER.info("Primary datasource URL: " + connection.getMetaData().getURL());
             LOGGER.info("Replica datasource URL: " + connection2.getMetaData().getURL());
 
-            Matcher urlMatcher = urlMatchingPattern.matcher(connection.getMetaData().getURL());
-            Matcher replicaUrlMatcher = urlMatchingPattern.matcher(connection2.getMetaData().getURL());
-            if (urlMatcher.matches() && replicaUrlMatcher.matches()) {
-                String host = urlMatcher.group("hostString");
-                String port = urlMatcher.group("port");
-                String dbName = urlMatcher.group("dbname");
+            Properties properties = Driver.parseURL(connection.getMetaData().getURL(), null);
+            Properties replicaProperties = Driver.parseURL(connection2.getMetaData().getURL(), null);
 
-                String replicaHost = replicaUrlMatcher.group("hostString");
-                String replicaPort = replicaUrlMatcher.group("port");
-                String replicaDbName = replicaUrlMatcher.group("dbname");
+            String host = properties.get("PGHOST").toString();
+            String port = properties.get("PGPORT").toString();
+            String dbName = properties.get("PGDBNAME").toString();
 
-                createSubscription(host, port, dbName, replicaHost, replicaPort, replicaDbName);
-                LOGGER.info("Subscription created for: " + host + ":" + port + "/" + dbName);
-            } else {
-                LOGGER.error("Cannot extract publication URL from the datasource");
-            }
+            String replicaHost = replicaProperties.get("PGHOST").toString();
+            String replicaPort = replicaProperties.get("PGPORT").toString();
+            String replicaDbName = replicaProperties.get("PGDBNAME").toString();
+
+            createSubscription(host, port, dbName, replicaHost, replicaPort, replicaDbName);
+            LOGGER.info("Subscription created for: " + host + ":" + port + "/" + dbName);
+
         } catch (SQLException ex) {
             LOGGER.error("Primary datasource connection exception.", ex);
         }
