@@ -17,9 +17,10 @@ import java.util.Set;
 
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_NO;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NO;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
 
 @ExtendWith(MockitoExtension.class)
 class DueDateIntervalCalculatorTest {
@@ -80,7 +81,7 @@ class DueDateIntervalCalculatorTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(DUE_DATE_MUST_BE_WORKING_DAY_NEXT))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -88,12 +89,18 @@ class DueDateIntervalCalculatorTest {
             .value(CamundaValue.stringValue("18:00"))
             .build();
 
-        LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDueDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
-                )
-            );
+        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
+                                                           .calculateDate(
+                                                               DUE_DATE, List.of(
+                                                                   dueDateIntervalDays,
+                                                                   dueDateNonWorkingCalendar,
+                                                                   dueDateMustBeWorkingDay,
+                                                                   dueDateNonWorkingDaysOfWeek,
+                                                                   dueDateSkipNonWorkingDays,
+                                                                   dueDateOrigin,
+                                                                   dueDateTime
+                                                               )
+                                                           ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(0)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -129,7 +136,7 @@ class DueDateIntervalCalculatorTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(DUE_DATE_MUST_BE_WORKING_DAY_NEXT))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -137,12 +144,18 @@ class DueDateIntervalCalculatorTest {
             .value(CamundaValue.stringValue("18:00"))
             .build();
 
-        LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDueDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
-                )
-            );
+        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
+                                                           .calculateDate(
+                                                               DUE_DATE, List.of(
+                                                                   dueDateIntervalDays,
+                                                                   dueDateNonWorkingCalendar,
+                                                                   dueDateMustBeWorkingDay,
+                                                                   dueDateNonWorkingDaysOfWeek,
+                                                                   dueDateSkipNonWorkingDays,
+                                                                   dueDateOrigin,
+                                                                   dueDateTime
+                                                               )
+                                                           ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(3)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -178,7 +191,7 @@ class DueDateIntervalCalculatorTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(DUE_DATE_MUST_BE_WORKING_DAY_NEXT))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -186,12 +199,18 @@ class DueDateIntervalCalculatorTest {
             .value(CamundaValue.stringValue("18:00"))
             .build();
 
-        LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDueDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
-                )
-            );
+        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
+                                                           .calculateDate(
+                                                               DUE_DATE, List.of(
+                                                                   dueDateIntervalDays,
+                                                                   dueDateNonWorkingCalendar,
+                                                                   dueDateMustBeWorkingDay,
+                                                                   dueDateNonWorkingDaysOfWeek,
+                                                                   dueDateSkipNonWorkingDays,
+                                                                   dueDateOrigin,
+                                                                   dueDateTime
+                                                               )
+                                                           ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(7)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -230,7 +249,7 @@ class DueDateIntervalCalculatorTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(DUE_DATE_MUST_BE_WORKING_DAY_NEXT))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -238,12 +257,18 @@ class DueDateIntervalCalculatorTest {
             .value(CamundaValue.stringValue("18:00"))
             .build();
 
-        LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDueDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
-                )
-            );
+        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
+                                                           .calculateDate(
+                                                               DUE_DATE, List.of(
+                                                                   dueDateIntervalDays,
+                                                                   dueDateNonWorkingCalendar,
+                                                                   dueDateMustBeWorkingDay,
+                                                                   dueDateNonWorkingDaysOfWeek,
+                                                                   dueDateSkipNonWorkingDays,
+                                                                   dueDateOrigin,
+                                                                   dueDateTime
+                                                               )
+                                                           ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(6)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -279,7 +304,7 @@ class DueDateIntervalCalculatorTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(DUE_DATE_MUST_BE_WORKING_DAY_NEXT))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -287,12 +312,18 @@ class DueDateIntervalCalculatorTest {
             .value(CamundaValue.stringValue("18:00"))
             .build();
 
-        LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDueDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
-                )
-            );
+        String dateValue = dueDateIntervalCalculator.calculateDate(
+            DUE_DATE, List.of(
+                dueDateIntervalDays,
+                dueDateNonWorkingCalendar,
+                dueDateMustBeWorkingDay,
+                dueDateNonWorkingDaysOfWeek,
+                dueDateSkipNonWorkingDays,
+                dueDateOrigin,
+                dueDateTime
+            )
+        ).getValue().getValue();
+        LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
         String expectedDueDate = GIVEN_DATE.plusDays(4)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -328,7 +359,7 @@ class DueDateIntervalCalculatorTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -336,12 +367,18 @@ class DueDateIntervalCalculatorTest {
             .value(CamundaValue.stringValue("18:00"))
             .build();
 
-        LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDueDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
-                )
-            );
+        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
+                                                           .calculateDate(
+                                                               DUE_DATE, List.of(
+                                                                   dueDateIntervalDays,
+                                                                   dueDateNonWorkingCalendar,
+                                                                   dueDateMustBeWorkingDay,
+                                                                   dueDateNonWorkingDaysOfWeek,
+                                                                   dueDateSkipNonWorkingDays,
+                                                                   dueDateOrigin,
+                                                                   dueDateTime
+                                                               )
+                                                           ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(1)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -377,20 +414,25 @@ class DueDateIntervalCalculatorTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue(DUE_DATE_MUST_BE_WORKING_DAY_NO))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NO))
             .build();
 
-        LocalDateTime resultDate = dueDateIntervalCalculator
-            .calculateDueDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin
-                )
-            );
+        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
+                                                           .calculateDate(
+                                                               DUE_DATE, List.of(
+                                                                   dueDateIntervalDays,
+                                                                   dueDateNonWorkingCalendar,
+                                                                   dueDateMustBeWorkingDay,
+                                                                   dueDateNonWorkingDaysOfWeek,
+                                                                   dueDateSkipNonWorkingDays,
+                                                                   dueDateOrigin
+                                                               )
+                                                           ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T16:00");
+        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T20:00");
     }
 
     @Test
@@ -403,11 +445,12 @@ class DueDateIntervalCalculatorTest {
             .build();
 
 
-        LocalDateTime resultDate = dueDateIntervalCalculator.calculateDueDate(List.of(dueDateOrigin));
+        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator.calculateDate(
+            DUE_DATE, List.of(dueDateOrigin)).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T16:00");
+        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T20:00");
     }
 
     @Test
@@ -424,7 +467,9 @@ class DueDateIntervalCalculatorTest {
             .value(CamundaValue.stringValue("18:00"))
             .build();
 
-        LocalDateTime resultDate = dueDateIntervalCalculator.calculateDueDate(List.of(dueDateOrigin, dueDateTime));
+        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator.calculateDate(
+            DUE_DATE, List.of(dueDateOrigin, dueDateTime)
+        ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -448,7 +493,8 @@ class DueDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDate);
 
-        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, false)).isFalse();
+        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DateType.DUE_DATE, false))
+            .isFalse();
     }
 
     @Test
@@ -461,7 +507,8 @@ class DueDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, false)).isFalse();
+        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DateType.DUE_DATE, false))
+            .isFalse();
     }
 
     @Test
@@ -481,7 +528,8 @@ class DueDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDateTime);
 
-        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, false)).isTrue();
+        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DateType.DUE_DATE, false))
+            .isTrue();
     }
 }
 

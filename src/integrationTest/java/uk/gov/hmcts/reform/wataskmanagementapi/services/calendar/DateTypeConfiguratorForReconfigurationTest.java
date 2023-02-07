@@ -18,18 +18,17 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalc
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
-public class DueDateConfiguratorTest {
+public class DateTypeConfiguratorForReconfigurationTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
 
     public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 00, 00);
     public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 03, 26, 18, 00, 00);
     @Autowired
-    private DueDateConfigurator dueDateConfigurator;
+    private DateTypeConfigurator dateTypeConfigurator;
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true,true",
         "true,true,false"
     })
     public void shouldCalculateDueDateWhenMultipleDueDateOriginsAreAvailable(
@@ -58,27 +57,20 @@ public class DueDateConfiguratorTest {
             .value(CamundaValue.stringValue(thirdDueDate + "T10:00"))
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDateOrigin, dueDateOrigin, thirdDueDateOrigin),
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDateOrigin, dueDateOrigin, thirdDueDateOrigin),
                               Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(thirdDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(thirdDueDate + "T10:00"))
                                    .build()));
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
-        "false,true,T20:00",
-        "true,true,T18:00"
-    })
-    public void shouldCalculateDueDateWhenMultipleDueDateAndTimesAreAvailable(
-        String isReConfigurationRequest,
-        String canConfigure,
-        String expectedTime) {
+    @Test
+    public void shouldCalculateDueDateWhenMultipleDueDateAndTimesAreAvailable() {
 
         String firstDueDate = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String secondDueDate = GIVEN_DATE.plusDays(9).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -86,41 +78,40 @@ public class DueDateConfiguratorTest {
         ConfigurationDmnEvaluationResponse defaultDueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
             .value(CamundaValue.stringValue(firstDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse defaultDueDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateTime"))
             .value(CamundaValue.stringValue("10:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
             .value(CamundaValue.stringValue(secondDueDate + "T18:00"))
-            .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateTime"))
             .value(CamundaValue.stringValue("20:00"))
-            .canReconfigure(CamundaValue.booleanValue(false))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDate, defaultDueDateTime, dueDate, dueDateTime), false,
-                              Boolean.parseBoolean(isReConfigurationRequest));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDate, defaultDueDateTime, dueDate, dueDateTime), false,
+                              true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(secondDueDate + expectedTime))
+                                   .value(CamundaValue.stringValue(secondDueDate + "T20:00"))
                                    .build()));
     }
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true, true",
         "true,true, false"
     })
     public void shouldCalculateDueDateWhenMultipleDueDatesAreAvailable(
@@ -143,8 +134,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDate, dueDate),
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDate, dueDate),
                               Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
@@ -157,7 +148,6 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true,true",
         "true,true,false"
     })
     public void shouldCalculateDueDateWhenMultipleDueDateTimesAreAvailable(
@@ -179,8 +169,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDateTime, dueDateTime),
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDateTime, dueDateTime),
                               Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
@@ -195,7 +185,6 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true,true",
         "true,true,false"
     })
     public void shouldCalculateDueDateWhenDefaultDueDateWithoutTimeAndTimeAreAvailable(
@@ -218,8 +207,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDate, defaultDueDateTime),
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDate, defaultDueDateTime),
                               Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
@@ -232,7 +221,6 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true,true",
         "true,true,false"
     })
     public void shouldCalculateDueDateWhenOnlyDueDateTimeIsAvailable(
@@ -247,12 +235,11 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDateTime),
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDateTime),
                               Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest)
             );
-
         String defaultDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
@@ -264,7 +251,6 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true,true",
         "true,true,false"
     })
     public void shouldCalculateDueDateWhenOnlyDefaultDueDateWithTimeIsAvailable(
@@ -281,8 +267,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDate),
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDate),
                               Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest)
             );
@@ -297,42 +283,14 @@ public class DueDateConfiguratorTest {
 
     @Test
     public void shouldNotReturnDueDateWhenNoDueDatePropertiesAreAvailableAndJurisdictionIsIA() {
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(), false, true);
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(), false, true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
 
-    @Test
-    public void shouldReturnDefaultDueDateWhenNoDueDatePropertiesAreAvailableAndJurisdictionIsIA() {
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(), false, false);
-
-        String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build()));
-    }
-
-    @Test
-    public void shouldReturnDefaultDueDateWhenDueDatePropertiesAreNotAvailableAndInitiationDueDateNotFound() {
-
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(), false, false);
-
-        String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build()));
-    }
-
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true,true",
         "true,true,false"
     })
     public void shouldCalculateDueDateWhenOnlyDueDateAndDueDateOriginBothProvided(
@@ -355,8 +313,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(dueDate, dueDateOrigin),
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(dueDate, dueDateOrigin),
                               Boolean.parseBoolean(initiationDueDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
@@ -370,7 +328,6 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true",
         "true,true"
     })
     public void shouldCalculateDueDateWhenOnlyDueDateOriginIsProvided(
@@ -385,25 +342,25 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(dueDateOrigin), false, Boolean.parseBoolean(isReConfigurationRequest));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(dueDateOrigin), false, Boolean.parseBoolean(isReConfigurationRequest));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(givenDueDate + "T20:00"))
                                    .build()));
 
     }
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true",
-        "true,true"
+        "true,true,1"
     })
     public void shouldCalculateDateFromDueDateEvenWhenDueDateOriginPropertiesAreProvided(
         String isReConfigurationRequest,
-        String canConfigure
+        String canConfigure,
+        int size
     ) {
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -426,11 +383,11 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDate, dueDateOrigin, dueDateTime), false,
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDate, dueDateOrigin, dueDateTime), false,
                               Boolean.parseBoolean(isReConfigurationRequest));
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(size)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(expectedDueDate + "T18:00"))
@@ -439,7 +396,6 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true",
         "true,true"
     })
     public void shouldCalculateDueDateWhenOnlyDefaultDueDateTimeIsAvailable(
@@ -455,8 +411,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDateTime), false, Boolean.parseBoolean(isReConfigurationRequest));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDateTime), false, Boolean.parseBoolean(isReConfigurationRequest));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -467,13 +423,13 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,true,T16:00",
-        "true,true,T16:00"
+        "true,true,T16:00,1"
     })
     public void shouldCalculateDueDateWhenOnlyDefaultDueDateWithoutTimeIsAvailable(
         String isReConfigurationRequest,
         String canConfigure,
-        String time
+        String time,
+        int size
     ) {
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -484,10 +440,10 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDate), false, Boolean.parseBoolean(isReConfigurationRequest));
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDate), false, Boolean.parseBoolean(isReConfigurationRequest));
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(size)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(expectedDueDate + time))
@@ -496,19 +452,12 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,false,true,Next,6,6,T18:00",
-        "false,false,true,Next,8,8,T18:00",
-        "false,false,true,No,6,6,T18:00",
-        "false,false,false,Next,6,6,T18:00",
-        "false,false,false,Next,2,2,T18:00",
-        "false,false,false,No,6,6,T18:00",
         "true,true,true,Next,6,6,T18:00",
         "true,true,true,Next,8,8,T18:00",
         "true,true,true,No,6,6,T18:00",
         "true,true,false,Next,6,6,T18:00",
         "true,true,false,Next,2,2,T18:00",
         "true,true,false,No,6,6,T18:00",
-        "false,false,false,Previous,2,2,T18:00",
         "true,true,false,Previous,2,2,T18:00"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvidedAndNonWorkingDayNotConsidered(
@@ -564,8 +513,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
@@ -585,13 +534,6 @@ public class DueDateConfiguratorTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "false,false,true,Next,6,8,T18:00",
-        "false,false,true,next,8,12,T18:00",
-        "false,false,true,no,6,8,T18:00",
-        "false,false,false,Next,6,6,T18:00",
-        "false,false,false,Next,2,4,T18:00",
-        "false,false,false,no,6,6,T18:00",
-        "false,false,false,Previous,2,1,T18:00",
         "true,true,true,Next,6,8,T18:00",
         "true,true,true,Next,8,12,T18:00",
         "true,true,true,No,6,8,T18:00",
@@ -650,8 +592,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
@@ -670,57 +612,6 @@ public class DueDateConfiguratorTest {
     }
 
     @Test
-    public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvidedWithoutDueDateTime() {
-        String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
-            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateIntervalDays"))
-            .value(CamundaValue.stringValue("6"))
-            .build();
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
-            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
-            .build();
-        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
-            .value(CamundaValue.stringValue("true"))
-            .build();
-        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue("true"))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin
-                ),
-                false,
-                false
-            );
-
-        String expectedDueDate = GIVEN_DATE.plusDays(Integer.parseInt("8"))
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build()));
-    }
-
-
-    @Test
     public void shouldNoCalculateDueDateWhenMultipleDueDateTimesAreAvailable() {
 
         ConfigurationDmnEvaluationResponse defaultDueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -735,8 +626,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDateTime, dueDateTime), false, true);
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDateTime, dueDateTime), false, true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -758,8 +649,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDate, defaultDueDateTime), false, true);
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDate, defaultDueDateTime), false, true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -773,8 +664,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(defaultDueDateTime), false, true);
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(defaultDueDateTime), false, true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -790,8 +681,8 @@ public class DueDateConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(
                 List.of(defaultDueDate),
                 false,
                 true
@@ -802,117 +693,9 @@ public class DueDateConfiguratorTest {
 
     @Test
     public void shouldNotReturnDDueDateWhenDueDatePropertiesAreNotAvailableAndJurisdictionIsWAAndIsReconfiguration() {
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(List.of(), false, true);
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(), false, true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
-    }
-
-    @Test
-    public void shouldCalculateDateWhenOriginDateIsBSTDueDateNonBSTBackword() {
-        String localDateTime = BST_DATE_BACKWARD.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        //Clocks go back an hour at 2:00am
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
-            .value(CamundaValue.stringValue(localDateTime + "T01:30"))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateIntervalDays"))
-            .value(CamundaValue.stringValue("4"))
-            .build();
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
-            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-            .value(CamundaValue.stringValue(""))
-            .build();
-        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
-            .value(CamundaValue.stringValue("false"))
-            .build();
-        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue("false"))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
-            .value(CamundaValue.stringValue("02:30"))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
-                ),
-                false, false
-            );
-
-        String expectedDueDate = "2022-10-30T02:30";
-
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate))
-                                   .build()));
-    }
-
-    @Test
-    public void shouldCalculateDateWhenOriginDateIsBSTDueDateNonBSTForward() {
-        String localDateTime = BST_DATE_FORWARD.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        //Clocks go forward an hour at 1:00am
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
-            .value(CamundaValue.stringValue(localDateTime + "T00:30"))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateIntervalDays"))
-            .value(CamundaValue.stringValue("4"))
-            .build();
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
-            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-            .value(CamundaValue.stringValue(""))
-            .build();
-        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
-            .value(CamundaValue.stringValue("false"))
-            .build();
-        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-            .value(CamundaValue.stringValue("false"))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
-            .value(CamundaValue.stringValue("01:30"))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dueDateConfigurator
-            .configureDueDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
-                ),
-                false, false
-            );
-
-        String expectedDueDate = "2023-03-30T01:30";
-
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate))
-                                   .build()));
     }
 }

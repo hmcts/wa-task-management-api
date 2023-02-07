@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +11,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
 
 @ExtendWith(MockitoExtension.class)
 class DueDateTimeCalculatorTest {
@@ -44,7 +45,7 @@ class DueDateTimeCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, false)).isFalse();
+        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DateType.DUE_DATE, false)).isFalse();
     }
 
     @Test
@@ -64,7 +65,7 @@ class DueDateTimeCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateOrigin);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, false)).isFalse();
+        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DateType.DUE_DATE, false)).isFalse();
     }
 
     @Test
@@ -76,7 +77,7 @@ class DueDateTimeCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        Assertions.assertThat(dueDateTimeCalculator.supports(evaluationResponses, false)).isTrue();
+        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DateType.DUE_DATE, false)).isTrue();
     }
 
     @Test
@@ -90,7 +91,9 @@ class DueDateTimeCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Assertions.assertThat(dueDateTimeCalculator.calculateDueDate(evaluationResponses))
+        assertThat(LocalDateTime.parse(dueDateTimeCalculator.calculateDate(
+            DUE_DATE, evaluationResponses
+        ).getValue().getValue()))
             .isEqualTo(expectedDueDate + "T16:00");
     }
 
@@ -111,7 +114,9 @@ class DueDateTimeCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateTime2);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Assertions.assertThat(dueDateTimeCalculator.calculateDueDate(evaluationResponses))
+        assertThat(LocalDateTime.parse(dueDateTimeCalculator.calculateDate(
+            DUE_DATE, evaluationResponses
+        ).getValue().getValue()))
             .isEqualTo(expectedDueDate + "T20:00");
     }
 }
