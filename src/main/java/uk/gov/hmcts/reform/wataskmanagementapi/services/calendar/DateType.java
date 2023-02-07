@@ -5,13 +5,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import static java.util.Arrays.stream;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DATE_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_ZONED_DATE_TIME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DUE_DATE_TIME_FORMATTER;
 
 public enum DateType {
-    DUE_DATE("dueDate", DEFAULT_ZONED_DATE_TIME, DUE_DATE_TIME_FORMATTER, 2),
-    NEXT_HEARING_DATE("nextHearingDate", null, DUE_DATE_TIME_FORMATTER, 1),
-    PRIORITY_DATE("priorityDate", null, DUE_DATE_TIME_FORMATTER, 3);
+    DUE_DATE("dueDate", DEFAULT_ZONED_DATE_TIME, DATE_TIME_FORMATTER, 2),
+    NEXT_HEARING_DATE("nextHearingDate", null, DATE_TIME_FORMATTER, 1),
+    PRIORITY_DATE("priorityDate", null, DATE_TIME_FORMATTER, 3);
 
     private final String type;
     private final LocalDateTime defaultTime;

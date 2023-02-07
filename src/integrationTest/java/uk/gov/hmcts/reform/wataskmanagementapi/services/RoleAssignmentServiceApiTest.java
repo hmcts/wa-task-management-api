@@ -60,8 +60,10 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
         RoleAssignmentResource roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
             "user token",
             "s2s token",
+            0,
+            MAX_ROLE_ASSIGNMENT_RECORDS,
             MultipleQueryRequest.builder().build()
-        );
+        ).getBody();
 
         RoleAssignment expectedRoleAssignment = RoleAssignment.builder()
             .id("428971b1-3954-4783-840f-c2718732b466")
@@ -97,8 +99,10 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
         RoleAssignmentResource roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
             "user token",
             "s2s token",
+            0,
+            MAX_ROLE_ASSIGNMENT_RECORDS,
             MultipleQueryRequest.builder().build()
-        );
+        ).getBody();
 
         List<RoleAssignment> expectedRoleAssignments = asList(RoleAssignment.builder()
                 .id("428971b1-3954-4783-840f-c2718732b466")
@@ -153,8 +157,10 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
         RoleAssignmentResource roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
             "user token",
             "s2s token",
+            0,
+            MAX_ROLE_ASSIGNMENT_RECORDS,
             MultipleQueryRequest.builder().build()
-        );
+        ).getBody();
 
         RoleAssignment expectedRoleAssignment = RoleAssignment.builder()
             .id("428971b1-3954-4783-840f-c2718732b466")

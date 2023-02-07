@@ -100,7 +100,6 @@ class InitiateTaskTest extends CamundaHelpers {
     @Mock
     private UserInfo userInfo;
 
-
     @BeforeEach
     void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
@@ -116,7 +115,8 @@ class InitiateTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
 
 
@@ -153,8 +153,8 @@ class InitiateTaskTest extends CamundaHelpers {
         );
         unassignedTaskResource.setDueDateTime(dueDate);
 
-        lenient().doReturn(unassignedTaskResource).when(taskAutoAssignmentService).autoAssignCFTTask(any());
         mockInitiateTaskDependencies(unassignedTaskResource);
+        doReturn(unassignedTaskResource).when(taskAutoAssignmentService).autoAssignCFTTask(any());
 
         lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
         taskManagementService.initiateTask(taskId, initiateTaskRequest);
@@ -173,6 +173,12 @@ class InitiateTaskTest extends CamundaHelpers {
         );
 
         verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+
+        verify(camundaService).updateCftTaskState(
+            taskId,
+            TaskState.UNASSIGNED
+        );
+
         verify(cftTaskDatabaseService).saveTask(taskResource);
     }
 
@@ -196,7 +202,7 @@ class InitiateTaskTest extends CamundaHelpers {
         mockInitiateTaskDependencies(taskWithAssignee);
 
         when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
-        doReturn(true).when(taskAutoAssignmentService).checkAssigneeIsStillValid(any(), any());
+        doReturn(true).when(taskAutoAssignmentService).checkAssigneeIsStillValid(any(), eq("someUserId"));
 
         when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
 

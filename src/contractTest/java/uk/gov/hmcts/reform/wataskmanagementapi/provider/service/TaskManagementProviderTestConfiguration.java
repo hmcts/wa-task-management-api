@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.provider.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -16,6 +16,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.zalando.problem.ProblemModule;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
@@ -69,7 +70,8 @@ public class TaskManagementProviderTestConfiguration {
     private TaskAutoAssignmentService taskAutoAssignmentService;
     @MockBean
     private List<TaskOperationService> taskOperationServices;
-
+    @MockBean
+    private IdamTokenGenerator idamTokenGenerator;
     @MockBean
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     private RoleAssignmentVerificationService roleAssignmentVerificationService;
@@ -102,7 +104,8 @@ public class TaskManagementProviderTestConfiguration {
             taskAutoAssignmentService,
             roleAssignmentVerificationService,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
     }
 
@@ -125,7 +128,7 @@ public class TaskManagementProviderTestConfiguration {
         module.addDeserializer(SearchParameter.class, searchRequestCustomDeserializer);
 
         return new Jackson2ObjectMapperBuilder()
-            .propertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .serializationInclusion(JsonInclude.Include.NON_ABSENT)
             .featuresToEnable(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
             .featuresToEnable(READ_ENUMS_USING_TO_STRING)

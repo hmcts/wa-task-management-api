@@ -7,11 +7,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
@@ -28,7 +31,9 @@ import java.util.UUID;
 import javax.persistence.EntityManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,6 +44,7 @@ class TerminateTaskTest extends CamundaHelpers {
 
     public static final String A_TASK_TYPE = "aTaskType";
     public static final String A_TASK_NAME = "aTaskName";
+    public static final String IDAM_SYSTEM_USER = "IDAM_SYSTEM_USER";
     @Mock
     CamundaService camundaService;
     @Mock
@@ -61,6 +67,10 @@ class TerminateTaskTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
+    @Mock
+    IdamTokenGenerator idamTokenGenerator;
+    @Mock
+    private UserInfo userInfo;
 
     @BeforeEach
     public void setUp() {
@@ -77,11 +87,14 @@ class TerminateTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskOperationServices,
-            entityManager
+            entityManager,
+            idamTokenGenerator
         );
 
 
         taskId = UUID.randomUUID().toString();
+        lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
+        lenient().when(userInfo.getUid()).thenReturn(IDAM_SYSTEM_USER);
     }
 
     @Nested
@@ -104,6 +117,9 @@ class TerminateTaskTest extends CamundaHelpers {
 
             assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
             assertEquals("completed", taskResource.getTerminationReason());
+            assertEquals(IDAM_SYSTEM_USER, taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.TERMINATE.getValue(), taskResource.getLastUpdatedAction());
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
             verify(camundaService, times(1)).deleteCftTaskState(taskId);
             verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         }
@@ -141,6 +157,9 @@ class TerminateTaskTest extends CamundaHelpers {
 
             assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
             assertEquals("cancelled", taskResource.getTerminationReason());
+            assertEquals(IDAM_SYSTEM_USER, taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.AUTO_CANCEL.getValue(), taskResource.getLastUpdatedAction());
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
             verify(camundaService, times(1)).deleteCftTaskState(taskId);
             verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         }
@@ -178,6 +197,8 @@ class TerminateTaskTest extends CamundaHelpers {
 
             assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
             assertEquals("deleted", taskResource.getTerminationReason());
+            assertEquals(IDAM_SYSTEM_USER, taskResource.getLastUpdatedUser());
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
             verify(camundaService, times(1)).deleteCftTaskState(taskId);
             verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         }

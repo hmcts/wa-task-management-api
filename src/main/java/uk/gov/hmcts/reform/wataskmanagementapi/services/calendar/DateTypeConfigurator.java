@@ -30,7 +30,7 @@ public class DateTypeConfigurator {
         this.dateCalculators = dateCalculators;
     }
 
-    public List<ConfigurationDmnEvaluationResponse> configureDates(
+    public List<ConfigurationDmnEvaluationResponse> configureDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean initiationDueDateFound,
         boolean isReconfigureRequest) {
