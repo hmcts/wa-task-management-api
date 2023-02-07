@@ -135,20 +135,6 @@ public class MIReportingService {
             } else {
                 LOGGER.error("Cannot extract publication URL from the datasource");
             }
-
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                LOGGER.error("Error closing connection", e);
-            }
-
-            try {
-                connection2.close();
-            } catch (SQLException e) {
-                LOGGER.error("Error closing connection", e);
-            }
-
-
         } catch (SQLException ex) {
             LOGGER.error("Primary datasource connection exception.", ex);
         }
