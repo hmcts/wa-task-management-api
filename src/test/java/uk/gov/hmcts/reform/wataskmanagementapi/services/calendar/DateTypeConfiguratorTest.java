@@ -60,7 +60,7 @@ public class DateTypeConfiguratorTest {
     @Test
     public void should_use_default_date_calculation_order_when_calculated_date_not_exist() {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, priorityDate, nextHearingDate);
-        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+        dateTypeConfigurator.configureDate(evaluationResponses, false, false);
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
@@ -78,7 +78,7 @@ public class DateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(calculatedDates,
                                                                                dueDate, priorityDate, nextHearingDate);
-        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+        dateTypeConfigurator.configureDate(evaluationResponses, false, false);
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
@@ -107,7 +107,7 @@ public class DateTypeConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(calculatedDates,calculatedDates2,
                                                                                calculatedDates3, dueDate,
                                                                                priorityDate, nextHearingDate);
-        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+        dateTypeConfigurator.configureDate(evaluationResponses, false, false);
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 

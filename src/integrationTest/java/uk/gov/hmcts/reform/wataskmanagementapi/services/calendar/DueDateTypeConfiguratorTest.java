@@ -966,7 +966,7 @@ public class DueDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(defaultDueDate, calculatedDate),
+            .configureDate(List.of(defaultDueDate, calculatedDate),
                             Boolean.parseBoolean(initiationDueDateFound),
                             Boolean.parseBoolean(isReConfigurationRequest));
 
