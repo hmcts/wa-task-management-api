@@ -160,12 +160,16 @@ public class MIReportingService {
                 + "?user=" + user + "&password=" + password;
         }
 
+        String sql = "CREATE SUBSCRIPTION task_subscription CONNECTION '" + subscriptionUrl
+            + "' PUBLICATION task_publication WITH (slot_name = main_slot_v1, create_slot = FALSE);";
+
+        sendToDatabase(replicaUrl,sql);
+    }
+
+    private void sendToDatabase(String replicaUrl, String sql) {
         try (Connection subscriptionConn = DriverManager.getConnection(replicaUrl);
              Statement subscriptionStatement = subscriptionConn.createStatement();) {
 
-            String sql = "CREATE SUBSCRIPTION task_subscription CONNECTION '" + subscriptionUrl
-                + "' PUBLICATION task_publication WITH (slot_name = main_slot_v1, create_slot = FALSE);";
-            LOGGER.info("CREATE SUBSCRIPTION SQL = " + sql);
             subscriptionStatement.execute(sql);
 
             LOGGER.info("Subscription created");
@@ -173,6 +177,5 @@ public class MIReportingService {
             LOGGER.error("Error setting up replication", e);
             throw new ReplicationException("An error occurred during setting up of replication", e);
         }
-
     }
 }
