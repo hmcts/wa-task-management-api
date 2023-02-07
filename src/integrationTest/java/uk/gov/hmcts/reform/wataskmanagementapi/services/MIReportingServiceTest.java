@@ -24,6 +24,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 
 /**
@@ -83,6 +85,15 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
 
                     return true;
                 });
+    }
+
+    @Test
+    void given_zero_publications_should_return_false () {
+        TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
+        when(taskResourceRepository.countPublications()).thenReturn(0);
+        miReportingService = new MIReportingService(null, taskResourceRepository);
+
+        assertFalse(miReportingService.isPublicationPresent());
     }
 
     private TaskResource createAndSaveTask() {

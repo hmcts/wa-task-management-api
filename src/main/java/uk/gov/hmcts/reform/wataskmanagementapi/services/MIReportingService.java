@@ -87,7 +87,7 @@ public class MIReportingService {
         LOGGER.info("Created logical replication slot " + MAIN_SLOT_NAME);
     }
 
-    private boolean isPublicationPresent() {
+    protected boolean isPublicationPresent() {
         int count = taskResourceRepository.countPublications();
         if (count == 0) {
             LOGGER.info("No publication present");
