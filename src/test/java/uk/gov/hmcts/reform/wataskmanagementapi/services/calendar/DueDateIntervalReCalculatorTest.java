@@ -34,11 +34,11 @@ class DueDateIntervalReCalculatorTest {
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;
 
-    private DueDateIntervalReCalculator dueDateIntervalCalculator;
+    private DueDateIntervalCalculator dueDateIntervalCalculator;
 
     @BeforeEach
     public void before() {
-        dueDateIntervalCalculator = new DueDateIntervalReCalculator(new WorkingDayIndicator(publicHolidaysCollection));
+        dueDateIntervalCalculator = new DueDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection));
 
         Set<LocalDate> localDates = Set.of(
             LocalDate.of(2022, 1, 3),
@@ -109,7 +109,7 @@ class DueDateIntervalReCalculatorTest {
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
-                DUE_DATE
+                DUE_DATE, true
             ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(0)
@@ -169,7 +169,7 @@ class DueDateIntervalReCalculatorTest {
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
-                DUE_DATE
+                DUE_DATE, true
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
@@ -224,7 +224,7 @@ class DueDateIntervalReCalculatorTest {
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
-                DUE_DATE
+                DUE_DATE, true
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dueDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -282,7 +282,7 @@ class DueDateIntervalReCalculatorTest {
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
-                DUE_DATE
+                DUE_DATE, true
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
@@ -337,7 +337,7 @@ class DueDateIntervalReCalculatorTest {
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
-                DUE_DATE
+                DUE_DATE, true
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
@@ -387,7 +387,7 @@ class DueDateIntervalReCalculatorTest {
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin
                 ),
-                DUE_DATE
+                DUE_DATE, true
             ).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -405,7 +405,8 @@ class DueDateIntervalReCalculatorTest {
 
 
         LocalDateTime resultDate = LocalDateTime
-            .parse(dueDateIntervalCalculator.calculateDate(List.of(dueDateOrigin), DUE_DATE).getValue().getValue());
+            .parse(dueDateIntervalCalculator.calculateDate(List.of(dueDateOrigin), DUE_DATE, false)
+                .getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
@@ -433,7 +434,8 @@ class DueDateIntervalReCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-        String dueDateValue = dueDateIntervalCalculator.calculateDate(List.of(dueDateOrigin, dueDateTime), DUE_DATE)
+        String dueDateValue = dueDateIntervalCalculator.calculateDate(List.of(dueDateOrigin, dueDateTime),
+                DUE_DATE, true)
             .getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dueDateValue);
         String expectedDueDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);

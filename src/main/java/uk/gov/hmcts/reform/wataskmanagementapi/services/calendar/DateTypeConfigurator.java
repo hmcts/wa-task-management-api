@@ -80,7 +80,8 @@ public class DateTypeConfigurator {
         Optional<DateCalculator> dateCalculator = getDateCalculator(configResponses, dateType, isReconfigureRequest);
 
         if (dateCalculator.isPresent()) {
-            dateTypeResponse =  dateCalculator.get().calculateDate(configResponses.get(), dateType);
+            dateTypeResponse =  dateCalculator.get()
+                .calculateDate(configResponses.get(), dateType, isReconfigureRequest);
         } else if (!isReconfigureRequest) {
             dateTypeResponse =  getDefaultValue(dateType, configResponses);
         }

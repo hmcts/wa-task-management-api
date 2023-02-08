@@ -22,10 +22,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.D
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
 
 @ExtendWith(MockitoExtension.class)
-class DueDateOriginLatestCalculatorTest {
+class DueDateOriginLatestReCalculatorTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    private static final boolean RECONFIGURATION = true;
 
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;
@@ -61,12 +62,13 @@ class DueDateOriginLatestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate);
 
-        Assertions.assertThat(dueDateOriginLatestCalculator.supports(evaluationResponses, DateType.DUE_DATE, false))
-            .isFalse();
+        Assertions.assertThat(dueDateOriginLatestCalculator
+            .supports(evaluationResponses, DateType.DUE_DATE, RECONFIGURATION)).isFalse();
     }
 
     @Test
@@ -77,12 +79,13 @@ class DueDateOriginLatestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOrigin"))
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin);
 
-        Assertions.assertThat(dueDateOriginLatestCalculator.supports(evaluationResponses, DateType.DUE_DATE, false))
-            .isFalse();
+        Assertions.assertThat(dueDateOriginLatestCalculator
+                .supports(evaluationResponses, DateType.DUE_DATE, RECONFIGURATION)).isFalse();
     }
 
 
@@ -94,6 +97,7 @@ class DueDateOriginLatestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginLatest"))
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -103,8 +107,8 @@ class DueDateOriginLatestCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDateTime);
 
-        Assertions.assertThat(dueDateOriginLatestCalculator.supports(evaluationResponses, DateType.DUE_DATE, false))
-            .isTrue();
+        Assertions.assertThat(dueDateOriginLatestCalculator
+                .supports(evaluationResponses, DateType.DUE_DATE, RECONFIGURATION)).isTrue();
     }
 
     @Test
@@ -114,6 +118,7 @@ class DueDateOriginLatestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateLatestOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginLatest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
@@ -126,7 +131,7 @@ class DueDateOriginLatestCalculatorTest {
                                                            .calculateDate(
                                                                readDueDateOriginFields(dueDateLatestOrigin,
                                                                                        nextHearingDate),
-                                                               DUE_DATE, false
+                                                               DUE_DATE, RECONFIGURATION
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(0)
@@ -143,6 +148,7 @@ class DueDateOriginLatestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateLatestOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginLatest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
@@ -162,7 +168,7 @@ class DueDateOriginLatestCalculatorTest {
                                                                readDueDateOriginFields(dueDateLatestOrigin,
                                                                                        nextHearingDate,
                                                                                        priorityDate),
-                                                               DUE_DATE, false
+                                                               DUE_DATE, RECONFIGURATION
                                                            ).getValue().getValue());
 
         Assertions.assertThat(resultDate).isEqualTo(latestDateTime + "T18:00");
@@ -176,21 +182,25 @@ class DueDateOriginLatestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateLatestOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginLatest"))
             .value(CamundaValue.stringValue("priorityDate,nextHearingDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateIntervalDays"))
             .value(CamundaValue.stringValue("3"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
 
@@ -200,7 +210,7 @@ class DueDateOriginLatestCalculatorTest {
                                                                                        nextHearingDate,
                                                                                        priorityDate,
                                                                                        dueDateIntervalDays),
-                                                               DUE_DATE, false
+                                                               DUE_DATE, RECONFIGURATION
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(3)
@@ -217,31 +227,37 @@ class DueDateOriginLatestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateLatestOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginLatest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateIntervalDays"))
             .value(CamundaValue.stringValue("5"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginLatestCalculator
@@ -252,7 +268,7 @@ class DueDateOriginLatestCalculatorTest {
                                                                                        dueDateNonWorkingDaysOfWeek,
                                                                                        dueDateIntervalDays,
                                                                                        dueDateSkipNonWorkingDays),
-                                                               DUE_DATE, false
+                                                               DUE_DATE, RECONFIGURATION
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(7)
@@ -269,31 +285,37 @@ class DueDateOriginLatestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateLatestOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginLatest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateIntervalDays"))
             .value(CamundaValue.stringValue("5"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginLatestCalculator
@@ -304,7 +326,7 @@ class DueDateOriginLatestCalculatorTest {
                                                                                        dueDateIntervalDays,
                                                                                        dueDateNonWorkingDaysOfWeek,
                                                                                        dueDateSkipNonWorkingDays),
-                                                               DUE_DATE, false
+                                                               DUE_DATE, RECONFIGURATION
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -320,32 +342,39 @@ class DueDateOriginLatestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateLatestOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginLatest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
         ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateIntervalDays"))
             .value(CamundaValue.stringValue("2"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
         ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
         ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         String dateValue = dueDateOriginLatestCalculator.calculateDate(
@@ -358,7 +387,7 @@ class DueDateOriginLatestCalculatorTest {
                 dueDateSkipNonWorkingDays,
                 dueDateIntervalDays
             ),
-            DUE_DATE, false
+            DUE_DATE, RECONFIGURATION
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -376,34 +405,41 @@ class DueDateOriginLatestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateLatestOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginLatest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateIntervalDays"))
             .value(CamundaValue.stringValue("2"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
         ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS))
+            .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginLatestCalculator
@@ -416,7 +452,7 @@ class DueDateOriginLatestCalculatorTest {
                                                                        dueDateNonWorkingDaysOfWeek,
                                                                        dueDateSkipNonWorkingDays
                                                                ),
-                                                               DUE_DATE, false
+                                                               DUE_DATE, RECONFIGURATION
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(1)
@@ -431,26 +467,32 @@ class DueDateOriginLatestCalculatorTest {
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateIntervalDays"))
                 .value(CamundaValue.stringValue("0"))
+                .canReconfigure(CamundaValue.booleanValue(true))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
                 .value(CamundaValue.stringValue(CALENDAR_URI))
+                .canReconfigure(CamundaValue.booleanValue(true))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
                 .value(CamundaValue.stringValue(""))
+                .canReconfigure(CamundaValue.booleanValue(true))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
                 .value(CamundaValue.stringValue("true"))
+                .canReconfigure(CamundaValue.booleanValue(true))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
                 .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+                .canReconfigure(CamundaValue.booleanValue(true))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateTime"))
                 .value(CamundaValue.stringValue("18:00"))
+                .canReconfigure(CamundaValue.booleanValue(true))
                 .build()
         ));
         allFields.addAll(List.of(fields));

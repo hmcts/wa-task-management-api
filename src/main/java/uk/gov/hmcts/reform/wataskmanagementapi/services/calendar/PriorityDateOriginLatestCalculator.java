@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
 @Slf4j
 @Component
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
-public class DueDateOriginLatestCalculator extends DueDateIntervalCalculator {
+public class PriorityDateOriginLatestCalculator extends PriorityDateIntervalCalculator {
 
-    public DueDateOriginLatestCalculator(WorkingDayIndicator workingDayIndicator) {
+    public PriorityDateOriginLatestCalculator(WorkingDayIndicator workingDayIndicator) {
         super(workingDayIndicator);
     }
 
@@ -27,17 +27,20 @@ public class DueDateOriginLatestCalculator extends DueDateIntervalCalculator {
         DateType dateType,
         boolean isReconfigureRequest) {
 
-        return DUE_DATE == dateType
-            && Optional.ofNullable(getProperty(configResponses, DUE_DATE.getType(), isReconfigureRequest)).isEmpty()
-            && Optional.ofNullable(getProperty(configResponses, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
+        return PRIORITY_DATE == dateType
             && Optional.ofNullable(
-                getProperty(configResponses, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest)).isPresent();
+                getProperty(configResponses, PRIORITY_DATE.getType(), isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(
+                getProperty(configResponses, PRIORITY_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(
+                getProperty(configResponses, PRIORITY_DATE_ORIGIN_LATEST, isReconfigureRequest)).isPresent();
     }
 
     @Override
-    protected LocalDateTime readDueDateOrigin(List<ConfigurationDmnEvaluationResponse> configResponses,
+    protected LocalDateTime readPriorityDateOrigin(List<ConfigurationDmnEvaluationResponse> configResponses,
                                               boolean reconfigure) {
-        ConfigurationDmnEvaluationResponse originLatestResponse = getProperty(configResponses, DUE_DATE_ORIGIN_LATEST);
+        ConfigurationDmnEvaluationResponse originLatestResponse = getProperty(configResponses,
+            PRIORITY_DATE_ORIGIN_LATEST);
 
         List<DateType> originDateTypes = Arrays.stream(originLatestResponse.getValue().getValue().split(","))
             .map(s -> DateType.from(s).orElseThrow()).collect(Collectors.toList());

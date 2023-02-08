@@ -21,18 +21,18 @@ public class NextHearingDateCalculator extends DueDateCalculator {
         boolean isReconfigureRequest) {
 
         return NEXT_HEARING_DATE == dateType
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType())).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(
+                getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigureRequest)).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType) {
+        DateType dateType, boolean isReconfigureRequest) {
         return calculatedDate(
             dateType,
-            getProperty(dueDateProperties, NEXT_HEARING_DATE.getType()),
-            getProperty(dueDateProperties, NEXT_HEARING_DATE_TIME)
+            getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigureRequest),
+            getProperty(dueDateProperties, NEXT_HEARING_DATE_TIME, isReconfigureRequest)
         );
     }
 }

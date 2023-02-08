@@ -101,7 +101,7 @@ class PriorityDateIntervalCalculatorTest {
                                                                    priorityDateOrigin,
                                                                    priorityDateTime
                                                                ),
-                                                               PRIORITY_DATE
+                                                               PRIORITY_DATE, false
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(0)
@@ -157,7 +157,7 @@ class PriorityDateIntervalCalculatorTest {
                                                                    priorityDateOrigin,
                                                                    priorityDateTime
                                                                ),
-                                                               PRIORITY_DATE
+                                                               PRIORITY_DATE, false
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(3)
@@ -213,7 +213,7 @@ class PriorityDateIntervalCalculatorTest {
                                                                    priorityDateOrigin,
                                                                    priorityDateTime
                                                                ),
-                                                               PRIORITY_DATE
+                                                               PRIORITY_DATE, false
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(7)
@@ -272,7 +272,7 @@ class PriorityDateIntervalCalculatorTest {
                                                                    priorityDateOrigin,
                                                                    priorityDateTime
                                                                ),
-                                                               PRIORITY_DATE
+                                                               PRIORITY_DATE, false
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(6)
@@ -327,7 +327,7 @@ class PriorityDateIntervalCalculatorTest {
                 priorityDateOrigin,
                 priorityDateTime
             ),
-            PRIORITY_DATE
+            PRIORITY_DATE, false
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -384,7 +384,7 @@ class PriorityDateIntervalCalculatorTest {
                                                                    priorityDateOrigin,
                                                                    priorityDateTime
                                                                ),
-                                                               PRIORITY_DATE
+                                                               PRIORITY_DATE, false
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(1)
@@ -434,7 +434,7 @@ class PriorityDateIntervalCalculatorTest {
                                                                    priorityDateSkipNonWorkingDays,
                                                                    priorityDateOrigin
                                                                ),
-                                                               PRIORITY_DATE
+                                                               PRIORITY_DATE, false
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(5)
@@ -454,7 +454,7 @@ class PriorityDateIntervalCalculatorTest {
 
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator.calculateDate(
-            List.of(priorityDateOrigin), PRIORITY_DATE).getValue().getValue());
+            List.of(priorityDateOrigin), PRIORITY_DATE, false).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -477,7 +477,7 @@ class PriorityDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator.calculateDate(
             List.of(priorityDateOrigin, priorityDateTime),
-            PRIORITY_DATE
+            PRIORITY_DATE, false
         ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

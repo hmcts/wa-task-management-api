@@ -23,6 +23,7 @@ public interface DateCalculator {
     String DUE_DATE_TIME = "dueDateTime";
     String DUE_DATE_ORIGIN_LATEST = "dueDateOriginLatest";
     String PRIORITY_DATE_ORIGIN = "priorityDateOrigin";
+    String PRIORITY_DATE_ORIGIN_LATEST = "priorityDateOriginLatest";
     String PRIORITY_DATE_INTERVAL_DAYS = "priorityDateIntervalDays";
     String PRIORITY_DATE_NON_WORKING_CALENDAR = "priorityDateNonWorkingCalendar";
     String PRIORITY_DATE_NON_WORKING_DAYS_OF_WEEK = "priorityDateNonWorkingDaysOfWeek";
@@ -31,6 +32,7 @@ public interface DateCalculator {
     String PRIORITY_DATE_TIME = "priorityDateTime";
     String NEXT_HEARING_DATE_TIME = "nextHearingDateTime";
     String NEXT_HEARING_DATE_ORIGIN = "nextHearingDateOrigin";
+    String NEXT_HEARING_DATE_ORIGIN_LATEST = "nextHearingDateOriginLatest";
     String NEXT_HEARING_DATE_INTERVAL_DAYS = "nextHearingDateIntervalDays";
     String NEXT_HEARING_DATE_NON_WORKING_CALENDAR = "nextHearingDateNonWorkingCalendar";
     String NEXT_HEARING_DATE_NON_WORKING_DAYS_OF_WEEK = "nextHearingDateNonWorkingDaysOfWeek";
@@ -50,7 +52,7 @@ public interface DateCalculator {
                      boolean isReconfigureRequest);
 
     ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-                                                     DateType dateType);
+                                                     DateType dateType, boolean isReconfigureRequest);
 
     default ConfigurationDmnEvaluationResponse getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
@@ -61,14 +63,20 @@ public interface DateCalculator {
             .orElse(null);
     }
 
-    default ConfigurationDmnEvaluationResponse getReConfigurableProperty(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
+    default ConfigurationDmnEvaluationResponse getProperty(
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix, boolean reconfigureRequest) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dueDatePrefix))
+            .filter(r -> !reconfigureRequest || canReconfigure(r))
             .filter(r -> Strings.isNotBlank(r.getValue().getValue()))
-            .filter(r -> r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
             .orElse(null);
+    }
+
+    default boolean canReconfigure(ConfigurationDmnEvaluationResponse property) {
+        return property != null
+               && property.getCanReconfigure() != null
+               && property.getCanReconfigure().getValue();
     }
 
     default LocalDateTime addTimeToDate(

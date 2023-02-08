@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateType
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -28,29 +29,45 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
         boolean isReconfigureRequest) {
 
         return PRIORITY_DATE == dateType
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN)).isPresent()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE.getType())).isEmpty()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(
+                getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN, isReconfigureRequest)).isPresent()
+            && Optional.ofNullable(
+                getProperty(priorityDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest)).isEmpty();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType) {
-        return calculateDate(dateType, readPriorityDateOriginFields(priorityDateProperties, false));
+        List<ConfigurationDmnEvaluationResponse> priorityDateProperties, DateType dateType,
+        boolean isReconfigureRequest) {
+
+        DateTypeIntervalData priorityDateIntervalData = readPriorityDateOriginFields(priorityDateProperties,
+            isReconfigureRequest);
+        LocalDateTime originDate = readPriorityDateOrigin(priorityDateProperties, isReconfigureRequest);
+
+        LocalDateTime dateTime = calculate(priorityDateIntervalData, originDate);
+
+        return ConfigurationDmnEvaluationResponse
+            .builder()
+            .name(CamundaValue.stringValue(dateType.getType()))
+            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateTime)))
+            .build();
+    }
+
+
+    protected LocalDateTime readPriorityDateOrigin(
+        List<ConfigurationDmnEvaluationResponse> priorityDateProperties, boolean reconfigure) {
+        return priorityDateProperties.stream()
+            .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_ORIGIN))
+            .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+            .reduce((a, b) -> b)
+            .map(r -> LocalDateTime.parse(r.getValue().getValue(), DATE_TIME_FORMATTER))
+            .orElse(DEFAULT_ZONED_DATE_TIME);
     }
 
     protected DateTypeIntervalData readPriorityDateOriginFields(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties, boolean reconfigure) {
 
         return DateTypeIntervalData.builder()
-            .dateTypeOrigin(priorityDateProperties.stream()
-                                .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_ORIGIN))
-                                .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
-                                .reduce((a, b) -> b)
-                                .map(ConfigurationDmnEvaluationResponse::getValue)
-                                .map(CamundaValue::getValue)
-                                .orElse(DEFAULT_ZONED_DATE_TIME.format(DATE_TIME_FORMATTER)))
             .dateTypeIntervalDays(priorityDateProperties.stream()
                                       .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_INTERVAL_DAYS))
                                       .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())

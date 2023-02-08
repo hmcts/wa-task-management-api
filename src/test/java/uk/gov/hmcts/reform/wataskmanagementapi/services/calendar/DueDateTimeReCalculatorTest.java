@@ -21,12 +21,12 @@ class DueDateTimeReCalculatorTest {
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
     public static final boolean IS_RECONFIGURE_REQUEST = true;
 
-    private DueDateTimeReCalculator dueDateTimeCalculator;
+    private DueDateTimeCalculator dueDateTimeCalculator;
 
 
     @BeforeEach
     public void before() {
-        dueDateTimeCalculator = new DueDateTimeReCalculator();
+        dueDateTimeCalculator = new DueDateTimeCalculator();
     }
 
     @Test
@@ -155,7 +155,8 @@ class DueDateTimeReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String responseValue = dueDateTimeCalculator.calculateDate(evaluationResponses, DUE_DATE).getValue().getValue();
+        String responseValue = dueDateTimeCalculator.calculateDate(evaluationResponses, DUE_DATE, true)
+            .getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + "T16:00");
     }
 
@@ -178,7 +179,8 @@ class DueDateTimeReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateTime2);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String responseValue = dueDateTimeCalculator.calculateDate(evaluationResponses, DUE_DATE).getValue().getValue();
+        String responseValue = dueDateTimeCalculator.calculateDate(evaluationResponses, DUE_DATE, true)
+            .getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + "T20:00");
     }
 }

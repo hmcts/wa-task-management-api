@@ -20,12 +20,12 @@ class DueDateReCalculatorTest {
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
     public static final boolean IS_RECONFIGURE_REQUEST = true;
 
-    private DueDateReCalculator dueDateCalculator;
+    private DueDateCalculator dueDateCalculator;
 
 
     @BeforeEach
     public void before() {
-        dueDateCalculator = new DueDateReCalculator();
+        dueDateCalculator = new DueDateCalculator();
     }
 
     @Test
@@ -118,7 +118,8 @@ class DueDateReCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate);
 
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE).getValue().getValue();
+        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE, true)
+            .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + "T16:00");
     }
 
@@ -141,7 +142,8 @@ class DueDateReCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE).getValue().getValue();
+        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE, true)
+            .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + "T16:00");
     }
 
@@ -164,7 +166,8 @@ class DueDateReCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE).getValue().getValue();
+        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE, true)
+            .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + "T20:00");
     }
 
@@ -188,7 +191,8 @@ class DueDateReCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDate2);
 
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE).getValue().getValue();
+        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE, true)
+            .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + "T19:00");
     }
 }

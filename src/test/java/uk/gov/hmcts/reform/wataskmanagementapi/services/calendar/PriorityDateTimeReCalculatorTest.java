@@ -21,12 +21,12 @@ class PriorityDateTimeReCalculatorTest {
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
     public static final boolean IS_RECONFIGURE_REQUEST = true;
 
-    private PriorityDateTimeReCalculator priorityDateTimeReCalculator;
+    private PriorityDateTimeCalculator priorityDateTimeReCalculator;
 
 
     @BeforeEach
     public void before() {
-        priorityDateTimeReCalculator = new PriorityDateTimeReCalculator();
+        priorityDateTimeReCalculator = new PriorityDateTimeCalculator();
     }
 
     @Test
@@ -181,7 +181,8 @@ class PriorityDateTimeReCalculatorTest {
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String responseValue = priorityDateTimeReCalculator.calculateDate(
             evaluationResponses,
-            PRIORITY_DATE
+            PRIORITY_DATE,
+            true
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + "T16:00");
     }
@@ -207,7 +208,8 @@ class PriorityDateTimeReCalculatorTest {
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String responseValue = priorityDateTimeReCalculator.calculateDate(
             evaluationResponses,
-            PRIORITY_DATE
+            PRIORITY_DATE,
+            true
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + "T20:00");
     }

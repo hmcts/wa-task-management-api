@@ -34,12 +34,12 @@ class NextHearingDateIntervalReCalculatorTest {
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;
 
-    private NextHearingDateIntervalReCalculator nextHearingDateIntervalReCalculator;
+    private NextHearingDateIntervalCalculator nextHearingDateIntervalReCalculator;
 
     @BeforeEach
     public void before() {
         nextHearingDateIntervalReCalculator
-            = new NextHearingDateIntervalReCalculator(new WorkingDayIndicator(publicHolidaysCollection));
+            = new NextHearingDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection));
 
         Set<LocalDate> localDates = Set.of(
             LocalDate.of(2022, 1, 3),
@@ -120,7 +120,8 @@ class NextHearingDateIntervalReCalculatorTest {
                                                                        nextHearingDateOrigin,
                                                                        nextHearingDateTime
                                                                ),
-                                                               NEXT_HEARING_DATE
+                                                               NEXT_HEARING_DATE,
+                                                               true
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
@@ -188,7 +189,8 @@ class NextHearingDateIntervalReCalculatorTest {
                         nextHearingDateOrigin,
                         nextHearingDateTime
                 ),
-                NEXT_HEARING_DATE
+                NEXT_HEARING_DATE,
+                true
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDateValue)).isEqualTo(scenario.expectedDate);
@@ -254,7 +256,8 @@ class NextHearingDateIntervalReCalculatorTest {
                         nextHearingDateOrigin,
                         nextHearingDateTime
                 ),
-                NEXT_HEARING_DATE
+                NEXT_HEARING_DATE,
+                true
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -321,7 +324,8 @@ class NextHearingDateIntervalReCalculatorTest {
                         nextHearingDateOrigin,
                         nextHearingDateTime
                 ),
-                NEXT_HEARING_DATE
+                NEXT_HEARING_DATE,
+                true
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDateValue)).isEqualTo(scenario.expectedDate);
@@ -387,7 +391,8 @@ class NextHearingDateIntervalReCalculatorTest {
                         nextHearingDateOrigin,
                         nextHearingDateTime
                 ),
-                NEXT_HEARING_DATE
+                NEXT_HEARING_DATE,
+                true
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDateValue)).isEqualTo(scenario.expectedDate);
@@ -445,7 +450,8 @@ class NextHearingDateIntervalReCalculatorTest {
                                                                        nextHearingDateSkipNonWorkingDays,
                                                                        nextHearingDateOrigin
                                                                ),
-                                                               NEXT_HEARING_DATE
+                                                               NEXT_HEARING_DATE,
+                                                               true
                                                            ).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -465,7 +471,8 @@ class NextHearingDateIntervalReCalculatorTest {
         LocalDateTime resultDate = LocalDateTime
             .parse(nextHearingDateIntervalReCalculator.calculateDate(
                 List.of(nextHearingDateOrigin),
-                NEXT_HEARING_DATE
+                NEXT_HEARING_DATE,
+                true
             ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
@@ -497,7 +504,7 @@ class NextHearingDateIntervalReCalculatorTest {
         String nextHearingDateValue = nextHearingDateIntervalReCalculator.calculateDate(List.of(
                 nextHearingDateOrigin,
                 nextHearingDateTime
-            ), NEXT_HEARING_DATE)
+            ), NEXT_HEARING_DATE, true)
             .getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateValue);
         String expectedNextHearingDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);

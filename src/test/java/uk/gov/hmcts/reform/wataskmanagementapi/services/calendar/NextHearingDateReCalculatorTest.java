@@ -20,11 +20,11 @@ class NextHearingDateReCalculatorTest {
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
     public static final boolean IS_RECONFIGURE_REQUEST = true;
 
-    private NextHearingDateReCalculator nextHearingDateReCalculator;
+    private NextHearingDateCalculator nextHearingDateReCalculator;
 
     @BeforeEach
     public void before() {
-        nextHearingDateReCalculator = new NextHearingDateReCalculator();
+        nextHearingDateReCalculator = new NextHearingDateCalculator();
     }
 
     @Test
@@ -135,7 +135,7 @@ class NextHearingDateReCalculatorTest {
 
         String dateValue = nextHearingDateReCalculator.calculateDate(
             evaluationResponses,
-            NEXT_HEARING_DATE
+            NEXT_HEARING_DATE, true
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + "T16:00");
     }
@@ -161,7 +161,7 @@ class NextHearingDateReCalculatorTest {
 
         String dateValue = nextHearingDateReCalculator.calculateDate(
             evaluationResponses,
-            NEXT_HEARING_DATE
+            NEXT_HEARING_DATE, true
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + "T16:00");
     }
@@ -187,7 +187,7 @@ class NextHearingDateReCalculatorTest {
 
         String dateValue = nextHearingDateReCalculator.calculateDate(
             evaluationResponses,
-            NEXT_HEARING_DATE
+            NEXT_HEARING_DATE, true
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + "T20:00");
     }
@@ -214,7 +214,7 @@ class NextHearingDateReCalculatorTest {
 
         String dateValue = nextHearingDateReCalculator.calculateDate(
             evaluationResponses,
-            NEXT_HEARING_DATE
+            NEXT_HEARING_DATE, true
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate2 + "T19:00");
     }

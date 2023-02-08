@@ -99,7 +99,7 @@ class DueDateIntervalCalculatorTest {
                                                                        dueDateOrigin,
                                                                        dueDateTime
                                                                ),
-                                                               DUE_DATE
+                                                               DUE_DATE, false
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(0)
@@ -154,7 +154,7 @@ class DueDateIntervalCalculatorTest {
                                                                        dueDateOrigin,
                                                                        dueDateTime
                                                                ),
-                                                               DUE_DATE
+                                                               DUE_DATE, false
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(3)
@@ -209,7 +209,7 @@ class DueDateIntervalCalculatorTest {
                                                                        dueDateOrigin,
                                                                        dueDateTime
                                                                ),
-                                                               DUE_DATE
+                                                               DUE_DATE, false
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(7)
@@ -267,7 +267,7 @@ class DueDateIntervalCalculatorTest {
                                                                        dueDateOrigin,
                                                                        dueDateTime
                                                                ),
-                                                               DUE_DATE
+                                                               DUE_DATE, false
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(6)
@@ -322,7 +322,7 @@ class DueDateIntervalCalculatorTest {
                 dueDateOrigin,
                 dueDateTime
             ),
-            DUE_DATE
+            DUE_DATE, false
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -378,7 +378,7 @@ class DueDateIntervalCalculatorTest {
                                                                        dueDateOrigin,
                                                                        dueDateTime
                                                                ),
-                                                               DUE_DATE
+                                                               DUE_DATE, false
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(1)
@@ -427,7 +427,7 @@ class DueDateIntervalCalculatorTest {
                                                                        dueDateSkipNonWorkingDays,
                                                                        dueDateOrigin
                                                                ),
-                                                               DUE_DATE
+                                                               DUE_DATE, false
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5)
@@ -447,7 +447,7 @@ class DueDateIntervalCalculatorTest {
 
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator.calculateDate(
-            List.of(dueDateOrigin), DUE_DATE).getValue().getValue());
+            List.of(dueDateOrigin), DUE_DATE, false).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -470,7 +470,7 @@ class DueDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator.calculateDate(
             List.of(dueDateOrigin, dueDateTime),
-            DUE_DATE
+            DUE_DATE, false
         ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
