@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config.db;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationVersion;
+import org.postgresql.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
@@ -10,6 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
+import java.util.Properties;
 
 @Slf4j
 @Configuration
@@ -39,11 +42,27 @@ public class FlywayReplicaMigrationConfiguration {
 
                 flywayBase.migrate();
 
-                log.info("");
+                Properties replicaProperties = null;
+                try {
+                    replicaProperties = Driver.parseURL(replicaDataSource.getConnection().getMetaData().getURL(), null);
+                    String host = replicaProperties.get("PGHOST").toString();
+                    String port = replicaProperties.get("PGPORT").toString();
+                    String dbName = replicaProperties.get("PGDBNAME").toString();
+                    log.info("host " + host);
+                    log.info("port " + port);
+                    log.info("dbName " + dbName);
+                } catch (SQLException e) {
+                    log.error(e.getMessage());
+                }
+
+                String host = replicaProperties.get("PGHOST").toString();
+                String port = replicaProperties.get("PGPORT").toString();
+                String dbName = replicaProperties.get("PGDBNAME").toString();
+
                 Flyway flywayReplica = Flyway.configure()
                     .dataSource(replicaDataSource)
                     .schemas("cft_task_db_replica")
-                    .defaultSchema(SCHEMA_NAME)
+                    .defaultSchema("cft_task_db_replica")
                     .locations("dbreplica/migration")
                     .baselineOnMigrate(true)
                     .target(MigrationVersion.LATEST).load();
