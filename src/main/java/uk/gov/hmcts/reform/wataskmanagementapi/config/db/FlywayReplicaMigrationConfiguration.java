@@ -44,7 +44,8 @@ public class FlywayReplicaMigrationConfiguration {
 
 
                 try {
-                    Properties replicaProperties = Driver.parseURL(replicaDataSource.getConnection().getMetaData().getURL(), null);
+                    Properties replicaProperties =
+                        Driver.parseURL(replicaDataSource.getConnection().getMetaData().getURL(), null);
                     String host = replicaProperties.get("PGHOST").toString();
                     String port = replicaProperties.get("PGPORT").toString();
                     String dbName = replicaProperties.get("PGDBNAME").toString();
