@@ -10,9 +10,9 @@ import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.Properties;
+import javax.sql.DataSource;
 
 @Slf4j
 @Configuration
@@ -54,10 +54,6 @@ public class FlywayReplicaMigrationConfiguration {
                 } catch (SQLException e) {
                     log.error(e.getMessage());
                 }
-
-                String host = replicaProperties.get("PGHOST").toString();
-                String port = replicaProperties.get("PGPORT").toString();
-                String dbName = replicaProperties.get("PGDBNAME").toString();
 
                 Flyway flywayReplica = Flyway.configure()
                     .dataSource(replicaDataSource)
