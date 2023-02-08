@@ -559,11 +559,11 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertEquals("routine_work", task.getWorkTypeResource().getId());
                 assertEquals("JUDICIAL", task.getRoleCategory());
                 assertEquals(
-                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
                     task.getPriorityDate().toLocalDate()
                 );
                 assertEquals(
-                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
                     task.getNextHearingDate().toLocalDate()
                 );
                 assertEquals("nextHearingId1", task.getNextHearingId());
@@ -854,7 +854,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("priorityDate"),
-                stringValue("2021-05-09T20:15:45.345875+01:00"),
+                stringValue("2021-05-09T20:15"),
                 booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
@@ -868,7 +868,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("nextHearingDate"),
-                stringValue("2021-05-09T20:15:45.345875+01:00"),
+                stringValue("2021-05-09T20:15"),
                 booleanValue(canReconfigure)
             )
         );
