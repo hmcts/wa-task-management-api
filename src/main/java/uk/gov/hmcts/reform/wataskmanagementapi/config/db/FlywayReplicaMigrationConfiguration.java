@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config.db;
 
+import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
+@Slf4j
 @Configuration
 public class FlywayReplicaMigrationConfiguration {
     @Autowired
@@ -26,6 +28,7 @@ public class FlywayReplicaMigrationConfiguration {
         return new FlywayMigrationStrategy() {
             @Override
             public void migrate(Flyway flyway) {
+                log.info("Running migration");
                 Flyway flywayBase = Flyway.configure()
                     .dataSource(dataSource)
                     .schemas(SCHEMA_NAME)
@@ -36,9 +39,10 @@ public class FlywayReplicaMigrationConfiguration {
 
                 flywayBase.migrate();
 
+                log.info("");
                 Flyway flywayReplica = Flyway.configure()
                     .dataSource(replicaDataSource)
-                    .schemas(SCHEMA_NAME)
+                    .schemas("cft_task_db_replica")
                     .defaultSchema(SCHEMA_NAME)
                     .locations("dbreplica/migration")
                     .baselineOnMigrate(true)
