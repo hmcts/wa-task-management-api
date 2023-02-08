@@ -79,7 +79,7 @@ spring:
     password: ${POSTGRES_PASSWORD:}
   datasource-replica:
     driverClassName: org.postgresql.Driver
-    jdbcUrl: jdbc:postgresql://ccd-shared-database:5433/cft_task_db_replica${POSTGRES_CONNECTION_OPTIONS:}
+    jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:localhost}:5432/cft_task_db_replica${POSTGRES_CONNECTION_OPTIONS:}
     username: repl_user
     password: repl_password
   jpa:
