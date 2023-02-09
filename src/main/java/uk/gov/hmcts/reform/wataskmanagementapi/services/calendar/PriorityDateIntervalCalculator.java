@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +25,7 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateTypeConfigurator.DateTypeObject dateTypeObject,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
         return PRIORITY_DATE == dateTypeObject.dateType()
@@ -35,7 +36,7 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-            DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
+        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
         return calculateDate(dateType, readDateTypeOriginFields(priorityDateProperties, false));
     }
 

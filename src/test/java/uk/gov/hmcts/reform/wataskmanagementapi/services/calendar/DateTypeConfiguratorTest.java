@@ -45,10 +45,13 @@ public class DateTypeConfiguratorTest {
     @BeforeEach
     public void setUp() {
         when(dueDateCalculator.supports(anyList(), eq(DUE_DATE_TYPE), eq(false))).thenReturn(true);
-        when(dueDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false))).thenReturn(false);
+        when(dueDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+            .thenReturn(false);
         when(dueDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false))).thenReturn(false);
-        when(priorityDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false))).thenReturn(true);
-        when(priorityDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false))).thenReturn(false);
+        when(priorityDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false)))
+            .thenReturn(true);
+        when(priorityDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+            .thenReturn(false);
         when(nextHearingDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
             .thenReturn(true);
 

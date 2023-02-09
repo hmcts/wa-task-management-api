@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
 
 @Slf4j
@@ -33,9 +32,11 @@ public class IntermediateDateTimeCalculator implements DateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-            DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        return calculatedDate(dateTypeObject,
-                              getProperty(configResponses, dateTypeObject.dateTypeName() + TIME_SUFFIX));
+        DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        return calculatedDate(
+            dateTypeObject,
+            getProperty(configResponses, dateTypeObject.dateTypeName() + TIME_SUFFIX)
+        );
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +23,7 @@ public class DueDateOriginRefCalculator extends DueDateIntervalCalculator {
     @Override
     public boolean supports(
             List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-            DateTypeConfigurator.DateTypeObject dateTypeObject,
+            DateTypeObject dateTypeObject,
             boolean isReconfigureRequest) {
         return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
@@ -33,7 +34,7 @@ public class DueDateOriginRefCalculator extends DueDateIntervalCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         ConfigurationDmnEvaluationResponse originRefResponse = getProperty(configResponses, DUE_DATE_ORIGIN_REF);
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(configResponses, originRefResponse);
         DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);

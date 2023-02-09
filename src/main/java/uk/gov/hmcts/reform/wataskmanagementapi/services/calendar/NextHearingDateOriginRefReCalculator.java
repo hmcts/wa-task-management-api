@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +23,7 @@ public class NextHearingDateOriginRefReCalculator extends NextHearingDateInterva
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateTypeConfigurator.DateTypeObject dateTypeObject,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         return NEXT_HEARING_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN)).isEmpty()
@@ -34,7 +35,7 @@ public class NextHearingDateOriginRefReCalculator extends NextHearingDateInterva
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-            DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties) {
+        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties) {
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(
             nextHearingDateProperties,
             getReConfigurableProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN_REF)

@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,7 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateTypeConfigurator.DateTypeObject dateTypeObject,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
         return PRIORITY_DATE == dateTypeObject.dateType()
@@ -28,7 +29,7 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeConfigurator.DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
+        DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
         return calculatedDate(dateTypeObject, getProperty(priorityDateProperties, PRIORITY_DATE_TIME));
     }
 }

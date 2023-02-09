@@ -38,12 +38,16 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        return calculateDate(dateTypeObject,
-                             readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, false));
+        return calculateDate(
+            dateTypeObject,
+            readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, false)
+        );
     }
 
-    protected DateTypeIntervalData readDateTypeOriginFields(String dateTypeName,
-        List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties, boolean reconfigure) {
+    protected DateTypeIntervalData readDateTypeOriginFields(
+        String dateTypeName,
+        List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
+        boolean reconfigure) {
 
         return DateTypeIntervalData.builder()
             .dateTypeOrigin(nextHearingDateProperties.stream()

@@ -118,10 +118,10 @@ public class DateTypeConfigurator {
 
     private Optional<DateCalculator> getDateCalculator(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateType,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         return dateCalculators.stream()
-            .filter(dateCalculator -> dateCalculator.supports(configResponses, dateType, isReconfigureRequest))
+            .filter(dateCalculator -> dateCalculator.supports(configResponses, dateTypeObject, isReconfigureRequest))
             .findFirst();
     }
 

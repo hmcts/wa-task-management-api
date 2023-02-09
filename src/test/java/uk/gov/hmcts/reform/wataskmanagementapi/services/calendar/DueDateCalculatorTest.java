@@ -13,7 +13,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 
 @ExtendWith(MockitoExtension.class)
 class DueDateCalculatorTest {
@@ -49,7 +48,11 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE_TYPE, IS_NOT_RECONFIGURE_REQUEST)).isFalse();
+        assertThat(dueDateCalculator.supports(
+            evaluationResponses,
+            DUE_DATE_TYPE,
+            IS_NOT_RECONFIGURE_REQUEST
+        )).isFalse();
     }
 
     @Test
@@ -62,7 +65,11 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE_TYPE, IS_NOT_RECONFIGURE_REQUEST)).isFalse();
+        assertThat(dueDateCalculator.supports(
+            evaluationResponses,
+            DUE_DATE_TYPE,
+            IS_NOT_RECONFIGURE_REQUEST
+        )).isFalse();
     }
 
     @Test

@@ -18,7 +18,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.NextHearingDateCalculatorTest.NEXT_HEARING_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class NextHearingDateOriginRefCalculatorTest {
@@ -26,10 +26,6 @@ class NextHearingDateOriginRefCalculatorTest {
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
     public static final String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-    public static final DateTypeConfigurator.DateTypeObject NEXT_HEARING_DATE_TYPE = new DateTypeConfigurator.DateTypeObject(
-        NEXT_HEARING_DATE,
-        NEXT_HEARING_DATE.getType()
-    );
 
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;

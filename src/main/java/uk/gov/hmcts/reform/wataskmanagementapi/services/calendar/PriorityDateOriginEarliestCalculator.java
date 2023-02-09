@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +23,7 @@ public class PriorityDateOriginEarliestCalculator extends PriorityDateIntervalCa
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateTypeConfigurator.DateTypeObject dateTypeObject,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         return PRIORITY_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN)).isEmpty()
@@ -33,7 +34,7 @@ public class PriorityDateOriginEarliestCalculator extends PriorityDateIntervalCa
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-            DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         var originEarliestResponse = getProperty(configResponses, PRIORITY_DATE_ORIGIN_EARLIEST);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
         DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);

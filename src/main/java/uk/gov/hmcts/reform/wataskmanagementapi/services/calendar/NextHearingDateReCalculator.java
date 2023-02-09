@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,7 @@ public class NextHearingDateReCalculator extends DueDateCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
-        DateTypeConfigurator.DateTypeObject dateTypeObject,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         var nextHearingDate = getReConfigurableProperty(nextHearingDateProperties, NEXT_HEARING_DATE.getType());
         return NEXT_HEARING_DATE == dateTypeObject.dateType()
@@ -26,7 +27,7 @@ public class NextHearingDateReCalculator extends DueDateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties) {
+        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties) {
         return calculatedDate(
             dateType,
             getReConfigurableProperty(nextHearingDateProperties, NEXT_HEARING_DATE.getType()),

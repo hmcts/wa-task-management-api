@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.NextHearingDateCalculatorTest.NEXT_HEARING_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class NextHearingDateIntervalReCalculatorTest {
@@ -30,10 +30,6 @@ class NextHearingDateIntervalReCalculatorTest {
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
     public static final boolean IS_RECONFIGURE_REQUEST = true;
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    public static final DateTypeConfigurator.DateTypeObject NEXT_HEARING_DATE_TYPE = new DateTypeConfigurator.DateTypeObject(
-        NEXT_HEARING_DATE,
-        NEXT_HEARING_DATE.getType()
-    );
 
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;
@@ -573,10 +569,11 @@ class NextHearingDateIntervalReCalculatorTest {
 
         String nextHearingDateValue = nextHearingDateIntervalReCalculator.calculateDate(
                 NEXT_HEARING_DATE_TYPE,
-            List.of(
-                nextHearingDateOrigin,
-                nextHearingDateTime
-            ))
+                List.of(
+                    nextHearingDateOrigin,
+                    nextHearingDateTime
+                )
+            )
             .getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateValue);
         String expectedNextHearingDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);

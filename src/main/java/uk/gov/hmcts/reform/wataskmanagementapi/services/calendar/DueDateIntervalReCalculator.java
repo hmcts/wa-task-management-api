@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +21,7 @@ public class DueDateIntervalReCalculator extends DueDateIntervalCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateTypeConfigurator.DateTypeObject dateTypeObject,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         var dueDateOrigin = getReConfigurableProperty(dueDateProperties, DUE_DATE_ORIGIN);
         var dueDate = getReConfigurableProperty(dueDateProperties, DUE_DATE.getType());
@@ -31,7 +32,7 @@ public class DueDateIntervalReCalculator extends DueDateIntervalCalculator {
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(DateTypeConfigurator.DateTypeObject dateType,
+    public ConfigurationDmnEvaluationResponse calculateDate(DateTypeObject dateType,
                                                             List<ConfigurationDmnEvaluationResponse> configResponses) {
         return calculateDate(dateType, readDateTypeOriginFields(configResponses, true));
     }

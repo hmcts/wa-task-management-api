@@ -129,7 +129,7 @@ public interface DateCalculator {
 
         return originDateTypes.stream()
             .flatMap(r -> {
-               return configResponses.stream()
+                return configResponses.stream()
                     .filter(c -> Optional.ofNullable(DateType.from(c.getName().getValue())).isPresent()
                         && DateType.from(c.getName().getValue()).equals(r.dateType()))
                     .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER));

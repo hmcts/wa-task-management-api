@@ -49,7 +49,7 @@ public class IntermediateDateCalculator implements DateCalculator {
     }
 
     private LocalDateTime calculatedDate(ConfigurationDmnEvaluationResponse dueDateResponse,
-                                 ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
+                                         ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         if (Optional.ofNullable(dueDateTimeResponse).isPresent()) {
             return calculateDueDateFrom(dueDateResponse, dueDateTimeResponse);
         } else {
@@ -68,7 +68,7 @@ public class IntermediateDateCalculator implements DateCalculator {
     }
 
     private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse,
-                                       ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
+                                               ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         String dueDate = dueDateResponse.getValue().getValue();
         return addTimeToDate(dueDateTimeResponse, parseDateTime(dueDate));
     }

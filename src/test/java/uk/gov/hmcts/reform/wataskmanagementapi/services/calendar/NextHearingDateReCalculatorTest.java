@@ -12,17 +12,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.NextHearingDateCalculatorTest.NEXT_HEARING_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class NextHearingDateReCalculatorTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
     public static final boolean IS_RECONFIGURE_REQUEST = true;
-    public static final DateTypeConfigurator.DateTypeObject NEXT_HEARING_DATE_TYPE = new DateTypeConfigurator.DateTypeObject(
-        NEXT_HEARING_DATE,
-        NEXT_HEARING_DATE.getType()
-    );
+
     private NextHearingDateReCalculator nextHearingDateReCalculator;
 
     @BeforeEach
