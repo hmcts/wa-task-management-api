@@ -7,5 +7,5 @@ CREATE PUBLICATION task_publication WITH (publish = 'insert,update,delete');
 ALTER PUBLICATION task_publication ADD TABLE cft_task_db.tasks;
 
 -- GRANT CONNECT ON DATABASE cft_task_db TO repl_user;
-GRANT USAGE ON SCHEMA cft_task_db TO repl_user;
-GRANT SELECT ON cft_task_db.tasks TO repl_user;
+--GRANT USAGE ON SCHEMA cft_task_db TO repl_user;
+--GRANT SELECT ON cft_task_db.tasks TO repl_user;
