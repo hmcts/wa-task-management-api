@@ -17,17 +17,17 @@ public class NextHearingDateCalculator extends DueDateCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeConfigurator.DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return NEXT_HEARING_DATE == dateType
+        return NEXT_HEARING_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType())).isPresent()
             && !isReconfigureRequest;
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         return calculatedDate(
             dateType,
             getProperty(configResponses, NEXT_HEARING_DATE.getType()),

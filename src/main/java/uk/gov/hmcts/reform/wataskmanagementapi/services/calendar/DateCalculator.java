@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import org.apache.logging.log4j.util.Strings;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,6 +16,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DateCalculator {
+    String ORIGIN_SUFFIX = "Origin";
+    String INTERVAL_DAYS_SUFFIX = "IntervalDays";
+    String NON_WORKING_CALENDAR_SUFFIX = "NonWorkingCalendar";
+    String NON_WORKING_DAYS_OF_WEEK_SUFFIX = "NonWorkingDaysOfWeek";
+    String SKIP_NON_WORKING_DAYS_SUFFIX = "SkipNonWorkingDays";
+    String MUST_BE_WORKING_DAY_SUFFIX = "MustBeWorkingDay";
+    String ORIGIN_REF_SUFFIX = "OriginRef";
+    String TIME_SUFFIX = "Time";
+    String ORIGIN_EARLIEST_SUFFIX = "OriginEarliest";
     String DUE_DATE_ORIGIN = "dueDateOrigin";
     String DUE_DATE_ORIGIN_REF = "dueDateOriginRef";
     String DUE_DATE_ORIGIN_EARLIEST = "dueDateOriginEarliest";
@@ -52,11 +62,11 @@ public interface DateCalculator {
     LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
 
     boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-                     DateType dateType,
+                     DateTypeObject dateTypeObject,
                      boolean isReconfigureRequest);
 
     ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType,
+        DateTypeObject dateType,
         List<ConfigurationDmnEvaluationResponse> configResponses);
 
     default ConfigurationDmnEvaluationResponse getProperty(
@@ -114,26 +124,32 @@ public interface DateCalculator {
     default Optional<LocalDateTime> getOriginRefDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         ConfigurationDmnEvaluationResponse originRefResponse) {
-        List<DateType> originDateTypes = Arrays.stream(originRefResponse.getValue().getValue().split(","))
-            .map(s -> DateType.from(s).orElseThrow()).toList();
+        List<DateTypeObject> originDateTypes = Arrays.stream(originRefResponse.getValue().getValue().split(","))
+            .map(s -> new DateTypeObject(DateType.from(s), s)).toList();
 
         return originDateTypes.stream()
-            .flatMap(r -> configResponses.stream()
-                .filter(c -> DateType.from(c.getName().getValue()).isPresent()
-                    && DateType.from(c.getName().getValue()).get().equals(r))
-                .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER)))
+            .flatMap(r -> {
+               return configResponses.stream()
+                    .filter(c -> Optional.ofNullable(DateType.from(c.getName().getValue())).isPresent()
+                        && DateType.from(c.getName().getValue()).equals(r.dateType()))
+                    .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER));
+            })
             .findFirst();
     }
 
     default Optional<LocalDateTime> getOriginEarliestDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         ConfigurationDmnEvaluationResponse originEarliestResponse) {
-        List<DateType> originDateTypes = Arrays.stream(originEarliestResponse.getValue().getValue().split(","))
-            .map(s -> DateType.from(s).orElseThrow()).toList();
+        List<DateTypeObject> originDateTypes = Arrays.stream(originEarliestResponse.getValue().getValue().split(","))
+            .map(s -> new DateTypeObject(DateType.from(s), s)).toList();
 
         return configResponses.stream()
-            .filter(r -> DateType.from(r.getName().getValue()).isPresent()
-                && originDateTypes.contains(DateType.from(r.getName().getValue()).get()))
+            .filter(r -> {
+                String dateTypeValue = r.getName().getValue();
+                DateType dateType = DateType.from(dateTypeValue);
+                return Optional.ofNullable(dateType).isPresent()
+                    && originDateTypes.contains(new DateTypeObject(dateType, dateTypeValue));
+            })
             .map(r -> LocalDateTime.parse(r.getValue().getValue(), DATE_TIME_FORMATTER))
             .min(LocalDateTime::compareTo);
     }

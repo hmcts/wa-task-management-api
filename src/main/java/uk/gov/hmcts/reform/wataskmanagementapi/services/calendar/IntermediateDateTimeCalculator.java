@@ -11,28 +11,31 @@ import java.util.List;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
 
 @Slf4j
 @Component
-public class DueDateTimeCalculator implements DateCalculator {
+public class IntermediateDateTimeCalculator implements DateCalculator {
 
     @Override
     public boolean supports(
-            List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-            DateTypeObject dateTypeObject,
-            boolean isReconfigureRequest) {
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        DateTypeObject dateTypeObject,
+        boolean isReconfigureRequest) {
 
-        return DUE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME)).isPresent()
+        String dateTypeName = dateTypeObject.dateTypeName();
+        return INTERMEDIATE_DATE == dateTypeObject.dateType()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_SUFFIX)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + TIME_SUFFIX)).isPresent()
             && !isReconfigureRequest;
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
             DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        return calculatedDate(dateTypeObject, getProperty(configResponses, DUE_DATE_TIME));
+        return calculatedDate(dateTypeObject,
+                              getProperty(configResponses, dateTypeObject.dateTypeName() + TIME_SUFFIX));
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(

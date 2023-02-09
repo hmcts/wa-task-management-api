@@ -22,9 +22,9 @@ public class PriorityDateOriginEarliestReCalculator extends PriorityDateInterval
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeConfigurator.DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
-        return PRIORITY_DATE == dateType
+        return PRIORITY_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, PRIORITY_DATE_ORIGIN)).isEmpty()
             && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, PRIORITY_DATE.getType())).isEmpty()
             && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_EARLIEST))
@@ -34,7 +34,7 @@ public class PriorityDateOriginEarliestReCalculator extends PriorityDateInterval
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
+            DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         var originEarliestResponse = getReConfigurableProperty(configResponses, PRIORITY_DATE_ORIGIN_EARLIEST);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
         DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, true);

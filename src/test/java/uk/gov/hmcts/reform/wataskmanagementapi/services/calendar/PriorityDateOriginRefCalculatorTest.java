@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class PriorityDateOriginRefCalculatorTest {
@@ -99,7 +100,7 @@ class PriorityDateOriginRefCalculatorTest {
         );
 
         assertThat(priorityDateOriginRefCalculator
-                       .supports(evaluationResponses, PRIORITY_DATE, false)).isFalse();
+                       .supports(evaluationResponses, PRIORITY_DATE_TYPE, false)).isFalse();
     }
 
     @Test
@@ -114,7 +115,7 @@ class PriorityDateOriginRefCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin);
 
-        assertThat(priorityDateOriginRefCalculator.supports(evaluationResponses, PRIORITY_DATE, false))
+        assertThat(priorityDateOriginRefCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, false))
             .isFalse();
     }
 
@@ -136,7 +137,7 @@ class PriorityDateOriginRefCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDateTime);
 
-        assertThat(priorityDateOriginRefCalculator.supports(evaluationResponses, PRIORITY_DATE, false))
+        assertThat(priorityDateOriginRefCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, false))
             .isTrue();
     }
 
@@ -155,7 +156,7 @@ class PriorityDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = priorityDateOriginRefCalculator
-            .calculateDate(PRIORITY_DATE, readPriorityDateOriginFields(priorityDateOriginRef, nextHearingDate)
+            .calculateDate(PRIORITY_DATE_TYPE, readPriorityDateOriginFields(priorityDateOriginRef, nextHearingDate)
             );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -186,7 +187,7 @@ class PriorityDateOriginRefCalculatorTest {
 
 
         var configurationDmnEvaluationResponse = priorityDateOriginRefCalculator.calculateDate(
-            PRIORITY_DATE, readPriorityDateOriginFields(
+            PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                 priorityDateOriginRef,
                 nextHearingDate,
                 priorityDate
@@ -230,7 +231,7 @@ class PriorityDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginRefCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, readPriorityDateOriginFields(
+                                                               PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                                                                    priorityDateOriginRef,
                                                                    nextHearingDate,
                                                                    calculatedDate,
@@ -287,7 +288,7 @@ class PriorityDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginRefCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, readPriorityDateOriginFields(
+                                                               PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                                                                    priorityDateOriginRef,
                                                                    nextHearingDate,
                                                                    calculatedDate,
@@ -341,7 +342,7 @@ class PriorityDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginRefCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, readPriorityDateOriginFields(
+                                                               PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                                                                    priorityDateOriginRef,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -398,7 +399,7 @@ class PriorityDateOriginRefCalculatorTest {
             .build();
 
         String dateValue = priorityDateOriginRefCalculator.calculateDate(
-            PRIORITY_DATE, readPriorityDateOriginFields(
+            PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                 priorityDateOriginRef,
                 nextHearingDate,
                 calculatedDate,
@@ -454,7 +455,7 @@ class PriorityDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = priorityDateOriginRefCalculator.calculateDate(
-            PRIORITY_DATE, readPriorityDateOriginFields(
+            PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                 priorityDateOriginRef,
                 nextHearingDate,
                 priorityDate,

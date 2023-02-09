@@ -22,9 +22,9 @@ public class NextHearingDateOriginRefReCalculator extends NextHearingDateInterva
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeConfigurator.DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
-        return NEXT_HEARING_DATE == dateType
+        return NEXT_HEARING_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN)).isEmpty()
             && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, NEXT_HEARING_DATE.getType())).isEmpty()
             && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN_REF))
@@ -34,7 +34,7 @@ public class NextHearingDateOriginRefReCalculator extends NextHearingDateInterva
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties) {
+            DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties) {
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(
             nextHearingDateProperties,
             getReConfigurableProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN_REF)

@@ -20,11 +20,11 @@ public class PriorityDateIntervalReCalculator extends PriorityDateIntervalCalcul
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType,
+        DateTypeConfigurator.DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         var priorityDateOrigin = getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN);
         var priorityDate = getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE.getType());
-        return PRIORITY_DATE == dateType
+        return PRIORITY_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(priorityDateOrigin).isPresent()
             && Optional.ofNullable(priorityDate).isEmpty()
             && isReconfigureRequest;
@@ -32,7 +32,7 @@ public class PriorityDateIntervalReCalculator extends PriorityDateIntervalCalcul
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
+            DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
         return calculateDate(dateType, readDateTypeOriginFields(priorityDateProperties, true));
     }
 }

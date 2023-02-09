@@ -18,7 +18,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class PriorityDateOriginEarliestReCalculatorTest {
@@ -107,7 +107,7 @@ class PriorityDateOriginEarliestReCalculatorTest {
         );
 
         assertThat(priorityDateOriginEarliestReCalculator
-                       .supports(evaluationResponses, PRIORITY_DATE, IS_RECONFIGURE_REQUEST)).isFalse();
+                       .supports(evaluationResponses, PRIORITY_DATE_TYPE, IS_RECONFIGURE_REQUEST)).isFalse();
     }
 
     @Test
@@ -124,7 +124,7 @@ class PriorityDateOriginEarliestReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin);
 
         assertThat(priorityDateOriginEarliestReCalculator
-                       .supports(evaluationResponses, PRIORITY_DATE, IS_RECONFIGURE_REQUEST)).isFalse();
+                       .supports(evaluationResponses, PRIORITY_DATE_TYPE, IS_RECONFIGURE_REQUEST)).isFalse();
     }
 
 
@@ -148,7 +148,7 @@ class PriorityDateOriginEarliestReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDateTime);
 
         assertThat(priorityDateOriginEarliestReCalculator
-                       .supports(evaluationResponses, PRIORITY_DATE, IS_RECONFIGURE_REQUEST)).isTrue();
+                       .supports(evaluationResponses, PRIORITY_DATE_TYPE, IS_RECONFIGURE_REQUEST)).isTrue();
     }
 
     @Test
@@ -168,7 +168,10 @@ class PriorityDateOriginEarliestReCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = priorityDateOriginEarliestReCalculator
-            .calculateDate(PRIORITY_DATE, readPriorityDateOriginFields(priorityDateOriginEarliest, nextHearingDate));
+            .calculateDate(
+                PRIORITY_DATE_TYPE,
+                readPriorityDateOriginFields(priorityDateOriginEarliest, nextHearingDate)
+            );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -200,7 +203,7 @@ class PriorityDateOriginEarliestReCalculatorTest {
 
 
         var configurationDmnEvaluationResponse = priorityDateOriginEarliestReCalculator.calculateDate(
-            PRIORITY_DATE, readPriorityDateOriginFields(
+            PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                 priorityDateOriginEarliest,
                 nextHearingDate,
                 priorityDate
@@ -249,7 +252,7 @@ class PriorityDateOriginEarliestReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginEarliestReCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, readPriorityDateOriginFields(
+                                                               PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                                                                    priorityDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    calculatedDate,
@@ -313,7 +316,7 @@ class PriorityDateOriginEarliestReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginEarliestReCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, readPriorityDateOriginFields(
+                                                               PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                                                                    priorityDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    calculatedDate,
@@ -373,7 +376,7 @@ class PriorityDateOriginEarliestReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginEarliestReCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, readPriorityDateOriginFields(
+                                                               PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                                                                    priorityDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -438,7 +441,7 @@ class PriorityDateOriginEarliestReCalculatorTest {
             .build();
 
         String dateValue = priorityDateOriginEarliestReCalculator.calculateDate(
-            PRIORITY_DATE, readPriorityDateOriginFields(
+            PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                 priorityDateOriginEarliest,
                 nextHearingDate,
                 calculatedDate,
@@ -501,7 +504,7 @@ class PriorityDateOriginEarliestReCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = priorityDateOriginEarliestReCalculator.calculateDate(
-            PRIORITY_DATE, readPriorityDateOriginFields(
+            PRIORITY_DATE_TYPE, readPriorityDateOriginFields(
                 priorityDateOriginEarliest,
                 nextHearingDate,
                 priorityDate,

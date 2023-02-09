@@ -10,12 +10,13 @@ import java.util.List;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
 
 @Slf4j
 @Component
-public class DueDateOriginEarliestCalculator extends DueDateIntervalCalculator {
+public class IntermediateDateOriginEarliestCalculator extends IntermediateDateIntervalCalculator {
 
-    public DueDateOriginEarliestCalculator(WorkingDayIndicator workingDayIndicator) {
+    public IntermediateDateOriginEarliestCalculator(WorkingDayIndicator workingDayIndicator) {
         super(workingDayIndicator);
     }
 
@@ -24,23 +25,25 @@ public class DueDateOriginEarliestCalculator extends DueDateIntervalCalculator {
             List<ConfigurationDmnEvaluationResponse> dueDateProperties,
             DateTypeConfigurator.DateTypeObject dateTypeObject,
             boolean isReconfigureRequest) {
-        return DUE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST)).isPresent()
+        String dateTypeName = dateTypeObject.dateTypeName();
+        return INTERMEDIATE_DATE == dateTypeObject.dateType()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_SUFFIX)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_EARLIEST_SUFFIX)).isPresent()
             && !isReconfigureRequest;
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        var originEarliestResponse = getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST);
+        DateTypeConfigurator.DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        String dateTypeName = dateTypeObject.dateTypeName();
+        var originEarliestResponse = getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);
+        var dateTypeIntervalData = readDateTypeOriginFields(dateTypeName, configResponses, false);
         if (dueDateOriginEarliest.isPresent()) {
             dateTypeIntervalData = dateTypeIntervalData.toBuilder()
                 .calculatedEarliestDate(dueDateOriginEarliest.get()).build();
         }
-        return calculateDate(dateType, dateTypeIntervalData);
+        return calculateDate(dateTypeObject, dateTypeIntervalData);
     }
 }

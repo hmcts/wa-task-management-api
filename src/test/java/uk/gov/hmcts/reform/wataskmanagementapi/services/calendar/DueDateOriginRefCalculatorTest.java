@@ -18,7 +18,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class DueDateOriginRefCalculatorTest {
@@ -97,7 +97,7 @@ class DueDateOriginRefCalculatorTest {
             dueDateTime
         );
 
-        assertThat(dueDateOriginRefCalculator.supports(evaluationResponses, DUE_DATE, false)).isFalse();
+        assertThat(dueDateOriginRefCalculator.supports(evaluationResponses, DUE_DATE_TYPE, false)).isFalse();
     }
 
     @Test
@@ -112,7 +112,7 @@ class DueDateOriginRefCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin);
 
-        assertThat(dueDateOriginRefCalculator.supports(evaluationResponses, DUE_DATE, false))
+        assertThat(dueDateOriginRefCalculator.supports(evaluationResponses, DUE_DATE_TYPE, false))
             .isFalse();
     }
 
@@ -133,7 +133,7 @@ class DueDateOriginRefCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOriginRef, dueDateTime);
 
-        assertThat(dueDateOriginRefCalculator.supports(evaluationResponses, DUE_DATE, false))
+        assertThat(dueDateOriginRefCalculator.supports(evaluationResponses, DUE_DATE_TYPE, false))
             .isTrue();
     }
 
@@ -152,7 +152,7 @@ class DueDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = dueDateOriginRefCalculator
-            .calculateDate(DUE_DATE, readDueDateOriginFields(dueDateOriginRef, nextHearingDate));
+            .calculateDate(DUE_DATE_TYPE, readDueDateOriginFields(dueDateOriginRef, nextHearingDate));
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -182,7 +182,7 @@ class DueDateOriginRefCalculatorTest {
 
 
         var configurationDmnEvaluationResponse = dueDateOriginRefCalculator.calculateDate(
-            DUE_DATE, readDueDateOriginFields(
+            DUE_DATE_TYPE, readDueDateOriginFields(
                 dueDateOriginRef,
                 nextHearingDate,
                 priorityDate
@@ -220,7 +220,7 @@ class DueDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginRefCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, readDueDateOriginFields(
+                                                               DUE_DATE_TYPE, readDueDateOriginFields(
                                                                    dueDateOriginRef,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -271,7 +271,7 @@ class DueDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginRefCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, readDueDateOriginFields(
+                                                               DUE_DATE_TYPE, readDueDateOriginFields(
                                                                    dueDateOriginRef,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -324,7 +324,7 @@ class DueDateOriginRefCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginRefCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, readDueDateOriginFields(
+                                                               DUE_DATE_TYPE, readDueDateOriginFields(
                                                                    dueDateOriginRef,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -376,7 +376,7 @@ class DueDateOriginRefCalculatorTest {
             .build();
 
         String dateValue = dueDateOriginRefCalculator.calculateDate(
-            DUE_DATE, readDueDateOriginFields(
+            DUE_DATE_TYPE, readDueDateOriginFields(
                 dueDateOriginRef,
                 nextHearingDate,
                 priorityDate,
@@ -431,7 +431,7 @@ class DueDateOriginRefCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = dueDateOriginRefCalculator.calculateDate(
-            DUE_DATE, readDueDateOriginFields(
+            DUE_DATE_TYPE, readDueDateOriginFields(
                 dueDateOriginRef,
                 nextHearingDate,
                 priorityDate,

@@ -16,14 +16,14 @@ public class DueDateTimeReCalculator extends DueDateTimeCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeConfigurator.DateTypeObject dateTypeObject,
         boolean isReconfigureRequest
     ) {
         ConfigurationDmnEvaluationResponse dueDateTime = getReConfigurableProperty(dueDateProperties, DUE_DATE_TIME);
         ConfigurationDmnEvaluationResponse dueDate = getReConfigurableProperty(dueDateProperties, DUE_DATE.getType());
         ConfigurationDmnEvaluationResponse dueDateOrigin
             = getReConfigurableProperty(dueDateProperties, DUE_DATE_ORIGIN);
-        return DUE_DATE == dateType
+        return DUE_DATE == dateTypeObject.dateType()
             && isReconfigureRequest
             && Optional.ofNullable(dueDate).isEmpty()
             && Optional.ofNullable(dueDateOrigin).isEmpty()
@@ -32,7 +32,7 @@ public class DueDateTimeReCalculator extends DueDateTimeCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        return calculatedDate(dateType, getReConfigurableProperty(configResponses, DUE_DATE_TIME));
+        DateTypeConfigurator.DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        return calculatedDate(dateTypeObject, getReConfigurableProperty(configResponses, DUE_DATE_TIME));
     }
 }

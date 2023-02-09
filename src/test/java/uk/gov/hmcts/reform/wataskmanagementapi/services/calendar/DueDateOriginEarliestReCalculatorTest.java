@@ -18,7 +18,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class DueDateOriginEarliestReCalculatorTest {
@@ -107,7 +107,7 @@ class DueDateOriginEarliestReCalculatorTest {
         );
 
         assertThat(dueDateOriginEarliestReCalculator
-                       .supports(evaluationResponses, DUE_DATE, IS_RECONFIGURE_REQUEST)).isFalse();
+                       .supports(evaluationResponses, DUE_DATE_TYPE, IS_RECONFIGURE_REQUEST)).isFalse();
     }
 
     @Test
@@ -125,7 +125,7 @@ class DueDateOriginEarliestReCalculatorTest {
 
         assertThat(dueDateOriginEarliestReCalculator.supports(
             evaluationResponses,
-            DUE_DATE,
+            DUE_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         ))
             .isFalse();
@@ -144,7 +144,7 @@ class DueDateOriginEarliestReCalculatorTest {
 
         assertThat(dueDateOriginEarliestReCalculator.supports(
             evaluationResponses,
-            DUE_DATE,
+            DUE_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         ))
             .isTrue();
@@ -167,7 +167,7 @@ class DueDateOriginEarliestReCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = dueDateOriginEarliestReCalculator
-            .calculateDate(DUE_DATE, readDueDateOriginFields(dueDateOriginEarliest, priorityDate)
+            .calculateDate(DUE_DATE_TYPE, readDueDateOriginFields(dueDateOriginEarliest, priorityDate)
             );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -201,7 +201,7 @@ class DueDateOriginEarliestReCalculatorTest {
 
 
         var configurationDmnEvaluationResponse = dueDateOriginEarliestReCalculator.calculateDate(
-            DUE_DATE, readDueDateOriginFields(
+            DUE_DATE_TYPE, readDueDateOriginFields(
                 dueDateOriginEarliest,
                 nextHearingDate,
                 priorityDate
@@ -250,7 +250,7 @@ class DueDateOriginEarliestReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginEarliestReCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, readDueDateOriginFields(
+                                                               DUE_DATE_TYPE, readDueDateOriginFields(
                                                                    dueDateOriginEarliest,
                                                                    priorityDate,
                                                                    calculatedDate,
@@ -314,7 +314,7 @@ class DueDateOriginEarliestReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginEarliestReCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, readDueDateOriginFields(
+                                                               DUE_DATE_TYPE, readDueDateOriginFields(
                                                                    dueDateOriginEarliest,
                                                                    priorityDate,
                                                                    calculatedDate,
@@ -374,7 +374,7 @@ class DueDateOriginEarliestReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginEarliestReCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, readDueDateOriginFields(
+                                                               DUE_DATE_TYPE, readDueDateOriginFields(
                                                                    dueDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -439,7 +439,7 @@ class DueDateOriginEarliestReCalculatorTest {
             .build();
 
         String dateValue = dueDateOriginEarliestReCalculator.calculateDate(
-            DUE_DATE, readDueDateOriginFields(
+            DUE_DATE_TYPE, readDueDateOriginFields(
                 dueDateOriginEarliest,
                 priorityDate,
                 calculatedDate,
@@ -502,7 +502,7 @@ class DueDateOriginEarliestReCalculatorTest {
             .build();
 
         var configurationDmnEvaluationResponse = dueDateOriginEarliestReCalculator.calculateDate(
-            DUE_DATE, readDueDateOriginFields(
+            DUE_DATE_TYPE, readDueDateOriginFields(
                 dueDateOriginEarliest,
                 priorityDate,
                 nextHearingDate,

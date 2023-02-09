@@ -5,63 +5,65 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
 
 @Slf4j
 @Component
-public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
+public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculator {
 
-    public PriorityDateIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
+    public IntermediateDateIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
         super(workingDayIndicator);
     }
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateTypeConfigurator.DateTypeObject dateTypeObject,
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return PRIORITY_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN)).isPresent()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE.getType())).isEmpty()
+        String dateTypeName = dateTypeObject.dateTypeName();
+        return INTERMEDIATE_DATE == dateTypeObject.dateType()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_SUFFIX)).isPresent()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName)).isEmpty()
             && !isReconfigureRequest;
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-            DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
-        return calculateDate(dateType, readDateTypeOriginFields(priorityDateProperties, false));
+        DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        return calculateDate(dateTypeObject,
+                             readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, false));
     }
 
-    @Override
-    protected DateTypeIntervalData readDateTypeOriginFields(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties, boolean reconfigure) {
+    protected DateTypeIntervalData readDateTypeOriginFields(String dateTypeName,
+        List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties, boolean reconfigure) {
 
         return DateTypeIntervalData.builder()
-            .dateTypeOrigin(priorityDateProperties.stream()
-                                .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_ORIGIN))
+            .dateTypeOrigin(nextHearingDateProperties.stream()
+                                .filter(r -> r.getName().getValue().equals(dateTypeName + ORIGIN_SUFFIX))
                                 .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                 .reduce((a, b) -> b)
                                 .map(ConfigurationDmnEvaluationResponse::getValue)
                                 .map(CamundaValue::getValue)
                                 .orElse(DEFAULT_ZONED_DATE_TIME.format(DATE_TIME_FORMATTER)))
-            .dateTypeIntervalDays(priorityDateProperties.stream()
-                                      .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_INTERVAL_DAYS))
+            .dateTypeIntervalDays(nextHearingDateProperties.stream()
+                                      .filter(r -> r.getName().getValue().equals(dateTypeName + INTERVAL_DAYS_SUFFIX))
                                       .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                       .reduce((a, b) -> b)
                                       .map(ConfigurationDmnEvaluationResponse::getValue)
                                       .map(CamundaValue::getValue)
                                       .map(Long::valueOf)
                                       .orElse(0L))
-            .dateTypeNonWorkingCalendar(priorityDateProperties.stream()
+            .dateTypeNonWorkingCalendar(nextHearingDateProperties.stream()
                                             .filter(r -> r.getName().getValue()
-                                                .equals(PRIORITY_DATE_NON_WORKING_CALENDAR))
+                                                .equals(dateTypeName + NON_WORKING_CALENDAR_SUFFIX))
                                             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                             .reduce((a, b) -> b)
                                             .map(ConfigurationDmnEvaluationResponse::getValue)
@@ -70,36 +72,37 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
                                             .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
                                             .map(Arrays::asList)
                                             .orElse(List.of(DEFAULT_NON_WORKING_CALENDAR)))
-            .dateTypeNonWorkingDaysOfWeek(priorityDateProperties.stream()
+            .dateTypeNonWorkingDaysOfWeek(nextHearingDateProperties.stream()
                                               .filter(r -> r.getName().getValue()
-                                                  .equals(PRIORITY_DATE_NON_WORKING_DAYS_OF_WEEK))
+                                                  .equals(dateTypeName + NON_WORKING_DAYS_OF_WEEK_SUFFIX))
                                               .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                               .reduce((a, b) -> b)
                                               .map(ConfigurationDmnEvaluationResponse::getValue)
                                               .map(CamundaValue::getValue)
                                               .map(s -> s.split(","))
-                                              .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
+                                              .map(a -> Arrays.stream(a)
+                                                  .map(String::trim).toArray(String[]::new))
                                               .map(Arrays::asList)
                                               .orElse(List.of()))
-            .dateTypeSkipNonWorkingDays(priorityDateProperties.stream()
+            .dateTypeSkipNonWorkingDays(nextHearingDateProperties.stream()
                                             .filter(r -> r.getName().getValue()
-                                                .equals(PRIORITY_DATE_SKIP_NON_WORKING_DAYS))
+                                                .equals(dateTypeName + SKIP_NON_WORKING_DAYS_SUFFIX))
                                             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                             .reduce((a, b) -> b)
                                             .map(ConfigurationDmnEvaluationResponse::getValue)
                                             .map(CamundaValue::getValue)
                                             .map(Boolean::parseBoolean)
                                             .orElse(false))
-            .dateTypeMustBeWorkingDay(priorityDateProperties.stream()
+            .dateTypeMustBeWorkingDay(nextHearingDateProperties.stream()
                                           .filter(r -> r.getName().getValue()
-                                              .equals(PRIORITY_DATE_MUST_BE_WORKING_DAYS))
+                                              .equals(dateTypeName + MUST_BE_WORKING_DAY_SUFFIX))
                                           .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                           .reduce((a, b) -> b)
                                           .map(ConfigurationDmnEvaluationResponse::getValue)
                                           .map(CamundaValue::getValue)
                                           .orElse(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
-            .dateTypeTime(priorityDateProperties.stream()
-                              .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_TIME))
+            .dateTypeTime(nextHearingDateProperties.stream()
+                              .filter(r -> r.getName().getValue().equals(dateTypeName + TIME_SUFFIX))
                               .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                               .reduce((a, b) -> b)
                               .map(ConfigurationDmnEvaluationResponse::getValue)

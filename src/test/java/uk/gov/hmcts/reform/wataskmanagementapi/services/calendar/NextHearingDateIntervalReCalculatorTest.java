@@ -30,6 +30,10 @@ class NextHearingDateIntervalReCalculatorTest {
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
     public static final boolean IS_RECONFIGURE_REQUEST = true;
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final DateTypeConfigurator.DateTypeObject NEXT_HEARING_DATE_TYPE = new DateTypeConfigurator.DateTypeObject(
+        NEXT_HEARING_DATE,
+        NEXT_HEARING_DATE.getType()
+    );
 
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;
@@ -175,18 +179,20 @@ class NextHearingDateIntervalReCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-        LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateIntervalReCalculator
-                                                           .calculateDate(
-                                                               NEXT_HEARING_DATE, List.of(
-                                                                   nextHearingDateIntervalDays,
-                                                                   nextHearingDateNonWorkingCalendar,
-                                                                   nextHearingDateMustBeWorkingDay,
-                                                                   nextHearingDateNonWorkingDaysOfWeek,
-                                                                   nextHearingDateSkipNonWorkingDays,
-                                                                   nextHearingDateOrigin,
-                                                                   nextHearingDateTime
-                                                               )
-                                                           ).getValue().getValue());
+        ConfigurationDmnEvaluationResponse response = nextHearingDateIntervalReCalculator
+            .calculateDate(
+                NEXT_HEARING_DATE_TYPE,
+                List.of(
+                    nextHearingDateIntervalDays,
+                    nextHearingDateNonWorkingCalendar,
+                    nextHearingDateMustBeWorkingDay,
+                    nextHearingDateNonWorkingDaysOfWeek,
+                    nextHearingDateSkipNonWorkingDays,
+                    nextHearingDateOrigin,
+                    nextHearingDateTime
+                )
+            );
+        LocalDateTime resultDate = LocalDateTime.parse(response.getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
 
@@ -245,7 +251,8 @@ class NextHearingDateIntervalReCalculatorTest {
 
         String nextHearingDateValue = nextHearingDateIntervalReCalculator
             .calculateDate(
-                NEXT_HEARING_DATE, List.of(
+                NEXT_HEARING_DATE_TYPE,
+                List.of(
                     nextHearingDateIntervalDays,
                     nextHearingDateNonWorkingCalendar,
                     nextHearingDateMustBeWorkingDay,
@@ -311,7 +318,8 @@ class NextHearingDateIntervalReCalculatorTest {
 
         String nextHearingDateValue = nextHearingDateIntervalReCalculator
             .calculateDate(
-                NEXT_HEARING_DATE, List.of(
+                NEXT_HEARING_DATE_TYPE,
+                List.of(
                     nextHearingDateIntervalDays,
                     nextHearingDateNonWorkingCalendar,
                     nextHearingDateMustBeWorkingDay,
@@ -378,7 +386,8 @@ class NextHearingDateIntervalReCalculatorTest {
 
         String nextHearingDateValue = nextHearingDateIntervalReCalculator
             .calculateDate(
-                NEXT_HEARING_DATE, List.of(
+                NEXT_HEARING_DATE_TYPE,
+                List.of(
                     nextHearingDateIntervalDays,
                     nextHearingDateNonWorkingCalendar,
                     nextHearingDateMustBeWorkingDay,
@@ -444,7 +453,8 @@ class NextHearingDateIntervalReCalculatorTest {
 
         String nextHearingDateValue = nextHearingDateIntervalReCalculator
             .calculateDate(
-                NEXT_HEARING_DATE, List.of(
+                NEXT_HEARING_DATE_TYPE,
+                List.of(
                     nextHearingDateIntervalDays,
                     nextHearingDateNonWorkingCalendar,
                     nextHearingDateMustBeWorkingDay,
@@ -501,17 +511,19 @@ class NextHearingDateIntervalReCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-        LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateIntervalReCalculator
-                                                           .calculateDate(
-                                                               NEXT_HEARING_DATE, List.of(
-                                                                   nextHearingDateIntervalDays,
-                                                                   nextHearingDateNonWorkingCalendar,
-                                                                   nextHearingDateMustBeWorkingDay,
-                                                                   nextHearingDateNonWorkingDaysOfWeek,
-                                                                   nextHearingDateSkipNonWorkingDays,
-                                                                   nextHearingDateOrigin
-                                                               )
-                                                           ).getValue().getValue());
+        String nextHearingDateValue = nextHearingDateIntervalReCalculator
+            .calculateDate(
+                NEXT_HEARING_DATE_TYPE,
+                List.of(
+                    nextHearingDateIntervalDays,
+                    nextHearingDateNonWorkingCalendar,
+                    nextHearingDateMustBeWorkingDay,
+                    nextHearingDateNonWorkingDaysOfWeek,
+                    nextHearingDateSkipNonWorkingDays,
+                    nextHearingDateOrigin
+                )
+            ).getValue().getValue();
+        LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateValue);
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
     }
@@ -529,7 +541,8 @@ class NextHearingDateIntervalReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime
             .parse(nextHearingDateIntervalReCalculator.calculateDate(
-                NEXT_HEARING_DATE, List.of(nextHearingDateOrigin)
+                NEXT_HEARING_DATE_TYPE,
+                List.of(nextHearingDateOrigin)
             ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
@@ -558,7 +571,9 @@ class NextHearingDateIntervalReCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-        String nextHearingDateValue = nextHearingDateIntervalReCalculator.calculateDate(NEXT_HEARING_DATE, List.of(
+        String nextHearingDateValue = nextHearingDateIntervalReCalculator.calculateDate(
+                NEXT_HEARING_DATE_TYPE,
+            List.of(
                 nextHearingDateOrigin,
                 nextHearingDateTime
             ))
@@ -589,7 +604,7 @@ class NextHearingDateIntervalReCalculatorTest {
 
         assertThat(nextHearingDateIntervalReCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }
@@ -615,7 +630,7 @@ class NextHearingDateIntervalReCalculatorTest {
 
         assertThat(nextHearingDateIntervalReCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isTrue();
     }
@@ -632,7 +647,7 @@ class NextHearingDateIntervalReCalculatorTest {
 
         assertThat(nextHearingDateIntervalReCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }
@@ -661,7 +676,7 @@ class NextHearingDateIntervalReCalculatorTest {
 
         assertThat(nextHearingDateIntervalReCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isTrue();
     }
@@ -689,7 +704,7 @@ class NextHearingDateIntervalReCalculatorTest {
 
         assertThat(nextHearingDateIntervalReCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }

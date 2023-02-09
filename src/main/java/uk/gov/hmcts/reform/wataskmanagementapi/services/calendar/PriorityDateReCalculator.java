@@ -16,17 +16,17 @@ public class PriorityDateReCalculator extends DueDateCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType,
+        DateTypeConfigurator.DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         var priorityDate = getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE.getType());
-        return PRIORITY_DATE == dateType
+        return PRIORITY_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(priorityDate).isPresent()
             && isReconfigureRequest;
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
+        DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
         return calculatedDate(
             dateType,
             getReConfigurableProperty(priorityDateProperties, PRIORITY_DATE.getType()),

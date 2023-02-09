@@ -21,6 +21,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.D
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NO;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class PriorityDateIntervalCalculatorTest {
@@ -92,7 +93,7 @@ class PriorityDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, List.of(
+                                                               PRIORITY_DATE_TYPE, List.of(
                                                                    priorityDateIntervalDays,
                                                                    priorityDateNonWorkingCalendar,
                                                                    priorityDateMustBeWorkingDay,
@@ -147,7 +148,7 @@ class PriorityDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, List.of(
+                                                               PRIORITY_DATE_TYPE, List.of(
                                                                    priorityDateIntervalDays,
                                                                    priorityDateNonWorkingCalendar,
                                                                    priorityDateMustBeWorkingDay,
@@ -202,7 +203,7 @@ class PriorityDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, List.of(
+                                                               PRIORITY_DATE_TYPE, List.of(
                                                                    priorityDateIntervalDays,
                                                                    priorityDateNonWorkingCalendar,
                                                                    priorityDateMustBeWorkingDay,
@@ -260,7 +261,7 @@ class PriorityDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, List.of(
+                                                               PRIORITY_DATE_TYPE, List.of(
                                                                    priorityDateIntervalDays,
                                                                    priorityDateNonWorkingCalendar,
                                                                    priorityDateMustBeWorkingDay,
@@ -314,7 +315,7 @@ class PriorityDateIntervalCalculatorTest {
             .build();
 
         String dateValue = priorityDateIntervalCalculator.calculateDate(
-            PRIORITY_DATE, List.of(
+            PRIORITY_DATE_TYPE, List.of(
                 priorityDateIntervalDays,
                 priorityDateNonWorkingCalendar,
                 priorityDateMustBeWorkingDay,
@@ -370,7 +371,7 @@ class PriorityDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, List.of(
+                                                               PRIORITY_DATE_TYPE, List.of(
                                                                    priorityDateIntervalDays,
                                                                    priorityDateNonWorkingCalendar,
                                                                    priorityDateMustBeWorkingDay,
@@ -420,7 +421,7 @@ class PriorityDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, List.of(
+                                                               PRIORITY_DATE_TYPE, List.of(
                                                                    priorityDateIntervalDays,
                                                                    priorityDateNonWorkingCalendar,
                                                                    priorityDateMustBeWorkingDay,
@@ -447,7 +448,7 @@ class PriorityDateIntervalCalculatorTest {
 
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator.calculateDate(
-            PRIORITY_DATE, List.of(priorityDateOrigin)).getValue().getValue());
+            PRIORITY_DATE_TYPE, List.of(priorityDateOrigin)).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -469,7 +470,7 @@ class PriorityDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator.calculateDate(
-            PRIORITY_DATE, List.of(priorityDateOrigin, priorityDateTime)
+            PRIORITY_DATE_TYPE, List.of(priorityDateOrigin, priorityDateTime)
         ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -494,7 +495,7 @@ class PriorityDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDate);
 
-        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, DateType.PRIORITY_DATE, false))
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, false))
             .isFalse();
     }
 
@@ -508,7 +509,7 @@ class PriorityDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateTime);
 
-        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, DateType.PRIORITY_DATE, false))
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, false))
             .isFalse();
     }
 
@@ -529,7 +530,7 @@ class PriorityDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDateTime);
 
-        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, DateType.PRIORITY_DATE, false))
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, false))
             .isTrue();
     }
 }

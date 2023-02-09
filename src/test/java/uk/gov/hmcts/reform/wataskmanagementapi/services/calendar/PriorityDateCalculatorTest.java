@@ -6,12 +6,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
 @ExtendWith(MockitoExtension.class)
@@ -19,6 +21,10 @@ class PriorityDateCalculatorTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
     public static final boolean IS_NOT_RECONFIGURE_REQUEST = false;
+    public static final DateTypeObject PRIORITY_DATE_TYPE = new DateTypeObject(
+        PRIORITY_DATE,
+        PRIORITY_DATE.getType()
+    );
 
     private PriorityDateCalculator priorityDateCalculator;
 
@@ -45,7 +51,7 @@ class PriorityDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDate, priorityDateTime);
 
-        assertThat(priorityDateCalculator.supports(evaluationResponses, PRIORITY_DATE, IS_NOT_RECONFIGURE_REQUEST))
+        assertThat(priorityDateCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, IS_NOT_RECONFIGURE_REQUEST))
             .isFalse();
     }
 
@@ -59,7 +65,7 @@ class PriorityDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateTime);
 
-        assertThat(priorityDateCalculator.supports(evaluationResponses, PRIORITY_DATE, IS_NOT_RECONFIGURE_REQUEST))
+        assertThat(priorityDateCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, IS_NOT_RECONFIGURE_REQUEST))
             .isFalse();
     }
 
@@ -80,7 +86,7 @@ class PriorityDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDate, priorityDateTime);
 
-        assertThat(priorityDateCalculator.supports(evaluationResponses, PRIORITY_DATE, IS_NOT_RECONFIGURE_REQUEST))
+        assertThat(priorityDateCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, IS_NOT_RECONFIGURE_REQUEST))
             .isTrue();
     }
 
@@ -96,7 +102,7 @@ class PriorityDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDate);
 
-        String dateValue = priorityDateCalculator.calculateDate(PRIORITY_DATE, evaluationResponses)
+        String dateValue = priorityDateCalculator.calculateDate(PRIORITY_DATE_TYPE, evaluationResponses)
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + "T16:00");
     }
@@ -118,7 +124,7 @@ class PriorityDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDate, priorityDateTime);
 
-        String dateValue = priorityDateCalculator.calculateDate(PRIORITY_DATE, evaluationResponses)
+        String dateValue = priorityDateCalculator.calculateDate(PRIORITY_DATE_TYPE, evaluationResponses)
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + "T20:00");
     }
@@ -141,7 +147,7 @@ class PriorityDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDate, priorityDate2);
 
-        String dateValue = priorityDateCalculator.calculateDate(PRIORITY_DATE, evaluationResponses)
+        String dateValue = priorityDateCalculator.calculateDate(PRIORITY_DATE_TYPE, evaluationResponses)
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + "T19:00");
     }

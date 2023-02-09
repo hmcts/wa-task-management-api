@@ -19,7 +19,10 @@ class NextHearingDateReCalculatorTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
     public static final boolean IS_RECONFIGURE_REQUEST = true;
-
+    public static final DateTypeConfigurator.DateTypeObject NEXT_HEARING_DATE_TYPE = new DateTypeConfigurator.DateTypeObject(
+        NEXT_HEARING_DATE,
+        NEXT_HEARING_DATE.getType()
+    );
     private NextHearingDateReCalculator nextHearingDateReCalculator;
 
     @BeforeEach
@@ -46,7 +49,7 @@ class NextHearingDateReCalculatorTest {
 
         assertThat(nextHearingDateReCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }
@@ -63,7 +66,7 @@ class NextHearingDateReCalculatorTest {
 
         assertThat(nextHearingDateReCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }
@@ -89,7 +92,7 @@ class NextHearingDateReCalculatorTest {
 
         assertThat(nextHearingDateReCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }
@@ -115,7 +118,7 @@ class NextHearingDateReCalculatorTest {
 
         assertThat(nextHearingDateReCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isTrue();
     }
@@ -134,7 +137,7 @@ class NextHearingDateReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate);
 
         String dateValue = nextHearingDateReCalculator.calculateDate(
-            NEXT_HEARING_DATE, evaluationResponses
+            NEXT_HEARING_DATE_TYPE, evaluationResponses
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + "T16:00");
     }
@@ -159,7 +162,7 @@ class NextHearingDateReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, nextHearingDateTime);
 
         String dateValue = nextHearingDateReCalculator.calculateDate(
-            NEXT_HEARING_DATE, evaluationResponses
+            NEXT_HEARING_DATE_TYPE, evaluationResponses
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + "T16:00");
     }
@@ -184,7 +187,7 @@ class NextHearingDateReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, nextHearingDateTime);
 
         String dateValue = nextHearingDateReCalculator.calculateDate(
-            NEXT_HEARING_DATE, evaluationResponses
+            NEXT_HEARING_DATE_TYPE, evaluationResponses
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + "T20:00");
     }
@@ -210,7 +213,7 @@ class NextHearingDateReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, nextHearingDate2);
 
         String dateValue = nextHearingDateReCalculator.calculateDate(
-            NEXT_HEARING_DATE, evaluationResponses
+            NEXT_HEARING_DATE_TYPE, evaluationResponses
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate2 + "T19:00");
     }

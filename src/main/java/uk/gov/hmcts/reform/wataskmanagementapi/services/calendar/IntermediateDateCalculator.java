@@ -11,10 +11,11 @@ import java.util.List;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
 
 @Slf4j
 @Component
-public class DueDateCalculator implements DateCalculator {
+public class IntermediateDateCalculator implements DateCalculator {
 
     @Override
     public boolean supports(
@@ -22,8 +23,8 @@ public class DueDateCalculator implements DateCalculator {
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return DUE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isPresent()
+        return INTERMEDIATE_DATE == dateTypeObject.dateType()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeObject.dateTypeName())).isPresent()
             && !isReconfigureRequest;
     }
 

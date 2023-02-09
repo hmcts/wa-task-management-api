@@ -20,18 +20,18 @@ public class DueDateIntervalReCalculator extends DueDateIntervalCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeConfigurator.DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         var dueDateOrigin = getReConfigurableProperty(dueDateProperties, DUE_DATE_ORIGIN);
         var dueDate = getReConfigurableProperty(dueDateProperties, DUE_DATE.getType());
-        return DUE_DATE == dateType
+        return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(dueDateOrigin).isPresent()
             && Optional.ofNullable(dueDate).isEmpty()
             && isReconfigureRequest;
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(DateType dateType,
+    public ConfigurationDmnEvaluationResponse calculateDate(DateTypeConfigurator.DateTypeObject dateType,
                                                             List<ConfigurationDmnEvaluationResponse> configResponses) {
         return calculateDate(dateType, readDateTypeOriginFields(configResponses, true));
     }

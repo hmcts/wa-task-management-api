@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,10 +30,10 @@ public class DueDateIntervalCalculator implements DateCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return DUE_DATE == dateType
+        return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isPresent()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
             && !isReconfigureRequest;
@@ -40,12 +41,12 @@ public class DueDateIntervalCalculator implements DateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         return calculateDate(dateType, readDateTypeOriginFields(configResponses, false));
     }
 
     protected ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, DateTypeIntervalData dateTypeIntervalData) {
+        DateTypeObject dateTypeObject, DateTypeIntervalData dateTypeIntervalData) {
 
         LocalDateTime baseReferenceDate = getReferenceDateForCalculation(dateTypeIntervalData);
         LocalDate referenceDate = baseReferenceDate.toLocalDate();
@@ -85,12 +86,14 @@ public class DueDateIntervalCalculator implements DateCalculator {
         }
 
         LocalDateTime calculateIntervalTime = calculateIntervalTime(dateTypeIntervalData.getDateTypeTime(),
-                                                       baseReferenceDate, referenceDate);
+                                                                    baseReferenceDate, referenceDate
+        );
 
         return ConfigurationDmnEvaluationResponse
             .builder()
-            .name(CamundaValue.stringValue(dateType.getType()))
-            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(calculateIntervalTime)))
+            .name(CamundaValue.stringValue(dateTypeObject.dateTypeName()))
+            .value(CamundaValue
+                       .stringValue(dateTypeObject.dateType().getDateTimeFormatter().format(calculateIntervalTime)))
             .build();
     }
 

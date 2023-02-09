@@ -14,6 +14,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class PriorityDateTimeReCalculatorTest {
@@ -50,7 +51,7 @@ class PriorityDateTimeReCalculatorTest {
 
         assertThat(priorityDateTimeReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }
@@ -76,7 +77,7 @@ class PriorityDateTimeReCalculatorTest {
 
         assertThat(priorityDateTimeReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isTrue();
     }
@@ -102,7 +103,7 @@ class PriorityDateTimeReCalculatorTest {
 
         assertThat(priorityDateTimeReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }
@@ -128,7 +129,7 @@ class PriorityDateTimeReCalculatorTest {
 
         assertThat(priorityDateTimeReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isTrue();
     }
@@ -145,7 +146,7 @@ class PriorityDateTimeReCalculatorTest {
 
         assertThat(priorityDateTimeReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isTrue();
     }
@@ -162,7 +163,7 @@ class PriorityDateTimeReCalculatorTest {
 
         assertThat(priorityDateTimeReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }
@@ -180,7 +181,7 @@ class PriorityDateTimeReCalculatorTest {
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String responseValue = priorityDateTimeReCalculator.calculateDate(
-            PRIORITY_DATE, evaluationResponses
+            PRIORITY_DATE_TYPE, evaluationResponses
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + "T16:00");
     }
@@ -205,7 +206,7 @@ class PriorityDateTimeReCalculatorTest {
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String responseValue = priorityDateTimeReCalculator.calculateDate(
-            PRIORITY_DATE, evaluationResponses
+            PRIORITY_DATE_TYPE, evaluationResponses
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + "T20:00");
     }

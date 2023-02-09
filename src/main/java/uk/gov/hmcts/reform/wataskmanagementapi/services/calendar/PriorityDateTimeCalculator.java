@@ -16,10 +16,10 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType,
+        DateTypeConfigurator.DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return PRIORITY_DATE == dateType
+        return PRIORITY_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE.getType())).isEmpty()
             && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN)).isEmpty()
             && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_TIME)).isPresent()
@@ -28,7 +28,7 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
-        return calculatedDate(dateType, getProperty(priorityDateProperties, PRIORITY_DATE_TIME));
+        DateTypeConfigurator.DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
+        return calculatedDate(dateTypeObject, getProperty(priorityDateProperties, PRIORITY_DATE_TIME));
     }
 }

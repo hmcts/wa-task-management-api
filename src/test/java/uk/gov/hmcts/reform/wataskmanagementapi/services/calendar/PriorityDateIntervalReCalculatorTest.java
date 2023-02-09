@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class PriorityDateIntervalReCalculatorTest {
@@ -173,7 +174,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalReCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, List.of(
+                                                               PRIORITY_DATE_TYPE, List.of(
                                                                    priorityDateIntervalDays,
                                                                    priorityDateNonWorkingCalendar,
                                                                    priorityDateMustBeWorkingDay,
@@ -242,7 +243,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         String priorityDateValue = priorityDateIntervalReCalculator
             .calculateDate(
-                PRIORITY_DATE, List.of(
+                PRIORITY_DATE_TYPE, List.of(
                     priorityDateIntervalDays,
                     priorityDateNonWorkingCalendar,
                     priorityDateMustBeWorkingDay,
@@ -306,7 +307,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         String priorityDateValue = priorityDateIntervalReCalculator
             .calculateDate(
-                PRIORITY_DATE, List.of(
+                PRIORITY_DATE_TYPE, List.of(
                     priorityDateIntervalDays,
                     priorityDateNonWorkingCalendar,
                     priorityDateMustBeWorkingDay,
@@ -373,7 +374,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         String priorityDateValue = priorityDateIntervalReCalculator
             .calculateDate(
-                PRIORITY_DATE, List.of(
+                PRIORITY_DATE_TYPE, List.of(
                     priorityDateIntervalDays,
                     priorityDateNonWorkingCalendar,
                     priorityDateMustBeWorkingDay,
@@ -437,7 +438,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         String priorityDateValue = priorityDateIntervalReCalculator
             .calculateDate(
-                PRIORITY_DATE, List.of(
+                PRIORITY_DATE_TYPE, List.of(
                     priorityDateIntervalDays,
                     priorityDateNonWorkingCalendar,
                     priorityDateMustBeWorkingDay,
@@ -496,7 +497,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalReCalculator
                                                            .calculateDate(
-                                                               PRIORITY_DATE, List.of(
+                                                               PRIORITY_DATE_TYPE, List.of(
                                                                    priorityDateIntervalDays,
                                                                    priorityDateNonWorkingCalendar,
                                                                    priorityDateMustBeWorkingDay,
@@ -522,7 +523,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime
             .parse(priorityDateIntervalReCalculator.calculateDate(
-                PRIORITY_DATE, List.of(priorityDateOrigin)
+                PRIORITY_DATE_TYPE, List.of(priorityDateOrigin)
             ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
@@ -551,7 +552,7 @@ class PriorityDateIntervalReCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-        String priorityDateValue = priorityDateIntervalReCalculator.calculateDate(PRIORITY_DATE, List.of(
+        String priorityDateValue = priorityDateIntervalReCalculator.calculateDate(PRIORITY_DATE_TYPE, List.of(
                 priorityDateOrigin,
                 priorityDateTime
             ))
@@ -582,7 +583,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         assertThat(priorityDateIntervalReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }
@@ -608,7 +609,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         assertThat(priorityDateIntervalReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isTrue();
     }
@@ -625,7 +626,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         assertThat(priorityDateIntervalReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }
@@ -651,7 +652,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         assertThat(priorityDateIntervalReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isTrue();
     }
@@ -676,7 +677,7 @@ class PriorityDateIntervalReCalculatorTest {
 
         assertThat(priorityDateIntervalReCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             IS_RECONFIGURE_REQUEST
         )).isFalse();
     }

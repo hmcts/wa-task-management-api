@@ -21,10 +21,10 @@ public class DueDateOriginRefCalculator extends DueDateIntervalCalculator {
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
-        boolean isReconfigureRequest) {
-        return DUE_DATE == dateType
+            List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+            DateTypeConfigurator.DateTypeObject dateTypeObject,
+            boolean isReconfigureRequest) {
+        return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_REF)).isPresent()
@@ -33,7 +33,7 @@ public class DueDateOriginRefCalculator extends DueDateIntervalCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         ConfigurationDmnEvaluationResponse originRefResponse = getProperty(configResponses, DUE_DATE_ORIGIN_REF);
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(configResponses, originRefResponse);
         DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);

@@ -22,9 +22,9 @@ public class DueDateOriginEarliestReCalculator extends DueDateIntervalCalculator
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeConfigurator.DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
-        return DUE_DATE == dateType
+        return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
             && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
             && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST)).isPresent()
@@ -33,7 +33,7 @@ public class DueDateOriginEarliestReCalculator extends DueDateIntervalCalculator
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
+            DateTypeConfigurator.DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
         var originEarliestResponse = getReConfigurableProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
         DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, true);

@@ -21,6 +21,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.D
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NO;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class DueDateIntervalCalculatorTest {
@@ -91,7 +92,7 @@ class DueDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, List.of(
+                                                               DUE_DATE_TYPE, List.of(
                                                                    dueDateIntervalDays,
                                                                    dueDateNonWorkingCalendar,
                                                                    dueDateMustBeWorkingDay,
@@ -146,7 +147,7 @@ class DueDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, List.of(
+                                                               DUE_DATE_TYPE, List.of(
                                                                    dueDateIntervalDays,
                                                                    dueDateNonWorkingCalendar,
                                                                    dueDateMustBeWorkingDay,
@@ -201,7 +202,7 @@ class DueDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, List.of(
+                                                               DUE_DATE_TYPE, List.of(
                                                                    dueDateIntervalDays,
                                                                    dueDateNonWorkingCalendar,
                                                                    dueDateMustBeWorkingDay,
@@ -259,7 +260,7 @@ class DueDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, List.of(
+                                                               DUE_DATE_TYPE, List.of(
                                                                    dueDateIntervalDays,
                                                                    dueDateNonWorkingCalendar,
                                                                    dueDateMustBeWorkingDay,
@@ -313,7 +314,7 @@ class DueDateIntervalCalculatorTest {
             .build();
 
         String dateValue = dueDateIntervalCalculator.calculateDate(
-            DUE_DATE, List.of(
+            DUE_DATE_TYPE, List.of(
                 dueDateIntervalDays,
                 dueDateNonWorkingCalendar,
                 dueDateMustBeWorkingDay,
@@ -369,7 +370,7 @@ class DueDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, List.of(
+                                                               DUE_DATE_TYPE, List.of(
                                                                    dueDateIntervalDays,
                                                                    dueDateNonWorkingCalendar,
                                                                    dueDateMustBeWorkingDay,
@@ -419,7 +420,7 @@ class DueDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
                                                            .calculateDate(
-                                                               DUE_DATE, List.of(
+                                                               DUE_DATE_TYPE, List.of(
                                                                    dueDateIntervalDays,
                                                                    dueDateNonWorkingCalendar,
                                                                    dueDateMustBeWorkingDay,
@@ -446,7 +447,7 @@ class DueDateIntervalCalculatorTest {
 
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator.calculateDate(
-            DUE_DATE, List.of(dueDateOrigin)).getValue().getValue());
+            DUE_DATE_TYPE, List.of(dueDateOrigin)).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -468,7 +469,7 @@ class DueDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator.calculateDate(
-            DUE_DATE, List.of(dueDateOrigin, dueDateTime)
+            DUE_DATE_TYPE, List.of(dueDateOrigin, dueDateTime)
         ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -493,7 +494,7 @@ class DueDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDate);
 
-        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DateType.DUE_DATE, false))
+        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DUE_DATE_TYPE, false))
             .isFalse();
     }
 
@@ -507,7 +508,7 @@ class DueDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DateType.DUE_DATE, false))
+        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DUE_DATE_TYPE, false))
             .isFalse();
     }
 
@@ -528,7 +529,7 @@ class DueDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDateTime);
 
-        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DateType.DUE_DATE, false))
+        Assertions.assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DUE_DATE_TYPE, false))
             .isTrue();
     }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class DueDateTimeReCalculatorTest {
@@ -48,7 +48,8 @@ class DueDateTimeReCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE, IS_RECONFIGURE_REQUEST)).isFalse();
+        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE_TYPE, IS_RECONFIGURE_REQUEST))
+            .isFalse();
     }
 
     @Test
@@ -70,7 +71,8 @@ class DueDateTimeReCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE, IS_RECONFIGURE_REQUEST)).isTrue();
+        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE_TYPE, IS_RECONFIGURE_REQUEST))
+            .isTrue();
     }
 
     @Test
@@ -92,7 +94,8 @@ class DueDateTimeReCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateOrigin);
 
-        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE, IS_RECONFIGURE_REQUEST)).isFalse();
+        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE_TYPE, IS_RECONFIGURE_REQUEST))
+            .isFalse();
     }
 
     @Test
@@ -114,7 +117,7 @@ class DueDateTimeReCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateOrigin);
 
-        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE, IS_RECONFIGURE_REQUEST)).isTrue();
+        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE_TYPE, IS_RECONFIGURE_REQUEST)).isTrue();
     }
 
     @Test
@@ -127,7 +130,8 @@ class DueDateTimeReCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE, IS_RECONFIGURE_REQUEST)).isTrue();
+        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE_TYPE, IS_RECONFIGURE_REQUEST))
+            .isTrue();
     }
 
     @Test
@@ -140,7 +144,8 @@ class DueDateTimeReCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE, IS_RECONFIGURE_REQUEST)).isFalse();
+        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE_TYPE, IS_RECONFIGURE_REQUEST))
+            .isFalse();
     }
 
     @Test
@@ -155,7 +160,8 @@ class DueDateTimeReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String responseValue = dueDateTimeCalculator.calculateDate(DUE_DATE, evaluationResponses).getValue().getValue();
+        String responseValue = dueDateTimeCalculator
+            .calculateDate(DUE_DATE_TYPE, evaluationResponses).getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + "T16:00");
     }
 
@@ -178,7 +184,8 @@ class DueDateTimeReCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateTime2);
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String responseValue = dueDateTimeCalculator.calculateDate(DUE_DATE, evaluationResponses).getValue().getValue();
+        String responseValue = dueDateTimeCalculator
+            .calculateDate(DUE_DATE_TYPE, evaluationResponses).getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + "T20:00");
     }
 }
