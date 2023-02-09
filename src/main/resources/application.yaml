@@ -79,9 +79,9 @@ spring:
     password: ${POSTGRES_PASSWORD:}
   datasource-replica:
     driverClassName: org.postgresql.Driver
-    jdbcUrl: jdbc:postgresql://ccd-shared-database-replica:5433/cft_task_db${POSTGRES_CONNECTION_OPTIONS:}
-    username: repl_user
-    password: repl_password
+    jdbcUrl: jdbc:postgresql://${POSTGRES_REPLICA:ccd-shared-database-replica}:5432/cft_task_db${POSTGRES_CONNECTION_OPTIONS:}
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

@@ -26,8 +26,8 @@ java:
     POSTGRES_NAME: "{{ .Values.postgresql.auth.database}}"
     POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
     POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
-    POSTGRES_CONNECTION_OPTIONS: ""
     POSTGRES_REPLICA: "ccd-shared-database"
+    POSTGRES_CONNECTION_OPTIONS: ""
   postgresql:
     enabled: true
     auth:
