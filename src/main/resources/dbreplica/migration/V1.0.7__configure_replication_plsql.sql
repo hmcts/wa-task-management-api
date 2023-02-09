@@ -1,7 +1,7 @@
 --
 -- Copies a task record into the history table.
 --
-create or replace function cft_task_db_replica.add_task_history(l_task cft_task_db_replica.tasks, l_is_delete boolean)
+create or replace function cft_task_db.add_task_history(l_task cft_task_db.tasks, l_is_delete boolean)
   returns bigint
   language plpgsql
 as $$
@@ -14,7 +14,7 @@ l_update_id bigint;
   l_updated timestamp := case when l_is_delete then now() else now() end;
   l_update_action text := case when l_is_delete then 'DELETE' else 'tasks.update_action field to be added' end;
 begin
-insert into cft_task_db_replica.task_history
+insert into cft_task_db.task_history
 (task_id, task_name, task_type, due_date_time,
  state, task_system, security_classification,
  title, major_priority, minor_priority, assignee,
@@ -46,7 +46,7 @@ create or replace function on_task_upsert()
   language plpgsql
 as $$
 begin
-  perform cft_task_db_replica.add_task_history(new, false);
+  perform cft_task_db.add_task_history(new, false);
 return new;
 end $$;
 
@@ -58,7 +58,7 @@ create or replace function on_task_delete()
   language plpgsql
 as $$
 begin
-  perform cft_task_db_replica.add_task_history(old, true);
+  perform cft_task_db.add_task_history(old, true);
 return old;
 end $$;
 
@@ -66,14 +66,14 @@ DROP TRIGGER IF EXISTS trg_on_task_upsert ON cft_task_db_replica.tasks;
 --
 -- Add the task upsert trigger.
 --
-CREATE TRIGGER trg_on_task_upsert before insert or update on cft_task_db_replica.tasks
+CREATE TRIGGER trg_on_task_upsert before insert or update on cft_task_db.tasks
   for each row execute function on_task_upsert();
-alter table cft_task_db_replica.tasks enable always trigger trg_on_task_upsert;
+alter table cft_task_db.tasks enable always trigger trg_on_task_upsert;
 
 DROP TRIGGER IF EXISTS trg_on_task_delete ON cft_task_db.tasks;
 --
 -- Add the task upsert trigger.
 --
-CREATE TRIGGER trg_on_task_delete before delete on cft_task_db_replica.tasks for each row execute function on_task_delete();
-alter table cft_task_db_replica.tasks enable always trigger trg_on_task_delete;
+CREATE TRIGGER trg_on_task_delete before delete on cft_task_db.tasks for each row execute function on_task_delete();
+alter table cft_task_db.tasks enable always trigger trg_on_task_delete;
 
