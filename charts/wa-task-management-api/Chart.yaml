@@ -10,4 +10,7 @@ dependencies:
   - name: java
     version: 4.0.3
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
+  - name: postgresql
+    version: 12.1.14
+    repository: https://charts.bitnami.com/bitnami
 
