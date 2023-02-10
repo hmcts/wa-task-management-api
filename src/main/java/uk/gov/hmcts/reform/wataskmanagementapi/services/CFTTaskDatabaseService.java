@@ -93,6 +93,7 @@ public class CFTTaskDatabaseService {
         return Optional.empty();
     }
 
+    //TODO remove the dependency on granular perms feature.  Assume it is always ON.
     public GetTasksResponse<Task> searchForTasks(SearchRequest searchRequest,
                                                  AccessControlResponse accessControlResponse,
                                                  boolean granularPermissionResponseFeature) {
@@ -129,6 +130,7 @@ public class CFTTaskDatabaseService {
         return new GetTasksResponse<>(tasks, count);
     }
 
+    //TODO - Probably should be in it's own obj?  SortOrderProvider?
     private Sort getOrders(SearchRequest searchRequest) {
         List<Sort.Order> orders = Stream.ofNullable(searchRequest.getSortingParameters())
             .flatMap(Collection::stream)

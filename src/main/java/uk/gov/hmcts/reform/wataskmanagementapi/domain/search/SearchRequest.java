@@ -8,7 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCate
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 
 import java.util.List;
-
+//TODO Remove Getters - should be immutable
 @Getter
 @Setter
 @Builder

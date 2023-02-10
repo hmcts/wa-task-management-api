@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+//TODO - Could we introduce an interface?  E.g. SignatureBuilder with a build(SearchRequest) method --> SearchParameterSignatureBuilder --> RoleAssignmentSignatureBuilder
+//TODO - Optionally they could return a new object with a generic type of Signature and implementations of  SearchParameterSignature / RoleAssignmentSignature
 public final class SearchFilterSignatureBuilder {
     private static final Set<String> WILDCARD = Collections.singleton("*");
 
@@ -43,6 +45,7 @@ public final class SearchFilterSignatureBuilder {
         return strings == null || strings.isEmpty() ? WILDCARD : strings;
     }
 
+    //TODO should move logic to the CFTTaskState obj e.g. a method like getAbbreviations(List<CFTTaskState>)
     private static Set<String> abbreviateStates(List<CFTTaskState> states) {
         return Stream.ofNullable(states)
             .flatMap(Collection::stream)
@@ -50,6 +53,7 @@ public final class SearchFilterSignatureBuilder {
             .collect(Collectors.toSet());
     }
 
+    //TODO Similar comment to above
     private static Set<String> abbreviateRoleCategories(List<RoleCategory> roleCategories) {
         return Stream.ofNullable(roleCategories)
             .flatMap(Collection::stream)
