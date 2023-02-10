@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.google.common.collect.ImmutableMap;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,8 +18,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Configura
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateConfigurator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateIntervalCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateIntervalReCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateReCalculator;
@@ -73,12 +73,12 @@ class CaseConfigurationProviderServiceTest {
 
     @BeforeEach
     void setUp() {
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         caseConfigurationProviderService = new CaseConfigurationProviderService(
             ccdDataService,
             dmnEvaluationService,
             objectMapper,
-            new DueDateConfigurator(
+            new DateTypeConfigurator(
                 List.of(
                     new DueDateCalculator(),
                     new DueDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection)),
@@ -178,6 +178,7 @@ class CaseConfigurationProviderServiceTest {
         expectedMappedData.put("jurisdiction", "IA");
         expectedMappedData.put("caseTypeId", "Asylum");
         expectedMappedData.put("dueDate", dueDateSet);
+        expectedMappedData.put("priorityDate", dueDateSet);
 
         Map<String, Object> taskAttributes = Map.of();
         TaskConfigurationResults mappedData = caseConfigurationProviderService
@@ -209,7 +210,8 @@ class CaseConfigurationProviderServiceTest {
             "securityClassification", "PUBLIC",
             "jurisdiction", "IA",
             "caseTypeId", "Asylum",
-            "dueDate", dueDateSet
+            "dueDate", dueDateSet,
+            "priorityDate", dueDateSet
         );
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
@@ -515,7 +517,7 @@ class CaseConfigurationProviderServiceTest {
             "value3"
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isNotEmpty()
-            .hasSize(4)
+            .hasSize(5)
             .contains(
                 new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
@@ -564,7 +566,7 @@ class CaseConfigurationProviderServiceTest {
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
             .isNotEmpty()
-            .hasSize(2)
+            .hasSize(3)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
@@ -617,7 +619,7 @@ class CaseConfigurationProviderServiceTest {
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
             .isNotEmpty()
-            .hasSize(2)
+            .hasSize(3)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
@@ -663,7 +665,7 @@ class CaseConfigurationProviderServiceTest {
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
             .isNotEmpty()
-            .hasSize(2)
+            .hasSize(3)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
@@ -749,7 +751,7 @@ class CaseConfigurationProviderServiceTest {
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
             .isNotEmpty()
-            .hasSize(1)
+            .hasSize(2)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
@@ -877,7 +879,7 @@ class CaseConfigurationProviderServiceTest {
         String expectedDate = GIVEN_DATE.plusDays(8).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
             .isNotEmpty()
-            .hasSize(1)
+            .hasSize(2)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),

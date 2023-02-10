@@ -8,6 +8,6 @@ maintainers:
   - name: HMCTS wa team
 dependencies:
   - name: java
-    version: 4.0.3
+    version: 4.0.11
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
 

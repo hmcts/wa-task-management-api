@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.validators.ServiceAuthTokenValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,18 +14,15 @@ import java.util.Objects;
 @Service
 public class ClientAccessControlService {
 
-    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final ServiceAuthTokenValidator serviceAuthTokenValidator;
     private final List<String> privilegedAccessClients;
     private final List<String> exclusiveAccessClients;
 
     @Autowired
     public ClientAccessControlService(ServiceAuthTokenValidator serviceAuthTokenValidator,
-                                      LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                       @Value("${config.privilegedAccessClients}") List<String> privilegedAccessClients,
                                       @Value("${config.exclusiveAccessClients}") List<String> exclusiveAccessClients) {
         this.serviceAuthTokenValidator = serviceAuthTokenValidator;
-        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.privilegedAccessClients = privilegedAccessClients;
         this.exclusiveAccessClients = exclusiveAccessClients;
     }
@@ -46,20 +41,9 @@ public class ClientAccessControlService {
         Objects.requireNonNull(serviceAuthToken, "ServiceAuthorization must not be null");
         Objects.requireNonNull(accessControlResponse.getUserInfo().getUid(), "UserId must not be null");
 
-        boolean isPrivilegedClient = false;
+        String serviceName = serviceAuthTokenValidator.getServiceName(serviceAuthToken);
 
-        boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.PRIVILEGED_ACCESS_FEATURE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
-
-        if (isFeatureEnabled) {
-            String serviceName = serviceAuthTokenValidator.getServiceName(serviceAuthToken);
-
-            isPrivilegedClient = privilegedAccessClients.contains(serviceName);
-        }
-        return isPrivilegedClient;
+        return privilegedAccessClients.contains(serviceName);
     }
 
 

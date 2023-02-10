@@ -4,48 +4,33 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+
 @Slf4j
 @Component
-public class DueDateReCalculator implements DateCalculator {
+public class DueDateReCalculator extends DueDateCalculator {
 
     @Override
-    public boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest) {
-        ConfigurationDmnEvaluationResponse dueDate = getProperty(dueDateProperties, DUE_DATE);
-        return Optional.ofNullable(dueDate).isPresent()
-            && dueDate.getCanReconfigure().getValue().booleanValue() == Boolean.TRUE
+    public boolean supports(
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        DateType dateType,
+        boolean isReconfigureRequest) {
+        return DUE_DATE == dateType
+            && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, DUE_DATE.getType())).isPresent()
             && isReconfigureRequest;
     }
 
     @Override
-    public LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties) {
-        var dueDateResponse = getProperty(dueDateProperties, DUE_DATE);
-        var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME);
-
-        if (Optional.ofNullable(dueDateTimeResponse).isEmpty()
-            || dueDateTimeResponse.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE) {
-            return calculateDueDateFrom(dueDateResponse);
-        } else {
-            return calculateDueDateFrom(dueDateResponse, dueDateTimeResponse);
-        }
-    }
-
-    private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse) {
-        String dueDate = dueDateResponse.getValue().getValue();
-        LocalDateTime parsedDueDate = parseDueDateTime(dueDate);
-        if (parsedDueDate.getHour() == 0) {
-            return parsedDueDate.withHour(16).withMinute(0);
-        } else {
-            return parsedDueDate;
-        }
-    }
-
-    private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse,
-                                               ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
-        String dueDate = dueDateResponse.getValue().getValue();
-        return addTimeToDate(dueDateTimeResponse, parseDueDateTime(dueDate));
+    public ConfigurationDmnEvaluationResponse calculateDate(
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        DateType dateType) {
+        return calculatedDate(
+            dateType,
+            getReConfigurableProperty(dueDateProperties, DUE_DATE.getType()),
+            getReConfigurableProperty(dueDateProperties, DUE_DATE_TIME)
+        );
     }
 }

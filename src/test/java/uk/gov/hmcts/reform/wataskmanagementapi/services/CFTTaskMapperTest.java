@@ -71,6 +71,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_MANAGEMENT_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
@@ -375,10 +376,12 @@ class CFTTaskMapperTest {
         mappedValues.put(ADDITIONAL_PROPERTIES.value(), writeValueAsString(EXPECTED_ADDITIONAL_PROPERTIES));
         String nextHearingId = "nextHearingId";
         mappedValues.put(NEXT_HEARING_ID.value(), nextHearingId);
-        String nextHearingDate = OffsetDateTime.now().toString();
+        String nextHearingDate = "2021-05-13T20:15";
         mappedValues.put(NEXT_HEARING_DATE.value(), nextHearingDate);
-        mappedValues.put(PRIORITY_DATE.value(), OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
-        mappedValues.put(DUE_DATE.value(), "2021-05-09T20:15");
+        String priorityDate = "2021-05-12T20:15";
+        mappedValues.put(PRIORITY_DATE.value(), priorityDate);
+        String dueDate = "2021-05-10T20:15";
+        mappedValues.put(DUE_DATE.value(), dueDate);
         mappedValues.put(MAJOR_PRIORITY.value(), 5000);
         mappedValues.put(MINOR_PRIORITY.value(), 500);
 
@@ -414,7 +417,6 @@ class CFTTaskMapperTest {
         assertEquals("someCaseCategory", taskResource.getCaseCategory());
         assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
         assertEquals(nextHearingId, taskResource.getNextHearingId());
-        assertEquals(OffsetDateTime.parse(nextHearingDate), taskResource.getNextHearingDate());
         assertNull(taskResource.getBusinessContext());
         assertNull(taskResource.getTerminationReason());
         assertEquals(new ExecutionTypeResource(
@@ -425,10 +427,11 @@ class CFTTaskMapperTest {
         assertEquals(emptySet(), taskResource.getTaskRoleResources());
         assertEquals(5000, taskResource.getMajorPriority());
         assertEquals(500, taskResource.getMinorPriority());
-        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), taskResource.getPriorityDate());
-        LocalDateTime localDateTime = LocalDateTime.of(2021, 5, 9, 20, 15, 0, 0);
-        assertEquals(localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime(), taskResource.getDueDateTime());
+        assertEquals(CFTTaskMapper.mapDate(nextHearingDate), taskResource.getNextHearingDate());
+        assertEquals(CFTTaskMapper.mapDate(priorityDate), taskResource.getPriorityDate());
+        assertEquals(CFTTaskMapper.mapDate(dueDate), taskResource.getDueDateTime());
     }
+
 
     @Test
     void should_map_configuration_attributes_when_skeleton_fields_changed() {
@@ -611,7 +614,7 @@ class CFTTaskMapperTest {
             asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("  Read , Refer , Own , Manage , Cancel   "),
                     stringValue("IA,WA"),
                     integerValue(2),
                     booleanValue(true),
@@ -681,6 +684,44 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_throw_exception_when_permission_type_enum_is_not_mapped() {
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(CASE_ID.value(), "otherCaseId");
+        mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
+        mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
+
+        List<PermissionsDmnEvaluationResponse> permissionsDmnEvaluationResponses =
+            asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("senior-tribunal-caseworker"),
+                    stringValue(" Read , Refer,Own,Manage, somePermissionType"),
+                    null,
+                    null,
+                    null,
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            );
+
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        assertThatThrownBy(() -> cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses
+            )
+        )).isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Invalid Permission Type:somePermissionType")
+            .hasNoCause();
+    }
+
+    @Test
     void should_throw_exception_when_execution_type_enum_is_not_mapped() {
 
         Map<String, Object> attributes = Map.of(
@@ -723,7 +764,7 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type `uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem` "
-                + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
+                    + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -745,9 +786,9 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type "
-                + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
-                + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
-                + "[PUBLIC, RESTRICTED, PRIVATE]")
+                    + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
+                    + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
+                    + "[PUBLIC, RESTRICTED, PRIVATE]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -951,12 +992,14 @@ class CFTTaskMapperTest {
         taskResource.setSecurityClassification(null);
 
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
 
@@ -982,12 +1025,14 @@ class CFTTaskMapperTest {
         taskResource.setTaskSystem(null);
 
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
         assertNull(task.getTaskSystem());
@@ -1010,12 +1055,14 @@ class CFTTaskMapperTest {
         taskResource.setExecutionTypeCode(null);
 
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
         assertNull(task.getExecutionType());
@@ -1325,7 +1372,8 @@ class CFTTaskMapperTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate,
-                                                              null);
+                                                              null
+        );
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         taskResource.setPriorityDate(null);
@@ -2204,7 +2252,7 @@ class CFTTaskMapperTest {
         mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
         mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
         mappedValues.put(CamundaVariableDefinition.DESCRIPTION.value(), "aDescription");
-        mappedValues.put(PRIORITY_DATE.value(), "2022-05-09T20:15:45.345875+01:00");
+        mappedValues.put(PRIORITY_DATE.value(), "2022-05-09T20:15");
         mappedValues.put(MAJOR_PRIORITY.value(), "5000");
         mappedValues.put(MINOR_PRIORITY.value(), "500");
 
@@ -2226,8 +2274,11 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = createTaskResource();
 
-        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-            configurationDmnResponse(true), permissionsResponse());
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(true),
+            permissionsResponse()
+        );
 
         TaskResource reconfiguredTaskResource = cftTaskMapper
             .reconfigureTaskResourceFromDmnResults(taskResource, results);
@@ -2238,8 +2289,10 @@ class CFTTaskMapperTest {
         assertEquals("512401", reconfiguredTaskResource.getLocation());
         assertEquals("Manchester", reconfiguredTaskResource.getLocationName());
         assertEquals(taskResource.getCaseCategory(), reconfiguredTaskResource.getCaseCategory());
-        assertEquals(taskResource.getWorkTypeResource().getId(),
-            reconfiguredTaskResource.getWorkTypeResource().getId());
+        assertEquals(
+            taskResource.getWorkTypeResource().getId(),
+            reconfiguredTaskResource.getWorkTypeResource().getId()
+        );
         assertEquals(taskResource.getRoleCategory(), reconfiguredTaskResource.getRoleCategory());
         assertEquals(taskResource.getPriorityDate(), reconfiguredTaskResource.getPriorityDate());
         assertEquals(1, reconfiguredTaskResource.getMinorPriority());
@@ -2247,8 +2300,10 @@ class CFTTaskMapperTest {
         assertEquals("nextHearingId1", reconfiguredTaskResource.getNextHearingId());
         assertEquals(taskResource.getNextHearingDate(), reconfiguredTaskResource.getNextHearingDate());
         LocalDateTime localDateTime = LocalDateTime.of(2021, 5, 9, 20, 15, 0, 0);
-        assertEquals(localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
-                     reconfiguredTaskResource.getDueDateTime());
+        assertEquals(
+            localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
+            reconfiguredTaskResource.getDueDateTime()
+        );
     }
 
     @Test
@@ -2256,8 +2311,11 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = createTaskResource();
 
-        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-            configurationDmnResponse(false), permissionsResponse());
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponse(false),
+            permissionsResponse()
+        );
 
         TaskResource reconfiguredTaskResource = cftTaskMapper
             .reconfigureTaskResourceFromDmnResults(taskResource, results);
@@ -2268,8 +2326,10 @@ class CFTTaskMapperTest {
         assertEquals(taskResource.getLocation(), reconfiguredTaskResource.getLocation());
         assertEquals(taskResource.getLocationName(), reconfiguredTaskResource.getLocationName());
         assertEquals(taskResource.getCaseCategory(), reconfiguredTaskResource.getCaseCategory());
-        assertEquals(taskResource.getWorkTypeResource().getId(),
-            reconfiguredTaskResource.getWorkTypeResource().getId());
+        assertEquals(
+            taskResource.getWorkTypeResource().getId(),
+            reconfiguredTaskResource.getWorkTypeResource().getId()
+        );
         assertEquals(taskResource.getRoleCategory(), reconfiguredTaskResource.getRoleCategory());
         assertEquals(taskResource.getPriorityDate(), reconfiguredTaskResource.getPriorityDate());
         assertEquals(taskResource.getMinorPriority(), reconfiguredTaskResource.getMinorPriority());
@@ -2284,8 +2344,11 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = createTaskResource();
 
-        TaskConfigurationResults results = new TaskConfigurationResults(emptyMap(),
-            configurationDmnResponseWithNullReconfigure(), permissionsResponse());
+        TaskConfigurationResults results = new TaskConfigurationResults(
+            emptyMap(),
+            configurationDmnResponseWithNullReconfigure(),
+            permissionsResponse()
+        );
 
         TaskResource reconfiguredTaskResource = cftTaskMapper
             .reconfigureTaskResourceFromDmnResults(taskResource, results);
@@ -2296,8 +2359,10 @@ class CFTTaskMapperTest {
         assertEquals(taskResource.getLocation(), reconfiguredTaskResource.getLocation());
         assertEquals(taskResource.getLocationName(), reconfiguredTaskResource.getLocationName());
         assertEquals(taskResource.getCaseCategory(), reconfiguredTaskResource.getCaseCategory());
-        assertEquals(taskResource.getWorkTypeResource().getId(),
-            reconfiguredTaskResource.getWorkTypeResource().getId());
+        assertEquals(
+            taskResource.getWorkTypeResource().getId(),
+            reconfiguredTaskResource.getWorkTypeResource().getId()
+        );
         assertEquals(taskResource.getRoleCategory(), reconfiguredTaskResource.getRoleCategory());
         assertEquals(taskResource.getPriorityDate(), reconfiguredTaskResource.getPriorityDate());
         assertEquals(taskResource.getMinorPriority(), reconfiguredTaskResource.getMinorPriority());
@@ -2311,33 +2376,46 @@ class CFTTaskMapperTest {
     void reconfigure_config_attributes_dmn_fields() {
         TaskResource taskResource = createTaskResource();
 
-        cftTaskMapper.reconfigureTaskAttribute(taskResource,"additionalProperties",
-            writeValueAsString(Map.of("roleAssignmentId", "1234567890")), true);
+        cftTaskMapper.reconfigureTaskAttribute(taskResource, "additionalProperties",
+                                               writeValueAsString(Map.of("roleAssignmentId", "1234567890")), true
+        );
         assertEquals(taskResource.getAdditionalProperties(), Map.of("roleAssignmentId", "1234567890"));
 
-        cftTaskMapper.reconfigureTaskAttribute(taskResource,"priorityDate",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), true);
-        assertEquals(taskResource.getPriorityDate(),
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+        cftTaskMapper.reconfigureTaskAttribute(taskResource, "priorityDate",
+                                               "2021-05-09T20:15", true
+        );
+        assertEquals(
+            taskResource.getPriorityDate(),
+            LocalDateTime.of(2021, 5, 9, 20, 15, 0, 0)
+                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+        );
 
-        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingDate",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"), true);
-        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
-            taskResource.getNextHearingDate());
+        cftTaskMapper.reconfigureTaskAttribute(taskResource, "nextHearingDate",
+                                               "2021-05-09T20:15", true
+        );
+        assertEquals(
+            taskResource.getNextHearingDate(),
+            LocalDateTime.of(2021, 5, 9, 20, 15, 0, 0)
+                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+        );
 
-        cftTaskMapper.reconfigureTaskAttribute(taskResource,"minorPriority",
-            1, true);
-        cftTaskMapper.reconfigureTaskAttribute(taskResource,"majorPriority",
-            1, true);
+        cftTaskMapper.reconfigureTaskAttribute(taskResource, "minorPriority",
+                                               1, true
+        );
+        cftTaskMapper.reconfigureTaskAttribute(taskResource, "majorPriority",
+                                               1, true
+        );
         assertEquals(1, taskResource.getMinorPriority());
         assertEquals(1, taskResource.getMajorPriority());
 
-        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
-            null, true);
+        cftTaskMapper.reconfigureTaskAttribute(taskResource, "nextHearingId",
+                                               null, true
+        );
         assertEquals("nextHearingId", taskResource.getNextHearingId());
 
-        cftTaskMapper.reconfigureTaskAttribute(taskResource,"nextHearingId",
-            "", true);
+        cftTaskMapper.reconfigureTaskAttribute(taskResource, "nextHearingId",
+                                               "", true
+        );
         assertEquals("nextHearingId", taskResource.getNextHearingId());
     }
 
@@ -2457,43 +2535,61 @@ class CFTTaskMapperTest {
                 null,
                 stringValue("LEGAL_OPERATIONS"),
                 stringValue("categoryB,categoryD")
-            ));
+            )
+        );
     }
 
     private List<ConfigurationDmnEvaluationResponse> configurationDmnResponse(boolean canReconfigure) {
         return asList(
             new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
-                booleanValue(false)),
+                                                   booleanValue(false)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
-                booleanValue(canReconfigure)),
-            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"),
-                stringValue("2021-05-09T20:15:45.345875+01:00"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("priorityDate"),
+                stringValue("2021-05-09T20:15"),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("autoAssigned"), stringValue("true"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
-                booleanValue(canReconfigure)),
-            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
-                stringValue("2021-05-09T20:15:45.345875+01:00"),
-                booleanValue(canReconfigure)),
+                                                   booleanValue(canReconfigure)
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("nextHearingDate"),
+                stringValue("2021-05-09T20:15"),
+                booleanValue(canReconfigure)
+            ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("dueDate"),
                 stringValue("2021-05-09T20:15"),
@@ -2505,35 +2601,51 @@ class CFTTaskMapperTest {
     private List<ConfigurationDmnEvaluationResponse> configurationDmnResponseWithNullReconfigure() {
         return asList(
             new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
-                booleanValue(false)),
+                                                   booleanValue(false)
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
-                null),
+                                                   null
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
-                null),
+                                                   null
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
-                null),
+                                                   null
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
-                null),
+                                                   null
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
-                null),
+                                                   null
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
-                null),
+                                                   null
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
-                null),
+                                                   null
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
-                null),
-            new ConfigurationDmnEvaluationResponse(stringValue("priorityDate"),
-                stringValue("2021-05-09T20:15:45.345875+01:00"),
-                null),
+                                                   null
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("priorityDate"),
+                stringValue("2021-05-09T20:15:45"),
+                null
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
-                null),
+                                                   null
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
-                null),
+                                                   null
+            ),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
-                null),
-            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingDate"),
-                stringValue("2021-05-09T20:15:45.345875+01:00"),
-                null),
+                                                   null
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("nextHearingDate"),
+                stringValue("2021-05-09T20:15:45"),
+                null
+            ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("dueDate"),
                 stringValue("2021-05-09T20:15"),

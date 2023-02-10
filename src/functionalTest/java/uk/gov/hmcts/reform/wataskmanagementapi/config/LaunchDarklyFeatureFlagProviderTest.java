@@ -4,15 +4,12 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 
-import static org.hamcrest.CoreMatchers.either;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.NON_EXISTENT_KEY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.PRIVILEGED_ACCESS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.TEST_KEY;
-
 
 public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBaseTest {
 
@@ -33,13 +30,6 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
         boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(
             NON_EXISTENT_KEY, SOME_USER_ID,  SOME_USER_EMAIL);
         assertThat(launchDarklyFeature, is(true));
-    }
-
-    @Test
-    public void should_hit_launch_darkly_for_privileged_access_feature_and_return_either_true_or_false() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(
-            PRIVILEGED_ACCESS_FEATURE, SOME_USER_ID,  SOME_USER_EMAIL);
-        assertThat(launchDarklyFeature, either(equalTo(true)).or(equalTo(false)));
     }
 
     @Test

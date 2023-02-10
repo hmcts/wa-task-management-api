@@ -217,7 +217,7 @@ class ReconfigureTaskServiceTest {
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("priorityDate"),
-                stringValue("2021-05-09T20:15:45.345875+01:00"),
+                stringValue("2021-05-09T20:15"),
                 booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
@@ -231,7 +231,7 @@ class ReconfigureTaskServiceTest {
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("nextHearingDate"),
-                stringValue("2021-05-09T20:15:45.345875+01:00"),
+                stringValue("2021-05-09T20:15"),
                 booleanValue(canReconfigure)
             )
         );
