@@ -14,7 +14,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 
 @Slf4j
 @Component
-public class IntermediateDateTimeCalculator implements DateCalculator {
+public class IntermediateDateTimeCalculator extends DueDateTimeCalculator {
 
     @Override
     public boolean supports(
@@ -37,16 +37,5 @@ public class IntermediateDateTimeCalculator implements DateCalculator {
             dateTypeObject,
             getProperty(configResponses, dateTypeObject.dateTypeName() + TIME_SUFFIX)
         );
-    }
-
-    protected ConfigurationDmnEvaluationResponse calculatedDate(
-        DateTypeObject dateTypeObject,
-        ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
-        LocalDateTime dateTime = addTimeToDate(dueDateTimeResponse, DEFAULT_DATE);
-        return ConfigurationDmnEvaluationResponse
-            .builder()
-            .name(CamundaValue.stringValue(dateTypeObject.dateTypeName()))
-            .value(CamundaValue.stringValue(dateTypeObject.dateType().getDateTimeFormatter().format(dateTime)))
-            .build();
     }
 }

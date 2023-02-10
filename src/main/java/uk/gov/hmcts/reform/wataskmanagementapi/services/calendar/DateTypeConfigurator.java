@@ -57,7 +57,7 @@ public class DateTypeConfigurator {
                     responses
                 );
                 log.info("{} based in configuration is as {}", dateTypeObject.dateTypeName, dateTypeResponse);
-                filterOutOldValueAndAddDateType(responses, dateTypeObject.dateType, dateTypeResponse);
+                filterOutOldValueAndAddDateType(responses, dateTypeObject, dateTypeResponse);
             });
 
         return responses.get();
@@ -127,10 +127,10 @@ public class DateTypeConfigurator {
 
     private void filterOutOldValueAndAddDateType(
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses,
-        DateType dateType,
+        DateTypeObject dateTypeObject,
         ConfigurationDmnEvaluationResponse dateTypeResponse) {
         List<ConfigurationDmnEvaluationResponse> filtered = configResponses.get().stream()
-            .filter(r -> !r.getName().getValue().contains(dateType.getType()))
+            .filter(r -> !r.getName().getValue().contains(dateTypeObject.dateTypeName))
             .collect(Collectors.toList());
 
         Optional.ofNullable(dateTypeResponse).ifPresent(filtered::add);

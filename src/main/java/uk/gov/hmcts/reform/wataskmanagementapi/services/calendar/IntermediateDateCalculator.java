@@ -12,10 +12,11 @@ import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 
 @Slf4j
 @Component
-public class IntermediateDateCalculator implements DateCalculator {
+public class IntermediateDateCalculator extends DueDateCalculator {
 
     @Override
     public boolean supports(
@@ -30,46 +31,11 @@ public class IntermediateDateCalculator implements DateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        var dueDateResponse = getProperty(configResponses, DUE_DATE.getType());
-        var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME);
-        return calculatedDate(dateType, dueDateResponse, dueDateTimeResponse);
-    }
-
-    protected ConfigurationDmnEvaluationResponse calculatedDate(
-        DateTypeObject dateType,
-        ConfigurationDmnEvaluationResponse dueDateResponse,
-        ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
-        LocalDateTime calculatedDate = calculatedDate(dueDateResponse, dueDateTimeResponse);
-        return ConfigurationDmnEvaluationResponse
-            .builder()
-            .name(CamundaValue.stringValue(dateType.dateTypeName()))
-            .value(CamundaValue.stringValue(dateType.dateType().getDateTimeFormatter().format(calculatedDate)))
-            .build();
-    }
-
-    private LocalDateTime calculatedDate(ConfigurationDmnEvaluationResponse dueDateResponse,
-                                         ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
-        if (Optional.ofNullable(dueDateTimeResponse).isPresent()) {
-            return calculateDueDateFrom(dueDateResponse, dueDateTimeResponse);
-        } else {
-            return calculateDueDateFrom(dueDateResponse);
-        }
-    }
-
-    private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse) {
-        String dueDate = dueDateResponse.getValue().getValue();
-        LocalDateTime parsedDueDate = parseDateTime(dueDate);
-        if (parsedDueDate.getHour() == 0 && parsedDueDate.getMinute() == 0) {
-            return parsedDueDate.withHour(16).withMinute(0);
-        } else {
-            return parsedDueDate;
-        }
-    }
-
-    private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse,
-                                               ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
-        String dueDate = dueDateResponse.getValue().getValue();
-        return addTimeToDate(dueDateTimeResponse, parseDateTime(dueDate));
+        DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        String dateTypeName = dateTypeObject.dateTypeName();
+        return calculatedDate(dateTypeObject,
+                              getProperty(configResponses, dateTypeName),
+                              getProperty(configResponses, dateTypeName + TIME_SUFFIX)
+        );
     }
 }
