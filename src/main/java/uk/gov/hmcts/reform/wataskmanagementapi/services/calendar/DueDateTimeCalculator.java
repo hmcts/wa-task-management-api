@@ -22,16 +22,15 @@ public class DueDateTimeCalculator implements DateCalculator {
         boolean isReconfigureRequest) {
 
         return DUE_DATE == dateType
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME, isReconfigureRequest)).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> configResponses,
-                                                            DateType dateType) {
-        return calculatedDate(dateType, getProperty(configResponses, DUE_DATE_TIME));
+                                                            DateType dateType, boolean isReconfigureRequest) {
+        return calculatedDate(dateType, getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest));
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(

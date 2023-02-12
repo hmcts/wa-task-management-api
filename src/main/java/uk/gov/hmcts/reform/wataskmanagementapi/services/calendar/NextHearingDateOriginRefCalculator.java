@@ -25,19 +25,21 @@ public class NextHearingDateOriginRefCalculator extends NextHearingDateIntervalC
         DateType dateType,
         boolean isReconfigureRequest) {
         return NEXT_HEARING_DATE == dateType
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN_REF)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN,
+                                               isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(),
+                                               isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN_REF,
+                                               isReconfigureRequest)).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
-        DateType dateType) {
+        DateType dateType, boolean isReconfigureRequest) {
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(
             nextHearingDateProperties,
-            getProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN_REF)
+            getProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest)
         );
 
         DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(nextHearingDateProperties, false);

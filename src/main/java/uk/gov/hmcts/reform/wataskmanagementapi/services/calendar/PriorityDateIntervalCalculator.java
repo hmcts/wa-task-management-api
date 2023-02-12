@@ -28,15 +28,16 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
         boolean isReconfigureRequest) {
 
         return PRIORITY_DATE == dateType
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN)).isPresent()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE.getType())).isEmpty()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN,
+                                               isReconfigureRequest)).isPresent()
+            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE.getType(),
+                                               isReconfigureRequest)).isEmpty();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType) {
+            List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
+            DateType dateType, boolean isReconfigureRequest) {
         return calculateDate(dateType, readDateTypeOriginFields(priorityDateProperties, false));
     }
 

@@ -33,15 +33,14 @@ public class DueDateIntervalCalculator implements DateCalculator {
         boolean isReconfigureRequest) {
 
         return DUE_DATE == dateType
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isPresent()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isPresent()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType) {
+        DateType dateType, boolean isReconfigureRequest) {
         return calculateDate(dateType, readDateTypeOriginFields(configResponses, false));
     }
 

@@ -54,23 +54,16 @@ public interface DateCalculator {
 
     ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType);
+        DateType dateType, boolean isReconfigureRequest);
 
     default ConfigurationDmnEvaluationResponse getProperty(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        String dueDatePrefix,
+        boolean isReconfigureRequest) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dueDatePrefix))
             .filter(r -> Strings.isNotBlank(r.getValue().getValue()))
-            .reduce((a, b) -> b)
-            .orElse(null);
-    }
-
-    default ConfigurationDmnEvaluationResponse getReConfigurableProperty(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
-        return dueDateProperties.stream()
-            .filter(r -> r.getName().getValue().equals(dueDatePrefix))
-            .filter(r -> Strings.isNotBlank(r.getValue().getValue()))
-            .filter(r -> r.getCanReconfigure().getValue())
+            .filter(r -> !isReconfigureRequest || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
             .orElse(null);
     }
@@ -109,12 +102,6 @@ public interface DateCalculator {
             .with(ChronoField.NANO_OF_SECOND, 0);
     }
 
-    default String getConfigurationValue(ConfigurationDmnEvaluationResponse response, boolean isReconfigureRequest) {
-        return isReconfigureRequest && response.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE
-            ? null
-            : response.getValue().getValue();
-    }
-
     default Optional<LocalDateTime> getOriginRefDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         ConfigurationDmnEvaluationResponse originRefResponse) {
@@ -128,6 +115,5 @@ public interface DateCalculator {
                 .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER)))
             .findFirst();
     }
-
 
 }
