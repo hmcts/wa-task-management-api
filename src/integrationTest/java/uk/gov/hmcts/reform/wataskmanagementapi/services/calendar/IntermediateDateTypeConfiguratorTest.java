@@ -488,4 +488,115 @@ public class IntermediateDateTypeConfiguratorTest {
             ));
     }
 
+    @Test
+    public void shouldNotDefaultForTheIntermediateDateWhenNull() {
+        ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("dueDateOriginEarliest"))
+            .value(stringValue("nextHearingDuration,nextHearingDate,priorityDate"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("priorityDateOriginEarliest"))
+            .value(stringValue("nextHearingDuration,nextHearingDate,dueDate"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("calculatedDates"))
+            .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("nextHearingDate"))
+            .value(stringValue(NEXT_HEARING_DATE_VALUE))
+            .build();
+
+        String intermediateDateName = "nextHearingDuration";
+        ConfigurationDmnEvaluationResponse nextHearingDuration = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue(intermediateDateName + ORIGIN_SUFFIX))
+            .value(stringValue(""))
+            .build();
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(
+                List.of(dueDateOriginEarliest, priorityDateOriginEarliest, calculatedDates, nextHearingDate,
+                        nextHearingDuration, nextHearingDate
+                ),
+                false, false
+            );
+
+        assertThat(configurationDmnEvaluationResponses).hasSize(4)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("calculatedDates"))
+                    .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("nextHearingDate"))
+                    .value(stringValue(NEXT_HEARING_DATE_VALUE))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("dueDate"))
+                    .value(stringValue("2022-10-13T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("priorityDate"))
+                    .value(stringValue(NEXT_HEARING_DATE_VALUE))
+                    .build()
+            ));
+    }
+
+    @Test
+    public void shouldNotDefaultForTheIntermediateDateTimeISNotNull() {
+        ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("dueDateOriginEarliest"))
+            .value(stringValue("nextHearingDuration,nextHearingDate,priorityDate"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("priorityDateOriginEarliest"))
+            .value(stringValue("nextHearingDuration,nextHearingDate,dueDate"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("calculatedDates"))
+            .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("nextHearingDate"))
+            .value(stringValue(NEXT_HEARING_DATE_VALUE))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("nextHearingDurationTime"))
+            .value(stringValue("16:00"))
+            .build();
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(
+                List.of(dueDateOriginEarliest, priorityDateOriginEarliest, calculatedDates, nextHearingDate,
+                        nextHearingDurationTime, nextHearingDate
+                ),
+                false, false
+            );
+
+        assertThat(configurationDmnEvaluationResponses).hasSize(4)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("calculatedDates"))
+                    .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("nextHearingDate"))
+                    .value(stringValue(NEXT_HEARING_DATE_VALUE))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("dueDate"))
+                    .value(stringValue("2022-10-13T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("priorityDate"))
+                    .value(stringValue(NEXT_HEARING_DATE_VALUE))
+                    .build()
+            ));
+    }
+
 }
