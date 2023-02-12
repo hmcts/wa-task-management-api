@@ -24,17 +24,24 @@ public class NextHearingDateOriginEarliestCalculator extends NextHearingDateInte
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         DateType dateType,
         boolean isReconfigureRequest) {
+        ConfigurationDmnEvaluationResponse nextHearingDateOriginEarliest = getProperty(
+            dueDateProperties,
+            NEXT_HEARING_DATE_ORIGIN_EARLIEST,
+            isReconfigureRequest
+        );
         return NEXT_HEARING_DATE == dateType
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN_EARLIEST)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(nextHearingDateOriginEarliest).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        var originEarliestResponse = getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST);
+        List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType, boolean isReconfigureRequest) {
+        var originEarliestResponse
+            = getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
         DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);
         if (dueDateOriginEarliest.isPresent()) {

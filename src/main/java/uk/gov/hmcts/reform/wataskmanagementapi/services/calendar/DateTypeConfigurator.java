@@ -20,7 +20,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class DateTypeConfigurator {
 
-    public static final String IA_JURISDICTION = "IA";
     public static final String CALCULATED_DATES = "calculatedDates";
     private final List<DateCalculator> dateCalculators;
 
@@ -81,7 +80,7 @@ public class DateTypeConfigurator {
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
         Optional<DateCalculator> dateCalculator = getDateCalculator(dateProperties, dateType, isReconfigureRequest);
         if (dateCalculator.isPresent()) {
-            return dateCalculator.get().calculateDate(dateType, configResponses.get());
+            return dateCalculator.get().calculateDate(configResponses.get(), dateType, isReconfigureRequest);
         } else {
             return isReconfigureRequest ? null : getDefaultValue(dateType, configResponses);
         }

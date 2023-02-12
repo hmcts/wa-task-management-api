@@ -61,9 +61,11 @@ public class DateTypeConfiguratorTest {
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(nextHearingDateCalculator).calculateDate(eq(DateType.NEXT_HEARING_DATE), any());
-        inOrder.verify(dueDateCalculator).calculateDate(eq(DUE_DATE), any());
-        inOrder.verify(priorityDateCalculator).calculateDate(eq(DateType.PRIORITY_DATE), any());
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(DateType.NEXT_HEARING_DATE),
+                                                                eq(false)
+        );
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE), eq(false));
+        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(DateType.PRIORITY_DATE), eq(false));
     }
 
     @Test
@@ -80,9 +82,11 @@ public class DateTypeConfiguratorTest {
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(dueDateCalculator).calculateDate(eq(DUE_DATE), any());
-        inOrder.verify(priorityDateCalculator).calculateDate(eq(DateType.PRIORITY_DATE), any());
-        inOrder.verify(nextHearingDateCalculator).calculateDate(eq(DateType.NEXT_HEARING_DATE), any());
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE), eq(false));
+        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(DateType.PRIORITY_DATE), eq(false));
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(DateType.NEXT_HEARING_DATE),
+                                                                eq(false)
+        );
     }
 
     @Test
@@ -110,8 +114,8 @@ public class DateTypeConfiguratorTest {
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(priorityDateCalculator).calculateDate(eq(DateType.PRIORITY_DATE), any());
-        inOrder.verify(dueDateCalculator).calculateDate(eq(DUE_DATE), any());
-        inOrder.verify(nextHearingDateCalculator).calculateDate(eq(DateType.NEXT_HEARING_DATE), any());
+        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(DateType.PRIORITY_DATE), eq(false));
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE), eq(false));
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(DateType.NEXT_HEARING_DATE), eq(false));
     }
 }

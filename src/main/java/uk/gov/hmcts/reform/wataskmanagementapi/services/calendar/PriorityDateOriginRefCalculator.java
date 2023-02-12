@@ -25,16 +25,19 @@ public class PriorityDateOriginRefCalculator extends PriorityDateIntervalCalcula
         DateType dateType,
         boolean isReconfigureRequest) {
         return PRIORITY_DATE == dateType
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_REF)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN,
+                                               isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(),
+                                               isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_REF,
+                                               isReconfigureRequest)).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
-        var originRefResponse = getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN_REF);
+            List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
+            DateType dateType, boolean isReconfigureRequest) {
+        var originRefResponse = getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest);
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(priorityDateProperties, originRefResponse);
         DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(priorityDateProperties, false);
         if (dueDateOriginRef.isPresent()) {
