@@ -2,11 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,18 +22,28 @@ public class IntermediateDateTimeCalculator extends DueDateTimeCalculator {
 
         String dateTypeName = dateTypeObject.dateTypeName();
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_SUFFIX)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + TIME_SUFFIX)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(
+            dueDateProperties,
+            dateTypeName + ORIGIN_SUFFIX,
+            isReconfigureRequest
+        )).isEmpty()
+            && Optional.ofNullable(getProperty(
+            dueDateProperties,
+            dateTypeName + TIME_SUFFIX,
+            isReconfigureRequest
+        )).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateTypeObject,
+        boolean isReconfigureRequest
+    ) {
         return calculatedDate(
             dateTypeObject,
-            getProperty(configResponses, dateTypeObject.dateTypeName() + TIME_SUFFIX)
+            getProperty(configResponses, dateTypeObject.dateTypeName() + TIME_SUFFIX, isReconfigureRequest)
         );
     }
 }

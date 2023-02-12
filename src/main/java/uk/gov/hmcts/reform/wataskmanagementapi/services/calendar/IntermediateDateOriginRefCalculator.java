@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,25 +22,37 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateTypeConfigurator.DateTypeObject dateTypeObject,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         String dateTypeName = dateTypeObject.dateTypeName();
+        ConfigurationDmnEvaluationResponse origin = getProperty(
+            dueDateProperties,
+            dateTypeName + ORIGIN_SUFFIX,
+            isReconfigureRequest
+        );
+        ConfigurationDmnEvaluationResponse originRef = getProperty(
+            dueDateProperties,
+            dateTypeName + ORIGIN_REF_SUFFIX,
+            isReconfigureRequest
+        );
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_SUFFIX)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_REF_SUFFIX)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(origin).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(originRef).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeConfigurator.DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateTypeObject,
+        boolean isReconfigureRequest
+    ) {
         String dateTypeName = dateTypeObject.dateTypeName();
         ConfigurationDmnEvaluationResponse originRefResponse
-            = getProperty(configResponses, dateTypeName + ORIGIN_REF_SUFFIX);
+            = getProperty(configResponses, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigureRequest);
 
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(configResponses, originRefResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(dateTypeName, configResponses, false);
+        var dateTypeIntervalData = readDateTypeOriginFields(dateTypeName, configResponses, isReconfigureRequest);
         if (dueDateOriginRef.isPresent()) {
             dateTypeIntervalData = dateTypeIntervalData.toBuilder().calculatedRefDate(dueDateOriginRef.get()).build();
         }

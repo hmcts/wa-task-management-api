@@ -22,15 +22,16 @@ public class PriorityDateCalculator extends DueDateCalculator {
         boolean isReconfigureRequest) {
 
         return PRIORITY_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType())).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest))
+            .isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
-        var priorityDateResponse = getProperty(priorityDateProperties, PRIORITY_DATE.getType());
-        var priorityDateTimeResponse = getProperty(priorityDateProperties, PRIORITY_DATE_TIME);
+        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
+        DateTypeObject dateType, boolean isReconfigureRequest) {
+        var priorityDateResponse = getProperty(priorityDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest);
+        var priorityDateTimeResponse = getProperty(priorityDateProperties, PRIORITY_DATE_TIME, isReconfigureRequest);
         return calculatedDate(dateType, priorityDateResponse, priorityDateTimeResponse);
     }
 }

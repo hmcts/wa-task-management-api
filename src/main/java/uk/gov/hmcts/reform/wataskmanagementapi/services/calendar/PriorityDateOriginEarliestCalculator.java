@@ -26,18 +26,22 @@ public class PriorityDateOriginEarliestCalculator extends PriorityDateIntervalCa
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         return PRIORITY_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_EARLIEST)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN, isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
+            .isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        var originEarliestResponse = getProperty(configResponses, PRIORITY_DATE_ORIGIN_EARLIEST);
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateType,
+        boolean isReconfigureRequest) {
+        var originEarliestResponse = getProperty(configResponses, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);
+        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, isReconfigureRequest);
         if (dueDateOriginEarliest.isPresent()) {
             dateTypeIntervalData = dateTypeIntervalData.toBuilder()
                 .calculatedEarliestDate(dueDateOriginEarliest.get()).build();

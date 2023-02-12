@@ -27,10 +27,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHo
 @ActiveProfiles({"integration"})
 public class IntermediateDateTypeConfiguratorTest {
 
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 
-    public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 00, 00);
-    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 03, 26, 18, 00, 00);
+    public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 0, 0);
+    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 03, 26, 18, 0, 0);
 
     public static final String PRIORITY_DATE_VALUE = GIVEN_DATE.plusDays(2)
         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
@@ -74,7 +74,8 @@ public class IntermediateDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueAndPriorityDateOriginFields(
             intermediateDateName, dueDateOriginEarliest, priorityDateOriginEarliest, calculatedDates,
-            nextHearingDate, nextHearingDurationOrigin);
+            nextHearingDate, nextHearingDurationOrigin
+        );
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
             = dateTypeConfigurator.configureDates(evaluationResponses, false, false);
@@ -199,7 +200,8 @@ public class IntermediateDateTypeConfiguratorTest {
             .build();
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueAndPriorityDateOriginFields(
             intermediateDateName, dueDateOriginEarliest, priorityDateOriginEarliest, calculatedDates,
-            nextHearingDate, nextHearingDurationOrigin, priorityIntermediateDate);
+            nextHearingDate, nextHearingDurationOrigin, priorityIntermediateDate
+        );
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
             = dateTypeConfigurator.configureDates(evaluationResponses, false, false);
@@ -209,7 +211,8 @@ public class IntermediateDateTypeConfiguratorTest {
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("calculatedDates"))
-                    .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityIntermediateDate,priorityDate"))
+                    .value(stringValue(
+                        "nextHearingDate,nextHearingDuration,dueDate,priorityIntermediateDate,priorityDate"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
@@ -318,7 +321,7 @@ public class IntermediateDateTypeConfiguratorTest {
                 .value(stringValue("6"))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
-                .name(stringValue(intermediateDateName + NON_WORKING_CALENDAR_SUFFIX ))
+                .name(stringValue(intermediateDateName + NON_WORKING_CALENDAR_SUFFIX))
                 .value(stringValue(CALENDAR_URI))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()

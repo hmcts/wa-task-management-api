@@ -29,18 +29,25 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         boolean isReconfigureRequest) {
 
         String dateTypeName = dateTypeObject.dateTypeName();
+        ConfigurationDmnEvaluationResponse intermediateOrigin = getProperty(
+            dueDateProperties,
+            dateTypeName + ORIGIN_SUFFIX,
+            isReconfigureRequest
+        );
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_SUFFIX)).isPresent()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName)).isEmpty()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(intermediateOrigin).isPresent()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigureRequest)).isEmpty();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateTypeObject,
+        boolean isReconfigureRequest
+    ) {
         return calculateDate(
             dateTypeObject,
-            readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, false)
+            readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, isReconfigureRequest)
         );
     }
 

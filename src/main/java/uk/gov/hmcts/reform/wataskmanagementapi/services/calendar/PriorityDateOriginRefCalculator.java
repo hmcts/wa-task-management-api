@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
@@ -26,18 +25,25 @@ public class PriorityDateOriginRefCalculator extends PriorityDateIntervalCalcula
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         return PRIORITY_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_REF)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN,
+                                               isReconfigureRequest
+        )).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(),
+                                               isReconfigureRequest
+        )).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_REF,
+                                               isReconfigureRequest
+        )).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> priorityDateProperties) {
-        var originRefResponse = getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN_REF);
+        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
+        DateTypeObject dateType,
+        boolean isReconfigureRequest) {
+        var originRefResponse = getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest);
         Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(priorityDateProperties, originRefResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(priorityDateProperties, false);
+        var dateTypeIntervalData = readDateTypeOriginFields(priorityDateProperties, isReconfigureRequest);
         if (dueDateOriginRef.isPresent()) {
             dateTypeIntervalData = dateTypeIntervalData.toBuilder().calculatedRefDate(dueDateOriginRef.get()).build();
         }

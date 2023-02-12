@@ -66,29 +66,23 @@ public interface DateCalculator {
                      boolean isReconfigureRequest);
 
     ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateType,
-        List<ConfigurationDmnEvaluationResponse> configResponses);
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateType, boolean isReconfigureRequest);
 
     default ConfigurationDmnEvaluationResponse getProperty(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        String dueDatePrefix,
+        boolean isReconfigureRequest) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dueDatePrefix))
             .filter(r -> Strings.isNotBlank(r.getValue().getValue()))
+            .filter(r -> !isReconfigureRequest || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
             .orElse(null);
     }
 
-    default ConfigurationDmnEvaluationResponse getReConfigurableProperty(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
-        return dueDateProperties.stream()
-            .filter(r -> r.getName().getValue().equals(dueDatePrefix))
-            .filter(r -> Strings.isNotBlank(r.getValue().getValue()))
-            .filter(r -> r.getCanReconfigure().getValue())
-            .reduce((a, b) -> b)
-            .orElse(null);
-    }
-
-    default LocalDateTime addTimeToDate(ConfigurationDmnEvaluationResponse dueDateTimeResponse, LocalDateTime date) {
+    default LocalDateTime addTimeToDate(
+        ConfigurationDmnEvaluationResponse dueDateTimeResponse, LocalDateTime date) {
         String dueDateTime = dueDateTimeResponse.getValue().getValue();
         return useDateTime(date, dueDateTime);
     }

@@ -18,21 +18,22 @@ public class DueDateTimeCalculator implements DateCalculator {
 
     @Override
     public boolean supports(
-            List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-            DateTypeObject dateTypeObject,
-            boolean isReconfigureRequest) {
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        DateTypeObject dateTypeObject,
+        boolean isReconfigureRequest) {
 
         return DUE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME, isReconfigureRequest)).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-            DateTypeObject dateTypeObject, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        return calculatedDate(dateTypeObject, getProperty(configResponses, DUE_DATE_TIME));
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateTypeObject,
+        boolean isReconfigureRequest) {
+        return calculatedDate(dateTypeObject, getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest));
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(

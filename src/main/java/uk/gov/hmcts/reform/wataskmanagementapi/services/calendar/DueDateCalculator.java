@@ -23,15 +23,16 @@ public class DueDateCalculator implements DateCalculator {
         boolean isReconfigureRequest) {
 
         return DUE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest))
+            .isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        var dueDateResponse = getProperty(configResponses, DUE_DATE.getType());
-        var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME);
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateType, boolean isReconfigureRequest) {
+        var dueDateResponse = getProperty(configResponses, DUE_DATE.getType(), isReconfigureRequest);
+        var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest);
         return calculatedDate(dateType, dueDateResponse, dueDateTimeResponse);
     }
 
@@ -48,7 +49,7 @@ public class DueDateCalculator implements DateCalculator {
     }
 
     private LocalDateTime calculatedDate(ConfigurationDmnEvaluationResponse dueDateResponse,
-                                 ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
+                                         ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         if (Optional.ofNullable(dueDateTimeResponse).isPresent()) {
             return calculateDueDateFrom(dueDateResponse, dueDateTimeResponse);
         } else {
@@ -67,7 +68,7 @@ public class DueDateCalculator implements DateCalculator {
     }
 
     private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse,
-                                       ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
+                                               ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         String dueDate = dueDateResponse.getValue().getValue();
         return addTimeToDate(dueDateTimeResponse, parseDateTime(dueDate));
     }

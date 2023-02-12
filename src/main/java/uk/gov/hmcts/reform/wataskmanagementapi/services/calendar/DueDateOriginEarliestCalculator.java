@@ -26,18 +26,20 @@ public class DueDateOriginEarliestCalculator extends DueDateIntervalCalculator {
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         return DUE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
+            .isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> configResponses) {
-        var originEarliestResponse = getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST);
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateType,
+        boolean isReconfigureRequest) {
+        var originEarliestResponse = getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);
+        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, isReconfigureRequest);
         if (dueDateOriginEarliest.isPresent()) {
             dateTypeIntervalData = dateTypeIntervalData.toBuilder()
                 .calculatedEarliestDate(dueDateOriginEarliest.get()).build();

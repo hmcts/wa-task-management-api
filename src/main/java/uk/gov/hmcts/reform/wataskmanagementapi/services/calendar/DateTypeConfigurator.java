@@ -23,11 +23,31 @@ public class DateTypeConfigurator {
     public static final String CALCULATED_DATES = "calculatedDates";
     private final List<DateCalculator> dateCalculators;
 
-    record DateTypeObject(DateType dateType, String dateTypeName) {
-    }
-
     public DateTypeConfigurator(List<DateCalculator> dateCalculators) {
         this.dateCalculators = dateCalculators;
+    }
+
+    private static ConfigurationDmnEvaluationResponse getDefaultValue(
+        DateType dateType,
+        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
+
+        Optional<ConfigurationDmnEvaluationResponse> dueDate = configResponses.get().stream()
+            .filter(r -> r.getName().getValue().equals(DateType.DUE_DATE.getType()))
+            .findFirst();
+
+        if (dateType == PRIORITY_DATE && dueDate.isPresent()) {
+            return ConfigurationDmnEvaluationResponse.builder()
+                .name(CamundaValue.stringValue(PRIORITY_DATE.getType()))
+                .value(dueDate.get().getValue())
+                .build();
+        }
+
+        return dateType.getDefaultTime() == null
+            ? null
+            : ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue(dateType.getType()))
+            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateType.getDefaultTime())))
+            .build();
     }
 
     public List<ConfigurationDmnEvaluationResponse> configureDates(
@@ -87,33 +107,10 @@ public class DateTypeConfigurator {
         Optional<DateCalculator> dateCalculator
             = getDateCalculator(dateProperties, dateTypeObject, isReconfigureRequest);
         if (dateCalculator.isPresent()) {
-            return dateCalculator.get().calculateDate(dateTypeObject, configResponses.get());
+            return dateCalculator.get().calculateDate(configResponses.get(), dateTypeObject, isReconfigureRequest);
         } else {
             return isReconfigureRequest ? null : getDefaultValue(dateTypeObject.dateType, configResponses);
         }
-    }
-
-    private static ConfigurationDmnEvaluationResponse getDefaultValue(
-        DateType dateType,
-        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
-
-        Optional<ConfigurationDmnEvaluationResponse> dueDate = configResponses.get().stream()
-            .filter(r -> r.getName().getValue().equals(DateType.DUE_DATE.getType()))
-            .findFirst();
-
-        if (dateType == PRIORITY_DATE && dueDate.isPresent()) {
-            return ConfigurationDmnEvaluationResponse.builder()
-                .name(CamundaValue.stringValue(PRIORITY_DATE.getType()))
-                .value(dueDate.get().getValue())
-                .build();
-        }
-
-        return dateType.getDefaultTime() == null
-            ? null
-            : ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue(dateType.getType()))
-            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateType.getDefaultTime())))
-            .build();
     }
 
     private Optional<DateCalculator> getDateCalculator(
@@ -135,5 +132,8 @@ public class DateTypeConfigurator {
 
         Optional.ofNullable(dateTypeResponse).ifPresent(filtered::add);
         configResponses.getAndSet(filtered);
+    }
+
+    record DateTypeObject(DateType dateType, String dateTypeName) {
     }
 }

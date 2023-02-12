@@ -29,15 +29,21 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
         boolean isReconfigureRequest) {
 
         return NEXT_HEARING_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN)).isPresent()
-            && Optional.ofNullable(getProperty(nextHearingDateProperties, NEXT_HEARING_DATE.getType())).isEmpty()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN,
+                                               isReconfigureRequest
+        )).isPresent()
+            && Optional.ofNullable(getProperty(nextHearingDateProperties, NEXT_HEARING_DATE.getType(),
+                                               isReconfigureRequest
+        )).isEmpty();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateType, List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties) {
-        return calculateDate(dateType, readDateTypeOriginFields(nextHearingDateProperties, false));
+        List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
+        DateTypeObject dateType,
+        boolean isReconfigureRequest) {
+        var nextHearingDateIntervalData = readDateTypeOriginFields(nextHearingDateProperties, isReconfigureRequest);
+        return calculateDate(dateType, nextHearingDateIntervalData);
     }
 
     @Override
