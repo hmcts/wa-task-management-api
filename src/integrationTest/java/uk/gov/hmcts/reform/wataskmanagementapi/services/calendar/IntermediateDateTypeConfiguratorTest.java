@@ -30,7 +30,7 @@ public class IntermediateDateTypeConfiguratorTest {
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 
     public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 0, 0);
-    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 03, 26, 18, 0, 0);
+    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 3, 26, 18, 0, 0);
 
     public static final String PRIORITY_DATE_VALUE = GIVEN_DATE.plusDays(2)
         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
@@ -42,7 +42,6 @@ public class IntermediateDateTypeConfiguratorTest {
 
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
-    private String isReConfigurationRequest = "false";
 
     @Test
     public void should_calculate_based_on_intermediate_date_origin_in_origin_earliest_dates() {

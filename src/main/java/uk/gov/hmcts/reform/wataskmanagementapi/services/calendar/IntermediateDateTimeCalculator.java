@@ -21,18 +21,20 @@ public class IntermediateDateTimeCalculator extends DueDateTimeCalculator {
         boolean isReconfigureRequest) {
 
         String dateTypeName = dateTypeObject.dateTypeName();
-        return INTERMEDIATE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigureRequest)).isEmpty()
-            && Optional.ofNullable(getProperty(
+        ConfigurationDmnEvaluationResponse intermediateOrigin = getProperty(
             dueDateProperties,
             dateTypeName + ORIGIN_SUFFIX,
             isReconfigureRequest
-        )).isEmpty()
-            && Optional.ofNullable(getProperty(
+        );
+        ConfigurationDmnEvaluationResponse intermediateTime = getProperty(
             dueDateProperties,
             dateTypeName + TIME_SUFFIX,
             isReconfigureRequest
-        )).isPresent();
+        );
+        return INTERMEDIATE_DATE == dateTypeObject.dateType()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(intermediateOrigin).isEmpty()
+            && Optional.ofNullable(intermediateTime).isPresent();
     }
 
     @Override
