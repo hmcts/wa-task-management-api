@@ -14,7 +14,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DATE_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DATE_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_ZONED_DATE_TIME;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
@@ -1021,6 +1025,66 @@ public class NextHearingDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
                     .value(CamundaValue.stringValue(EXPECTED_DEFAULT_DUE_DATE + "T16:00"))
+                    .build()
+            ));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"true","false"})
+    public void shouldNotProvideDefaultForNextHearingDateWhenNoneOfAttributesArePresent(boolean configurable) {
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("calculatedDates"))
+            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(calculatedDates), false, configurable);
+
+        assertThat(configurationDmnEvaluationResponses)
+            .filteredOn(r -> r.getName().getValue().equals("nextHearingDate"))
+            .isEmpty();
+    }
+
+    @ParameterizedTest
+    @CsvSource({"true","false"})
+    public void shouldNotDefaultWhenOriginRefAttributesPresentButAreEmpty(boolean configurable) {
+        ConfigurationDmnEvaluationResponse nextHearingDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDateOriginRef"))
+            .value(CamundaValue.stringValue("dueDate"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("calculatedDates"))
+            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(calculatedDates, nextHearingDateOriginRef), false, configurable);
+
+        assertThat(configurationDmnEvaluationResponses)
+            .filteredOn(r -> r.getName().getValue().equals("nextHearingDate"))
+            .isEmpty();
+    }
+
+    @Test
+    public void shouldDefaultOnlyDueDateWhenOnlyDueDateTimeAttributesIsPresentForReconfiguration() {
+        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateTime"))
+            .value(CamundaValue.stringValue("20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(dueDateTime), false, true);
+
+        String defaultDate = DEFAULT_DATE.format(DATE_FORMATTER) + "T20:00";
+
+        assertThat(configurationDmnEvaluationResponses).hasSize(1)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(defaultDate))
                     .build()
             ));
     }

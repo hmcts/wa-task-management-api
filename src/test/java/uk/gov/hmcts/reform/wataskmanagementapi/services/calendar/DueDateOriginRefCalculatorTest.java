@@ -225,7 +225,7 @@ class DueDateOriginRefCalculatorTest {
             .build();
 
         ConfigurationDmnEvaluationResponse calculatedDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDate"))
+            .name(CamundaValue.stringValue("calculatedDates"))
             .value(CamundaValue.stringValue("priorityDate,nextHearingDate,dueDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -280,7 +280,7 @@ class DueDateOriginRefCalculatorTest {
             .build();
 
         ConfigurationDmnEvaluationResponse calculatedDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDate"))
+            .name(CamundaValue.stringValue("calculatedDates"))
             .value(CamundaValue.stringValue("priorityDate,nexHearingDate,dueDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -409,7 +409,7 @@ class DueDateOriginRefCalculatorTest {
             .build();
 
         ConfigurationDmnEvaluationResponse calculatedDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDate"))
+            .name(CamundaValue.stringValue("calculatedDates"))
             .value(CamundaValue.stringValue("priorityDate,nextHearingDate,dueDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();

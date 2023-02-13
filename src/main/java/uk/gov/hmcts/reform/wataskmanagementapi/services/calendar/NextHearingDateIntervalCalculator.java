@@ -57,7 +57,7 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
                                 .reduce((a, b) -> b)
                                 .map(ConfigurationDmnEvaluationResponse::getValue)
                                 .map(CamundaValue::getValue)
-                                .orElse(DEFAULT_ZONED_DATE_TIME.format(DATE_TIME_FORMATTER)))
+                                .orElse(null))
             .dateTypeIntervalDays(nextHearingDateProperties.stream()
                                       .filter(r -> r.getName().getValue().equals(NEXT_HEARING_DATE_INTERVAL_DAYS))
                                       .filter(r -> !reconfigure || r.getCanReconfigure().getValue())

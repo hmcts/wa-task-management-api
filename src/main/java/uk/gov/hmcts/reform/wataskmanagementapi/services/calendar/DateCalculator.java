@@ -56,7 +56,7 @@ public interface DateCalculator {
     String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     String DEFAULT_DATE_TIME = "16:00";
     DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-    DateTimeFormatter DUE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
         .withHour(16).withMinute(0).withSecond(0);
     LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
@@ -96,7 +96,7 @@ public interface DateCalculator {
             if (dateContainsTime(inputDate)) {
                 return LocalDateTime.parse(inputDate, DATE_TIME_FORMATTER);
             } else {
-                return LocalDate.parse(inputDate, DUE_DATE_FORMATTER).atStartOfDay();
+                return LocalDate.parse(inputDate, DATE_FORMATTER).atStartOfDay();
             }
         }
     }
@@ -122,12 +122,10 @@ public interface DateCalculator {
             .map(s -> new DateTypeObject(DateType.from(s), s)).toList();
 
         return originDateTypes.stream()
-            .flatMap(r -> {
-                return configResponses.stream()
-                    .filter(c -> Optional.ofNullable(DateType.from(c.getName().getValue())).isPresent()
-                        && DateType.from(c.getName().getValue()).equals(r.dateType()))
-                    .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER));
-            })
+            .flatMap(r -> configResponses.stream()
+                .filter(c -> Optional.ofNullable(DateType.from(c.getName().getValue())).isPresent()
+                    && DateType.from(c.getName().getValue()).equals(r.dateType()))
+                .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER)))
             .findFirst();
     }
 
