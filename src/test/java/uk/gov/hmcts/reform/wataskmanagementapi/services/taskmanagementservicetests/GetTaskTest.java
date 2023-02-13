@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
@@ -51,6 +52,8 @@ class GetTaskTest extends CamundaHelpers {
     CamundaService camundaService;
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
+    CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
@@ -114,8 +117,8 @@ class GetTaskTest extends CamundaHelpers {
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
-            cftQueryService
-        );
+            cftQueryService,
+            cftSensitiveTaskEventLogsDatabaseService);
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
@@ -125,8 +128,8 @@ class GetTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             entityManager,
-            idamTokenGenerator
-        );
+            idamTokenGenerator,
+            cftSensitiveTaskEventLogsDatabaseService);
 
 
         taskId = UUID.randomUUID().toString();

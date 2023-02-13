@@ -162,6 +162,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
     CamundaServiceApi camundaServiceApi;
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
+    private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @Spy
     CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
     @Mock
@@ -218,8 +220,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
-            cftQueryService
-        );
+            cftQueryService,
+            cftSensitiveTaskEventLogsDatabaseService);
 
         taskManagementService = new TaskManagementService(
             camundaService,
@@ -230,8 +232,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             entityManager,
-            idamTokenGenerator
-        );
+            idamTokenGenerator,
+            cftSensitiveTaskEventLogsDatabaseService);
 
 
         taskId = UUID.randomUUID().toString();
