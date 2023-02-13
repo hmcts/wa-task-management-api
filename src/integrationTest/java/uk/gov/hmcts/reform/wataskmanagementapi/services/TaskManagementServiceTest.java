@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -83,6 +84,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private CamundaService camundaService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
+    private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @Autowired
     private CFTTaskMapper cftTaskMapper;
     @Autowired
@@ -128,8 +131,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
-            cftQueryService
-        );
+            cftQueryService,
+            cftSensitiveTaskEventLogsDatabaseService);
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
@@ -140,8 +143,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             roleAssignmentVerification,
             taskOperationServices,
             entityManager,
-            systemUserIdamToken
-        );
+            systemUserIdamToken,
+            cftSensitiveTaskEventLogsDatabaseService);
 
         mockServices.mockServiceAPIs();
     }

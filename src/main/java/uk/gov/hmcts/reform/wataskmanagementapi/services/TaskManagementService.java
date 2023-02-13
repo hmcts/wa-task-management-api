@@ -118,6 +118,7 @@ public class TaskManagementService {
     private final List<TaskOperationService> taskOperationServices;
     private final RoleAssignmentVerificationService roleAssignmentVerification;
     private final IdamTokenGenerator idamTokenGenerator;
+    private final CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -132,7 +133,8 @@ public class TaskManagementService {
                                  RoleAssignmentVerificationService roleAssignmentVerification,
                                  List<TaskOperationService> taskOperationServices,
                                  EntityManager entityManager,
-                                 IdamTokenGenerator idamTokenGenerator) {
+                                 IdamTokenGenerator idamTokenGenerator,
+                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -143,6 +145,7 @@ public class TaskManagementService {
         this.roleAssignmentVerification = roleAssignmentVerification;
         this.entityManager = entityManager;
         this.idamTokenGenerator = idamTokenGenerator;
+        this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDatabaseService;
     }
 
     /**
@@ -269,6 +272,9 @@ public class TaskManagementService {
             && taskResource.getAssignee() != null && !userId.equals(taskResource.getAssignee())
             && !checkUserHasUnassignPermission(accessControlResponse.getRoleAssignments(),
             taskResource.getTaskRoleResources())) {
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+                accessControlResponse.getRoleAssignments(),
+                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
@@ -506,6 +512,9 @@ public class TaskManagementService {
                 || !userId.equals(taskResource.getAssignee())
             )
         ) {
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+                accessControlResponse.getRoleAssignments(),
+                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
@@ -872,6 +881,9 @@ public class TaskManagementService {
             .findFirst();
 
         if (taskResourceQueryResult.isEmpty()) {
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+                accessControlResponse.getRoleAssignments(),
+                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
