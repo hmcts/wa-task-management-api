@@ -53,13 +53,6 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
         List<ConfigurationDmnEvaluationResponse> configResponses, boolean reconfigure) {
 
         return DateTypeIntervalData.builder()
-            .dateTypeOrigin(configResponses.stream()
-                                .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_ORIGIN))
-                                .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
-                                .reduce((a, b) -> b)
-                                .map(ConfigurationDmnEvaluationResponse::getValue)
-                                .map(CamundaValue::getValue)
-                                .orElse(DEFAULT_ZONED_DATE_TIME.format(DATE_TIME_FORMATTER)))
             .dateTypeIntervalDays(configResponses.stream()
                                       .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_INTERVAL_DAYS))
                                       .filter(r -> !reconfigure || r.getCanReconfigure().getValue())

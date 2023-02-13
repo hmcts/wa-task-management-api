@@ -55,13 +55,6 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
         List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties, boolean reconfigure) {
 
         return DateTypeIntervalData.builder()
-            .dateTypeOrigin(nextHearingDateProperties.stream()
-                                .filter(r -> r.getName().getValue().equals(NEXT_HEARING_DATE_ORIGIN))
-                                .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
-                                .reduce((a, b) -> b)
-                                .map(ConfigurationDmnEvaluationResponse::getValue)
-                                .map(CamundaValue::getValue)
-                                .orElse(DEFAULT_ZONED_DATE_TIME.format(DATE_TIME_FORMATTER)))
             .dateTypeIntervalDays(nextHearingDateProperties.stream()
                                       .filter(r -> r.getName().getValue().equals(NEXT_HEARING_DATE_INTERVAL_DAYS))
                                       .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
