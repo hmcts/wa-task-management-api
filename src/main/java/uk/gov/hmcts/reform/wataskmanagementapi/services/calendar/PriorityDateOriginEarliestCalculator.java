@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,9 +23,9 @@ public class PriorityDateOriginEarliestCalculator extends PriorityDateIntervalCa
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
-        return PRIORITY_DATE == dateType
+        return PRIORITY_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN, isReconfigureRequest))
             .isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest))
@@ -35,10 +36,12 @@ public class PriorityDateOriginEarliestCalculator extends PriorityDateIntervalCa
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType, boolean isReconfigureRequest) {
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateType,
+        boolean isReconfigureRequest) {
         var originEarliestResponse = getProperty(configResponses, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);
+        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, isReconfigureRequest);
         if (dueDateOriginEarliest.isPresent()) {
             dateTypeIntervalData = dateTypeIntervalData.toBuilder()
                 .calculatedEarliestDate(dueDateOriginEarliest.get()).build();

@@ -16,7 +16,9 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.NextHearingDateCalculatorTest.NEXT_HEARING_DATE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 public class DateTypeConfiguratorTest {
@@ -42,12 +44,16 @@ public class DateTypeConfiguratorTest {
 
     @BeforeEach
     public void setUp() {
-        when(dueDateCalculator.supports(anyList(), eq(DateType.DUE_DATE), eq(false))).thenReturn(true);
-        when(dueDateCalculator.supports(anyList(), eq(DateType.NEXT_HEARING_DATE), eq(false))).thenReturn(false);
-        when(dueDateCalculator.supports(anyList(), eq(DateType.PRIORITY_DATE), eq(false))).thenReturn(false);
-        when(priorityDateCalculator.supports(anyList(), eq(DateType.PRIORITY_DATE), eq(false))).thenReturn(true);
-        when(priorityDateCalculator.supports(anyList(), eq(DateType.NEXT_HEARING_DATE), eq(false))).thenReturn(false);
-        when(nextHearingDateCalculator.supports(anyList(), eq(DateType.NEXT_HEARING_DATE), eq(false))).thenReturn(true);
+        when(dueDateCalculator.supports(anyList(), eq(DUE_DATE_TYPE), eq(false))).thenReturn(true);
+        when(dueDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+            .thenReturn(false);
+        when(dueDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false))).thenReturn(false);
+        when(priorityDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false)))
+            .thenReturn(true);
+        when(priorityDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+            .thenReturn(false);
+        when(nextHearingDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+            .thenReturn(true);
 
         dateTypeConfigurator = new DateTypeConfigurator(List.of(dueDateCalculator, priorityDateCalculator,
                                                                 nextHearingDateCalculator
@@ -61,11 +67,9 @@ public class DateTypeConfiguratorTest {
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(DateType.NEXT_HEARING_DATE),
-                                                                eq(false)
-        );
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE), eq(false));
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(DateType.PRIORITY_DATE), eq(false));
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
+        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
     }
 
     @Test
@@ -82,11 +86,9 @@ public class DateTypeConfiguratorTest {
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE), eq(false));
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(DateType.PRIORITY_DATE), eq(false));
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(DateType.NEXT_HEARING_DATE),
-                                                                eq(false)
-        );
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
+        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
     }
 
     @Test
@@ -114,8 +116,8 @@ public class DateTypeConfiguratorTest {
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(DateType.PRIORITY_DATE), eq(false));
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE), eq(false));
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(DateType.NEXT_HEARING_DATE), eq(false));
+        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
     }
 }

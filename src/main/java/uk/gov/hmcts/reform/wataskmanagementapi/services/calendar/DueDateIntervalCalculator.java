@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,25 +27,52 @@ public class DueDateIntervalCalculator implements DateCalculator {
         this.workingDayIndicator = workingDayIndicator;
     }
 
+    private static LocalDateTime calculateIntervalTime(
+        String dateTypeTime, LocalDateTime baseReferenceDate, LocalDate referenceDate) {
+        LocalTime baseReferenceTime = baseReferenceDate.toLocalTime();
+        LocalDateTime dateTime = referenceDate.atTime(baseReferenceTime);
+
+        if (Optional.ofNullable(dateTypeTime).isPresent()) {
+            dateTime = referenceDate.atTime(LocalTime.parse(dateTypeTime));
+        } else if (dateTime.getHour() == 0) {
+            dateTime = referenceDate.atTime(LocalTime.parse(DEFAULT_DATE_TIME));
+        }
+        return dateTime;
+    }
+
+    private static LocalDateTime getReferenceDateForCalculation(DateTypeIntervalData dateTypeIntervalData) {
+        LocalDateTime calculatedRefDate = dateTypeIntervalData.getCalculatedRefDate();
+        LocalDateTime calculatedEarliestDate = dateTypeIntervalData.getCalculatedEarliestDate();
+        if (Optional.ofNullable(calculatedRefDate).isPresent()) {
+            return calculatedRefDate;
+        } else if (Optional.ofNullable(calculatedEarliestDate).isPresent()) {
+            return calculatedEarliestDate;
+        } else {
+            return LocalDateTime.parse(dateTypeIntervalData.getDateTypeOrigin(), DATE_TIME_FORMATTER);
+        }
+    }
+
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return DUE_DATE == dateType
+        return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isPresent()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType, boolean isReconfigureRequest) {
-        return calculateDate(dateType, readDateTypeOriginFields(configResponses, false));
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateType,
+        boolean isReconfigureRequest) {
+        return calculateDate(dateType, readDateTypeOriginFields(configResponses, isReconfigureRequest));
     }
 
     protected ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, DateTypeIntervalData dateTypeIntervalData) {
+        DateTypeObject dateTypeObject, DateTypeIntervalData dateTypeIntervalData) {
 
         LocalDateTime baseReferenceDate = getReferenceDateForCalculation(dateTypeIntervalData);
         LocalDate referenceDate = baseReferenceDate.toLocalDate();
@@ -84,38 +112,15 @@ public class DueDateIntervalCalculator implements DateCalculator {
         }
 
         LocalDateTime calculateIntervalTime = calculateIntervalTime(dateTypeIntervalData.getDateTypeTime(),
-                                                       baseReferenceDate, referenceDate);
+                                                                    baseReferenceDate, referenceDate
+        );
 
         return ConfigurationDmnEvaluationResponse
             .builder()
-            .name(CamundaValue.stringValue(dateType.getType()))
-            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(calculateIntervalTime)))
+            .name(CamundaValue.stringValue(dateTypeObject.dateTypeName()))
+            .value(CamundaValue
+                       .stringValue(dateTypeObject.dateType().getDateTimeFormatter().format(calculateIntervalTime)))
             .build();
-    }
-
-    private static LocalDateTime calculateIntervalTime(
-        String dateTypeTime, LocalDateTime baseReferenceDate, LocalDate referenceDate) {
-        LocalTime baseReferenceTime = baseReferenceDate.toLocalTime();
-        LocalDateTime dateTime = referenceDate.atTime(baseReferenceTime);
-
-        if (Optional.ofNullable(dateTypeTime).isPresent()) {
-            dateTime = referenceDate.atTime(LocalTime.parse(dateTypeTime));
-        } else if (dateTime.getHour() == 0) {
-            dateTime = referenceDate.atTime(LocalTime.parse(DEFAULT_DATE_TIME));
-        }
-        return dateTime;
-    }
-
-    private static LocalDateTime getReferenceDateForCalculation(DateTypeIntervalData dateTypeIntervalData) {
-        LocalDateTime calculatedRefDate = dateTypeIntervalData.getCalculatedRefDate();
-        LocalDateTime calculatedEarliestDate = dateTypeIntervalData.getCalculatedEarliestDate();
-        if (Optional.ofNullable(calculatedRefDate).isPresent()) {
-            return calculatedRefDate;
-        } else if (Optional.ofNullable(calculatedEarliestDate).isPresent()) {
-            return calculatedEarliestDate;
-        } else {
-            return LocalDateTime.parse(dateTypeIntervalData.getDateTypeOrigin(), DATE_TIME_FORMATTER);
-        }
     }
 
     protected DateTypeIntervalData readDateTypeOriginFields(

@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NO;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.NextHearingDateCalculatorTest.NEXT_HEARING_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class NextHearingDateIntervalCalculatorTest {
@@ -150,7 +150,7 @@ class NextHearingDateIntervalCalculatorTest {
                                                                    nextHearingDateOrigin,
                                                                    nextHearingDateTime
                                                                ),
-                                                               NEXT_HEARING_DATE,
+                                                               NEXT_HEARING_DATE_TYPE,
                                                                configurable
                                                            ).getValue().getValue());
 
@@ -209,7 +209,7 @@ class NextHearingDateIntervalCalculatorTest {
                         nextHearingDateNonWorkingDaysOfWeek, nextHearingDateSkipNonWorkingDays, nextHearingDateOrigin,
                         nextHearingDateTime
                 ),
-                NEXT_HEARING_DATE,
+                NEXT_HEARING_DATE_TYPE,
                 scenario.configurable
             ).getValue().getValue();
 
@@ -266,7 +266,7 @@ class NextHearingDateIntervalCalculatorTest {
                         nextHearingDateNonWorkingDaysOfWeek, nextHearingDateSkipNonWorkingDays, nextHearingDateOrigin,
                         nextHearingDateTime
                 ),
-                NEXT_HEARING_DATE,
+                NEXT_HEARING_DATE_TYPE,
                 scenario.configurable
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateValue);
@@ -326,7 +326,7 @@ class NextHearingDateIntervalCalculatorTest {
                         nextHearingDateNonWorkingDaysOfWeek, nextHearingDateSkipNonWorkingDays, nextHearingDateOrigin,
                         nextHearingDateTime
                 ),
-                NEXT_HEARING_DATE,
+                NEXT_HEARING_DATE_TYPE,
                 scenario.configurable
             ).getValue().getValue();
 
@@ -383,7 +383,7 @@ class NextHearingDateIntervalCalculatorTest {
                         nextHearingDateNonWorkingDaysOfWeek, nextHearingDateSkipNonWorkingDays, nextHearingDateOrigin,
                         nextHearingDateTime
                 ),
-                NEXT_HEARING_DATE,
+                NEXT_HEARING_DATE_TYPE,
                 scenario.configurable
             ).getValue().getValue();
 
@@ -439,7 +439,7 @@ class NextHearingDateIntervalCalculatorTest {
                                                                    nextHearingDateSkipNonWorkingDays,
                                                                    nextHearingDateOrigin
                                                                ),
-                                                               NEXT_HEARING_DATE,
+                                                               NEXT_HEARING_DATE_TYPE,
                                                                scenario.configurable
                                                            ).getValue().getValue());
 
@@ -464,7 +464,7 @@ class NextHearingDateIntervalCalculatorTest {
         LocalDateTime resultDate = LocalDateTime
             .parse(nextHearingDateIntervalCalculator.calculateDate(
                 List.of(nextHearingDateOrigin),
-                NEXT_HEARING_DATE,
+                NEXT_HEARING_DATE_TYPE,
                 configurable
             ).getValue().getValue());
 
@@ -495,7 +495,7 @@ class NextHearingDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateIntervalCalculator.calculateDate(
             List.of(nextHearingDateOrigin, nextHearingDateTime),
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             false
         ).getValue().getValue());
 
@@ -527,7 +527,7 @@ class NextHearingDateIntervalCalculatorTest {
 
         assertThat(nextHearingDateIntervalCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             configurable
         )).isFalse();
     }
@@ -552,7 +552,8 @@ class NextHearingDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDateOrigin, nextHearingDate);
 
-        assertThat(nextHearingDateIntervalCalculator.supports(evaluationResponses, NEXT_HEARING_DATE, configurable))
+        assertThat(nextHearingDateIntervalCalculator.supports(
+            evaluationResponses, NEXT_HEARING_DATE_TYPE, configurable))
             .isFalse();
     }
 
@@ -570,7 +571,7 @@ class NextHearingDateIntervalCalculatorTest {
 
         assertThat(nextHearingDateIntervalCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             configurable
         )).isFalse();
     }
@@ -601,7 +602,7 @@ class NextHearingDateIntervalCalculatorTest {
 
         assertThat(nextHearingDateIntervalCalculator.supports(
             evaluationResponses,
-            NEXT_HEARING_DATE,
+            NEXT_HEARING_DATE_TYPE,
             configurable
         )).isTrue();
     }
@@ -627,7 +628,8 @@ class NextHearingDateIntervalCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses
             = List.of(nextHearingDateOrigin, nextHearingDateTime);
 
-        assertThat(nextHearingDateIntervalCalculator.supports(evaluationResponses, NEXT_HEARING_DATE, configurable))
+        assertThat(nextHearingDateIntervalCalculator.supports(
+            evaluationResponses, NEXT_HEARING_DATE_TYPE, configurable))
             .isTrue();
     }
 

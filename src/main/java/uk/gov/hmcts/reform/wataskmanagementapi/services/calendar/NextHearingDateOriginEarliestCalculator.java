@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,14 +22,14 @@ public class NextHearingDateOriginEarliestCalculator extends NextHearingDateInte
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         ConfigurationDmnEvaluationResponse nextHearingDateOriginEarliest = getProperty(
             dueDateProperties,
             NEXT_HEARING_DATE_ORIGIN_EARLIEST,
             isReconfigureRequest
         );
-        return NEXT_HEARING_DATE == dateType
+        return NEXT_HEARING_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
             .isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigureRequest))
@@ -39,15 +39,16 @@ public class NextHearingDateOriginEarliestCalculator extends NextHearingDateInte
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType, boolean isReconfigureRequest) {
+        List<ConfigurationDmnEvaluationResponse> configResponses, DateTypeObject dateTypeObject,
+        boolean isReconfigureRequest) {
         var originEarliestResponse
             = getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
         Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);
+        var dateTypeIntervalData = readDateTypeOriginFields(configResponses, isReconfigureRequest);
         if (dueDateOriginEarliest.isPresent()) {
             dateTypeIntervalData = dateTypeIntervalData.toBuilder()
                 .calculatedEarliestDate(dueDateOriginEarliest.get()).build();
         }
-        return calculateDate(dateType, dateTypeIntervalData);
+        return calculateDate(dateTypeObject, dateTypeIntervalData);
     }
 }
