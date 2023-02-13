@@ -34,13 +34,17 @@ public class DueDateOriginEarliestCalculator extends DueDateIntervalCalculator {
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType, boolean isReconfigureRequest) {
-        var originEarliestResponse = getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
-        Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);
-        if (dueDateOriginEarliest.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder()
-                .calculatedEarliestDate(dueDateOriginEarliest.get()).build();
-        }
-        return calculateDate(dateType, dateTypeIntervalData);
+        Optional<LocalDateTime> dueDateOriginEarliest = getReferenceDate(configResponses, isReconfigureRequest);
+        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, isReconfigureRequest);
+        return calculateDate(dateType, dateTypeIntervalData, dueDateOriginEarliest.orElse(DEFAULT_ZONED_DATE_TIME));
+    }
+
+    @Override
+    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginEarliestDate(
+            configResponses,
+            getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest)
+        );
     }
 }

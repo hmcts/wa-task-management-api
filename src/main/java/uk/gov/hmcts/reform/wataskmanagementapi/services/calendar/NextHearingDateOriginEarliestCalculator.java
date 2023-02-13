@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
@@ -40,14 +39,21 @@ public class NextHearingDateOriginEarliestCalculator extends NextHearingDateInte
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType, boolean isReconfigureRequest) {
-        var originEarliestResponse
-            = getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
-        Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);
-        if (dueDateOriginEarliest.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder()
-                .calculatedEarliestDate(dueDateOriginEarliest.get()).build();
-        }
-        return calculateDate(dateType, dateTypeIntervalData);
+        Optional<LocalDateTime> nextHearingDateOriginEarliest = getReferenceDate(configResponses, isReconfigureRequest);
+        return nextHearingDateOriginEarliest.map(localDateTime -> calculateDate(
+                dateType,
+                readDateTypeOriginFields(configResponses, isReconfigureRequest),
+                localDateTime
+            ))
+            .orElse(null);
+    }
+
+    @Override
+    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginEarliestDate(
+            configResponses,
+            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest)
+        );
     }
 }

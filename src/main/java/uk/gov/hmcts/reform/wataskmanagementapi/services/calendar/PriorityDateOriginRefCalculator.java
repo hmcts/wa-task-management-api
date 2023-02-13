@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
@@ -26,23 +25,33 @@ public class PriorityDateOriginRefCalculator extends PriorityDateIntervalCalcula
         boolean isReconfigureRequest) {
         return PRIORITY_DATE == dateType
             && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN,
-                                               isReconfigureRequest)).isEmpty()
+                                               isReconfigureRequest
+        )).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(),
-                                               isReconfigureRequest)).isEmpty()
+                                               isReconfigureRequest
+        )).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_REF,
-                                               isReconfigureRequest)).isPresent();
+                                               isReconfigureRequest
+        )).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-            List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-            DateType dateType, boolean isReconfigureRequest) {
-        var originRefResponse = getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest);
-        Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(priorityDateProperties, originRefResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(priorityDateProperties, false);
-        if (dueDateOriginRef.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder().calculatedRefDate(dueDateOriginRef.get()).build();
-        }
-        return calculateDate(dateType, dateTypeIntervalData);
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateType dateType, boolean isReconfigureRequest) {
+        return calculateDate(
+            dateType,
+            readDateTypeOriginFields(configResponses, isReconfigureRequest),
+            getReferenceDate(configResponses, isReconfigureRequest).orElse(DEFAULT_ZONED_DATE_TIME)
+        );
+    }
+
+    @Override
+    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginRefDate(
+            configResponses,
+            getProperty(configResponses, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest)
+        );
     }
 }

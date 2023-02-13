@@ -33,14 +33,20 @@ public class DueDateOriginRefCalculator extends DueDateIntervalCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-            List<ConfigurationDmnEvaluationResponse> configResponses,
-            DateType dateType, boolean isReconfigureRequest) {
-        var originRefResponse = getProperty(configResponses, DUE_DATE_ORIGIN_REF, isReconfigureRequest);
-        Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(configResponses, originRefResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, false);
-        if (dueDateOriginRef.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder().calculatedRefDate(dueDateOriginRef.get()).build();
-        }
-        return calculateDate(dateType, dateTypeIntervalData);
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateType dateType,
+        boolean isReconfigureRequest) {
+        Optional<LocalDateTime> dueDateOriginRef = getReferenceDate(configResponses, isReconfigureRequest);
+        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, isReconfigureRequest);
+        return calculateDate(dateType, dateTypeIntervalData, dueDateOriginRef.orElse(DEFAULT_ZONED_DATE_TIME));
+    }
+
+    @Override
+    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginRefDate(
+            configResponses,
+            getProperty(configResponses, DUE_DATE_ORIGIN_REF, isReconfigureRequest)
+        );
     }
 }

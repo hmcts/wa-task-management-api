@@ -141,8 +141,6 @@ class PriorityDateOriginEarliestCalculatorTest {
         "true", "false"
     })
     void should_supports_when_responses_only_contains_priority_date_origin_ref(boolean configurable) {
-        String expectedPriorityDate = GIVEN_DATE.plusDays(0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
         var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate"))
@@ -182,7 +180,7 @@ class PriorityDateOriginEarliestCalculatorTest {
 
         var configurationDmnEvaluationResponse = priorityDateOriginEarliestCalculator
             .calculateDate(
-                readPriorityDateOriginFields(priorityDateOriginEarliest, nextHearingDate),
+                readPriorityDateOriginFields(configurable, priorityDateOriginEarliest, nextHearingDate),
                 PRIORITY_DATE,
                 configurable
             );
@@ -222,6 +220,7 @@ class PriorityDateOriginEarliestCalculatorTest {
 
         var configurationDmnEvaluationResponse = priorityDateOriginEarliestCalculator.calculateDate(
             readPriorityDateOriginFields(
+                configurable,
                 priorityDateOriginEarliest,
                 nextHearingDate,
                 priorityDate
@@ -269,6 +268,7 @@ class PriorityDateOriginEarliestCalculatorTest {
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginEarliestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
+                                                                   configurable,
                                                                    priorityDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -331,6 +331,7 @@ class PriorityDateOriginEarliestCalculatorTest {
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginEarliestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
+                                                                   configurable,
                                                                    priorityDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -395,6 +396,7 @@ class PriorityDateOriginEarliestCalculatorTest {
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginEarliestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
+                                                                   configurable,
                                                                    priorityDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -459,6 +461,7 @@ class PriorityDateOriginEarliestCalculatorTest {
 
         String dateValue = priorityDateOriginEarliestCalculator.calculateDate(
             readPriorityDateOriginFields(
+                configurable,
                 priorityDateOriginEarliest,
                 nextHearingDate,
                 priorityDate,
@@ -526,6 +529,7 @@ class PriorityDateOriginEarliestCalculatorTest {
 
         var configurationDmnEvaluationResponse = priorityDateOriginEarliestCalculator.calculateDate(
             readPriorityDateOriginFields(
+                configurable,
                 priorityDateOriginEarliest,
                 nextHearingDate,
                 priorityDate,
@@ -545,31 +549,38 @@ class PriorityDateOriginEarliestCalculatorTest {
     }
 
     private List<ConfigurationDmnEvaluationResponse> readPriorityDateOriginFields(
+        boolean configurable,
         ConfigurationDmnEvaluationResponse... fields) {
         List<ConfigurationDmnEvaluationResponse> allFields = new ArrayList<>(List.of(
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateIntervalDays"))
                 .value(CamundaValue.stringValue("0"))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
                 .value(CamundaValue.stringValue(CALENDAR_URI))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
                 .value(CamundaValue.stringValue(""))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
                 .value(CamundaValue.stringValue("true"))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
                 .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateTime"))
                 .value(CamundaValue.stringValue("18:00"))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build()
         ));
         allFields.addAll(List.of(fields));

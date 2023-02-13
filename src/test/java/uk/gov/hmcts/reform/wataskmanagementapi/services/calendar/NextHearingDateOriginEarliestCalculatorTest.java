@@ -178,7 +178,7 @@ class NextHearingDateOriginEarliestCalculatorTest {
 
         var configurationDmnEvaluationResponse = nextHearingDateOriginEarliestCalculator
             .calculateDate(
-                readNextHearingDateOriginFields(nextHearingDateOriginEarliest, nextHearingDate),
+                readNextHearingDateOriginFields(configurable, nextHearingDateOriginEarliest, nextHearingDate),
                 NEXT_HEARING_DATE,
                 configurable
             );
@@ -218,6 +218,7 @@ class NextHearingDateOriginEarliestCalculatorTest {
 
         var configurationDmnEvaluationResponse = nextHearingDateOriginEarliestCalculator.calculateDate(
             readNextHearingDateOriginFields(
+                configurable,
                 nextHearingDateOriginEarliest,
                 nextHearingDate,
                 priorityDate
@@ -265,6 +266,7 @@ class NextHearingDateOriginEarliestCalculatorTest {
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateOriginEarliestCalculator
                                                            .calculateDate(
                                                                readNextHearingDateOriginFields(
+                                                                   configurable,
                                                                    nextHearingDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -327,6 +329,7 @@ class NextHearingDateOriginEarliestCalculatorTest {
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateOriginEarliestCalculator
                                                            .calculateDate(
                                                                readNextHearingDateOriginFields(
+                                                                   configurable,
                                                                    nextHearingDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -391,6 +394,7 @@ class NextHearingDateOriginEarliestCalculatorTest {
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateOriginEarliestCalculator
                                                            .calculateDate(
                                                                readNextHearingDateOriginFields(
+                                                                   configurable,
                                                                    nextHearingDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    priorityDate,
@@ -455,6 +459,7 @@ class NextHearingDateOriginEarliestCalculatorTest {
 
         String dateValue = nextHearingDateOriginEarliestCalculator.calculateDate(
             readNextHearingDateOriginFields(
+                configurable,
                 nextHearingDateOriginEarliest,
                 nextHearingDate,
                 priorityDate,
@@ -522,6 +527,7 @@ class NextHearingDateOriginEarliestCalculatorTest {
 
         var configurationDmnEvaluationResponse = nextHearingDateOriginEarliestCalculator.calculateDate(
             readNextHearingDateOriginFields(
+                configurable,
                 nextHearingDateOriginEarliest,
                 nextHearingDate,
                 priorityDate,
@@ -541,31 +547,38 @@ class NextHearingDateOriginEarliestCalculatorTest {
     }
 
     private List<ConfigurationDmnEvaluationResponse> readNextHearingDateOriginFields(
+        boolean configurable,
         ConfigurationDmnEvaluationResponse... fields) {
         List<ConfigurationDmnEvaluationResponse> allFields = new ArrayList<>(List.of(
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDateIntervalDays"))
                 .value(CamundaValue.stringValue("0"))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDateNonWorkingCalendar"))
                 .value(CamundaValue.stringValue(CALENDAR_URI))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDateNonWorkingDaysOfWeek"))
                 .value(CamundaValue.stringValue(""))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDateSkipNonWorkingDays"))
                 .value(CamundaValue.stringValue("true"))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDateMustBeWorkingDay"))
                 .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDateTime"))
                 .value(CamundaValue.stringValue("18:00"))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build()
         ));
         allFields.addAll(List.of(fields));
