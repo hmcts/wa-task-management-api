@@ -38,15 +38,21 @@ public class PriorityDateOriginRefCalculator extends PriorityDateIntervalCalcula
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateTypeObject dateType,
-        boolean isReconfigureRequest) {
-        var originRefResponse = getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest);
-        Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(priorityDateProperties, originRefResponse);
-        var dateTypeIntervalData = readDateTypeOriginFields(priorityDateProperties, isReconfigureRequest);
-        if (dueDateOriginRef.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder().calculatedRefDate(dueDateOriginRef.get()).build();
-        }
-        return calculateDate(dateType, dateTypeIntervalData);
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateType, boolean isReconfigureRequest) {
+        return calculateDate(
+            dateType,
+            readDateTypeOriginFields(configResponses, isReconfigureRequest),
+            getReferenceDate(configResponses, isReconfigureRequest).orElse(DEFAULT_ZONED_DATE_TIME)
+        );
+    }
+
+    @Override
+    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginRefDate(
+            configResponses,
+            getProperty(configResponses, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest)
+        );
     }
 }

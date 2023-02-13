@@ -25,7 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateC
 class DueDateOriginEarliestCalculatorTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
     public static final String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
     @Mock
@@ -90,6 +90,7 @@ class DueDateOriginEarliestCalculatorTest {
         ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -552,7 +553,8 @@ class DueDateOriginEarliestCalculatorTest {
         assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
     }
 
-    private List<ConfigurationDmnEvaluationResponse> readDueDateOriginFields(boolean configurable,
+    private List<ConfigurationDmnEvaluationResponse> readDueDateOriginFields(
+        boolean configurable,
         ConfigurationDmnEvaluationResponse... fields) {
         List<ConfigurationDmnEvaluationResponse> allFields = new ArrayList<>(List.of(
             ConfigurationDmnEvaluationResponse.builder()

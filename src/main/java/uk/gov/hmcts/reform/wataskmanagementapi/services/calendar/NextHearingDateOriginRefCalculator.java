@@ -38,17 +38,24 @@ public class NextHearingDateOriginRefCalculator extends NextHearingDateIntervalC
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateType, boolean isReconfigureRequest) {
-        Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(
-            nextHearingDateProperties,
-            getProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest)
-        );
+        Optional<LocalDateTime> referenceDate = getReferenceDate(configResponses, isReconfigureRequest);
+        return referenceDate.map(localDateTime -> calculateDate(
+                dateType,
+                readDateTypeOriginFields(configResponses, isReconfigureRequest),
+                localDateTime
+            ))
+            .orElse(null);
 
-        var dateTypeIntervalData = readDateTypeOriginFields(nextHearingDateProperties, isReconfigureRequest);
-        if (dueDateOriginRef.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder().calculatedRefDate(dueDateOriginRef.get()).build();
-        }
-        return calculateDate(dateType, dateTypeIntervalData);
+    }
+
+    @Override
+    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginRefDate(
+            configResponses,
+            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest)
+        );
     }
 }

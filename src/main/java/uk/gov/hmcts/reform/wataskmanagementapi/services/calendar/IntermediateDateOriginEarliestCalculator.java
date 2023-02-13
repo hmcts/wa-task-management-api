@@ -48,14 +48,23 @@ public class IntermediateDateOriginEarliestCalculator extends IntermediateDateIn
         boolean isReconfigureRequest
     ) {
         String dateTypeName = dateTypeObject.dateTypeName();
-        var originEarliestResponse
-            = getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigureRequest);
-        Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        var dateTypeIntervalData = readDateTypeOriginFields(dateTypeName, configResponses, isReconfigureRequest);
-        if (dueDateOriginEarliest.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder()
-                .calculatedEarliestDate(dueDateOriginEarliest.get()).build();
-        }
-        return calculateDate(dateTypeObject, dateTypeIntervalData);
+        Optional<LocalDateTime> intermediateDateOriginEarliest
+            = getReferenceDate(dateTypeName, configResponses, isReconfigureRequest);
+        return intermediateDateOriginEarliest.map(localDateTime -> calculateDate(
+                dateTypeObject,
+                readDateTypeOriginFields(dateTypeName, configResponses, isReconfigureRequest),
+                localDateTime
+            ))
+            .orElse(null);
+    }
+
+    @Override
+    protected Optional<LocalDateTime> getReferenceDate(String dateTypeName,
+                                                       List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginEarliestDate(
+            configResponses,
+            getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigureRequest)
+        );
     }
 }

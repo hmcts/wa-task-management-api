@@ -144,8 +144,6 @@ class IntermediateDateOriginEarliestCalculatorTest {
         "true", "false"
     })
     void should_supports_when_responses_only_contains_due_date_origin_ref(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
         var nextHearingDurationOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDurationOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate"))

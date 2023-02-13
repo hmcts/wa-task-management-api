@@ -141,7 +141,6 @@ class PriorityDateOriginEarliestCalculatorTest {
         "true", "false"
     })
     void should_supports_when_responses_only_contains_priority_date_origin_ref(boolean configurable) {
-
         var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate"))
