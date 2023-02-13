@@ -39,65 +39,83 @@ public class DueDateIntervalCalculator implements DateCalculator {
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType, boolean isReconfigureRequest) {
+        List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType, boolean isReconfigureRequest) {
         return calculateDate(dateType, readDateTypeOriginFields(configResponses, false));
     }
 
     protected ConfigurationDmnEvaluationResponse calculateDate(
         DateType dateType, DateTypeIntervalData dateTypeIntervalData) {
-        LocalDateTime dueDate = getCalculatedRefElseOriginDate(dateTypeIntervalData);
 
-        LocalDate localDate = dueDate.toLocalDate();
+        LocalDateTime baseReferenceDate = getReferenceDateForCalculation(dateTypeIntervalData);
+        LocalDate referenceDate = baseReferenceDate.toLocalDate();
         if (dateTypeIntervalData.isDateTypeSkipNonWorkingDays()) {
 
             for (int counter = 0; counter < dateTypeIntervalData.getDateTypeIntervalDays(); counter++) {
-                localDate = workingDayIndicator.getNextWorkingDay(
-                    localDate,
+                referenceDate = workingDayIndicator.getNextWorkingDay(
+                    referenceDate,
                     dateTypeIntervalData.getDateTypeNonWorkingCalendar(),
                     dateTypeIntervalData.getDateTypeNonWorkingDaysOfWeek()
                 );
             }
         } else {
 
-            localDate = localDate.plusDays(dateTypeIntervalData.getDateTypeIntervalDays());
+            referenceDate = referenceDate.plusDays(dateTypeIntervalData.getDateTypeIntervalDays());
             boolean workingDay = workingDayIndicator.isWorkingDay(
-                localDate,
+                referenceDate,
                 dateTypeIntervalData.getDateTypeNonWorkingCalendar(),
                 dateTypeIntervalData.getDateTypeNonWorkingDaysOfWeek()
             );
             if (dateTypeIntervalData.getDateTypeMustBeWorkingDay()
                 .equalsIgnoreCase(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT) && !workingDay) {
-                localDate = workingDayIndicator.getNextWorkingDay(
-                    localDate,
+                referenceDate = workingDayIndicator.getNextWorkingDay(
+                    referenceDate,
                     dateTypeIntervalData.getDateTypeNonWorkingCalendar(),
                     dateTypeIntervalData.getDateTypeNonWorkingDaysOfWeek()
                 );
             }
             if (dateTypeIntervalData.getDateTypeMustBeWorkingDay()
                 .equalsIgnoreCase(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS) && !workingDay) {
-                localDate = workingDayIndicator.getPreviousWorkingDay(
-                    localDate,
+                referenceDate = workingDayIndicator.getPreviousWorkingDay(
+                    referenceDate,
                     dateTypeIntervalData.getDateTypeNonWorkingCalendar(),
                     dateTypeIntervalData.getDateTypeNonWorkingDaysOfWeek()
                 );
             }
         }
 
-        LocalDateTime dateTime = localDate.atTime(LocalTime.parse(dateTypeIntervalData.getDateTypeTime()));
+        LocalDateTime calculateIntervalTime = calculateIntervalTime(dateTypeIntervalData.getDateTypeTime(),
+                                                       baseReferenceDate, referenceDate);
 
         return ConfigurationDmnEvaluationResponse
             .builder()
             .name(CamundaValue.stringValue(dateType.getType()))
-            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateTime)))
+            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(calculateIntervalTime)))
             .build();
     }
 
-    private static LocalDateTime getCalculatedRefElseOriginDate(DateTypeIntervalData dateTypeIntervalData) {
+    private static LocalDateTime calculateIntervalTime(
+        String dateTypeTime, LocalDateTime baseReferenceDate, LocalDate referenceDate) {
+        LocalTime baseReferenceTime = baseReferenceDate.toLocalTime();
+        LocalDateTime dateTime = referenceDate.atTime(baseReferenceTime);
+
+        if (Optional.ofNullable(dateTypeTime).isPresent()) {
+            dateTime = referenceDate.atTime(LocalTime.parse(dateTypeTime));
+        } else if (dateTime.getHour() == 0) {
+            dateTime = referenceDate.atTime(LocalTime.parse(DEFAULT_DATE_TIME));
+        }
+        return dateTime;
+    }
+
+    private static LocalDateTime getReferenceDateForCalculation(DateTypeIntervalData dateTypeIntervalData) {
         LocalDateTime calculatedRefDate = dateTypeIntervalData.getCalculatedRefDate();
-        return Optional.ofNullable(calculatedRefDate).isPresent()
-            ? calculatedRefDate
-            : LocalDateTime.parse(dateTypeIntervalData.getDateTypeOrigin(), DATE_TIME_FORMATTER);
+        LocalDateTime calculatedEarliestDate = dateTypeIntervalData.getCalculatedEarliestDate();
+        if (Optional.ofNullable(calculatedRefDate).isPresent()) {
+            return calculatedRefDate;
+        } else if (Optional.ofNullable(calculatedEarliestDate).isPresent()) {
+            return calculatedEarliestDate;
+        } else {
+            return LocalDateTime.parse(dateTypeIntervalData.getDateTypeOrigin(), DATE_TIME_FORMATTER);
+        }
     }
 
     protected DateTypeIntervalData readDateTypeOriginFields(
@@ -161,7 +179,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
                               .reduce((a, b) -> b)
                               .map(ConfigurationDmnEvaluationResponse::getValue)
                               .map(CamundaValue::getValue)
-                              .orElse(DEFAULT_DATE_TIME))
+                              .orElse(null))
             .build();
     }
 }

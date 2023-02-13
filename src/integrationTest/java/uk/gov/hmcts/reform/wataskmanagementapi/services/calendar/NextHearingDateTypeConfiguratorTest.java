@@ -70,7 +70,7 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(thirdNextHearingDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(thirdNextHearingDate + "T10:00"))
                                    .build()));
     }
 
@@ -408,7 +408,7 @@ public class NextHearingDateTypeConfiguratorTest {
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
-                    .value(CamundaValue.stringValue(givenNextHearingDate + "T16:00"))
+                    .value(CamundaValue.stringValue(givenNextHearingDate + "T20:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
@@ -776,7 +776,7 @@ public class NextHearingDateTypeConfiguratorTest {
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
-                    .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
+                    .value(CamundaValue.stringValue(expectedNextHearingDate + "T20:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))

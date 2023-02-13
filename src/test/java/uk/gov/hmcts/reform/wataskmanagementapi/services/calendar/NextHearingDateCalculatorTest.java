@@ -32,12 +32,12 @@ class NextHearingDateCalculatorTest {
         "true", "false"
     })
     void should_not_supports_when_responses_contains_next_hearing_date__origin_and_time(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
+        String expectedNextHearingDate = GIVEN_DATE.plusDays(0)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         var nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
@@ -75,12 +75,12 @@ class NextHearingDateCalculatorTest {
         "true", "false"
     })
     void should_supports_when_responses_only_contains_next_hearing_date__but_not_origin(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
+        String expectedNextHearingDate = GIVEN_DATE.plusDays(0)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         var nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
@@ -102,11 +102,11 @@ class NextHearingDateCalculatorTest {
     })
     void should_calculate_next_hearing_date__when_next_hearing_date__is_given(boolean configurable, String time) {
 
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         var nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
@@ -117,7 +117,7 @@ class NextHearingDateCalculatorTest {
             NEXT_HEARING_DATE,
             configurable
         ).getValue().getValue();
-        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
+        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + time);
     }
 
     @ParameterizedTest
@@ -127,11 +127,11 @@ class NextHearingDateCalculatorTest {
     void should_consider_only_next_hearing_date__when_given_configurable_next_hearing_date__and_un_configurable_time(
         boolean configurable, String time) {
 
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         var nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
@@ -145,7 +145,7 @@ class NextHearingDateCalculatorTest {
 
         String dateValue = nextHearingDateCalculator.calculateDate(evaluationResponses, NEXT_HEARING_DATE, configurable)
             .getValue().getValue();
-        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
+        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + time);
     }
 
     @ParameterizedTest
@@ -155,11 +155,11 @@ class NextHearingDateCalculatorTest {
     void should_calculate_next_hearing_date__when_next_hearing_date__and_time_are_given(
         boolean configurable, String time) {
 
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         var nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
@@ -173,7 +173,7 @@ class NextHearingDateCalculatorTest {
 
         String dateValue = nextHearingDateCalculator.calculateDate(evaluationResponses, NEXT_HEARING_DATE, configurable)
             .getValue().getValue();
-        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
+        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + time);
     }
 
 
@@ -183,18 +183,18 @@ class NextHearingDateCalculatorTest {
     })
     void should_calculate_next_hearing_date__from_last_entry_when_multiple_time_is_given(
         boolean configurable, String time) {
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String expectedDueDate2 = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String expectedNextHearingDate2 = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         var nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
         var nextHearingDate2 = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(expectedDueDate2 + "T19:00"))
+            .value(CamundaValue.stringValue(expectedNextHearingDate2 + "T19:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
@@ -202,6 +202,6 @@ class NextHearingDateCalculatorTest {
 
         String dateValue = nextHearingDateCalculator.calculateDate(evaluationResponses, NEXT_HEARING_DATE, configurable)
             .getValue().getValue();
-        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + time);
+        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate2 + time);
     }
 }

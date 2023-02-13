@@ -17,6 +17,7 @@ import java.util.Optional;
 public interface DateCalculator {
     String DUE_DATE_ORIGIN = "dueDateOrigin";
     String DUE_DATE_ORIGIN_REF = "dueDateOriginRef";
+    String DUE_DATE_ORIGIN_EARLIEST = "dueDateOriginEarliest";
     String DUE_DATE_INTERVAL_DAYS = "dueDateIntervalDays";
     String DUE_DATE_NON_WORKING_CALENDAR = "dueDateNonWorkingCalendar";
     String DUE_DATE_NON_WORKING_DAYS_OF_WEEK = "dueDateNonWorkingDaysOfWeek";
@@ -25,6 +26,7 @@ public interface DateCalculator {
     String DUE_DATE_TIME = "dueDateTime";
     String PRIORITY_DATE_ORIGIN = "priorityDateOrigin";
     String PRIORITY_DATE_ORIGIN_REF = "priorityDateOriginRef";
+    String PRIORITY_DATE_ORIGIN_EARLIEST = "priorityDateOriginEarliest";
     String PRIORITY_DATE_INTERVAL_DAYS = "priorityDateIntervalDays";
     String PRIORITY_DATE_NON_WORKING_CALENDAR = "priorityDateNonWorkingCalendar";
     String PRIORITY_DATE_NON_WORKING_DAYS_OF_WEEK = "priorityDateNonWorkingDaysOfWeek";
@@ -34,6 +36,7 @@ public interface DateCalculator {
     String NEXT_HEARING_DATE_TIME = "nextHearingDateTime";
     String NEXT_HEARING_DATE_ORIGIN = "nextHearingDateOrigin";
     String NEXT_HEARING_DATE_ORIGIN_REF = "nextHearingDateOriginRef";
+    String NEXT_HEARING_DATE_ORIGIN_EARLIEST = "nextHearingDateOriginEarliest";
     String NEXT_HEARING_DATE_INTERVAL_DAYS = "nextHearingDateIntervalDays";
     String NEXT_HEARING_DATE_NON_WORKING_CALENDAR = "nextHearingDateNonWorkingCalendar";
     String NEXT_HEARING_DATE_NON_WORKING_DAYS_OF_WEEK = "nextHearingDateNonWorkingDaysOfWeek";
@@ -116,4 +119,16 @@ public interface DateCalculator {
             .findFirst();
     }
 
+    default Optional<LocalDateTime> getOriginEarliestDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        ConfigurationDmnEvaluationResponse originEarliestResponse) {
+        List<DateType> originDateTypes = Arrays.stream(originEarliestResponse.getValue().getValue().split(","))
+            .map(s -> DateType.from(s).orElseThrow()).toList();
+
+        return configResponses.stream()
+            .filter(r -> DateType.from(r.getName().getValue()).isPresent()
+                && originDateTypes.contains(DateType.from(r.getName().getValue()).get()))
+            .map(r -> LocalDateTime.parse(r.getValue().getValue(), DATE_TIME_FORMATTER))
+            .min(LocalDateTime::compareTo);
+    }
 }

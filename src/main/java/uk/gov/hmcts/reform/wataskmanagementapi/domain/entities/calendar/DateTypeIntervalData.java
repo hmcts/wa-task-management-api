@@ -21,4 +21,5 @@ public class DateTypeIntervalData {
     public static final String DATE_TYPE_MUST_BE_WORKING_DAY_NO = "No";
     private String dateTypeTime;
     private LocalDateTime calculatedRefDate;
+    private LocalDateTime calculatedEarliestDate;
 }

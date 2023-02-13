@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -46,8 +48,8 @@ class DueDateIntervalCalculatorTest {
 
     private static Stream<ConfigurableScenario> getConfigurablesWithoutDueDate() {
         return Stream.of(
-            new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T16:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T16:00")
+            new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00")
         );
     }
 
@@ -329,6 +331,64 @@ class DueDateIntervalCalculatorTest {
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
     }
 
+
+    @Test
+    void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessNext() {
+        String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOrigin"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+            .value(CamundaValue.stringValue("2"))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("false"))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateTime"))
+            .value(CamundaValue.stringValue("18:00"))
+            .build();
+
+        String dateValue = dueDateIntervalCalculator.calculateDate(
+            List.of(
+                dueDateIntervalDays,
+                dueDateNonWorkingCalendar,
+                dueDateMustBeWorkingDay,
+                dueDateNonWorkingDaysOfWeek,
+                dueDateSkipNonWorkingDays,
+                dueDateOrigin,
+                dueDateTime
+            ),
+            DUE_DATE,
+            false
+        ).getValue().getValue();
+        LocalDateTime resultDate = LocalDateTime.parse(dateValue);
+
+        String expectedDueDate = GIVEN_DATE.plusDays(4)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
+    }
+
     @ParameterizedTest
     @MethodSource({"getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse"})
     void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessFalse(ConfigurableScenario scenario) {
@@ -443,8 +503,8 @@ class DueDateIntervalCalculatorTest {
 
     @ParameterizedTest
     @CsvSource({
-        "true, T16:00",
-        "false, T16:00"
+        "true, T20:00",
+        "false, T20:00"
     })
     void shouldCalculateWhenOnlyDueDateOriginProvided(boolean configurable, String time) {
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
