@@ -184,6 +184,7 @@ class CFTTaskDatabaseServiceTest {
         final TaskResource actualTaskResource = cftTaskDatabaseService.saveTask(someTaskResource);
 
         assertNotNull(actualTaskResource);
+
         verify(someTaskResource, times(1)).getPriorityDate();
         verify(someTaskResource, times(1)).setPriorityDate(any());
         verify(someTaskResource, times(1)).getDueDateTime();
