@@ -41,14 +41,17 @@ public class DueDateIntervalCalculator implements DateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateType dateType, boolean isReconfigureRequest) {
-        return calculateDate(dateType, readDateTypeOriginFields(configResponses, false));
+        return calculateDate(
+            dateType,
+            readDateTypeOriginFields(configResponses, isReconfigureRequest),
+            getReferenceDate(configResponses, isReconfigureRequest).orElse(DEFAULT_ZONED_DATE_TIME)
+        );
     }
 
     protected ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, DateTypeIntervalData dateTypeIntervalData) {
-        LocalDateTime dueDate = getCalculatedRefElseOriginDate(dateTypeIntervalData);
+        DateType dateType, DateTypeIntervalData dateTypeIntervalData, LocalDateTime referenceDate) {
 
-        LocalDate localDate = dueDate.toLocalDate();
+        LocalDate localDate = referenceDate.toLocalDate();
         if (dateTypeIntervalData.isDateTypeSkipNonWorkingDays()) {
 
             for (int counter = 0; counter < dateTypeIntervalData.getDateTypeIntervalDays(); counter++) {
@@ -93,11 +96,15 @@ public class DueDateIntervalCalculator implements DateCalculator {
             .build();
     }
 
-    private static LocalDateTime getCalculatedRefElseOriginDate(DateTypeIntervalData dateTypeIntervalData) {
-        LocalDateTime calculatedRefDate = dateTypeIntervalData.getCalculatedRefDate();
-        return Optional.ofNullable(calculatedRefDate).isPresent()
-            ? calculatedRefDate
-            : LocalDateTime.parse(dateTypeIntervalData.getDateTypeOrigin(), DATE_TIME_FORMATTER);
+    protected Optional<LocalDateTime> getReferenceDate(
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean reconfigure) {
+        return dueDateProperties.stream()
+            .filter(r -> r.getName().getValue().equals(DUE_DATE_ORIGIN))
+            .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
+            .reduce((a, b) -> b)
+            .map(ConfigurationDmnEvaluationResponse::getValue)
+            .map(CamundaValue::getValue)
+            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
     }
 
     protected DateTypeIntervalData readDateTypeOriginFields(

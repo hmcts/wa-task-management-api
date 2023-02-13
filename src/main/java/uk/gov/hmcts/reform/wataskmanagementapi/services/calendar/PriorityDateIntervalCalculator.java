@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateType
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -29,42 +30,48 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
 
         return PRIORITY_DATE == dateType
             && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN,
-                                               isReconfigureRequest)).isPresent()
+                                               isReconfigureRequest
+        )).isPresent()
             && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE.getType(),
-                                               isReconfigureRequest)).isEmpty();
+                                               isReconfigureRequest
+        )).isEmpty();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-            List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-            DateType dateType, boolean isReconfigureRequest) {
-        return calculateDate(dateType, readDateTypeOriginFields(priorityDateProperties, false));
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateType dateType, boolean isReconfigureRequest) {
+        return calculateDate(
+            dateType,
+            readDateTypeOriginFields(configResponses, isReconfigureRequest),
+            getReferenceDate(configResponses, isReconfigureRequest).orElse(DEFAULT_ZONED_DATE_TIME)
+        );
     }
 
     @Override
     protected DateTypeIntervalData readDateTypeOriginFields(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties, boolean reconfigure) {
+        List<ConfigurationDmnEvaluationResponse> configResponses, boolean reconfigure) {
 
         return DateTypeIntervalData.builder()
-            .dateTypeOrigin(priorityDateProperties.stream()
+            .dateTypeOrigin(configResponses.stream()
                                 .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_ORIGIN))
-                                .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                 .reduce((a, b) -> b)
                                 .map(ConfigurationDmnEvaluationResponse::getValue)
                                 .map(CamundaValue::getValue)
                                 .orElse(DEFAULT_ZONED_DATE_TIME.format(DATE_TIME_FORMATTER)))
-            .dateTypeIntervalDays(priorityDateProperties.stream()
+            .dateTypeIntervalDays(configResponses.stream()
                                       .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_INTERVAL_DAYS))
-                                      .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                      .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                       .reduce((a, b) -> b)
                                       .map(ConfigurationDmnEvaluationResponse::getValue)
                                       .map(CamundaValue::getValue)
                                       .map(Long::valueOf)
                                       .orElse(0L))
-            .dateTypeNonWorkingCalendar(priorityDateProperties.stream()
+            .dateTypeNonWorkingCalendar(configResponses.stream()
                                             .filter(r -> r.getName().getValue()
                                                 .equals(PRIORITY_DATE_NON_WORKING_CALENDAR))
-                                            .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                            .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                             .reduce((a, b) -> b)
                                             .map(ConfigurationDmnEvaluationResponse::getValue)
                                             .map(CamundaValue::getValue)
@@ -72,10 +79,10 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
                                             .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
                                             .map(Arrays::asList)
                                             .orElse(List.of(DEFAULT_NON_WORKING_CALENDAR)))
-            .dateTypeNonWorkingDaysOfWeek(priorityDateProperties.stream()
+            .dateTypeNonWorkingDaysOfWeek(configResponses.stream()
                                               .filter(r -> r.getName().getValue()
                                                   .equals(PRIORITY_DATE_NON_WORKING_DAYS_OF_WEEK))
-                                              .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                              .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                               .reduce((a, b) -> b)
                                               .map(ConfigurationDmnEvaluationResponse::getValue)
                                               .map(CamundaValue::getValue)
@@ -83,30 +90,42 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
                                               .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
                                               .map(Arrays::asList)
                                               .orElse(List.of()))
-            .dateTypeSkipNonWorkingDays(priorityDateProperties.stream()
+            .dateTypeSkipNonWorkingDays(configResponses.stream()
                                             .filter(r -> r.getName().getValue()
                                                 .equals(PRIORITY_DATE_SKIP_NON_WORKING_DAYS))
-                                            .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                            .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                             .reduce((a, b) -> b)
                                             .map(ConfigurationDmnEvaluationResponse::getValue)
                                             .map(CamundaValue::getValue)
                                             .map(Boolean::parseBoolean)
                                             .orElse(false))
-            .dateTypeMustBeWorkingDay(priorityDateProperties.stream()
+            .dateTypeMustBeWorkingDay(configResponses.stream()
                                           .filter(r -> r.getName().getValue()
                                               .equals(PRIORITY_DATE_MUST_BE_WORKING_DAYS))
-                                          .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                          .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                           .reduce((a, b) -> b)
                                           .map(ConfigurationDmnEvaluationResponse::getValue)
                                           .map(CamundaValue::getValue)
                                           .orElse(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
-            .dateTypeTime(priorityDateProperties.stream()
+            .dateTypeTime(configResponses.stream()
                               .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_TIME))
-                              .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                              .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                               .reduce((a, b) -> b)
                               .map(ConfigurationDmnEvaluationResponse::getValue)
                               .map(CamundaValue::getValue)
                               .orElse(DEFAULT_DATE_TIME))
             .build();
+    }
+
+    @Override
+    protected Optional<LocalDateTime> getReferenceDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses, boolean reconfigure) {
+        return configResponses.stream()
+            .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_ORIGIN))
+            .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
+            .reduce((a, b) -> b)
+            .map(ConfigurationDmnEvaluationResponse::getValue)
+            .map(CamundaValue::getValue)
+            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
     }
 }

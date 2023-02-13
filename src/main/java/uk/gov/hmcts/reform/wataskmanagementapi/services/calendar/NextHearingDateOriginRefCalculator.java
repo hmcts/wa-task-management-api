@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
@@ -26,26 +25,35 @@ public class NextHearingDateOriginRefCalculator extends NextHearingDateIntervalC
         boolean isReconfigureRequest) {
         return NEXT_HEARING_DATE == dateType
             && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN,
-                                               isReconfigureRequest)).isEmpty()
+                                               isReconfigureRequest
+        )).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(),
-                                               isReconfigureRequest)).isEmpty()
+                                               isReconfigureRequest
+        )).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN_REF,
-                                               isReconfigureRequest)).isPresent();
+                                               isReconfigureRequest
+        )).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateType dateType, boolean isReconfigureRequest) {
-        Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(
-            nextHearingDateProperties,
-            getProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest)
-        );
+        Optional<LocalDateTime> referenceDate = getReferenceDate(configResponses, isReconfigureRequest);
+        return referenceDate.map(localDateTime -> calculateDate(
+            dateType,
+            readDateTypeOriginFields(configResponses, isReconfigureRequest),
+            localDateTime
+        )).orElse(null);
 
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(nextHearingDateProperties, false);
-        if (dueDateOriginRef.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder().calculatedRefDate(dueDateOriginRef.get()).build();
-        }
-        return calculateDate(dateType, dateTypeIntervalData);
+    }
+
+    @Override
+    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginRefDate(
+            configResponses,
+            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest)
+        );
     }
 }
