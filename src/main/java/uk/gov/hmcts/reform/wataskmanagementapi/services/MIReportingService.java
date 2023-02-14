@@ -20,7 +20,7 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 
-@Service
+//@Service
 public class MIReportingService {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MIReportingService.class);
     public static final String MAIN_SLOT_NAME = "main_slot_v1";

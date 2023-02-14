@@ -8,7 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@Controller
+//@Controller
 public class TaskHistoryController {
     private final MIReportingService taskHistoryService;
 
