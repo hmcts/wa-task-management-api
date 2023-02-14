@@ -16,57 +16,61 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.NextHearingDateCalculatorTest.NEXT_HEARING_DATE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 public class DateTypeConfiguratorTest {
+    ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
+        .name(CamundaValue.stringValue("dueDate"))
+        .value(CamundaValue.stringValue("2023-01-10T16:00"))
+        .build();
+    ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
+        .name(CamundaValue.stringValue("priorityDate"))
+        .value(CamundaValue.stringValue("2023-01-10T16:00"))
+        .build();
+    ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+        .name(CamundaValue.stringValue("nextHearingDate"))
+        .value(CamundaValue.stringValue("2023-01-10T16:00"))
+        .build();
+
     @Mock
     private DateCalculator dueDateCalculator;
     @Mock
     private DateCalculator priorityDateCalculator;
     @Mock
     private DateCalculator nextHearingDateCalculator;
-
-    ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-        .name(CamundaValue.stringValue("dueDate"))
-        .value(CamundaValue.stringValue("2023-01-10T16:00"))
-        .build();
-
-    ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
-        .name(CamundaValue.stringValue("priorityDate"))
-        .value(CamundaValue.stringValue("2023-01-10T16:00"))
-        .build();
-
-    ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
-        .name(CamundaValue.stringValue("nextHearingDate"))
-        .value(CamundaValue.stringValue("2023-01-10T16:00"))
-        .build();
-
     private DateTypeConfigurator dateTypeConfigurator;
 
     @BeforeEach
     public void setUp() {
-        when(dueDateCalculator.supports(anyList(), eq(DateType.DUE_DATE), eq(false))).thenReturn(true);
-        when(dueDateCalculator.supports(anyList(), eq(DateType.NEXT_HEARING_DATE), eq(false))).thenReturn(false);
-        when(dueDateCalculator.supports(anyList(), eq(DateType.PRIORITY_DATE), eq(false))).thenReturn(false);
-        when(priorityDateCalculator.supports(anyList(), eq(DateType.PRIORITY_DATE), eq(false))).thenReturn(true);
-        when(priorityDateCalculator.supports(anyList(), eq(DateType.NEXT_HEARING_DATE), eq(false))).thenReturn(false);
-        when(nextHearingDateCalculator.supports(anyList(), eq(DateType.NEXT_HEARING_DATE), eq(false))).thenReturn(true);
+        when(dueDateCalculator.supports(anyList(), eq(DUE_DATE_TYPE), eq(false))).thenReturn(true);
+        when(dueDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+            .thenReturn(false);
+        when(dueDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false))).thenReturn(false);
+        when(priorityDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false)))
+            .thenReturn(true);
+        when(priorityDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+            .thenReturn(false);
+        when(nextHearingDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+            .thenReturn(true);
 
         dateTypeConfigurator = new DateTypeConfigurator(List.of(dueDateCalculator, priorityDateCalculator,
-                                                                nextHearingDateCalculator));
+                                                                nextHearingDateCalculator
+        ));
     }
 
     @Test
     public void should_use_default_date_calculation_order_when_calculated_date_not_exist() {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, priorityDate, nextHearingDate);
-        dateTypeConfigurator.configureDate(evaluationResponses, false, false);
+        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(DateType.NEXT_HEARING_DATE));
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE));
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(DateType.PRIORITY_DATE));
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
+        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
     }
 
     @Test
@@ -77,14 +81,15 @@ public class DateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(calculatedDates,
-                                                                               dueDate, priorityDate, nextHearingDate);
-        dateTypeConfigurator.configureDate(evaluationResponses, false, false);
+                                                                               dueDate, priorityDate, nextHearingDate
+        );
+        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE));
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(DateType.PRIORITY_DATE));
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(DateType.NEXT_HEARING_DATE));
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
+        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
     }
 
     @Test
@@ -104,15 +109,16 @@ public class DateTypeConfiguratorTest {
             .value(CamundaValue.stringValue("priorityDate,dueDate,nextHearingDate"))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(calculatedDates,calculatedDates2,
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(calculatedDates, calculatedDates2,
                                                                                calculatedDates3, dueDate,
-                                                                               priorityDate, nextHearingDate);
-        dateTypeConfigurator.configureDate(evaluationResponses, false, false);
+                                                                               priorityDate, nextHearingDate
+        );
+        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(DateType.PRIORITY_DATE));
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE));
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(DateType.NEXT_HEARING_DATE));
+        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
     }
 }

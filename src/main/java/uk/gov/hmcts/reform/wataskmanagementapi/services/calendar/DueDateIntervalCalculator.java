@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,26 +30,30 @@ public class DueDateIntervalCalculator implements DateCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return DUE_DATE == dateType
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN)).isPresent()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isEmpty()
-            && !isReconfigureRequest;
+        return DUE_DATE == dateTypeObject.dateType()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isPresent()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty();
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-                                                            DateType dateType) {
-        return calculateDate(dateType, readDueDateOriginFields(dueDateProperties, false));
+    public ConfigurationDmnEvaluationResponse calculateDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateType,
+        boolean isReconfigureRequest) {
+        return calculateDate(
+            dateType,
+            readDateTypeOriginFields(configResponses, isReconfigureRequest),
+            getReferenceDate(configResponses, isReconfigureRequest).orElse(DEFAULT_ZONED_DATE_TIME)
+        );
     }
 
     protected ConfigurationDmnEvaluationResponse calculateDate(
-        DateType dateType, DateTypeIntervalData dateTypeIntervalData) {
-        LocalDateTime dueDate = LocalDateTime.parse(dateTypeIntervalData.getDateTypeOrigin(), DATE_TIME_FORMATTER);
+        DateTypeObject dateTypeObject, DateTypeIntervalData dateTypeIntervalData, LocalDateTime referenceDate) {
 
-        LocalDate localDate = dueDate.toLocalDate();
+        LocalDate localDate = referenceDate.toLocalDate();
         if (dateTypeIntervalData.isDateTypeSkipNonWorkingDays()) {
 
             for (int counter = 0; counter < dateTypeIntervalData.getDateTypeIntervalDays(); counter++) {
@@ -84,28 +89,45 @@ public class DueDateIntervalCalculator implements DateCalculator {
             }
         }
 
-        LocalDateTime dateTime = localDate.atTime(LocalTime.parse(dateTypeIntervalData.getDateTypeTime()));
+        LocalDateTime dateTime = calculateTime(dateTypeIntervalData.getDateTypeTime(), referenceDate, localDate);
 
         return ConfigurationDmnEvaluationResponse
             .builder()
-            .name(CamundaValue.stringValue(dateType.getType()))
-            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateTime)))
+            .name(CamundaValue.stringValue(dateTypeObject.dateTypeName()))
+            .value(CamundaValue.stringValue(dateTypeObject.dateType().getDateTimeFormatter().format(dateTime)))
             .build();
     }
 
-    protected DateTypeIntervalData readDueDateOriginFields(
+    protected Optional<LocalDateTime> getReferenceDate(
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean reconfigure) {
+        return dueDateProperties.stream()
+            .filter(r -> r.getName().getValue().equals(DUE_DATE_ORIGIN))
+            .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
+            .reduce((a, b) -> b)
+            .map(ConfigurationDmnEvaluationResponse::getValue)
+            .map(CamundaValue::getValue)
+            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
+    }
+
+    private LocalDateTime calculateTime(
+        String dateTypeTime, LocalDateTime referenceDate, LocalDate calculateDate) {
+        LocalTime baseReferenceTime = referenceDate.toLocalTime();
+        LocalDateTime dateTime = calculateDate.atTime(baseReferenceTime);
+
+        if (Optional.ofNullable(dateTypeTime).isPresent()) {
+            dateTime = calculateDate.atTime(LocalTime.parse(dateTypeTime));
+        } else if (dateTime.getHour() == 0) {
+            dateTime = calculateDate.atTime(LocalTime.parse(DEFAULT_DATE_TIME));
+        }
+        return dateTime;
+    }
+
+    protected DateTypeIntervalData readDateTypeOriginFields(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean reconfigure) {
         return DateTypeIntervalData.builder()
-            .dateTypeOrigin(dueDateProperties.stream()
-                                .filter(r -> r.getName().getValue().equals(DUE_DATE_ORIGIN))
-                                .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
-                                .reduce((a, b) -> b)
-                                .map(ConfigurationDmnEvaluationResponse::getValue)
-                                .map(CamundaValue::getValue)
-                                .orElse(DEFAULT_ZONED_DATE_TIME.format(DATE_TIME_FORMATTER)))
             .dateTypeIntervalDays(dueDateProperties.stream()
                                       .filter(r -> r.getName().getValue().equals(DUE_DATE_INTERVAL_DAYS))
-                                      .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                      .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                       .reduce((a, b) -> b)
                                       .map(ConfigurationDmnEvaluationResponse::getValue)
                                       .map(CamundaValue::getValue)
@@ -113,7 +135,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
                                       .orElse(0L))
             .dateTypeNonWorkingCalendar(dueDateProperties.stream()
                                             .filter(r -> r.getName().getValue().equals(DUE_DATE_NON_WORKING_CALENDAR))
-                                            .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                            .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                             .reduce((a, b) -> b)
                                             .map(ConfigurationDmnEvaluationResponse::getValue)
                                             .map(CamundaValue::getValue)
@@ -124,7 +146,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
             .dateTypeNonWorkingDaysOfWeek(dueDateProperties.stream()
                                               .filter(r -> r.getName().getValue().equals(
                                                   DUE_DATE_NON_WORKING_DAYS_OF_WEEK))
-                                              .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                              .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                               .reduce((a, b) -> b)
                                               .map(ConfigurationDmnEvaluationResponse::getValue)
                                               .map(CamundaValue::getValue)
@@ -135,7 +157,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
             .dateTypeSkipNonWorkingDays(dueDateProperties.stream()
                                             .filter(r -> r.getName().getValue()
                                                 .equals(DUE_DATE_SKIP_NON_WORKING_DAYS))
-                                            .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                            .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                             .reduce((a, b) -> b)
                                             .map(ConfigurationDmnEvaluationResponse::getValue)
                                             .map(CamundaValue::getValue)
@@ -143,18 +165,18 @@ public class DueDateIntervalCalculator implements DateCalculator {
                                             .orElse(false))
             .dateTypeMustBeWorkingDay(dueDateProperties.stream()
                                           .filter(r -> r.getName().getValue().equals(DUE_DATE_MUST_BE_WORKING_DAYS))
-                                          .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                                          .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                                           .reduce((a, b) -> b)
                                           .map(ConfigurationDmnEvaluationResponse::getValue)
                                           .map(CamundaValue::getValue)
                                           .orElse(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .dateTypeTime(dueDateProperties.stream()
                               .filter(r -> r.getName().getValue().equals(DUE_DATE_TIME))
-                              .filter(r -> !reconfigure  || r.getCanReconfigure().getValue())
+                              .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
                               .reduce((a, b) -> b)
                               .map(ConfigurationDmnEvaluationResponse::getValue)
                               .map(CamundaValue::getValue)
-                              .orElse(DEFAULT_DATE_TIME))
+                              .orElse(null))
             .build();
     }
 }

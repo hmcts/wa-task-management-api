@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,20 +17,34 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return PRIORITY_DATE == dateType
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_TIME)).isPresent()
-            && !isReconfigureRequest;
+        ConfigurationDmnEvaluationResponse priorityDateTime = getProperty(
+            priorityDateProperties,
+            PRIORITY_DATE_TIME,
+            isReconfigureRequest
+        );
+        ConfigurationDmnEvaluationResponse prioritDateOrigin = getProperty(
+            priorityDateProperties,
+            PRIORITY_DATE_ORIGIN,
+            isReconfigureRequest
+        );
+        ConfigurationDmnEvaluationResponse priorityDate = getProperty(
+            priorityDateProperties,
+            PRIORITY_DATE.getType(),
+            isReconfigureRequest
+        );
+        return PRIORITY_DATE == dateTypeObject.dateType()
+            && Optional.ofNullable(priorityDate).isEmpty()
+            && Optional.ofNullable(prioritDateOrigin).isEmpty()
+            && Optional.ofNullable(priorityDateTime).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType) {
-        return calculatedDate(dateType, getProperty(priorityDateProperties, PRIORITY_DATE_TIME));
+        DateTypeObject dateType, boolean isReconfigureRequest) {
+        return calculatedDate(dateType, getProperty(priorityDateProperties, PRIORITY_DATE_TIME, isReconfigureRequest));
     }
 }
