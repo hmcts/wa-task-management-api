@@ -20,6 +20,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import java.util.Arrays;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 @Configuration
@@ -45,7 +46,9 @@ public class SnakeCaseFeignConfiguration {
     public Decoder feignDecoder() {
         MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(objectMapper);
         jacksonConverter.setSupportedMediaTypes(Arrays.asList(MediaType.valueOf(TEXT_PLAIN_VALUE + ";charset=utf-8"),
-                                                              APPLICATION_JSON));
+                                                              APPLICATION_JSON,
+                                                              new MediaType("application", "*+json"),
+                                                              TEXT_PLAIN));
         ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
         return new ResponseEntityDecoder(new SpringDecoder(objectFactory));
     }
