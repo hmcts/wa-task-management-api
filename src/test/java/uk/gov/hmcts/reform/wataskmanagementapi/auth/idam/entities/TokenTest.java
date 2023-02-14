@@ -7,7 +7,6 @@ import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 class TokenTest {
 
-
     @Test
     void isWellImplemented() {
         final Class<?> classUnderTest = Token.class;

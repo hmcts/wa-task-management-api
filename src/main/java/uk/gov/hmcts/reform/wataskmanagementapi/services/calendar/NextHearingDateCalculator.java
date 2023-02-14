@@ -7,20 +7,22 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Configura
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 
 @Slf4j
 @Component
-public class DueDateReCalculator extends DueDateCalculator {
+//TODO Dummy implementation based on DueDate
+public class NextHearingDateCalculator extends DueDateCalculator {
 
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         DateType dateType,
         boolean isReconfigureRequest) {
-        return DUE_DATE == dateType
-            && Optional.ofNullable(getReConfigurableProperty(dueDateProperties, DUE_DATE.getType())).isPresent()
-            && isReconfigureRequest;
+
+        return NEXT_HEARING_DATE == dateType
+            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType())).isPresent()
+            && !isReconfigureRequest;
     }
 
     @Override
@@ -29,8 +31,8 @@ public class DueDateReCalculator extends DueDateCalculator {
         DateType dateType) {
         return calculatedDate(
             dateType,
-            getReConfigurableProperty(dueDateProperties, DUE_DATE.getType()),
-            getReConfigurableProperty(dueDateProperties, DUE_DATE_TIME)
+            getProperty(dueDateProperties, NEXT_HEARING_DATE.getType()),
+            getProperty(dueDateProperties, NEXT_HEARING_DATE_TIME)
         );
     }
 }
