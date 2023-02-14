@@ -103,10 +103,4 @@ public interface DateCalculator {
             .with(ChronoField.SECOND_OF_MINUTE, 0)
             .with(ChronoField.NANO_OF_SECOND, 0);
     }
-
-    default String getConfigurationValue(ConfigurationDmnEvaluationResponse response, boolean isReconfigureRequest) {
-        return isReconfigureRequest && response.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE
-            ? null
-            : response.getValue().getValue();
-    }
 }
