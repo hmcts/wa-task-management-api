@@ -60,7 +60,7 @@ union
 -- Available permission handles authorisations
 select task_id as task_id,
        role_name as role_name,
-       unnest(case when cardinality(authorizations) = 0 then array['*'] else authorizations end) as authorization,
+       unnest(case when authorizations is null or cardinality(authorizations) = 0 then array['*'] else authorizations end) as authorization,
        'a' as permission
 from cft_task_db.task_roles
 where own and claim;

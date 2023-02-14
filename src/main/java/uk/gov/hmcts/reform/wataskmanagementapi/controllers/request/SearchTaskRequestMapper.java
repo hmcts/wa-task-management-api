@@ -47,10 +47,13 @@ public final class SearchTaskRequestMapper {
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(clientRequest);
 
         boolean availableTasksOnly = isAvailableTasksOnly(clientRequest);
+        RequestContext requestContext = clientRequest.getRequestContext();
 
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (availableTasksOnly) {
             cftTaskStates.add(CFTTaskState.UNASSIGNED);
+            //TODO: Remove this once the available_tasks_only parameter is depreciated
+            requestContext = RequestContext.AVAILABLE_TASKS;
         } else {
             SearchParameterList stateParam = keyMap.get(STATE);
             cftTaskStates = getCftTaskStates(stateParam);
@@ -71,8 +74,7 @@ public final class SearchTaskRequestMapper {
         validateRequest(clientRequest, workTypes, isGranularPermissionEnabled);
 
         return SearchRequest.builder()
-            .requestContext(clientRequest.getRequestContext())
-            .availableTasksOnly(availableTasksOnly)
+            .requestContext(requestContext)
             .cftTaskStates(cftTaskStates)
             .jurisdictions(getValueOrEmpty(jurisdictionParam))
             .locations(getValueOrEmpty(locationParam))

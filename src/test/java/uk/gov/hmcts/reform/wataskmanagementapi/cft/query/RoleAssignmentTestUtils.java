@@ -18,7 +18,7 @@ public class RoleAssignmentTestUtils {
         // cannot instantiate
     }
 
-    protected static List<RoleAssignment> roleAssignmentWithSpecificGrantType(Classification classification) {
+    public static List<RoleAssignment> roleAssignmentWithSpecificGrantType(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
@@ -48,7 +48,7 @@ public class RoleAssignmentTestUtils {
         return roleAssignments;
     }
 
-    protected static List<RoleAssignment> roleAssignmentWithStandardGrantType(Classification classification) {
+    public static List<RoleAssignment> roleAssignmentWithStandardGrantType(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         Map<String, String> specificAttributes = Map.of(
@@ -86,7 +86,193 @@ public class RoleAssignmentTestUtils {
         return roleAssignments;
     }
 
-    protected static List<RoleAssignment> roleAssignmentWithChallengedGrantType(Classification classification) {
+    public static List<RoleAssignment> roleAssignmentWithStandardGrantTypeForSearchTask(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        Map<String, String> specificAttributes = Map.of(
+            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.REGION.value(), "1",
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324",
+            RoleAttributeDefinition.PRIMARY_LOCATION.value(), "765324"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .roleType(RoleType.ORGANISATION)
+            .classification(classification)
+            .attributes(specificAttributes)
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        roleAssignment = RoleAssignment.builder().roleName("case-manager")
+            .roleType(RoleType.ORGANISATION)
+            .classification(classification)
+            .attributes(specificAttributes)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+
+        roleAssignments.add(roleAssignment);
+
+        roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .roleType(RoleType.ORGANISATION)
+            .classification(classification)
+            .attributes(specificAttributes)
+            .grantType(GrantType.UNKNOWN)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+
+        roleAssignments.add(roleAssignment);
+
+        specificAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+
+        roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
+            .classification(classification)
+            .attributes(specificAttributes)
+            .grantType(GrantType.EXCLUDED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
+    public static List<RoleAssignment> roleAssignmentWithoutAttributes(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .roleType(RoleType.ORGANISATION)
+            .classification(classification)
+            .attributes(Map.of())
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
+    public static List<RoleAssignment> roleAssignmentWithDifferentAttributes(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .roleType(RoleType.CASE)
+            .classification(classification)
+            .attributes(Map.of(
+                RoleAttributeDefinition.JURISDICTION.value(), "IA",
+                RoleAttributeDefinition.REGION.value(), "1",
+                RoleAttributeDefinition.BASE_LOCATION.value(), "765324",
+                RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+            ))
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
+            .classification(classification)
+            .attributes(Map.of(
+                RoleAttributeDefinition.JURISDICTION.value(), "WA"
+            ))
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
+            .classification(classification)
+            .attributes(Map.of(
+                RoleAttributeDefinition.REGION.value(), "2"
+            ))
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
+            .classification(classification)
+            .attributes(Map.of(
+                RoleAttributeDefinition.BASE_LOCATION.value(), "765325"
+            ))
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
+            .classification(classification)
+            .attributes(Map.of(
+                RoleAttributeDefinition.CASE_ID.value(), "1623278362431005"
+            ))
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
+    public static List<RoleAssignment> roleAssignmentsWithCaseAndOrganisationRoleType(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        Map<String, String> specificAttributes = Map.of(
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.REGION.value(), "1",
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .roleType(RoleType.ORGANISATION)
+            .classification(classification)
+            .attributes(specificAttributes)
+            .grantType(GrantType.STANDARD)
+            .authorisations(List.of("Skill1"))
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        specificAttributes = Map.of(
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.REGION.value(), "1",
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324",
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+
+        roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
+            .classification(classification)
+            .attributes(specificAttributes)
+            .grantType(GrantType.SPECIFIC)
+            .authorisations(List.of("Skill2"))
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
+    public static List<RoleAssignment> roleAssignmentWithChallengedGrantType(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         Map<String, String> specificAttributes = Map.of(
@@ -123,7 +309,7 @@ public class RoleAssignmentTestUtils {
         return roleAssignments;
     }
 
-    protected static List<RoleAssignment> inActiveRoles() {
+    public static List<RoleAssignment> inActiveRoles() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary1")
@@ -172,7 +358,7 @@ public class RoleAssignmentTestUtils {
         return roleAssignments;
     }
 
-    protected static List<RoleAssignment> roleAssignmentWithChallengedGrantTypeAndNoAuthorizations() {
+    public static List<RoleAssignment> roleAssignmentWithChallengedGrantTypeAndNoAuthorizations() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         Map<String, String> specificAttributes = Map.of(
@@ -208,7 +394,7 @@ public class RoleAssignmentTestUtils {
         return roleAssignments;
     }
 
-    protected static List<RoleAssignment> roleAssignmentWithAllGrantTypes() {
+    public static List<RoleAssignment> roleAssignmentWithAllGrantTypes() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> specificAttributes = Map.of(
             RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
@@ -272,7 +458,7 @@ public class RoleAssignmentTestUtils {
         return roleAssignments;
     }
 
-    protected static List<RoleAssignment> roleAssignmentWithoutGrantType() {
+    public static List<RoleAssignment> roleAssignmentWithoutGrantType() {
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.PUBLIC)
@@ -284,7 +470,7 @@ public class RoleAssignmentTestUtils {
         return Collections.singletonList(roleAssignment);
     }
 
-    protected static List<RoleAssignment> roleAssignmentWithSpecificGrantTypeOnly(Classification classification) {
+    public static List<RoleAssignment> roleAssignmentWithSpecificGrantTypeOnly(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")

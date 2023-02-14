@@ -214,9 +214,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         });
 
         String[] filterSignature = {"*:IA:*:*:1:765324"};
-        //String[] roleSignature = {"IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*"};
+        String[] roleSignature = {"IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*"};
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(filterSignature);
+        List<String> taskIds = taskResourceRepository.searchTasksIds(filterSignature, roleSignature);
         assertEquals(taskId, taskIds.get(0));
     }
 
@@ -234,9 +234,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         });
 
         String[] filterSignature = {"*:IA:*:*:1:765324"};
-        //String[] roleSignature = {"IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*"};
+        String[] roleSignature = {"IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*"};
 
-        Long taskCount = taskResourceRepository.searchTasksCount(filterSignature);
+        Long taskCount = taskResourceRepository.searchTasksCount(filterSignature, roleSignature);
         assertEquals(2, taskCount);
     }
 

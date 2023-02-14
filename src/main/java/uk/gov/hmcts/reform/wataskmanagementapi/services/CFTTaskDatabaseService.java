@@ -99,11 +99,12 @@ public class CFTTaskDatabaseService {
 
         List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
         Set<String> filters = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
+        Set<String> roles = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
 
         String[] filterSignature = filters.toArray(new String[0]);
-        String[] roleSignature = {};
+        String[] roleSignature = roles.toArray(new String[0]);
 
-        List<String> taskIds = tasksRepository.searchTasksIds(filterSignature);
+        List<String> taskIds = tasksRepository.searchTasksIds(filterSignature, roleSignature);
 
         if (isEmpty(taskIds)) {
             return new GetTasksResponse<>(List.of(), 0);
@@ -114,7 +115,7 @@ public class CFTTaskDatabaseService {
         final List<TaskResource> taskResources
             = tasksRepository.findAllByTaskIdIn(taskIds, sort);
 
-        Long count = tasksRepository.searchTasksCount(filterSignature);
+        Long count = tasksRepository.searchTasksCount(filterSignature, roleSignature);
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
