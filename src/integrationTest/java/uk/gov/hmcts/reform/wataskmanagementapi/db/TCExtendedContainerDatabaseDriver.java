@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.db;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.LoggerFactory;
-//import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Component;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.JdbcDatabaseContainerProvider;
 import org.testcontainers.containers.Network;
@@ -36,7 +36,7 @@ import javax.script.ScriptException;
  * We need wal_level = logical and will be added as an override.conf file to
  * the folder in the bitnami container ./opt/bitnami/postgresql/conf/conf.d/override.conf
  */
-//@Component
+@Component
 public class TCExtendedContainerDatabaseDriver implements Driver {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(TCExtendedContainerDatabaseDriver.class);
