@@ -28,7 +28,7 @@ public class DateTypeConfigurator {
         this.dateCalculators = dateCalculators;
     }
 
-    public List<ConfigurationDmnEvaluationResponse> configureDate(
+    public List<ConfigurationDmnEvaluationResponse> configureDates(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean initiationDueDateFound,
         boolean isReconfigureRequest) {
@@ -81,7 +81,7 @@ public class DateTypeConfigurator {
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
         Optional<DateCalculator> dateCalculator = getDateCalculator(dateProperties, dateType, isReconfigureRequest);
         if (dateCalculator.isPresent()) {
-            return dateCalculator.get().calculateDate(dateProperties, dateType);
+            return dateCalculator.get().calculateDate(configResponses.get(), dateType, isReconfigureRequest);
         } else {
             return isReconfigureRequest ? null : getDefaultValue(dateType, configResponses);
         }
