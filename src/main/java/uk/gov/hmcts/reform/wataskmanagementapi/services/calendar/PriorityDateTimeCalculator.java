@@ -19,17 +19,31 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
         DateType dateType,
         boolean isReconfigureRequest) {
 
+        ConfigurationDmnEvaluationResponse priorityDateTime = getProperty(
+            priorityDateProperties,
+            PRIORITY_DATE_TIME,
+            isReconfigureRequest
+        );
+        ConfigurationDmnEvaluationResponse prioritDateOrigin = getProperty(
+            priorityDateProperties,
+            PRIORITY_DATE_ORIGIN,
+            isReconfigureRequest
+        );
+        ConfigurationDmnEvaluationResponse priorityDate = getProperty(
+            priorityDateProperties,
+            PRIORITY_DATE.getType(),
+            isReconfigureRequest
+        );
         return PRIORITY_DATE == dateType
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE.getType())).isEmpty()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN)).isEmpty()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_TIME)).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(priorityDate).isEmpty()
+            && Optional.ofNullable(prioritDateOrigin).isEmpty()
+            && Optional.ofNullable(priorityDateTime).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType) {
-        return calculatedDate(dateType, getProperty(priorityDateProperties, PRIORITY_DATE_TIME));
+            List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
+            DateType dateType, boolean isReconfigureRequest) {
+        return calculatedDate(dateType, getProperty(priorityDateProperties, PRIORITY_DATE_TIME, isReconfigureRequest));
     }
 }

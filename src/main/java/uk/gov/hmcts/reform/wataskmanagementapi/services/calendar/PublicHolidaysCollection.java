@@ -7,8 +7,10 @@ import feign.codec.Decoder;
 import feign.codec.Encoder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.SnakeCaseFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceInvalidException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceNotFoundException;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@Import(SnakeCaseFeignConfiguration.class)
 public class PublicHolidaysCollection {
 
     public final Decoder feignDecoder;
