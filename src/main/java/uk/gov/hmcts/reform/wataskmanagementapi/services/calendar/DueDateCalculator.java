@@ -22,16 +22,16 @@ public class DueDateCalculator implements DateCalculator {
         boolean isReconfigureRequest) {
 
         return DUE_DATE == dateType
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType())).isPresent()
-            && !isReconfigureRequest;
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest))
+            .isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType) {
-        var dueDateResponse = getProperty(dueDateProperties, DUE_DATE.getType());
-        var dueDateTimeResponse = getProperty(dueDateProperties, DUE_DATE_TIME);
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateType dateType, boolean isReconfigureRequest) {
+        var dueDateResponse = getProperty(configResponses, DUE_DATE.getType(), isReconfigureRequest);
+        var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest);
         return calculatedDate(dateType, dueDateResponse, dueDateTimeResponse);
     }
 
@@ -59,7 +59,7 @@ public class DueDateCalculator implements DateCalculator {
     private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse) {
         String dueDate = dueDateResponse.getValue().getValue();
         LocalDateTime parsedDueDate = parseDateTime(dueDate);
-        if (parsedDueDate.getHour() == 0) {
+        if (parsedDueDate.getHour() == 0 && parsedDueDate.getMinute() == 0) {
             return parsedDueDate.withHour(16).withMinute(0);
         } else {
             return parsedDueDate;

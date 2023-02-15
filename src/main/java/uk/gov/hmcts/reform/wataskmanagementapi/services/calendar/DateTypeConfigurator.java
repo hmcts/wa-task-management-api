@@ -6,11 +6,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
@@ -20,21 +21,23 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 public class DateTypeConfigurator {
 
     public static final String IA_JURISDICTION = "IA";
+    public static final String CALCULATED_DATES = "calculatedDates";
     private final List<DateCalculator> dateCalculators;
 
     public DateTypeConfigurator(List<DateCalculator> dateCalculators) {
         this.dateCalculators = dateCalculators;
     }
 
-    public List<ConfigurationDmnEvaluationResponse> configureDate(
+    public List<ConfigurationDmnEvaluationResponse> configureDates(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean initiationDueDateFound,
         boolean isReconfigureRequest) {
 
+        List<DateType> calculationOrder = readCalculationOrder(configResponses);
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> responses
             = new AtomicReference<>(new ArrayList<>(configResponses));
 
-        Stream.of(DateType.values())
+        calculationOrder
             .forEach(dateType -> {
                 List<ConfigurationDmnEvaluationResponse> dateProperties = configResponses.stream()
                     .filter(r -> r.getName().getValue().contains(dateType.getType()))
@@ -58,6 +61,19 @@ public class DateTypeConfigurator {
         return responses.get();
     }
 
+    private List<DateType> readCalculationOrder(List<ConfigurationDmnEvaluationResponse> configResponses) {
+        Optional<ConfigurationDmnEvaluationResponse> calculatedDates = configResponses.stream()
+            .filter(r -> r.getName().getValue().equals(CALCULATED_DATES))
+            .reduce((a, b) -> b);
+
+        DateType[] defaultOrder = DateType.values();
+        Arrays.sort(defaultOrder, Comparator.comparing(DateType::getOrder));
+
+        return calculatedDates.map(r -> Arrays.stream(r.getValue().getValue().split(","))
+                .map(s -> DateType.from(s).orElseThrow()).collect(Collectors.toList()))
+            .orElseGet(() -> Arrays.asList(defaultOrder));
+    }
+
     private ConfigurationDmnEvaluationResponse getResponseFromDateCalculator(
         boolean isReconfigureRequest,
         DateType dateType,
@@ -65,7 +81,7 @@ public class DateTypeConfigurator {
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
         Optional<DateCalculator> dateCalculator = getDateCalculator(dateProperties, dateType, isReconfigureRequest);
         if (dateCalculator.isPresent()) {
-            return dateCalculator.get().calculateDate(dateProperties, dateType);
+            return dateCalculator.get().calculateDate(configResponses.get(), dateType, isReconfigureRequest);
         } else {
             return isReconfigureRequest ? null : getDefaultValue(dateType, configResponses);
         }

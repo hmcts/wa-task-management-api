@@ -59,7 +59,7 @@ public class PriorityDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDateOrigin, priorityDateOrigin, thirdPriorityDateOrigin),
+            .configureDates(List.of(defaultPriorityDateOrigin, priorityDateOrigin, thirdPriorityDateOrigin),
                               Boolean.parseBoolean(initiationPriorityDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
@@ -106,8 +106,8 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate, defaultPriorityDateTime, priorityDate, priorityDateTime), false,
-                              Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDates(List.of(defaultPriorityDate, defaultPriorityDateTime, priorityDate, priorityDateTime),
+                            false, Boolean.parseBoolean(isReConfigurationRequest));
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -146,7 +146,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate, priorityDate),
+            .configureDates(List.of(defaultPriorityDate, priorityDate),
                               Boolean.parseBoolean(initiationPriorityDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
@@ -180,7 +180,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDateTime, priorityDateTime),
+            .configureDates(List.of(defaultPriorityDateTime, priorityDateTime),
                               Boolean.parseBoolean(initiationPriorityDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
@@ -217,7 +217,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate, defaultPriorityDateTime),
+            .configureDates(List.of(defaultPriorityDate, defaultPriorityDateTime),
                               Boolean.parseBoolean(initiationPriorityDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
@@ -244,7 +244,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDateTime),
+            .configureDates(List.of(defaultPriorityDateTime),
                               Boolean.parseBoolean(initiationPriorityDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest)
             );
@@ -275,7 +275,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate),
+            .configureDates(List.of(defaultPriorityDate),
                               Boolean.parseBoolean(initiationPriorityDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest)
             );
@@ -291,7 +291,7 @@ public class PriorityDateTypeConfiguratorTest {
     @Test
     public void shouldNotReturnPriorityDateWhenNoPriorityDatePropertiesAreAvailableAndJurisdictionIsIA() {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(), false, true);
+            .configureDates(List.of(), false, true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -299,7 +299,7 @@ public class PriorityDateTypeConfiguratorTest {
     @Test
     public void shouldReturnDefaultPriorityDateWhenNoPriorityDatePropertiesAreAvailableAndJurisdictionIsIA() {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(), false, false);
+            .configureDates(List.of(), false, false);
 
         String expectedPriorityDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
@@ -317,7 +317,7 @@ public class PriorityDateTypeConfiguratorTest {
     public void shouldReturnDefaultPriorityDateWhenDatePropertiesAreNotAvailableAndInitiationPriorityDateNotFound() {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(), false, false);
+            .configureDates(List.of(), false, false);
 
         String expectedPriorityDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -356,7 +356,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDate, priorityDateOrigin),
+            .configureDates(List.of(priorityDate, priorityDateOrigin),
                               Boolean.parseBoolean(initiationPriorityDateFound),
                               Boolean.parseBoolean(isReConfigurationRequest));
 
@@ -384,7 +384,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateOrigin), false,
+            .configureDates(List.of(priorityDateOrigin), false,
                            Boolean.parseBoolean(isReConfigurationRequest));
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -425,7 +425,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate, priorityDateOrigin, priorityDateTime), false,
+            .configureDates(List.of(defaultPriorityDate, priorityDateOrigin, priorityDateTime), false,
                               Boolean.parseBoolean(isReConfigurationRequest));
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -456,7 +456,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
-            = dateTypeConfigurator.configureDate(List.of(defaultPriorityDateTime),
+            = dateTypeConfigurator.configureDates(List.of(defaultPriorityDateTime),
                                                  false,
                                                  Boolean.parseBoolean(isReConfigurationRequest));
 
@@ -491,7 +491,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate), false,
+            .configureDates(List.of(defaultPriorityDate), false,
                            Boolean.parseBoolean(isReConfigurationRequest));
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -571,7 +571,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+            .configureDates(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
                                    priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
                                    priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
                 ),
@@ -655,7 +655,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+            .configureDates(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
                                    priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
                                    priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
                 ),
@@ -715,7 +715,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(
+            .configureDates(
                 List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
                         priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin
                 ),
@@ -755,7 +755,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDateTime, priorityDateTime), false, true);
+            .configureDates(List.of(defaultPriorityDateTime, priorityDateTime), false, true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -778,7 +778,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate, defaultPriorityDateTime), false, true);
+            .configureDates(List.of(defaultPriorityDate, defaultPriorityDateTime), false, true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -793,7 +793,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDateTime), false, true);
+            .configureDates(List.of(defaultPriorityDateTime), false, true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -810,7 +810,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(
+            .configureDates(
                 List.of(defaultPriorityDate),
                 false,
                 true
@@ -822,7 +822,7 @@ public class PriorityDateTypeConfiguratorTest {
     @Test
     public void shouldNotReturnDPriorityDateWhenDatePropertiesAreNotAvailableAndJurisdictionIsWAAndIsReconfiguration() {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(), false, true);
+            .configureDates(List.of(), false, true);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -866,7 +866,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+            .configureDates(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
                                    priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
                                    priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
                 ),
@@ -927,7 +927,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+            .configureDates(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
                                    priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
                                    priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
                 ),

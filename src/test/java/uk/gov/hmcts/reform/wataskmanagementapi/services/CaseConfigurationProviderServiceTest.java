@@ -21,10 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.Tas
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateIntervalCalculator;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateIntervalReCalculator;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateReCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateTimeCalculator;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateTimeReCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollection;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.WorkingDayIndicator;
 
@@ -53,7 +50,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 class CaseConfigurationProviderServiceTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 
     @Mock
     private CcdDataService ccdDataService;
@@ -82,10 +79,7 @@ class CaseConfigurationProviderServiceTest {
                 List.of(
                     new DueDateCalculator(),
                     new DueDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection)),
-                    new DueDateTimeCalculator(),
-                    new DueDateReCalculator(),
-                    new DueDateTimeReCalculator(),
-                    new DueDateIntervalReCalculator(new WorkingDayIndicator(publicHolidaysCollection))
+                    new DueDateTimeCalculator()
                 ))
         );
 
@@ -169,7 +163,7 @@ class CaseConfigurationProviderServiceTest {
             ));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate date = LocalDate.now().plusDays(2);
-        String dueDateSet = date.format(formatter) + "T16:00";
+        String defaultDate = date.format(formatter) + "T16:00";
 
         Map<String, Object> expectedMappedData = new HashMap<>();
         expectedMappedData.put("tribunalCaseworker", "Read,Refer,Own,Manage,Cancel");
@@ -177,8 +171,8 @@ class CaseConfigurationProviderServiceTest {
         expectedMappedData.put("securityClassification", "PUBLIC");
         expectedMappedData.put("jurisdiction", "IA");
         expectedMappedData.put("caseTypeId", "Asylum");
-        expectedMappedData.put("dueDate", dueDateSet);
-        expectedMappedData.put("priorityDate", dueDateSet);
+        expectedMappedData.put("dueDate", defaultDate);
+        expectedMappedData.put("priorityDate", defaultDate);
 
         Map<String, Object> taskAttributes = Map.of();
         TaskConfigurationResults mappedData = caseConfigurationProviderService
@@ -195,7 +189,7 @@ class CaseConfigurationProviderServiceTest {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate date = LocalDate.now().plusDays(2);
-        String dueDateSet = date.format(formatter) + "T16:00";
+        String defaultDate = date.format(formatter) + "T16:00";
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", taskAttributesString))
@@ -210,8 +204,8 @@ class CaseConfigurationProviderServiceTest {
             "securityClassification", "PUBLIC",
             "jurisdiction", "IA",
             "caseTypeId", "Asylum",
-            "dueDate", dueDateSet,
-            "priorityDate", dueDateSet
+            "dueDate", defaultDate,
+            "priorityDate", defaultDate
         );
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
@@ -522,7 +516,7 @@ class CaseConfigurationProviderServiceTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
                 new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties"),
-                    stringValue(writeValueAsString(additionalProperties))));
+                                                       stringValue(writeValueAsString(additionalProperties))));
     }
 
     @Test
@@ -565,8 +559,9 @@ class CaseConfigurationProviderServiceTest {
             "roleAssignmentId", roleAssignmentId
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("additionalProperties"))
             .isNotEmpty()
-            .hasSize(3)
+            .hasSize(1)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
@@ -618,8 +613,9 @@ class CaseConfigurationProviderServiceTest {
             "roleAssignmentId", roleAssignmentId
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("additionalProperties"))
             .isNotEmpty()
-            .hasSize(3)
+            .hasSize(1)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
@@ -664,8 +660,9 @@ class CaseConfigurationProviderServiceTest {
             "roleAssignmentId", "roleAssignmentId"
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("additionalProperties"))
             .isNotEmpty()
-            .hasSize(3)
+            .hasSize(1)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
@@ -750,8 +747,9 @@ class CaseConfigurationProviderServiceTest {
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("dueDate"))
             .isNotEmpty()
-            .hasSize(2)
+            .hasSize(1)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
@@ -772,6 +770,7 @@ class CaseConfigurationProviderServiceTest {
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("dueDate"))
             .isEmpty();
     }
 
@@ -790,7 +789,8 @@ class CaseConfigurationProviderServiceTest {
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
                     stringValue(localDateTime),
-                    booleanValue(true)),
+                    booleanValue(true)
+                ),
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDateTime"),
                     stringValue("18:00"),
@@ -827,7 +827,8 @@ class CaseConfigurationProviderServiceTest {
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
                     stringValue(localDateTime),
-                    booleanValue(false)),
+                    booleanValue(false)
+                ),
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDateTime"),
                     stringValue("18:00"),
@@ -878,8 +879,9 @@ class CaseConfigurationProviderServiceTest {
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
         String expectedDate = GIVEN_DATE.plusDays(8).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .filteredOn(r -> r.getName().getValue().equals("dueDate"))
             .isNotEmpty()
-            .hasSize(2)
+            .hasSize(1)
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
