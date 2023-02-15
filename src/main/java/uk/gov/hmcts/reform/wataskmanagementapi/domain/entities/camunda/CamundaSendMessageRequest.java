@@ -11,10 +11,16 @@ public class CamundaSendMessageRequest {
 
     private final String messageName;
     private final Map<String, CamundaValue<?>> processVariables;
+    private String tenantId;
 
     public CamundaSendMessageRequest(String messageName, Map<String, CamundaValue<?>> processVariables) {
         this.messageName = messageName;
         this.processVariables = processVariables;
+    }
+    public CamundaSendMessageRequest(String messageName, Map<String, CamundaValue<?>> processVariables,
+                                     String tenantId) {
+        this(messageName, processVariables);
+        this.tenantId = tenantId;
     }
 
     public String getMessageName() {
@@ -25,5 +31,8 @@ public class CamundaSendMessageRequest {
         return processVariables;
     }
 
+    public String getTenantId() {
+        return tenantId;
+    }
 }
 
