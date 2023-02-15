@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
@@ -32,16 +31,6 @@ public class DueDateOriginLatestCalculator extends DueDateIntervalCalculator {
             && Optional.ofNullable(getProperty(configResponses, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
             && Optional.ofNullable(
             getProperty(configResponses, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest)).isPresent();
-    }
-
-    @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateType,
-        boolean isReconfigureRequest) {
-        Optional<LocalDateTime> dueDateLatest = getReferenceDate(configResponses, isReconfigureRequest);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, isReconfigureRequest);
-        return calculateDate(dateType, dateTypeIntervalData, dueDateLatest.orElse(DEFAULT_ZONED_DATE_TIME));
     }
 
     @Override

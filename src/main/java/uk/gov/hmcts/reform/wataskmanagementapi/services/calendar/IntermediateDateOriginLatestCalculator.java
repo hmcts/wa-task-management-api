@@ -36,22 +36,6 @@ public class IntermediateDateOriginLatestCalculator extends IntermediateDateInte
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest) {
-        String dateTypeName = dateTypeObject.dateTypeName();
-        Optional<LocalDateTime> intermediateDateOriginEarliest
-            = getReferenceDate(dateTypeName, configResponses, isReconfigureRequest);
-        return intermediateDateOriginEarliest.map(localDateTime -> calculateDate(
-                dateTypeObject,
-                readDateTypeOriginFields(dateTypeName, configResponses, isReconfigureRequest),
-                localDateTime
-            ))
-            .orElse(null);
-    }
-
-    @Override
     protected Optional<LocalDateTime> getReferenceDate(String dateTypeName,
                                                        List<ConfigurationDmnEvaluationResponse> configResponses,
                                                        boolean isReconfigureRequest) {

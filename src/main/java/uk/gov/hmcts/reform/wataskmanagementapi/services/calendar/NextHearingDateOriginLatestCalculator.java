@@ -36,20 +36,6 @@ public class NextHearingDateOriginLatestCalculator extends NextHearingDateInterv
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateType,
-        boolean isReconfigureRequest) {
-        Optional<LocalDateTime> nextHearingDateOriginLatest = getReferenceDate(configResponses, isReconfigureRequest);
-        return nextHearingDateOriginLatest.map(localDateTime -> calculateDate(
-                dateType,
-                readDateTypeOriginFields(configResponses, isReconfigureRequest),
-                localDateTime
-            ))
-            .orElse(null);
-    }
-
-    @Override
     protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
                                                        boolean isReconfigureRequest) {
         return getOriginLatestDate(
