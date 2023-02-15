@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+//import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;

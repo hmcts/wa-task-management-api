@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.db;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+//import org.springframework.stereotype.Component;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.JdbcDatabaseContainerProvider;
 import org.testcontainers.containers.Network;
