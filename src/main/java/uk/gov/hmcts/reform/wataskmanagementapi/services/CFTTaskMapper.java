@@ -55,7 +55,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator.DUE_DATE_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator.DATE_TIME_FORMATTER;
 
 
 @Service
@@ -561,9 +561,7 @@ public class CFTTaskMapper {
                     }
                     break;
                 case NEXT_HEARING_DATE:
-                    if (value != null && Strings.isNotBlank((String) value)) {
-                        taskResource.setNextHearingDate(ZonedDateTime.parse((String) value).toOffsetDateTime());
-                    }
+                    taskResource.setNextHearingDate(mapDate(value));
                     break;
                 case MINOR_PRIORITY:
                     setMinorPriority(value, taskResource);
@@ -572,16 +570,10 @@ public class CFTTaskMapper {
                     setMajorPriority(value, taskResource);
                     break;
                 case PRIORITY_DATE:
-                    if (value instanceof String) {
-                        if (Strings.isNotBlank((String) value)) {
-                            taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
-                        }
-                    } else {
-                        taskResource.setPriorityDate((OffsetDateTime) value);
-                    }
+                    taskResource.setPriorityDate(mapDate(value));
                     break;
                 case DUE_DATE:
-                    mapDueDate(taskResource, value);
+                    taskResource.setDueDateTime(mapDate(value));
                     break;
                 default:
                     break;
@@ -589,14 +581,17 @@ public class CFTTaskMapper {
         }
     }
 
-    private static void mapDueDate(TaskResource taskResource, Object value) {
+    public static OffsetDateTime mapDate(Object value) {
+        if (Objects.isNull(value) || value instanceof String && Strings.isBlank((String) value)) {
+            return null;
+        }
         log.info("due date after calculation {}", value);
-        LocalDateTime dateTime = LocalDateTime.parse((String) value, DUE_DATE_TIME_FORMATTER);
+        LocalDateTime dateTime = LocalDateTime.parse((String) value, DATE_TIME_FORMATTER);
         ZoneId systemDefault = ZoneId.systemDefault();
         log.info("system default {}", systemDefault);
         OffsetDateTime dueDateTime = dateTime.atZone(systemDefault).toOffsetDateTime();
         log.info("due date during initiation {}", dueDateTime);
-        taskResource.setDueDateTime(dueDateTime);
+        return dueDateTime;
     }
 
     void setMajorPriority(Object value, TaskResource taskResource) {
@@ -652,13 +647,7 @@ public class CFTTaskMapper {
                     taskResource.setAdditionalProperties(additionalProperties);
                     break;
                 case PRIORITY_DATE:
-                    if (value instanceof String) {
-                        if (Strings.isNotBlank((String) value)) {
-                            taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
-                        }
-                    } else {
-                        taskResource.setPriorityDate((OffsetDateTime) value);
-                    }
+                    taskResource.setPriorityDate(mapDate(value));
                     break;
                 case MINOR_PRIORITY:
                     setMinorPriority(value, taskResource);
@@ -672,16 +661,10 @@ public class CFTTaskMapper {
                     }
                     break;
                 case NEXT_HEARING_DATE:
-                    if (value instanceof String) {
-                        if (Strings.isNotBlank((String) value)) {
-                            taskResource.setNextHearingDate(OffsetDateTime.parse((String) value));
-                        }
-                    } else {
-                        taskResource.setNextHearingDate((OffsetDateTime) value);
-                    }
+                    taskResource.setNextHearingDate(mapDate(value));
                     break;
                 case DUE_DATE:
-                    mapDueDate(taskResource, value);
+                    taskResource.setDueDateTime(mapDate(value));
                     break;
                 default:
                     break;

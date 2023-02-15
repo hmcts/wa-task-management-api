@@ -23,19 +23,19 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NO;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
 @ExtendWith(MockitoExtension.class)
-class DueDateIntervalCalculatorTest {
+class PriorityDateIntervalCalculatorTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;
 
-    private DueDateIntervalCalculator dueDateIntervalCalculator;
+    private PriorityDateIntervalCalculator priorityDateIntervalCalculator;
 
     private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0() {
         return Stream.of(
@@ -44,7 +44,7 @@ class DueDateIntervalCalculatorTest {
         );
     }
 
-    private static Stream<ConfigurableScenario> getConfigurablesWithoutDueDate() {
+    private static Stream<ConfigurableScenario> getConfigurablesWithoutPriorityDate() {
         return Stream.of(
             new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T16:00"),
             new ConfigurableScenario(false, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T16:00")
@@ -74,7 +74,8 @@ class DueDateIntervalCalculatorTest {
 
     @BeforeEach
     public void before() {
-        dueDateIntervalCalculator = new DueDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection));
+        priorityDateIntervalCalculator = new PriorityDateIntervalCalculator(new WorkingDayIndicator(
+            publicHolidaysCollection));
 
         Set<LocalDate> localDates = Set.of(
             LocalDate.of(2022, 1, 3),
@@ -99,63 +100,63 @@ class DueDateIntervalCalculatorTest {
     void shouldCalculateWhenDefaultValueProvided(boolean configurable) {
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+        var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("0"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+        var priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+        var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue(""))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+        var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+        var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue("true"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("18:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
+        LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator
                                                            .calculateDate(
                                                                List.of(
-                                                                   dueDateIntervalDays,
-                                                                   dueDateNonWorkingCalendar,
-                                                                   dueDateMustBeWorkingDay,
-                                                                   dueDateNonWorkingDaysOfWeek,
-                                                                   dueDateSkipNonWorkingDays,
-                                                                   dueDateOrigin,
-                                                                   dueDateTime
+                                                                   priorityDateIntervalDays,
+                                                                   priorityDateNonWorkingCalendar,
+                                                                   priorityDateMustBeWorkingDay,
+                                                                   priorityDateNonWorkingDaysOfWeek,
+                                                                   priorityDateSkipNonWorkingDays,
+                                                                   priorityDateOrigin,
+                                                                   priorityDateTime
                                                                ),
-                                                               DUE_DATE,
+                                                               PRIORITY_DATE,
                                                                configurable
                                                            ).getValue().getValue());
 
-        String expectedDueDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
+        String expectedPriorityDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
 
-        assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T18:00");
     }
 
     @ParameterizedTest
@@ -163,55 +164,56 @@ class DueDateIntervalCalculatorTest {
     void shouldCalculateWhenIntervalIsGreaterThan0(ConfigurableScenario scenario) {
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+        var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("3"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+        var priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+        var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue(""))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+        var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+        var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("18:00"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        String dueDateValue = dueDateIntervalCalculator
+        String priorityDateValue = priorityDateIntervalCalculator
             .calculateDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
+                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
+                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                        priorityDateTime
                 ),
-                DUE_DATE,
+                PRIORITY_DATE,
                 scenario.configurable
             ).getValue().getValue();
 
-        assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
+        assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
     }
 
     @ParameterizedTest
@@ -219,54 +221,55 @@ class DueDateIntervalCalculatorTest {
     void shouldCalculateWhenIntervalIsGreaterThan0AndGivenHolidays(ConfigurableScenario scenario) {
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+        var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("5"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+        var priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+        var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+        var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+        var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("18:00"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        String dueDateValue = dueDateIntervalCalculator
+        String priorityDateValue = priorityDateIntervalCalculator
             .calculateDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
+                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
+                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                        priorityDateTime
                 ),
-                DUE_DATE,
+                PRIORITY_DATE,
                 scenario.configurable
             ).getValue().getValue();
-        LocalDateTime resultDate = LocalDateTime.parse(dueDateValue);
+        LocalDateTime resultDate = LocalDateTime.parse(priorityDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
     }
 
@@ -278,55 +281,56 @@ class DueDateIntervalCalculatorTest {
 
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+        var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("5"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+        var priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+        var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+        var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+        var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue("Next"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("18:00"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        String dueDateValue = dueDateIntervalCalculator
+        String priorityDateValue = priorityDateIntervalCalculator
             .calculateDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
+                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
+                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                        priorityDateTime
                 ),
-                DUE_DATE,
+                PRIORITY_DATE,
                 scenario.configurable
             ).getValue().getValue();
 
-        assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
+        assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
     }
 
     @ParameterizedTest
@@ -334,107 +338,108 @@ class DueDateIntervalCalculatorTest {
     void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessFalse(ConfigurableScenario scenario) {
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+        var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("2"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+        var priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+        var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+        var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+        var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("18:00"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        String dueDateValue = dueDateIntervalCalculator
+        String priorityDateValue = priorityDateIntervalCalculator
             .calculateDate(
-                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
+                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
+                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                        priorityDateTime
                 ),
-                DUE_DATE,
+                PRIORITY_DATE,
                 scenario.configurable
             ).getValue().getValue();
 
-        assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
+        assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
     }
 
     @ParameterizedTest
-    @MethodSource({"getConfigurablesWithoutDueDate"})
-    void shouldCalculateWhenWithoutDueDateTime(ConfigurableScenario scenario) {
+    @MethodSource({"getConfigurablesWithoutPriorityDate"})
+    void shouldCalculateWhenWithoutPriorityDateTime(ConfigurableScenario scenario) {
         boolean isConfigurable = scenario.configurable;
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+        var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("5"))
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+        var priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+        var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+        var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
-        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+        var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NO))
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator
+        LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator
                                                            .calculateDate(
                                                                List.of(
-                                                                   dueDateIntervalDays,
-                                                                   dueDateNonWorkingCalendar,
-                                                                   dueDateMustBeWorkingDay,
-                                                                   dueDateNonWorkingDaysOfWeek,
-                                                                   dueDateSkipNonWorkingDays,
-                                                                   dueDateOrigin
+                                                                   priorityDateIntervalDays,
+                                                                   priorityDateNonWorkingCalendar,
+                                                                   priorityDateMustBeWorkingDay,
+                                                                   priorityDateNonWorkingDaysOfWeek,
+                                                                   priorityDateSkipNonWorkingDays,
+                                                                   priorityDateOrigin
                                                                ),
-                                                               DUE_DATE,
+                                                               PRIORITY_DATE,
                                                                scenario.configurable
                                                            ).getValue().getValue());
 
@@ -446,26 +451,26 @@ class DueDateIntervalCalculatorTest {
         "true, T16:00",
         "false, T16:00"
     })
-    void shouldCalculateWhenOnlyDueDateOriginProvided(boolean configurable, String time) {
+    void shouldCalculateWhenOnlyPriorityDateOriginProvided(boolean configurable, String time) {
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
 
         LocalDateTime resultDate = LocalDateTime
-            .parse(dueDateIntervalCalculator.calculateDate(
-                List.of(dueDateOrigin),
-                DUE_DATE,
+            .parse(priorityDateIntervalCalculator.calculateDate(
+                List.of(priorityDateOrigin),
+                PRIORITY_DATE,
                 configurable
             ).getValue().getValue());
 
-        String expectedDueDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
+        String expectedPriorityDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        assertThat(resultDate).isEqualTo(expectedDueDate + time);
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + time);
     }
 
     @ParameterizedTest
@@ -473,137 +478,138 @@ class DueDateIntervalCalculatorTest {
         "true, T18:00",
         "false, T18:00"
     })
-    void shouldCalculateWhenOnlyDueDateOriginAndTimeProvided(boolean configurable, String time) {
+    void shouldCalculateWhenOnlyPriorityDateOriginAndTimeProvided(boolean configurable, String time) {
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("18:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator.calculateDate(
-            List.of(dueDateOrigin, dueDateTime),
-            DUE_DATE,
+        LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator.calculateDate(
+            List.of(priorityDateOrigin, priorityDateTime),
+            PRIORITY_DATE,
             false
         ).getValue().getValue());
 
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        assertThat(resultDate).isEqualTo(expectedDueDate + time);
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + time);
     }
 
     @ParameterizedTest
     @CsvSource({"true", "false"})
-    void should_not_supports_when_responses_contains_due_date_origin_and_configurable_due_date(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
+    void should_not_supports_when_responses_contains_priority_date_origin_and_configurable_priority_date(
+        boolean configurable) {
+        String expectedPriorityDate = GIVEN_DATE.plusDays(0)
             .format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+        var priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
+            .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDate);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDate);
 
-        assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DUE_DATE, configurable)).isFalse();
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable)).isFalse();
     }
 
     @ParameterizedTest
     @CsvSource({"true", "false"})
-    void should_not_supports_when_responses_contains_due_date_origin_and_due_date(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
+    void should_not_supports_when_responses_contains_priority_date_origin_and_priority_date(boolean configurable) {
+        String expectedPriorityDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+        var priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
+            .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDate);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDate);
 
-        assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DateType.DUE_DATE, configurable))
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable))
             .isFalse();
     }
 
     @ParameterizedTest
     @CsvSource({"true", "false"})
-    void should_not_supports_when_responses_contains_only_due_date_time(boolean configurable) {
+    void should_not_supports_when_responses_contains_only_priority_date_time(boolean configurable) {
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateTime);
 
-        assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DateType.DUE_DATE, configurable)).isFalse();
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable)).isFalse();
     }
 
     @ParameterizedTest
     @CsvSource({"true", "false"})
-    void should_supports_when_responses_only_contains_due_date_origin_but_not_due_date(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
+    void should_supports_when_responses_only_contains_priority_date_origin_but_not_priority_date(boolean configurable) {
+        String expectedPriorityDate = GIVEN_DATE.plusDays(0)
             .format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDateTime);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDateTime);
 
-        assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DUE_DATE, configurable)).isTrue();
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable)).isTrue();
     }
 
     @ParameterizedTest
     @CsvSource({"true", "false"})
-    void should_supports_when_responses_only_contains_due_date_but_not_origin(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
+    void should_supports_when_responses_only_contains_priority_date_but_not_origin(boolean configurable) {
+        String expectedPriorityDate = GIVEN_DATE.plusDays(0)
             .format(DATE_TIME_FORMATTER);
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDateTime);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDateTime);
 
-        assertThat(dueDateIntervalCalculator.supports(evaluationResponses, DateType.DUE_DATE, configurable))
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable))
             .isTrue();
     }
 
