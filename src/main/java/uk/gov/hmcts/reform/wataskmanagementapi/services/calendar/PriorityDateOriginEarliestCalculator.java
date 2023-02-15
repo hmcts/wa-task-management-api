@@ -33,16 +33,6 @@ public class PriorityDateOriginEarliestCalculator extends PriorityDateIntervalCa
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, DateType dateType, boolean isReconfigureRequest) {
-        return calculateDate(
-            dateType,
-            readDateTypeOriginFields(configResponses, isReconfigureRequest),
-            getReferenceDate(configResponses, isReconfigureRequest).orElse(DEFAULT_ZONED_DATE_TIME)
-        );
-    }
-
-    @Override
     protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
                                                        boolean isReconfigureRequest) {
         return getOriginEarliestDate(

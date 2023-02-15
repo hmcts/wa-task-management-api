@@ -137,8 +137,6 @@ class DueDateOriginEarliestCalculatorTest {
         "true", "false"
     })
     void should_supports_when_responses_only_contains_due_date_origin_ref(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
         ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate"))
