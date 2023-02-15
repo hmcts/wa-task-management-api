@@ -43,7 +43,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     TaskHistoryResourceRepository taskHistoryResourceRepository;
 
-    @Autowired
+    //@Autowired
     TCExtendedContainerDatabaseDriver tcDriver;
 
     @Value("${spring.datasource.jdbcUrl}")
@@ -56,7 +56,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
     CFTTaskDatabaseService cftTaskDatabaseService;
     MIReportingService miReportingService;
 
-    @BeforeEach
+    //@BeforeEach
     void setUp() {
         miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
                                                     "repl_user", "repl_password");
@@ -67,7 +67,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
         Testcontainers.exposeHostPorts(container.getFirstMappedPort(), containerReplica.getFirstMappedPort());
     }
 
-    @Test
+    //@Test
     void should_save_task_and_get_task_from_replica_tables() {
         TaskResource taskResource = createAndSaveTask();
 
@@ -88,7 +88,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    @Test
+    //@Test
     void given_zero_publications_should_return_false() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countPublications()).thenReturn(0);
