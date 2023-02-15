@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -86,8 +85,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.work_type_id", equalTo("hearing_work"))
                 .body("task.work_type_label", equalTo("Hearing work"))
                 .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
-                .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                  + "trigger/decideAnApplication)"))
+                .body("task.description",
+                      equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                  + "trigger/decideAnApplication)"))
                 .body("task.permissions.values.size()", equalTo(2))
                 .body("task.permissions.values", hasItems("Read", "Own"))
                 .body("task.additional_properties", equalToObject(Map.of(
@@ -97,7 +97,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "key4", "value4"
                 ))).body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
+                .body(
+                    "task.priority_date",
+                    equalTo(LocalDateTime.of(2022, 12, 7, 14, 00, 0, 0)
+                                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -147,7 +151,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[8].permissions", hasItems("Read", "Manage", "Cancel"))
             .body("roles[9].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("roles[9].role_name", equalTo("tribunal-caseworker"))
-            .body("roles[9].permissions", hasItems("Read","Own"));
+            .body("roles[9].permissions", hasItems("Read", "Own"));
 
         common.cleanUpTask(taskId);
     }
@@ -156,7 +160,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_calculate_due_date_when_initiating_a_follow_up_overdue_respondent_evidence_using_due_date() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "followUpOverdueRespondentEvidence", "Follow-up overdue case building");
+            "followUpOverdueRespondentEvidence", "Follow-up overdue case building"
+        );
         String taskId = taskVariables.getTaskId();
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -189,7 +194,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.work_type_label", equalTo("Hearing work"))
                 .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
                 .body("task.description", equalTo("[Dummy Activity](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                  + "trigger/dummyActivity)"))
+                                                      + "trigger/dummyActivity)"))
                 .body("task.permissions.values.size()", equalTo(2))
                 .body("task.permissions.values", hasItems("Read", "Own"))
                 .body("task.additional_properties", equalToObject(Map.of(
@@ -199,11 +204,17 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "key4", "value4"
                 ))).body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body(
+                    "task.priority_date",
+                    equalTo(LocalDateTime.of(2022, 12, 7, 14, 00, 0, 0)
+                                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")))
+                )
                 .body("task.due_date", notNullValue())
-                .body("task.due_date",
-                      equalTo(OffsetDateTime.now().plusDays(2).withHour(18).withMinute(0).withSecond(0).withNano(0)
-                                  .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+                .body(
+                    "task.due_date",
+                    equalTo(OffsetDateTime.now().plusDays(2).withHour(18).withMinute(0).withSecond(0).withNano(0)
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -217,12 +228,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         common.cleanUpTask(taskId);
     }
 
-    @Ignore
     @Test
     public void should_calculate_due_date_when_initiating_a_multiple_calendar_task_using_due_date() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "multipleCalendarsDueDate", "Multiple calendars");
+            "multipleCalendarsDueDate", "Multiple calendars"
+        );
         String taskId = taskVariables.getTaskId();
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -258,9 +269,16 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.permissions.values", hasItems("Read", "Execute"))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body(
+                    "task.priority_date",
+                    equalTo(LocalDateTime.of(2022, 12, 7, 14, 00, 0, 0)
+                                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")))
+                )
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo("2022-12-29T18:00:00+0000"));
+                .body("task.due_date", equalTo(LocalDateTime.of(2022, 12, 29, 18, 00, 0, 0)
+                                                   .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -278,7 +296,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_201_when_initiating_a_due_date_calculation_task_by_using_due_date_origin() {
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
-                                             "calculateDueDate", "Calculate Due Date");
+                                             "calculateDueDate", "Calculate Due Date"
+            );
         String taskId = taskVariables.getTaskId();
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -313,11 +332,18 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.permissions.values", hasItems("Read", "Execute"))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body(
+                    "task.priority_date",
+                    equalTo(LocalDateTime.of(2022, 12, 7, 14, 00, 0, 0)
+                                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")))
+                )
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25, 20, 00, 0, 0)
-                                                   .atZone(ZoneId.systemDefault()).toOffsetDateTime()
-                                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+                .body(
+                    "task.due_date",
+                    equalTo(LocalDateTime.of(2022, 10, 25, 20, 00, 0, 0)
+                                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -377,7 +403,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "roleAssignmentId", "roleAssignmentId")))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
+                .body("task.priority_date",
+                      equalTo(LocalDateTime.of(2022, 12, 7, 14, 00, 0, 0)
+                                  .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                  .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
@@ -484,8 +513,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.work_type_id", equalTo("hearing_work"))
                 .body("task.work_type_label", equalTo("Hearing work"))
                 .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
-                .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                  + "trigger/decideAnApplication)"))
+                .body(
+                    "task.description",
+                    equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                + "trigger/decideAnApplication)")
+                )
                 .body("task.permissions.values.size()", equalTo(2))
                 .body("task.permissions.values", hasItems("Read", "Own"))
                 .body("task.additional_properties", equalToObject(Map.of(
@@ -544,8 +576,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "task.permissions.values",
                     equalToObject(List.of("Read", "Own"))
                 )
-                .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                      + "trigger/decideAnApplication)"))
+                .body(
+                    "task.description",
+                    equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                + "trigger/decideAnApplication)")
+                )
                 .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
                 .body("task.additional_properties", equalToObject(Map.of(
                     "key1", "value1",
@@ -651,9 +686,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_201_when_initiating_a_follow_up_overdue_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
-                                             "followUpOverdue",
-                                             "Follow Up Overdue");
+            common.setupWATaskAndRetrieveIds(
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
+                "followUpOverdue",
+                "Follow Up Overdue"
+            );
         String taskId = taskVariables.getTaskId();
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -690,12 +727,22 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "key1", "value1",
                     "key2", "value2",
                     "key3", "value3",
-                    "key4", "value4")))
+                    "key4", "value4"
+                )))
                 .body("task.next_hearing_id", equalTo("next-hearing-id"))
-                .body("task.next_hearing_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body(
+                    "task.next_hearing_date",
+                    equalTo(LocalDateTime.of(2022, 12, 7, 14, 00, 0, 0)
+                                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")))
+                )
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"));
+                .body(
+                    "task.priority_date",
+                    equalTo(LocalDateTime.of(2022, 12, 7, 14, 00, 0, 0)
+                                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
         initiateTask(taskVariables, caseworkerCredentials.getHeaders(), assertConsumer);
@@ -807,12 +854,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles.size()", equalTo(10))
             .body("roles[0].role_category", is("LEGAL_OPERATIONS"))
             .body("roles[0].role_name", is("case-manager"))
-            .body("roles[0].permissions.size()",  equalTo(1))
+            .body("roles[0].permissions.size()", equalTo(1))
             .body("roles[0].permissions", hasItems("Own"))
             .body("roles[0].authorisations", empty())
             .body("roles[3].role_category", is("LEGAL_OPERATIONS"))
             .body("roles[3].role_name", is("challenged-access-legal-ops"))
-            .body("roles[3].permissions.size()",  equalTo(5))
+            .body("roles[3].permissions.size()", equalTo(5))
             .body("roles[3].permissions", hasItems("Own", "Manage", "Complete", "Assign", "Unassign"));
 
         common.cleanUpTask(taskId);
@@ -822,7 +869,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_calculate_due_date_must_be_working_day_should_default_to_next() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "mustBeWorkingDayDefault", "Must be working day default");
+            "mustBeWorkingDayDefault", "Must be working day default"
+        );
         String taskId = taskVariables.getTaskId();
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -858,7 +906,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.permissions.values", hasItems("Read", "Execute"))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.priority_date", equalTo(LocalDateTime.of(2022, 12, 7, 14, 00, 0, 0)
+                                                        .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))))
                 .body("task.due_date", notNullValue())
                 .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
                                                    .atZone(ZoneId.systemDefault()).toOffsetDateTime()
@@ -880,7 +930,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_calculate_due_date_multiple_working_day_should_use_last_entry_in_dmn() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "multipleMustBeWorkingDays", "Multiple must  be working day");
+            "multipleMustBeWorkingDays", "Multiple must  be working day"
+        );
         String taskId = taskVariables.getTaskId();
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
@@ -916,11 +967,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.permissions.values", hasItems("Read", "Execute"))
                 .body("task.minor_priority", equalTo(500))
                 .body("task.major_priority", equalTo(1000))
-                .body("task.priority_date", equalTo("2022-12-07T13:00:00+0000"))
+                .body("task.priority_date", equalTo(LocalDateTime.of(2022, 12, 7, 14, 00, 0, 0)
+                                                        .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))))
                 .body("task.due_date", notNullValue())
                 .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
-                                               .atZone(ZoneId.systemDefault()).toOffsetDateTime()
-                                               .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+                                                   .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
         initiateTask(taskVariables, assertConsumer);

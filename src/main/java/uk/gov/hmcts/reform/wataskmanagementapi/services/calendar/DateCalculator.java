@@ -1,41 +1,69 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
+import org.apache.logging.log4j.util.Strings;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public interface DateCalculator {
-
-    String DUE_DATE = "dueDate";
     String DUE_DATE_ORIGIN = "dueDateOrigin";
+    String DUE_DATE_ORIGIN_REF = "dueDateOriginRef";
     String DUE_DATE_INTERVAL_DAYS = "dueDateIntervalDays";
     String DUE_DATE_NON_WORKING_CALENDAR = "dueDateNonWorkingCalendar";
     String DUE_DATE_NON_WORKING_DAYS_OF_WEEK = "dueDateNonWorkingDaysOfWeek";
     String DUE_DATE_SKIP_NON_WORKING_DAYS = "dueDateSkipNonWorkingDays";
     String DUE_DATE_MUST_BE_WORKING_DAYS = "dueDateMustBeWorkingDay";
     String DUE_DATE_TIME = "dueDateTime";
+    String PRIORITY_DATE_ORIGIN = "priorityDateOrigin";
+    String PRIORITY_DATE_ORIGIN_REF = "priorityDateOriginRef";
+    String PRIORITY_DATE_INTERVAL_DAYS = "priorityDateIntervalDays";
+    String PRIORITY_DATE_NON_WORKING_CALENDAR = "priorityDateNonWorkingCalendar";
+    String PRIORITY_DATE_NON_WORKING_DAYS_OF_WEEK = "priorityDateNonWorkingDaysOfWeek";
+    String PRIORITY_DATE_SKIP_NON_WORKING_DAYS = "priorityDateSkipNonWorkingDays";
+    String PRIORITY_DATE_MUST_BE_WORKING_DAYS = "priorityDateMustBeWorkingDay";
+    String PRIORITY_DATE_TIME = "priorityDateTime";
+    String NEXT_HEARING_DATE_TIME = "nextHearingDateTime";
+    String NEXT_HEARING_DATE_ORIGIN = "nextHearingDateOrigin";
+    String NEXT_HEARING_DATE_ORIGIN_REF = "nextHearingDateOriginRef";
+    String NEXT_HEARING_DATE_INTERVAL_DAYS = "nextHearingDateIntervalDays";
+    String NEXT_HEARING_DATE_NON_WORKING_CALENDAR = "nextHearingDateNonWorkingCalendar";
+    String NEXT_HEARING_DATE_NON_WORKING_DAYS_OF_WEEK = "nextHearingDateNonWorkingDaysOfWeek";
+    String NEXT_HEARING_DATE_SKIP_NON_WORKING_DAYS = "nextHearingDateSkipNonWorkingDays";
+    String NEXT_HEARING_DATE_MUST_BE_WORKING_DAYS = "nextHearingDateMustBeWorkingDay";
 
     String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
-    String DEFAULT_DUE_DATE_TIME = "16:00";
-    DateTimeFormatter DUE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+    String DEFAULT_DATE_TIME = "16:00";
+    DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     DateTimeFormatter DUE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
         .withHour(16).withMinute(0).withSecond(0);
     LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
 
-    boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean isReconfigureRequest);
+    boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+                     DateType dateType,
+                     boolean isReconfigureRequest);
 
-    LocalDateTime calculateDueDate(List<ConfigurationDmnEvaluationResponse> dueDateProperties);
+    ConfigurationDmnEvaluationResponse calculateDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateType dateType, boolean isReconfigureRequest);
 
     default ConfigurationDmnEvaluationResponse getProperty(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties, String dueDatePrefix) {
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        String dueDatePrefix,
+        boolean isReconfigureRequest) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dueDatePrefix))
+            .filter(r -> Strings.isNotBlank(r.getValue().getValue()))
+            .filter(r -> !isReconfigureRequest || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
             .orElse(null);
     }
@@ -46,11 +74,17 @@ public interface DateCalculator {
         return useDateTime(date, dueDateTime);
     }
 
-    default LocalDateTime parseDueDateTime(String dueDate) {
-        if (dateContainsTime(dueDate)) {
-            return LocalDateTime.parse(dueDate, DUE_DATE_TIME_FORMATTER);
-        } else {
-            return LocalDate.parse(dueDate, DUE_DATE_FORMATTER).atStartOfDay();
+    default LocalDateTime parseDateTime(String inputDate) {
+        try {
+            ZoneId zoneId = ZoneId.systemDefault();
+            ZonedDateTime zonedDateTime = ZonedDateTime.parse(inputDate).withZoneSameLocal(zoneId);
+            return zonedDateTime.toLocalDateTime();
+        } catch (DateTimeParseException p) {
+            if (dateContainsTime(inputDate)) {
+                return LocalDateTime.parse(inputDate, DATE_TIME_FORMATTER);
+            } else {
+                return LocalDate.parse(inputDate, DUE_DATE_FORMATTER).atStartOfDay();
+            }
         }
     }
 
@@ -68,9 +102,18 @@ public interface DateCalculator {
             .with(ChronoField.NANO_OF_SECOND, 0);
     }
 
-    default String getConfigurationValue(ConfigurationDmnEvaluationResponse response, boolean isReconfigureRequest) {
-        return isReconfigureRequest && response.getCanReconfigure().getValue().booleanValue() == Boolean.FALSE
-            ? null
-            : response.getValue().getValue();
+    default Optional<LocalDateTime> getOriginRefDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        ConfigurationDmnEvaluationResponse originRefResponse) {
+        List<DateType> originDateTypes = Arrays.stream(originRefResponse.getValue().getValue().split(","))
+            .map(s -> DateType.from(s).orElseThrow()).toList();
+
+        return originDateTypes.stream()
+            .flatMap(r -> configResponses.stream()
+                .filter(c -> DateType.from(c.getName().getValue()).isPresent()
+                    && DateType.from(c.getName().getValue()).get().equals(r))
+                .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER)))
+            .findFirst();
     }
+
 }
