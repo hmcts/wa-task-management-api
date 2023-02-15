@@ -20,10 +20,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHo
 @ActiveProfiles({"integration"})
 public class OriginEarliestDateTypeConfiguratorTest {
 
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 
-    public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 00, 00);
-    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 03, 26, 18, 00, 00);
+    public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 0, 0);
+    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 3, 26, 18, 0, 0);
 
     public static final String PRIORITY_DATE_VALUE = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern(
         "yyyy-MM-dd")) + "T16:00";
@@ -32,10 +32,9 @@ public class OriginEarliestDateTypeConfiguratorTest {
 
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
-    private String isReConfigurationRequest = "false";
-
+    
     @Test
-    public void should_calculate_both_dates_when_multiple_origin_refs_exist_for_two_date_types() {
+    public void should_calculate_both_dates_when_multiple_origin_earliest_exist_for_two_date_types() {
         String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
 
         ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
@@ -87,7 +86,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
     }
 
     @Test
-    public void should_calculate_date_when_single_origin_refs_exist() {
+    public void should_calculate_date_when_single_origin_earliest_exist() {
         ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
@@ -137,7 +136,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
     }
 
     @Test
-    public void should_calculate_date_when_single_origin_refs_containing_two_dates_with_first_empty_exist() {
+    public void should_calculate_date_when_single_origin_earliest_containing_two_dates_with_first_empty_exist() {
         ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
