@@ -1,0 +1,1 @@
+ALTER TABLE tasks ALTER COLUMN created SET NOT NULL;
