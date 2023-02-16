@@ -31,3 +31,14 @@ java:
     enabled: true
     auth:
       database: cft_task_db
+    primary:
+      extraEnvVars:
+        - name: POSTGRESQL_WAL_LEVEL
+          value: "logical"
+    architecture: replication
+    readReplicas:
+      persistence:
+        enabled: false
+      extraEnvVars:
+        - name: POSTGRESQL_WAL_LEVEL
+          value: "logical"
