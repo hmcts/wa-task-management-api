@@ -38,17 +38,11 @@ public class NextHearingDateOriginEarliestCalculator extends NextHearingDateInte
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest) {
-        var originEarliestResponse
-            = getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
-        Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        var dateTypeIntervalData = readDateTypeOriginFields(configResponses, isReconfigureRequest);
-        if (dueDateOriginEarliest.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder()
-                .calculatedEarliestDate(dueDateOriginEarliest.get()).build();
-        }
-        return calculateDate(dateTypeObject, dateTypeIntervalData);
+    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginEarliestDate(
+            configResponses,
+            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest)
+        );
     }
 }

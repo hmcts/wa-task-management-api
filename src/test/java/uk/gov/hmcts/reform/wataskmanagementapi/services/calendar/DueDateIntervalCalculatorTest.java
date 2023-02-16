@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -386,7 +385,7 @@ class DueDateIntervalCalculatorTest {
         String expectedDueDate = GIVEN_DATE.plusDays(4)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
+        assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
     }
 
     @ParameterizedTest

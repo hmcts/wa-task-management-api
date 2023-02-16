@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
@@ -33,17 +32,11 @@ public class DueDateOriginEarliestCalculator extends DueDateIntervalCalculator {
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateType,
-        boolean isReconfigureRequest) {
-        var originEarliestResponse = getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
-        Optional<LocalDateTime> dueDateOriginEarliest = getOriginEarliestDate(configResponses, originEarliestResponse);
-        DateTypeIntervalData dateTypeIntervalData = readDateTypeOriginFields(configResponses, isReconfigureRequest);
-        if (dueDateOriginEarliest.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder()
-                .calculatedEarliestDate(dueDateOriginEarliest.get()).build();
-        }
-        return calculateDate(dateType, dateTypeIntervalData);
+    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginEarliestDate(
+            configResponses,
+            getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest)
+        );
     }
 }

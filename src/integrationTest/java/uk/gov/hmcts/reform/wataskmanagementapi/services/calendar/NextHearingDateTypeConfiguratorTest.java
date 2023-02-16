@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -15,10 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DATE_FORMATTER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DATE_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_ZONED_DATE_TIME;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
@@ -482,7 +480,8 @@ public class NextHearingDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(List.of(defaultNextHearingDateTime), false,
-                            Boolean.parseBoolean(isReConfigurationRequest));
+                            Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
             .isEqualTo(List.of(
@@ -1030,7 +1029,7 @@ public class NextHearingDateTypeConfiguratorTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"true","false"})
+    @CsvSource({"true", "false"})
     public void shouldNotProvideDefaultForNextHearingDateWhenNoneOfAttributesArePresent(boolean configurable) {
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
@@ -1046,7 +1045,7 @@ public class NextHearingDateTypeConfiguratorTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"true","false"})
+    @ValueSource(booleans = {true, false})
     public void shouldNotDefaultWhenOriginRefAttributesPresentButAreEmpty(boolean configurable) {
         ConfigurationDmnEvaluationResponse nextHearingDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateOriginRef"))
@@ -1067,25 +1066,4 @@ public class NextHearingDateTypeConfiguratorTest {
             .isEmpty();
     }
 
-    @Test
-    public void shouldDefaultOnlyDueDateWhenOnlyDueDateTimeAttributesIsPresentForReconfiguration() {
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
-            .value(CamundaValue.stringValue("20:00"))
-            .canReconfigure(CamundaValue.booleanValue(true))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(dueDateTime), false, true);
-
-        String defaultDate = DEFAULT_DATE.format(DATE_FORMATTER) + "T20:00";
-
-        assertThat(configurationDmnEvaluationResponses).hasSize(1)
-            .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(defaultDate))
-                    .build()
-            ));
-    }
 }

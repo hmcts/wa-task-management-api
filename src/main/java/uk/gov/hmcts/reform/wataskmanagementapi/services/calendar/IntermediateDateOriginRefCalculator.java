@@ -42,20 +42,12 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
     }
 
     @Override
-    public ConfigurationDmnEvaluationResponse calculateDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest
-    ) {
-        String dateTypeName = dateTypeObject.dateTypeName();
-        ConfigurationDmnEvaluationResponse originRefResponse
-            = getProperty(configResponses, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigureRequest);
-
-        Optional<LocalDateTime> dueDateOriginRef = getOriginRefDate(configResponses, originRefResponse);
-        var dateTypeIntervalData = readDateTypeOriginFields(dateTypeName, configResponses, isReconfigureRequest);
-        if (dueDateOriginRef.isPresent()) {
-            dateTypeIntervalData = dateTypeIntervalData.toBuilder().calculatedRefDate(dueDateOriginRef.get()).build();
-        }
-        return calculateDate(dateTypeObject, dateTypeIntervalData);
+    protected Optional<LocalDateTime> getReferenceDate(String dateTypeName,
+                                                       List<ConfigurationDmnEvaluationResponse> configResponses,
+                                                       boolean isReconfigureRequest) {
+        return getOriginRefDate(
+            configResponses,
+            getProperty(configResponses, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigureRequest)
+        );
     }
 }

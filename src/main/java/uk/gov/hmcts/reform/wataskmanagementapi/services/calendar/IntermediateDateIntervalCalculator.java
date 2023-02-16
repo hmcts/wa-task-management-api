@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -45,10 +46,30 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest
     ) {
-        return calculateDate(
-            dateTypeObject,
-            readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, isReconfigureRequest)
+        Optional<LocalDateTime> referenceDate = getReferenceDate(
+            dateTypeObject.dateTypeName(),
+            configResponses,
+            isReconfigureRequest
         );
+        return referenceDate.map(localDateTime -> calculateDate(
+                dateTypeObject,
+                readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, isReconfigureRequest),
+                localDateTime
+            ))
+            .orElse(null);
+    }
+
+    protected Optional<LocalDateTime> getReferenceDate(
+        String dateTypeName,
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        boolean reconfigure) {
+        return dueDateProperties.stream()
+            .filter(r -> r.getName().getValue().equals(dateTypeName + ORIGIN_SUFFIX))
+            .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
+            .reduce((a, b) -> b)
+            .map(ConfigurationDmnEvaluationResponse::getValue)
+            .map(CamundaValue::getValue)
+            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
     }
 
     protected DateTypeIntervalData readDateTypeOriginFields(
@@ -57,13 +78,6 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         boolean reconfigure) {
 
         return DateTypeIntervalData.builder()
-            .dateTypeOrigin(nextHearingDateProperties.stream()
-                                .filter(r -> r.getName().getValue().equals(dateTypeName + ORIGIN_SUFFIX))
-                                .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
-                                .reduce((a, b) -> b)
-                                .map(ConfigurationDmnEvaluationResponse::getValue)
-                                .map(CamundaValue::getValue)
-                                .orElse(DEFAULT_ZONED_DATE_TIME.format(DATE_TIME_FORMATTER)))
             .dateTypeIntervalDays(nextHearingDateProperties.stream()
                                       .filter(r -> r.getName().getValue().equals(dateTypeName + INTERVAL_DAYS_SUFFIX))
                                       .filter(r -> !reconfigure || r.getCanReconfigure().getValue())

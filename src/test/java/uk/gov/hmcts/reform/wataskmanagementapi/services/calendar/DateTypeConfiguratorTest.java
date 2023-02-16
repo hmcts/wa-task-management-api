@@ -34,6 +34,7 @@ public class DateTypeConfiguratorTest {
         .name(CamundaValue.stringValue("nextHearingDate"))
         .value(CamundaValue.stringValue("2023-01-10T16:00"))
         .build();
+
     @Mock
     private DateCalculator dueDateCalculator;
     @Mock
