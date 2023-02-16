@@ -22,7 +22,7 @@ java:
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
-    POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
+    POSTGRES_HOST: "{{ .Release.Name }}-postgresql-primary"
     POSTGRES_NAME: "{{ .Values.postgresql.auth.database}}"
     POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
     POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
