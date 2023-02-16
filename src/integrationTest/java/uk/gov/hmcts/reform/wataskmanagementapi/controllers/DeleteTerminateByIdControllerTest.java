@@ -269,6 +269,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             assertEquals(CFTTaskState.TERMINATED, taskInDb.get().getState());
             assertEquals("deleted", taskInDb.get().getTerminationReason());
             assertEquals(SYSTEM_USER_1, taskInDb.get().getLastUpdatedUser());
+            assertEquals(TaskAction.TERMINATE_EXCEPTION.getValue(), taskInDb.get().getLastUpdatedAction());
             assertNotNull(taskInDb.get().getLastUpdatedTimestamp());
         }
     }

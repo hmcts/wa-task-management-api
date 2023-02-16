@@ -86,6 +86,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE_EXCEPTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.buildTaskActionAttributeForAssign;
@@ -228,9 +229,7 @@ public class TaskManagementService {
     private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
         task.setLastUpdatedTimestamp(OffsetDateTime.now());
         task.setLastUpdatedUser(userId);
-        if (action != null) {
-            task.setLastUpdatedAction(action.getValue());
-        }
+        task.setLastUpdatedAction(action.getValue());
     }
 
     /**
@@ -766,7 +765,7 @@ public class TaskManagementService {
                     setSystemUserTaskActionAttributes(task, TERMINATE);
                     break;
                 default:
-                    setSystemUserTaskActionAttributes(task, null);
+                    setSystemUserTaskActionAttributes(task, TERMINATE_EXCEPTION);
                     break;
             }
 
