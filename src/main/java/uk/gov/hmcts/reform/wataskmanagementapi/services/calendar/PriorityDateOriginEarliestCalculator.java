@@ -13,9 +13,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 
 @Slf4j
 @Component
-public class PriorityDateOriginRefCalculator extends PriorityDateIntervalCalculator {
+public class PriorityDateOriginEarliestCalculator extends PriorityDateIntervalCalculator {
 
-    public PriorityDateOriginRefCalculator(WorkingDayIndicator workingDayIndicator) {
+    public PriorityDateOriginEarliestCalculator(WorkingDayIndicator workingDayIndicator) {
         super(workingDayIndicator);
     }
 
@@ -25,23 +25,20 @@ public class PriorityDateOriginRefCalculator extends PriorityDateIntervalCalcula
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         return PRIORITY_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN,
-                                               isReconfigureRequest
-        )).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(),
-                                               isReconfigureRequest
-        )).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_REF,
-                                               isReconfigureRequest
-        )).isPresent();
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN, isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
+            .isPresent();
     }
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
                                                        boolean isReconfigureRequest) {
-        return getOriginRefDate(
+        return getOriginEarliestDate(
             configResponses,
-            getProperty(configResponses, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest)
+            getProperty(configResponses, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigureRequest)
         );
     }
 }

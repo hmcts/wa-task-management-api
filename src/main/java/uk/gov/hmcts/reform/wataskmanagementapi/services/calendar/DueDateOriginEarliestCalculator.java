@@ -13,9 +13,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 
 @Slf4j
 @Component
-public class DueDateOriginRefCalculator extends DueDateIntervalCalculator {
+public class DueDateOriginEarliestCalculator extends DueDateIntervalCalculator {
 
-    public DueDateOriginRefCalculator(WorkingDayIndicator workingDayIndicator) {
+    public DueDateOriginEarliestCalculator(WorkingDayIndicator workingDayIndicator) {
         super(workingDayIndicator);
     }
 
@@ -27,16 +27,16 @@ public class DueDateOriginRefCalculator extends DueDateIntervalCalculator {
         return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_REF, isReconfigureRequest))
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
             .isPresent();
     }
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
                                                        boolean isReconfigureRequest) {
-        return getOriginRefDate(
+        return getOriginEarliestDate(
             configResponses,
-            getProperty(configResponses, DUE_DATE_ORIGIN_REF, isReconfigureRequest)
+            getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest)
         );
     }
 }

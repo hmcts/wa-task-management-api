@@ -22,7 +22,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.D
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
-class PriorityDateOriginRefCalculatorTest {
+class PriorityDateOriginEarliestCalculatorTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
@@ -31,12 +31,12 @@ class PriorityDateOriginRefCalculatorTest {
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;
 
-    private PriorityDateOriginRefCalculator priorityDateOriginRefCalculator;
+    private PriorityDateOriginEarliestCalculator priorityDateOriginEarliestCalculator;
 
     @BeforeEach
     public void before() {
-        priorityDateOriginRefCalculator
-            = new PriorityDateOriginRefCalculator(new WorkingDayIndicator(publicHolidaysCollection));
+        priorityDateOriginEarliestCalculator
+            = new PriorityDateOriginEarliestCalculator(new WorkingDayIndicator(publicHolidaysCollection));
 
         Set<LocalDate> localDates = Set.of(
             LocalDate.of(2022, 1, 3),
@@ -55,7 +55,9 @@ class PriorityDateOriginRefCalculatorTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"true", "false"})
+    @CsvSource({
+        "true", "false"
+    })
     void should_not_supports_when_responses_contains_priority_date(boolean configurable) {
 
         var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
@@ -88,7 +90,6 @@ class PriorityDateOriginRefCalculatorTest {
         var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
         var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
@@ -107,7 +108,7 @@ class PriorityDateOriginRefCalculatorTest {
             priorityDateTime
         );
 
-        assertThat(priorityDateOriginRefCalculator.supports(
+        assertThat(priorityDateOriginEarliestCalculator.supports(
             evaluationResponses,
             PRIORITY_DATE_TYPE,
             configurable
@@ -115,7 +116,9 @@ class PriorityDateOriginRefCalculatorTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"true", "false"})
+    @CsvSource({
+        "true", "false"
+    })
     void should_not_supports_when_responses_contains_priority_date_origin(boolean configurable) {
         String expectedPriorityDate = GIVEN_DATE.plusDays(0)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -128,19 +131,18 @@ class PriorityDateOriginRefCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin);
 
-        assertThat(priorityDateOriginRefCalculator.supports(
-            evaluationResponses,
-            PRIORITY_DATE_TYPE,
-            configurable
-        )).isFalse();
+        assertThat(priorityDateOriginEarliestCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
+            .isFalse();
     }
 
 
     @ParameterizedTest
-    @CsvSource({"true", "false"})
+    @CsvSource({
+        "true", "false"
+    })
     void should_supports_when_responses_only_contains_priority_date_origin_ref(boolean configurable) {
-        var priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateOriginRef"))
+        var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -151,19 +153,22 @@ class PriorityDateOriginRefCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOriginRef, priorityDateTime);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses
+            = List.of(priorityDateOriginEarliest, priorityDateTime);
 
-        assertThat(priorityDateOriginRefCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
+        assertThat(priorityDateOriginEarliestCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
             .isTrue();
     }
 
     @ParameterizedTest
-    @CsvSource({"true,T18:00", "false,T18:00"})
-    void shouldCalculateNotNullWhenOriginDateValueProvided(boolean configurable, String time) {
+    @CsvSource({
+        "true", "false"
+    })
+    void shouldCalculateNotNullWhenOriginDateValueProvided(boolean configurable) {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        var priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateOriginRef"))
+        var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -171,12 +176,11 @@ class PriorityDateOriginRefCalculatorTest {
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        var configurationDmnEvaluationResponse = priorityDateOriginRefCalculator
+        var configurationDmnEvaluationResponse = priorityDateOriginEarliestCalculator
             .calculateDate(
-                readPriorityDateOriginFields(priorityDateOriginRef, nextHearingDate),
+                readPriorityDateOriginFields(configurable, priorityDateOriginEarliest, nextHearingDate),
                 PRIORITY_DATE_TYPE,
                 configurable
             );
@@ -184,24 +188,26 @@ class PriorityDateOriginRefCalculatorTest {
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        assertThat(resultDate).isEqualTo(expectedPriorityDate + time);
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T18:00");
     }
 
     @ParameterizedTest
-    @CsvSource({"true,T18:00", "false,T18:00"})
-    void shouldCalculateWithOriginRefDateProvided(boolean configurable, String time) {
+    @CsvSource({
+        "true", "false"
+    })
+    void shouldCalculateWithOriginRefDateProvided(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        var priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateOriginRef"))
+        var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(latestDateTime + "T18:00"))
+            .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
@@ -212,9 +218,10 @@ class PriorityDateOriginRefCalculatorTest {
             .build();
 
 
-        var configurationDmnEvaluationResponse = priorityDateOriginRefCalculator.calculateDate(
+        var configurationDmnEvaluationResponse = priorityDateOriginEarliestCalculator.calculateDate(
             readPriorityDateOriginFields(
-                priorityDateOriginRef,
+                configurable,
+                priorityDateOriginEarliest,
                 nextHearingDate,
                 priorityDate
             ),
@@ -223,35 +230,31 @@ class PriorityDateOriginRefCalculatorTest {
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
-        assertThat(resultDate).isEqualTo(latestDateTime + time);
+        assertThat(resultDate).isEqualTo(localDateTime + "T18:00");
     }
 
     @ParameterizedTest
-    @CsvSource({"true,T18:00", "false,T18:00"})
-    void shouldCalculateWithOriginRefDateProvidedAndIntervalIsGreaterThan0(boolean configurable, String time) {
+    @CsvSource({
+        "true", "false"
+    })
+    void shouldCalculateWithOriginRefDateProvidedAndIntervalIsGreaterThan0(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        var priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateOriginRef"))
+        var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
             .value(CamundaValue.stringValue("priorityDate,nextHearingDate"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        ConfigurationDmnEvaluationResponse calculatedDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("priorityDate,nextHearingDate,priorityDate"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        var priorityDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDate"))
-            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+
+        var priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -262,80 +265,76 @@ class PriorityDateOriginRefCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginRefCalculator
+        LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginEarliestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
-                                                                   priorityDateOriginRef,
+                                                                   configurable,
+                                                                   priorityDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    priorityDate,
-                                                                   calculatedDate,
-                                                                   nextHearingDate,
                                                                    priorityDateIntervalDays
                                                                ),
                                                                PRIORITY_DATE_TYPE,
                                                                configurable
                                                            ).getValue().getValue());
 
-        String expectedPriorityDate = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String expectedPriorityDate = GIVEN_DATE.plusDays(1)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        assertThat(resultDate).isEqualTo(expectedPriorityDate + time);
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T18:00");
     }
 
     @ParameterizedTest
-    @CsvSource({"true,T18:00", "false,T18:00"})
-    void shouldCalculateWithOriginRefDateProvidedAndGivenHolidays(boolean configurable, String time) {
+    @CsvSource({
+        "true", "false"
+    })
+    void shouldCalculateWithOriginRefDateProvidedAndGivenHolidays(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        var priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateOriginRef"))
-            .value(CamundaValue.stringValue("priorityDate,nextHearingDate"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+        var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
 
-        ConfigurationDmnEvaluationResponse calculatedDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("priorityDate,nexHearingDate,priorityDate"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDate"))
+            .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         var priorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
-            .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        ConfigurationDmnEvaluationResponse nexHearingDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nexHearingDate"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("5"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
 
-        LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginRefCalculator
+
+        LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginEarliestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
-                                                                   priorityDateOriginRef,
+                                                                   configurable,
+                                                                   priorityDateOriginEarliest,
+                                                                   nextHearingDate,
                                                                    priorityDate,
-                                                                   calculatedDate,
-                                                                   nexHearingDate,
                                                                    priorityDateNonWorkingDaysOfWeek,
                                                                    priorityDateIntervalDays,
                                                                    priorityDateSkipNonWorkingDays
@@ -344,57 +343,61 @@ class PriorityDateOriginRefCalculatorTest {
                                                                configurable
                                                            ).getValue().getValue());
 
-        String expectedPriorityDate = GIVEN_DATE.plusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String expectedPriorityDate = GIVEN_DATE.plusDays(5)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        assertThat(resultDate).isEqualTo(expectedPriorityDate + time);
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T18:00");
     }
 
     @ParameterizedTest
-    @CsvSource({"true,T18:00", "false,T18:00"})
-    void shouldCalculateWithOriginRefDateProvidedAndSkipNonWorkingDaysFalse(boolean configurable, String time) {
+    @CsvSource({
+        "true", "false"
+    })
+    void shouldCalculateWithOriginRefDateProvidedAndSkipNonWorkingDaysFalse(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        var priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateOriginRef"))
-            .value(CamundaValue.stringValue("priorityDate,nextHearingDate"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+        var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
             .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         var priorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("5"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
 
-        LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginRefCalculator
+
+        LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginEarliestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
-                                                                   priorityDateOriginRef,
+                                                                   configurable,
+                                                                   priorityDateOriginEarliest,
                                                                    nextHearingDate,
                                                                    priorityDate,
                                                                    priorityDateIntervalDays,
@@ -407,65 +410,61 @@ class PriorityDateOriginRefCalculatorTest {
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        assertThat(resultDate).isEqualTo(expectedPriorityDate + time);
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T18:00");
     }
 
     @ParameterizedTest
-    @CsvSource({"true,T18:00", "false,T18:00"})
-    void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessNext(boolean configurable, String time) {
+    @CsvSource({
+        "true", "false"
+    })
+    void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessNext(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        var priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateOriginRef"))
-            .value(CamundaValue.stringValue("priorityDate,nextHearingDate"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+        var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
 
-        ConfigurationDmnEvaluationResponse calculatedDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("priorityDate,nextHearingDate,priorityDate"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        var priorityDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDate"))
-            .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
+            .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
+
+        var priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
         var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("2"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
         var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
         var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
         var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
 
-        String dateValue = priorityDateOriginRefCalculator.calculateDate(
+
+        String dateValue = priorityDateOriginEarliestCalculator.calculateDate(
             readPriorityDateOriginFields(
-                priorityDateOriginRef,
-                priorityDate,
-                calculatedDate,
+                configurable,
+                priorityDateOriginEarliest,
                 nextHearingDate,
+                priorityDate,
                 priorityDateMustBeWorkingDay,
                 priorityDateNonWorkingDaysOfWeek,
                 priorityDateSkipNonWorkingDays,
@@ -476,61 +475,64 @@ class PriorityDateOriginRefCalculatorTest {
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
-        String expectedPriorityDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        assertThat(resultDate).isEqualTo(expectedPriorityDate + time);
+        String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T18:00");
     }
 
     @ParameterizedTest
-    @CsvSource({"true,T18:00", "false,T18:00"})
-    void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessPrevious(boolean configurable, String time) {
+    @CsvSource({
+        "true", "false"
+    })
+    void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessPrevious(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        var priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateOriginRef"))
-            .value(CamundaValue.stringValue("priorityDate,nextHearingDate"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+        var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
 
-        var priorityDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDate"))
-            .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
+            .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
+
+        var priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateIntervalDays"))
             .value(CamundaValue.stringValue("2"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
 
         var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
         var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("false"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
+
         var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
+            .canReconfigure(CamundaValue.booleanValue(configurable)).build();
 
-        var configurationDmnEvaluationResponse = priorityDateOriginRefCalculator.calculateDate(
+
+        var configurationDmnEvaluationResponse = priorityDateOriginEarliestCalculator.calculateDate(
             readPriorityDateOriginFields(
-                priorityDateOriginRef,
-                priorityDate,
+                configurable,
+                priorityDateOriginEarliest,
                 nextHearingDate,
+                priorityDate,
                 priorityDateIntervalDays,
                 priorityDateMustBeWorkingDay,
                 priorityDateNonWorkingDaysOfWeek,
@@ -541,48 +543,48 @@ class PriorityDateOriginRefCalculatorTest {
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
-        String expectedPriorityDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        assertThat(resultDate).isEqualTo(expectedPriorityDate + time);
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T18:00");
     }
 
     private List<ConfigurationDmnEvaluationResponse> readPriorityDateOriginFields(
+        boolean configurable,
         ConfigurationDmnEvaluationResponse... fields) {
         List<ConfigurationDmnEvaluationResponse> allFields = new ArrayList<>(List.of(
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateIntervalDays"))
                 .value(CamundaValue.stringValue("0"))
-                .canReconfigure(CamundaValue.booleanValue(true))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
                 .value(CamundaValue.stringValue(CALENDAR_URI))
-                .canReconfigure(CamundaValue.booleanValue(true))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
                 .value(CamundaValue.stringValue(""))
-                .canReconfigure(CamundaValue.booleanValue(true))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
                 .value(CamundaValue.stringValue("true"))
-                .canReconfigure(CamundaValue.booleanValue(true))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
                 .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
-                .canReconfigure(CamundaValue.booleanValue(true))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateTime"))
                 .value(CamundaValue.stringValue("18:00"))
-                .canReconfigure(CamundaValue.booleanValue(true))
+                .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build()
         ));
         allFields.addAll(List.of(fields));
 
         return allFields;
     }
-
 }

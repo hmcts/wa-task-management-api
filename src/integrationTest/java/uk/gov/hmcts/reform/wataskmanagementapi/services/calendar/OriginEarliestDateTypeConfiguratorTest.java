@@ -19,7 +19,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHo
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
-public class OriginRefDateTypeConfiguratorTest {
+public class OriginEarliestDateTypeConfiguratorTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 
@@ -33,22 +33,22 @@ public class OriginRefDateTypeConfiguratorTest {
 
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
-    private String isReConfigurationRequest = "false";
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    public void should_calculate_both_dates_when_multiple_origin_refs_exist_for_two_date_types(boolean configurable) {
+    public void should_calculate_both_dates_when_multiple_origin_earliest_exist_for_two_date_types(
+        boolean configurable) {
         String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
 
-        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOriginRef"))
+        ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateOriginRef"))
-            .value(CamundaValue.stringValue("dueDate,nextHearingDate"))
+        ConfigurationDmnEvaluationResponse priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
+            .value(CamundaValue.stringValue("nextHearingDate,dueDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
@@ -65,7 +65,7 @@ public class OriginRefDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueAndPriorityDateOriginFields(
-            configurable, dueDateOriginRef, priorityDateOriginRef, calculatedDates, nextHearingDate);
+            configurable, dueDateOriginEarliest, priorityDateOriginEarliest, calculatedDates, nextHearingDate);
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
             = dateTypeConfigurator.configureDates(evaluationResponses, false, false);
@@ -84,20 +84,20 @@ public class OriginRefDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
+                    .value(CamundaValue.stringValue("2022-10-16T17:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
-                    .value(CamundaValue.stringValue("2022-10-26T21:00"))
+                    .value(CamundaValue.stringValue("2022-10-19T21:00"))
                     .build()
             ));
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    public void should_calculate_date_when_single_origin_refs_exist(boolean configurable) {
-        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOriginRef"))
+    public void should_calculate_date_when_single_origin_earliest_exist(boolean configurable) {
+        ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -121,7 +121,7 @@ public class OriginRefDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueDateOriginFields(
-            configurable, dueDateOriginRef, priorityDate, calculatedDates, nextHearingDate);
+            configurable, dueDateOriginEarliest, priorityDate, calculatedDates, nextHearingDate);
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
             = dateTypeConfigurator.configureDates(evaluationResponses, false, false);
@@ -140,7 +140,7 @@ public class OriginRefDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
+                    .value(CamundaValue.stringValue("2022-10-16T17:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -151,10 +151,10 @@ public class OriginRefDateTypeConfiguratorTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    public void should_calculate_date_when_single_origin_refs_containing_two_dates_with_first_empty_exist(
+    public void should_calculate_date_when_single_origin_earliest_containing_two_dates_with_first_empty_exist(
         boolean configurable) {
-        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOriginRef"))
+        ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -173,10 +173,10 @@ public class OriginRefDateTypeConfiguratorTest {
 
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueDateOriginFields(
-            configurable, dueDateOriginRef, priorityDate, calculatedDates);
+            configurable, dueDateOriginEarliest, priorityDate, calculatedDates);
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
-            = dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+            = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable);
 
         Assertions.assertThat(configurationDmnEvaluationResponses)
             .hasSize(3)
@@ -188,7 +188,7 @@ public class OriginRefDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-19T17:00"))
+                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -230,7 +230,7 @@ public class OriginRefDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+                .value(CamundaValue.stringValue(""))
                 .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
@@ -265,7 +265,7 @@ public class OriginRefDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+                .value(CamundaValue.stringValue(""))
                 .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
@@ -293,7 +293,7 @@ public class OriginRefDateTypeConfiguratorTest {
 
         //Clocks go back an hour at 2:00am
         ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOriginRef"))
+            .name(CamundaValue.stringValue("dueDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -304,7 +304,12 @@ public class OriginRefDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue(priorityDateValue))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
-
+        String nextHearingDateValue = localDateTime + "T16:00";
+        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDate"))
+            .value(CamundaValue.stringValue(nextHearingDateValue))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
         ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateIntervalDays"))
             .value(CamundaValue.stringValue("4"))
@@ -341,13 +346,18 @@ public class OriginRefDateTypeConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay, priorityDate,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOriginRef, dueDateTime
+                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOriginRef, dueDateTime,
+                        nextHearingDate
                 ),
                 false, configurable
             );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(nextHearingDateValue))
+                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue("2022-10-30T02:30"))
@@ -366,7 +376,7 @@ public class OriginRefDateTypeConfiguratorTest {
 
         //Clocks go forward an hour at 1:00am
         ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOriginRef"))
+            .name(CamundaValue.stringValue("dueDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -377,7 +387,12 @@ public class OriginRefDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue(priorityDateValue))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
-
+        String nextHearingDateValue = localDateTime + "T16:00";
+        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDate"))
+            .value(CamundaValue.stringValue(nextHearingDateValue))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
         ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateIntervalDays"))
             .value(CamundaValue.stringValue("4"))
@@ -414,13 +429,18 @@ public class OriginRefDateTypeConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay, priorityDate,
-                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOriginRef, dueDateTime
+                        dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOriginRef, dueDateTime,
+                        nextHearingDate
                 ),
                 false, configurable
             );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
+        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDate"))
+                    .value(CamundaValue.stringValue(nextHearingDateValue))
+                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue("2023-03-30T01:30"))
@@ -431,6 +451,5 @@ public class OriginRefDateTypeConfiguratorTest {
                     .build()
             ));
     }
-
 
 }

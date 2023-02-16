@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -25,10 +26,10 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return PRIORITY_DATE == dateType
+        return PRIORITY_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN,
                                                isReconfigureRequest
         )).isPresent()
@@ -40,7 +41,7 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType, boolean isReconfigureRequest) {
+        DateTypeObject dateType, boolean isReconfigureRequest) {
         return calculateDate(
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
@@ -106,7 +107,7 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
                               .reduce((a, b) -> b)
                               .map(ConfigurationDmnEvaluationResponse::getValue)
                               .map(CamundaValue::getValue)
-                              .orElse(DEFAULT_DATE_TIME))
+                              .orElse(null))
             .build();
     }
 
