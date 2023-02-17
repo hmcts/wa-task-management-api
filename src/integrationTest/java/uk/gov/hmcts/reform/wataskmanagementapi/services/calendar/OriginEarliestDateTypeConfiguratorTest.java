@@ -32,7 +32,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
 
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
-    
+
     @Test
     public void should_calculate_both_dates_when_multiple_origin_earliest_exist_for_two_date_types() {
         String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
@@ -76,11 +76,11 @@ public class OriginEarliestDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-16T17:00"))
+                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
-                    .value(CamundaValue.stringValue("2022-10-19T21:00"))
+                    .value(CamundaValue.stringValue("2022-10-21T21:00"))
                     .build()
             ));
     }
@@ -126,7 +126,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-16T17:00"))
+                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -168,7 +168,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
+                    .value(CamundaValue.stringValue("2022-10-19T17:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -206,7 +206,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
@@ -214,7 +214,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-                .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+                .value(CamundaValue.stringValue("No"))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateTime"))
@@ -235,7 +235,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
@@ -243,7 +243,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
-                .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+                .value(CamundaValue.stringValue("No"))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateTime"))
