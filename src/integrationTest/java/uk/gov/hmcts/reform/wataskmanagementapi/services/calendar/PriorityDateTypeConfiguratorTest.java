@@ -21,10 +21,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalc
 @ActiveProfiles({"integration"})
 public class PriorityDateTypeConfiguratorTest {
 
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 
-    public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 00, 00);
-    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 03, 26, 18, 00, 00);
+    public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 0, 0);
+    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 3, 26, 18, 0, 0);
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
     private String isReConfigurationRequest = "false";
