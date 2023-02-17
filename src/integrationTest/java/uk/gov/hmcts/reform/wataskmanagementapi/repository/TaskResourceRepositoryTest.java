@@ -623,10 +623,11 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             taskResourceRepository.save(createdTask);
         });
 
-        String[] filterSignature = {"*:IA:*:*:1:765324"};
-        //String[] roleSignature = {"IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*"};
+        Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
 
-        Long taskCount = taskResourceRepository.searchTasksCount(filterSignature);
+        Long taskCount = taskResourceRepository.searchTasksCount(filterSignature, roleSignature,
+            List.of(), SearchRequest.builder().build());
         assertEquals(2, taskCount);
     }
 

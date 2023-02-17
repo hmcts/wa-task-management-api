@@ -130,7 +130,6 @@ public class CFTTaskDatabaseService {
     }
 
 
-
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
         return roleAssignments.stream()
             .filter(ra -> ra.getGrantType() == GrantType.EXCLUDED)
