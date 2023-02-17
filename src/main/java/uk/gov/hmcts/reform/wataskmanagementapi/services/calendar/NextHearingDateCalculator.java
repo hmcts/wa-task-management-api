@@ -23,7 +23,8 @@ public class NextHearingDateCalculator extends DueDateCalculator {
 
         return NEXT_HEARING_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigure))
-            .isPresent();
+            .isPresent()
+            || hasDateOriginAttributes(dueDateProperties, isReconfigure);
     }
 
     @Override

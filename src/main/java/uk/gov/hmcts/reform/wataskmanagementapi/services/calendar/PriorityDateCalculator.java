@@ -22,8 +22,8 @@ public class PriorityDateCalculator extends DueDateCalculator {
         boolean isReconfigure) {
 
         return PRIORITY_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigure))
-            .isPresent();
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigure)).isPresent()
+            || hasDateOriginAttributes(dueDateProperties, isReconfigure);
     }
 
     @Override

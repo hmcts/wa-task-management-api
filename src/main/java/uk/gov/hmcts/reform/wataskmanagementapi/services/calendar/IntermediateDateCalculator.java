@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
 
 @Slf4j
@@ -23,7 +22,8 @@ public class IntermediateDateCalculator extends DueDateCalculator {
 
         String dateTypeName = dateTypeObject.dateTypeName();
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigure)).isPresent();
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigure)).isPresent()
+            || hasDateOriginAttributes(dateTypeName, dueDateProperties, isReconfigure);
     }
 
     @Override
@@ -45,13 +45,13 @@ public class IntermediateDateCalculator extends DueDateCalculator {
                                             List<ConfigurationDmnEvaluationResponse> dueDateProperties,
                                             boolean isReconfigure) {
         return Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, !isReconfigure)).isPresent()
-            && (Optional.ofNullable(getProperty(dueDateProperties, dateTypeName +ORIGIN_SUFFIX, isReconfigure))
-                .isPresent()
+            && (Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_SUFFIX, isReconfigure))
+            .isPresent()
             || Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigure))
-                    .isPresent()
+            .isPresent()
             || Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigure))
-                    .isPresent()
+            .isPresent()
             || Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_LATEST_SUFFIX, isReconfigure))
-                    .isPresent());
+            .isPresent());
     }
 }
