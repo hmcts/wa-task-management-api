@@ -137,7 +137,7 @@ class NextHearingDateOriginEarliestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void should_supports_when_responses_only_contains_next_hearing_date_origin_ref(boolean configurable) {
+    void should_supports_when_responses_only_contains_next_hearing_date_origin_earliest(boolean configurable) {
 
         var nextHearingDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateOriginEarliest"))
