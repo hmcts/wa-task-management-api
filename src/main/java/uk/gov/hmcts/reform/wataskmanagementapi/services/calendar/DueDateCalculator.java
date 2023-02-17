@@ -23,19 +23,21 @@ public class DueDateCalculator implements DateCalculator {
         boolean isReconfigure) {
 
         return DUE_DATE == dateTypeObject.dateType()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigure)).isPresent()
+            || hasDateOriginAttributes(dueDateProperties, isReconfigure);
+    }
+
+    private boolean hasDateOriginAttributes(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+                                            boolean isReconfigure) {
+        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), !isReconfigure)).isPresent()
             &&
-            Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigure)).isPresent()
+            (Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigure)).isPresent()
             ||
-            (Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), !isReconfigure)).isPresent()
-                &&
-                Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigure)).isPresent()
-                ||
-                Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_REF, isReconfigure)).isPresent()
-                ||
-                Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigure)).isPresent()
-                ||
-                Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_LATEST, isReconfigure)).isPresent()
-            );
+            Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_REF, isReconfigure)).isPresent()
+            ||
+            Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigure)).isPresent()
+            ||
+            Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_LATEST, isReconfigure)).isPresent());
     }
 
     @Override
