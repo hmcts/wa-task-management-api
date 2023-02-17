@@ -355,7 +355,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
         SearchRequest searchRequest = SearchRequest.builder()
             .requestContext(RequestContext.AVAILABLE_TASKS)
-            .cftTaskStates(List.of(CFTTaskState.UNASSIGNED))
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.DESCENDANT)))
             .build();
 
@@ -382,7 +382,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
         SearchRequest searchRequest = SearchRequest.builder()
             .requestContext(RequestContext.AVAILABLE_TASKS)
-            .cftTaskStates(List.of(CFTTaskState.UNASSIGNED))
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.DESCENDANT)))
             .build();
 

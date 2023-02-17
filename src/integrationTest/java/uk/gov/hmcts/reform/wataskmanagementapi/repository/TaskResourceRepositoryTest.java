@@ -625,9 +625,15 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
+            .caseIds(List.of("1623278362430412"))
+            .taskTypes(List.of("startAppeal"))
+            .users(List.of("someAssignee"))
+            .build();
 
         Long taskCount = taskResourceRepository.searchTasksCount(filterSignature, roleSignature,
-            List.of(), SearchRequest.builder().build());
+            List.of("9999999999999"), request);
         assertEquals(2, taskCount);
     }
 
