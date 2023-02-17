@@ -37,4 +37,18 @@ public class NextHearingDateCalculator extends DueDateCalculator {
             getProperty(configResponses, NEXT_HEARING_DATE_TIME, isReconfigureRequest)
         );
     }
+
+
+    private boolean hasDateOriginAttributes(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+                                            boolean isReconfigure) {
+        return Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), !isReconfigure))
+            .isPresent()
+            && (Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN, isReconfigure)).isPresent()
+            || Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigure))
+            .isPresent()
+            || Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigure))
+            .isPresent()
+            || Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN_LATEST, isReconfigure))
+            .isPresent());
+    }
 }

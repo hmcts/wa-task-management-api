@@ -27,19 +27,6 @@ public class DueDateCalculator implements DateCalculator {
             || hasDateOriginAttributes(dueDateProperties, isReconfigure);
     }
 
-    private boolean hasDateOriginAttributes(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-                                            boolean isReconfigure) {
-        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), !isReconfigure)).isPresent()
-            &&
-            (Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigure)).isPresent()
-            ||
-            Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_REF, isReconfigure)).isPresent()
-            ||
-            Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigure)).isPresent()
-            ||
-            Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_LATEST, isReconfigure)).isPresent());
-    }
-
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
@@ -47,6 +34,15 @@ public class DueDateCalculator implements DateCalculator {
         var dueDateResponse = getProperty(configResponses, DUE_DATE.getType(), isReconfigureRequest);
         var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest);
         return calculatedDate(dateType, dueDateResponse, dueDateTimeResponse);
+    }
+
+    private boolean hasDateOriginAttributes(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+                                            boolean isReconfigure) {
+        return Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), !isReconfigure)).isPresent()
+            && (Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigure)).isPresent()
+            || Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_REF, isReconfigure)).isPresent()
+            || Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigure)).isPresent()
+            || Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_LATEST, isReconfigure)).isPresent());
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(
