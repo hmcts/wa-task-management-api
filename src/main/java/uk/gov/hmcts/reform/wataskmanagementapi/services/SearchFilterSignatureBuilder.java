@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings({
+    "PMD.CognitiveComplexity"})
 public final class SearchFilterSignatureBuilder {
     private static final Set<String> WILDCARD = Collections.singleton("*");
 

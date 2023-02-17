@@ -14,8 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DueDateIntervalData.DUE_DATE_MUST_BE_WORKING_DAY_PREVIOUS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
 
 @Slf4j

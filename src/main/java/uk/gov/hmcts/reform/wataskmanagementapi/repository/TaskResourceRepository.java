@@ -19,6 +19,8 @@ import java.util.Optional;
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
+@SuppressWarnings({
+    "PMD.UseVarargs"})
 public interface TaskResourceRepository extends CrudRepository<TaskResource, String>,
     JpaSpecificationExecutor<TaskResource> {
 

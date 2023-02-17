@@ -97,11 +97,9 @@ public class CFTTaskDatabaseService {
                                                  AccessControlResponse accessControlResponse,
                                                  boolean granularPermissionResponseFeature) {
 
-        List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
         Set<String> filters = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
 
         String[] filterSignature = filters.toArray(new String[0]);
-        String[] roleSignature = {};
 
         List<String> taskIds = tasksRepository.searchTasksIds(filterSignature);
 
@@ -115,6 +113,7 @@ public class CFTTaskDatabaseService {
             = tasksRepository.findAllByTaskIdIn(taskIds, sort);
 
         Long count = tasksRepository.searchTasksCount(filterSignature);
+        List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
