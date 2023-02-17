@@ -1,18 +1,12 @@
 --
 -- Copies a task record into the history table.
 --
-create or replace function cft_task_db.add_task_history(l_task cft_task_db.tasks, l_is_delete boolean)
-  returns bigint
-  language plpgsql
-as $$
+CREATE OR REPLACE FUNCTION cft_task_db.add_task_history(l_task cft_task_db.tasks, l_is_delete boolean)
+ RETURNS bigint
+ LANGUAGE plpgsql
+AS $function$
 declare
-l_update_id bigint;
-  -- l_updated_by text := case when l_is_delete then null else l_task.updated_by end;
-  -- l_updated timestamp := case when l_is_delete then now() else l_task.updated end;
-  -- l_update_action text := case when l_is_delete then 'DELETE' else l_task.update_action end;
-  l_updated_by text := case when l_is_delete then null else 'tasks.updated_by field to be added' end;
-  l_updated timestamp := case when l_is_delete then now() else now() end;
-  l_update_action text := case when l_is_delete then 'DELETE' else 'tasks.update_action field to be added' end;
+  l_update_id bigint;
 begin
 insert into cft_task_db.task_history
 (task_id, task_name, task_type, due_date_time,
@@ -32,11 +26,13 @@ values
    l_task.role_category, l_task.has_warnings, l_task.assignment_expiry,
    l_task.case_id, l_task.case_type_id, l_task.case_category, l_task.case_name,
    l_task.jurisdiction, l_task.region, l_task.location, l_task.business_context,
-   l_task.termination_reason, l_task.created, l_updated_by, l_updated,
-   l_update_action)
+   l_task.termination_reason, l_task.created, l_task.last_updated_user, l_task.last_updated_timestamp,
+   l_task.last_updated_action)
   returning update_id into l_update_id;
 return l_update_id;
-end $$;
+end $function$
+;
+
 
 --
 -- Function to call from triggers whenever a task record is inserted or updated.
