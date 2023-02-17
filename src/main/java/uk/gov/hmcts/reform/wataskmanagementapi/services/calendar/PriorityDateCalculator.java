@@ -19,10 +19,10 @@ public class PriorityDateCalculator extends DueDateCalculator {
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest) {
+        boolean isReconfigure) {
 
         return PRIORITY_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest))
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigure))
             .isPresent();
     }
 

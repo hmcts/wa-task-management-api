@@ -20,11 +20,22 @@ public class DueDateCalculator implements DateCalculator {
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest) {
+        boolean isReconfigure) {
 
         return DUE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest))
-            .isPresent();
+            &&
+            Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigure)).isPresent()
+            ||
+            (Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), !isReconfigure)).isPresent()
+                &&
+                Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigure)).isPresent()
+                ||
+                Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_REF, isReconfigure)).isPresent()
+                ||
+                Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigure)).isPresent()
+                ||
+                Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_LATEST, isReconfigure)).isPresent()
+            );
     }
 
     @Override
