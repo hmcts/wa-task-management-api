@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -46,8 +47,8 @@ class PriorityDateIntervalCalculatorTest {
 
     private static Stream<ConfigurableScenario> getConfigurablesWithoutPriorityDate() {
         return Stream.of(
-            new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T16:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T16:00")
+            new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00")
         );
     }
 
@@ -333,6 +334,63 @@ class PriorityDateIntervalCalculatorTest {
         assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
     }
 
+    @Test
+    void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessNext() {
+        String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .build();
+
+        var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateIntervalDays"))
+            .value(CamundaValue.stringValue("2"))
+            .build();
+        var priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
+            .build();
+
+        var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .build();
+        var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("false"))
+            .build();
+        var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+            .build();
+
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
+            .value(CamundaValue.stringValue("18:00"))
+            .build();
+
+        String dateValue = priorityDateIntervalCalculator.calculateDate(
+            List.of(
+                priorityDateIntervalDays,
+                priorityDateNonWorkingCalendar,
+                priorityDateMustBeWorkingDay,
+                priorityDateNonWorkingDaysOfWeek,
+                priorityDateSkipNonWorkingDays,
+                priorityDateOrigin,
+                priorityDateTime
+            ),
+            PRIORITY_DATE,
+            false
+        ).getValue().getValue();
+        LocalDateTime resultDate = LocalDateTime.parse(dateValue);
+
+        String expectedPriorityDate = GIVEN_DATE.plusDays(4)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        assertThat(resultDate).isEqualTo(expectedPriorityDate + "T18:00");
+    }
+
     @ParameterizedTest
     @MethodSource({"getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse"})
     void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessFalse(ConfigurableScenario scenario) {
@@ -448,8 +506,8 @@ class PriorityDateIntervalCalculatorTest {
 
     @ParameterizedTest
     @CsvSource({
-        "true, T16:00",
-        "false, T16:00"
+        "true, T20:00",
+        "false, T20:00"
     })
     void shouldCalculateWhenOnlyPriorityDateOriginProvided(boolean configurable, String time) {
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);

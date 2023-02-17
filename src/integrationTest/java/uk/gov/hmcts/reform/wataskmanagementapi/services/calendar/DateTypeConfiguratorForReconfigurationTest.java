@@ -65,7 +65,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(thirdDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(thirdDueDate + "T10:00"))
                                    .build()));
     }
 
@@ -348,7 +348,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(givenDueDate + "T20:00"))
                                    .build()));
 
     }

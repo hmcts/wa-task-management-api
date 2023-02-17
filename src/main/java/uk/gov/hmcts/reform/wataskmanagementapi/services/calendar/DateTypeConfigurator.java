@@ -20,7 +20,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class DateTypeConfigurator {
 
-    public static final String IA_JURISDICTION = "IA";
     public static final String CALCULATED_DATES = "calculatedDates";
     private final List<DateCalculator> dateCalculators;
 
