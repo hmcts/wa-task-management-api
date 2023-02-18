@@ -29,6 +29,8 @@ public class PriorityDateOriginLatestCalculator extends PriorityDateIntervalCalc
             .isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest))
             .isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), !isReconfigureRequest))
+            .isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_LATEST, isReconfigureRequest))
             .isPresent();
     }

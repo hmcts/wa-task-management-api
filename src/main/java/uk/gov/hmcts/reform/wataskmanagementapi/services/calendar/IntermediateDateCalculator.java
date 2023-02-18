@@ -22,8 +22,7 @@ public class IntermediateDateCalculator extends DueDateCalculator {
 
         String dateTypeName = dateTypeObject.dateTypeName();
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigure)).isPresent()
-            || hasDateOriginAttributes(dateTypeName, dueDateProperties, isReconfigure);
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigure)).isPresent();
     }
 
     @Override
@@ -38,20 +37,5 @@ public class IntermediateDateCalculator extends DueDateCalculator {
             getProperty(configResponses, dateTypeName, isReconfigureRequest),
             getProperty(configResponses, dateTypeName + TIME_SUFFIX, isReconfigureRequest)
         );
-    }
-
-
-    private boolean hasDateOriginAttributes(String dateTypeName,
-                                            List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-                                            boolean isReconfigure) {
-        return Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, !isReconfigure)).isPresent()
-            && (Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_SUFFIX, isReconfigure))
-            .isPresent()
-            || Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigure))
-            .isPresent()
-            || Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigure))
-            .isPresent()
-            || Optional.ofNullable(getProperty(dueDateProperties, dateTypeName + ORIGIN_LATEST_SUFFIX, isReconfigure))
-            .isPresent());
     }
 }

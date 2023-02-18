@@ -22,8 +22,7 @@ public class PriorityDateCalculator extends DueDateCalculator {
         boolean isReconfigure) {
 
         return PRIORITY_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigure)).isPresent()
-            || hasDateOriginAttributes(dueDateProperties, isReconfigure);
+            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigure)).isPresent();
     }
 
     @Override
@@ -33,17 +32,5 @@ public class PriorityDateCalculator extends DueDateCalculator {
         var priorityDateResponse = getProperty(priorityDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest);
         var priorityDateTimeResponse = getProperty(priorityDateProperties, PRIORITY_DATE_TIME, isReconfigureRequest);
         return calculatedDate(dateType, priorityDateResponse, priorityDateTimeResponse);
-    }
-
-
-    private boolean hasDateOriginAttributes(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-                                            boolean isReconfigure) {
-        return Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), !isReconfigure)).isPresent()
-            && (Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN, isReconfigure)).isPresent()
-            || Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_REF, isReconfigure)).isPresent()
-            || Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigure))
-            .isPresent()
-            || Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_LATEST, isReconfigure))
-            .isPresent());
     }
 }

@@ -38,6 +38,7 @@ public class IntermediateDateOriginEarliestCalculator extends IntermediateDateIn
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(intermediateOrigin).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, !isReconfigureRequest)).isEmpty()
             && Optional.ofNullable(intermediateOriginEarliest).isPresent();
     }
 

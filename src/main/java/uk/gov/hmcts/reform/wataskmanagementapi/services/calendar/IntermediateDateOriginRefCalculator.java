@@ -38,6 +38,7 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(origin).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, !isReconfigureRequest)).isEmpty()
             && Optional.ofNullable(originRef).isPresent();
     }
 

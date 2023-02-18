@@ -37,7 +37,8 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         );
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(intermediateOrigin).isPresent()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigureRequest)).isEmpty();
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, !isReconfigureRequest)).isEmpty();
     }
 
     @Override
