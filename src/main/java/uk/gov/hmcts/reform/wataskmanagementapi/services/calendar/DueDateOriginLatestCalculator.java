@@ -27,8 +27,7 @@ public class DueDateOriginLatestCalculator extends DueDateIntervalCalculator {
         boolean isReconfigureRequest) {
 
         return DUE_DATE == dateType.dateType()
-            && Optional.ofNullable(getProperty(configResponses, DUE_DATE.getType(), isReconfigureRequest)).isEmpty()
-            && Optional.ofNullable(getProperty(configResponses, DUE_DATE.getType(), !isReconfigureRequest)).isEmpty()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, DUE_DATE.getType())
             && Optional.ofNullable(getProperty(configResponses, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
             && Optional.ofNullable(getProperty(configResponses, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest))
             .isPresent();

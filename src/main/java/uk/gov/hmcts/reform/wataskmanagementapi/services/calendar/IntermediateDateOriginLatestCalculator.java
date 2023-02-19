@@ -28,8 +28,7 @@ public class IntermediateDateOriginLatestCalculator extends IntermediateDateInte
 
         String dateTypeName = dateType.dateTypeName();
         return INTERMEDIATE_DATE == dateType.dateType()
-            && Optional.ofNullable(getProperty(configResponses, dateTypeName, isReconfigureRequest)).isEmpty()
-            && Optional.ofNullable(getProperty(configResponses, dateTypeName, !isReconfigureRequest)).isEmpty()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, dateTypeName)
             && Optional.ofNullable(getProperty(configResponses, dateTypeName + ORIGIN_SUFFIX, isReconfigureRequest))
             .isEmpty()
             && Optional.ofNullable(

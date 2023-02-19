@@ -85,6 +85,16 @@ public interface DateCalculator {
             .orElse(null);
     }
 
+    default boolean isPropertyEmptyIrrespectiveOfReconfiguration(
+        List<ConfigurationDmnEvaluationResponse> dateTypeProperties,
+        String dateTypePrefix) {
+        return dateTypeProperties.stream()
+            .filter(r -> r.getName().getValue().equals(dateTypePrefix))
+            .filter(r -> Strings.isNotBlank(r.getValue().getValue()))
+            .reduce((a, b) -> b)
+            .isEmpty();
+    }
+
     default LocalDateTime addTimeToDate(
         ConfigurationDmnEvaluationResponse dueDateTimeResponse, LocalDateTime date) {
         String dueDateTime = dueDateTimeResponse.getValue().getValue();

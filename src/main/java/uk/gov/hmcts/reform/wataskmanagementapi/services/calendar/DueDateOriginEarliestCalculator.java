@@ -21,14 +21,13 @@ public class DueDateOriginEarliestCalculator extends DueDateIntervalCalculator {
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         return DUE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), !isReconfigureRequest)).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
+            && Optional.ofNullable(getProperty(configResponses, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, DUE_DATE.getType())
+            && Optional.ofNullable(getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
             .isPresent();
     }
 

@@ -27,10 +27,7 @@ public class NextHearingDateOriginRefCalculator extends NextHearingDateIntervalC
         return NEXT_HEARING_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
             .isEmpty()
-            && Optional.ofNullable(getProperty(configResponses, NEXT_HEARING_DATE.getType(), isReconfigureRequest))
-            .isEmpty()
-            && Optional.ofNullable(getProperty(configResponses, NEXT_HEARING_DATE.getType(), !isReconfigureRequest))
-            .isEmpty()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, NEXT_HEARING_DATE.getType())
             && Optional.ofNullable(getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest))
             .isPresent();
     }
