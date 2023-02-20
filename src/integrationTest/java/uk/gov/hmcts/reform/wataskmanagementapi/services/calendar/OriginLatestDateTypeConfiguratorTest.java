@@ -76,11 +76,11 @@ public class OriginLatestDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-16T17:00"))
+                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
-                    .value(CamundaValue.stringValue("2022-10-22T21:00"))
+                    .value(CamundaValue.stringValue("2022-10-26T21:00"))
                     .build()
             ));
     }
@@ -126,7 +126,7 @@ public class OriginLatestDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
+                    .value(CamundaValue.stringValue("2022-10-19T17:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -168,7 +168,7 @@ public class OriginLatestDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
+                    .value(CamundaValue.stringValue("2022-10-19T17:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -206,7 +206,7 @@ public class OriginLatestDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
@@ -235,7 +235,7 @@ public class OriginLatestDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
