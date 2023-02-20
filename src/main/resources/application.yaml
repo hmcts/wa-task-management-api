@@ -14,8 +14,8 @@ management:
 config:
   privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
   exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler,wa_workflow_api}
-  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:ia,wa,sscs,civil,PUBLICLAW,PRIVATELAW,EMPLOYMENT}
-  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS,ET_EnglandWales,ET_EnglandWales_Listings,ET_EnglandWales_Multiple,ET_Scotland,ET_Scotland_Listings,ET_Scotland_Multiple,ET_Admin}
+  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:ia,wa,sscs,civil,publiclaw,privatelaw,employment}
+  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,care_supervision_epo,prlapps,et_englandwales,et_englandwales_listings,et_englandwales_multiple,et_scotland,et_scotland_listings,et_scotland_multiple,et_admin}
   search:
     defaultMaxResults: 50
 
@@ -143,5 +143,5 @@ caffeine:
       unit: ${CALENDAR_CACHE_TIMEOUT_TIMEUNIT:HOURS}
 
 bankHolidays:
-    api:
-        url: "https://www.gov.uk"
+  api:
+    url: "https://www.gov.uk"

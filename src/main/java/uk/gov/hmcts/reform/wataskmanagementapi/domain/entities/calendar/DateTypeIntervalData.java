@@ -5,11 +5,10 @@ import lombok.Getter;
 
 import java.util.List;
 
-@Builder
+@Builder(toBuilder = true)
 @Getter
 public class DateTypeIntervalData {
 
-    private String dateTypeOrigin;
     private Long dateTypeIntervalDays;
     private List<String> dateTypeNonWorkingCalendar;
     private List<String> dateTypeNonWorkingDaysOfWeek;
