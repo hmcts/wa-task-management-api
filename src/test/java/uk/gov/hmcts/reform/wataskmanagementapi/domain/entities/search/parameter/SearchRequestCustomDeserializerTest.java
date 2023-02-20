@@ -25,9 +25,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.BOOLEAN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 
 @JsonTest
@@ -100,7 +98,7 @@ class SearchRequestCustomDeserializerTest {
         assertThrows(BadRequestException.class, () -> deserializer.deserialize(jsonParser, deserializationContext));
     }
 
-    @Test
+    /*@Test
     void should_deserialize_with_snake_case_available_task_filter_with_boolean_operator() throws IOException {
         String jsonContent = searchParameterJson_withSearchParameterBooleanOnly();
 
@@ -109,7 +107,7 @@ class SearchRequestCustomDeserializerTest {
         assertEquals(AVAILABLE_TASKS_ONLY, searchParameter.getKey());
         assertEquals(BOOLEAN, searchParameter.getOperator());
         assertTrue(searchParameter.getValues());
-    }
+    }*/
 
     @Test
     void should_deserialize_jurisdiction_filter_with_list_operator() throws IOException {
@@ -124,20 +122,13 @@ class SearchRequestCustomDeserializerTest {
 
     @NotNull
     private String searchParameterJson_withSearchParameterListOnly() {
-        return "       {\n"
-               + "          \"key\": \"jurisdiction\",\n"
-               + "          \"values\": [\"ia\", \"sscs\"],\n"
-               + "          \"operator\": \"IN\"\n"
-               + "        }\n";
-    }
-
-    @NotNull
-    private String searchParameterJson_withSearchParameterBooleanOnly() {
-        return "      {\n"
-               + "           \"key\": \"available_tasks_only\",\n"
-               + "           \"value\": true,\n"
-               + "           \"operator\": \"BOOLEAN\"\n"
-               + "        }";
+        return """
+            {
+              "key": "jurisdiction",
+              "operator": "IN",
+              "values": ["ia", "sscs"]         
+            }
+            """;
     }
 
 }

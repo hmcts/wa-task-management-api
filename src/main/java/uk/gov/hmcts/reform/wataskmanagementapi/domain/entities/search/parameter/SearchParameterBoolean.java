@@ -18,10 +18,7 @@ import javax.validation.constraints.NotNull;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class SearchParameterBoolean implements SearchParameter<Boolean> {
 
-    @Schema(
-        required = true,
-        allowableValues = "available_tasks_only",
-        example = "available_tasks_only")
+    @Schema(required = true)
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )

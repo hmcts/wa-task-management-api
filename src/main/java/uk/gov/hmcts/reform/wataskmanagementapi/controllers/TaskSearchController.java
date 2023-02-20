@@ -93,6 +93,14 @@ public class TaskSearchController extends BaseController {
             return ResponseEntity.badRequest().build();
         }
 
+
+        /*if (searchTaskRequest.getSearchParameters().stream().anyMatch(search ->
+            search.getKey().equals(SearchParameterKey.ROLE_CATEGORY)
+            && search.getValues().toString().contains("processApplication"))) {
+
+            throw new RuntimeException("Opps!!!!!");
+        }*/
+
         GetTasksResponse<Task> response;
 
         Optional<AccessControlResponse> optionalAccessControlResponse = accessControlService

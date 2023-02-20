@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -21,7 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -31,7 +29,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -45,7 +42,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 
 @Slf4j
 @Service
@@ -90,7 +86,7 @@ public class CftQueryService {
                 accessControlResponse.getUserInfo().getEmail()
             );
 
-        validateRequest(searchTaskRequest, isGranularPermissionEnabled);
+        validateRequest(searchTaskRequest);
 
         List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
         PermissionRequirements permissionsRequired = findPermissionRequirement(searchTaskRequest,
@@ -224,33 +220,15 @@ public class CftQueryService {
         }
     }
 
-    // TODO: Once the granular permission feature flag enabled or available_tasks_only parameter is depreciated,
-    // this method should only check AVAILABLE_TASK_ONLY context
     private boolean isAvailableTasksOnly(SearchTaskRequest searchTaskRequest) {
-        final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap = asEnumMapForBoolean(searchTaskRequest);
-        SearchParameterBoolean availableTasksOnly = boolKeyMap.get(AVAILABLE_TASKS_ONLY);
 
         RequestContext context = searchTaskRequest.getRequestContext();
 
         if (context == null) {
-            return availableTasksOnly != null && availableTasksOnly.getValues();
+            return false;
         } else {
             return context.equals(RequestContext.AVAILABLE_TASKS);
         }
-    }
-
-    private static EnumMap<SearchParameterKey, SearchParameterBoolean> asEnumMapForBoolean(
-        SearchTaskRequest searchTaskRequest) {
-
-        EnumMap<SearchParameterKey, SearchParameterBoolean> map = new EnumMap<>(SearchParameterKey.class);
-        if (searchTaskRequest != null && !CollectionUtils.isEmpty(searchTaskRequest.getSearchParameters())) {
-            searchTaskRequest.getSearchParameters()
-                .stream()
-                .filter(SearchParameterBoolean.class::isInstance)
-                .forEach(request -> map.put(request.getKey(), (SearchParameterBoolean) request));
-        }
-
-        return map;
     }
 
     private List<Task> mapTasksWithPermissionsUnion(List<RoleAssignment> roleAssignments,
@@ -289,7 +267,7 @@ public class CftQueryService {
         return evaluateDmnResult.size() == taskTypes.size();
     }
 
-    private void validateRequest(SearchTaskRequest searchTaskRequest, boolean isGranularPermissionEnabled) {
+    private void validateRequest(SearchTaskRequest searchTaskRequest) {
         List<Violation> violations = new ArrayList<>();
 
         //Validate work-type
@@ -313,14 +291,6 @@ public class CftQueryService {
                     ));
                 }
             });
-        }
-
-        if (isGranularPermissionEnabled) {
-            final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap =
-                asEnumMapForBoolean(searchTaskRequest);
-            if (boolKeyMap.containsKey(AVAILABLE_TASKS_ONLY)) {
-                violations.add(new Violation(AVAILABLE_TASKS_ONLY.value(), "Invalid request parameter"));
-            }
         }
 
         if (!violations.isEmpty()) {

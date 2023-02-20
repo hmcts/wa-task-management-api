@@ -19,7 +19,6 @@ class SearchParameterKeyTest {
         final String taskTypeEnum = SearchParameterKey.TASK_TYPE.value();
         final String caseIdEnum = SearchParameterKey.CASE_ID.value();
         final String workTypeEnum = SearchParameterKey.WORK_TYPE.value();
-        final String availableTasksOnlyEnum = SearchParameterKey.AVAILABLE_TASKS_ONLY.value();
         final String roleCategory = SearchParameterKey.ROLE_CATEGORY.value();
 
         assertEquals("location", locationEnum);
@@ -29,7 +28,6 @@ class SearchParameterKeyTest {
         assertEquals("caseId", caseIdEnumCamelCase);
         assertEquals("task_type", taskTypeEnum);
         assertEquals("case_id", caseIdEnum);
-        assertEquals("available_tasks_only", availableTasksOnlyEnum);
         assertEquals("work_type", workTypeEnum);
         assertEquals("role_category", roleCategory);
     }
@@ -37,7 +35,7 @@ class SearchParameterKeyTest {
     @Test
     void update_test_whenever_additions_to_assign_enum_are_made() {
         int assigneeEnumLength = SearchParameterKey.values().length;
-        assertEquals(10, assigneeEnumLength);
+        assertEquals(9, assigneeEnumLength);
     }
 
 
@@ -52,7 +50,6 @@ class SearchParameterKeyTest {
             "TASK_TYPE, task_type",
             "CASE_ID, case_id",
             "WORK_TYPE, work_type",
-            "AVAILABLE_TASKS_ONLY, available_tasks_only",
             "ROLE_CATEGORY, role_category"
         }
     )

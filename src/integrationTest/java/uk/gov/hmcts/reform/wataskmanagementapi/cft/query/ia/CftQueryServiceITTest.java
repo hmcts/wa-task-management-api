@@ -38,7 +38,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -59,7 +58,6 @@ import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayLi
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
@@ -904,14 +902,16 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     }
 
     private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyScenarioHappyPath() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
-            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
-        ));
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
+
+            ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN permission and PUBLIC")
+            .scenarioName("available_tasks should return only unassigned and OWN permission and PUBLIC")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
@@ -926,7 +926,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN permission and PRIVATE")
+            .scenarioName("available_tasks should return only unassigned and OWN permission and PRIVATE")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
@@ -977,7 +977,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         );
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN and ClAIM permission and PUBLIC")
+            .scenarioName("available_tasks should return only unassigned and OWN and ClAIM permission and PUBLIC")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
@@ -992,7 +992,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN and ClAIM permission and PRIVATE")
+            .scenarioName("available_tasks should return only unassigned and OWN and ClAIM permission and PRIVATE")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
@@ -1009,7 +1009,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN and ClAIM permission "
+            .scenarioName("available_tasks should return only unassigned and OWN and ClAIM permission "
                           + "excluded_grant_type_with_classification_as_restricted")
             .firstResult(0)
             .maxResults(10)
@@ -2345,5 +2345,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         List<Object> expectedTaskDetails;
         List<ZonedDateTime> expectedDueDates;
         UserInfo userInfo;
+
+        @Override
+        public String toString() {
+            return scenarioName;
+        }
     }
 }
