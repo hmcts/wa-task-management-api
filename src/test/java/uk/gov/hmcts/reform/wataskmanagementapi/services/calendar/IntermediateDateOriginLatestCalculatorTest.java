@@ -287,7 +287,7 @@ class IntermediateDateOriginLatestCalculatorTest {
                                                                configurable
                                                            ).getValue().getValue());
 
-        String expectedDueDate = GIVEN_DATE.plusDays(3)
+        String expectedDueDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
@@ -573,7 +573,7 @@ class IntermediateDateOriginLatestCalculatorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDurationNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
                 .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
