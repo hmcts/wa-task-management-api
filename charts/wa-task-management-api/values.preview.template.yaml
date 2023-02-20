@@ -24,6 +24,7 @@ java:
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
     POSTGRES_REPLICA: "{{ .Release.Name }}-postgresql"
+    POSTGRES_REPLICA_PORT: 5432
     POSTGRES_NAME: "{{ .Values.postgresql.auth.database}}"
     POSTGRES_REPLICA_NAME: "cft_task_db_replica"
     POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
