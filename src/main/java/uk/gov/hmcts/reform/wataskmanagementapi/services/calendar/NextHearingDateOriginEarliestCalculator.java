@@ -12,9 +12,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 
 @Slf4j
 @Component
-public class NextHearingDateOriginRefCalculator extends NextHearingDateIntervalCalculator {
+public class NextHearingDateOriginEarliestCalculator extends NextHearingDateIntervalCalculator {
 
-    public NextHearingDateOriginRefCalculator(WorkingDayIndicator workingDayIndicator) {
+    public NextHearingDateOriginEarliestCalculator(WorkingDayIndicator workingDayIndicator) {
         super(workingDayIndicator);
     }
 
@@ -23,24 +23,25 @@ public class NextHearingDateOriginRefCalculator extends NextHearingDateIntervalC
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         DateType dateType,
         boolean isReconfigureRequest) {
+        ConfigurationDmnEvaluationResponse nextHearingDateOriginEarliest = getProperty(
+            dueDateProperties,
+            NEXT_HEARING_DATE_ORIGIN_EARLIEST,
+            isReconfigureRequest
+        );
         return NEXT_HEARING_DATE == dateType
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN,
-                                               isReconfigureRequest
-        )).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(),
-                                               isReconfigureRequest
-        )).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN_REF,
-                                               isReconfigureRequest
-        )).isPresent();
+            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(nextHearingDateOriginEarliest).isPresent();
     }
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
                                                        boolean isReconfigureRequest) {
-        return getOriginRefDate(
+        return getOriginEarliestDate(
             configResponses,
-            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest)
+            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest)
         );
     }
 }

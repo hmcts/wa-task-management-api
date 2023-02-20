@@ -67,7 +67,7 @@ public class DueDateTypeConfiguratorTest {
             .hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(thirdDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(thirdDueDate + "T10:00"))
                                    .build()));
     }
 
@@ -399,11 +399,11 @@ public class DueDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(givenDueDate + "T20:00"))
                                    .build(),
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(givenDueDate + "T20:00"))
                                    .build()));
 
     }
@@ -721,11 +721,11 @@ public class DueDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(expectedDueDate + "T20:00"))
                                    .build(),
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(expectedDueDate + "T20:00"))
                                    .build()));
     }
 

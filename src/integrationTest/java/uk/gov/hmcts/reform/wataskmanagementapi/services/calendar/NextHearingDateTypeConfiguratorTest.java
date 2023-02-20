@@ -20,10 +20,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalc
 @ActiveProfiles({"integration"})
 public class NextHearingDateTypeConfiguratorTest {
 
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 
-    public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 00, 00);
-    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 03, 26, 18, 00, 00);
+    public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 0, 0);
+    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 3, 26, 18, 0, 0);
 
     public static final String EXPECTED_DEFAULT_DUE_DATE
         = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -70,7 +70,7 @@ public class NextHearingDateTypeConfiguratorTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(thirdNextHearingDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(thirdNextHearingDate + "T10:00"))
                                    .build()));
     }
 
@@ -408,7 +408,7 @@ public class NextHearingDateTypeConfiguratorTest {
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
-                    .value(CamundaValue.stringValue(givenNextHearingDate + "T16:00"))
+                    .value(CamundaValue.stringValue(givenNextHearingDate + "T20:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
@@ -776,7 +776,7 @@ public class NextHearingDateTypeConfiguratorTest {
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
-                    .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
+                    .value(CamundaValue.stringValue(expectedNextHearingDate + "T20:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
