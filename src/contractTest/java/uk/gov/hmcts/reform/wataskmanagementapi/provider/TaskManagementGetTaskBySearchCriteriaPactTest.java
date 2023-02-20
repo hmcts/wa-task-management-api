@@ -330,7 +330,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         return new Task(
             "b1a13dca-41a5-424f-b101-c67b439549d0",
             "review appeal skeleton argument",
-            "reviewAppealSkeletonArgument2",
+            "reviewAppealSkeletonArgument",
             "assigned",
             "SELF",
             "PUBLIC",
