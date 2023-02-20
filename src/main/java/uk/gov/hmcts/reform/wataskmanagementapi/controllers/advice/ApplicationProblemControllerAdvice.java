@@ -21,11 +21,13 @@ import org.zalando.problem.ThrowableProblem;
 import org.zalando.problem.spring.web.advice.validation.ValidationAdviceTrait;
 import org.zalando.problem.violations.ConstraintViolationProblem;
 import org.zalando.problem.violations.Violation;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAlreadyClaimedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
@@ -36,6 +38,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfiguration
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomizedConstraintViolationException;
 
 import java.net.URI;
 import java.util.List;
@@ -43,7 +46,6 @@ import java.util.stream.Collectors;
 import javax.validation.ConstraintViolationException;
 
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -58,17 +60,43 @@ import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 })
 @RequestMapping(produces = APPLICATION_PROBLEM_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-    "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter"})
+    "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter", "PMD.CouplingBetweenObjects",
+    "PMD.TooManyMethods", "PMD.CognitiveComplexity"})
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice implements ValidationAdviceTrait {
 
-    @ExceptionHandler(FeignException.ServiceUnavailable.class)
-    public ResponseEntity<ThrowableProblem> handleFeignServiceUnavailableException(FeignException ex) {
+    @ExceptionHandler({
+        FeignException.class,
+        ServerErrorException.class,
+    })
+    public ResponseEntity<ThrowableProblem> handleFeignAndServerException(FeignException ex) {
         log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
 
         Status statusType = BAD_GATEWAY; //502
         URI type = URI.create("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error");
         String title = "Downstream Dependency Error";
         ErrorMessages detail = ErrorMessages.DOWNSTREAM_DEPENDENCY_ERROR;
+
+        return ResponseEntity.status(statusType.getStatusCode())
+            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+            .body(Problem.builder()
+                .withType(type)
+                .withTitle(title)
+                .withDetail(detail.getDetail())
+                .withStatus(statusType)
+                .build());
+    }
+
+    @ExceptionHandler({
+        FeignException.ServiceUnavailable.class,
+        FeignException.GatewayTimeout.class
+    })
+    public ResponseEntity<ThrowableProblem> handleServiceUnavailableException(FeignException ex) {
+        log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
+
+        Status statusType = SERVICE_UNAVAILABLE; //503
+        URI type = URI.create("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable");
+        String title = "Service Unavailable";
+        ErrorMessages detail = ErrorMessages.SERVICE_UNAVAILABLE;
 
         return ResponseEntity.status(statusType.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
@@ -118,8 +146,11 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
 
     }
 
-    @ExceptionHandler(CustomConstraintViolationException.class)
-    public ResponseEntity<Problem> handleCustomConstraintViolation(CustomConstraintViolationException ex) {
+    @ExceptionHandler({
+        CustomConstraintViolationException.class,
+        CustomizedConstraintViolationException.class
+    })
+    public ResponseEntity<Problem> handleConstraintViolation(ConstraintViolationProblem ex) {
 
         return ResponseEntity.status(ex.getStatus().getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
@@ -127,6 +158,27 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
                 ex.getType(),
                 ex.getStatus(),
                 ex.getViolations())
+            );
+    }
+
+    @Override
+    @ExceptionHandler({ConstraintViolationException.class})
+    public ResponseEntity<Problem> handleConstraintViolation(
+        ConstraintViolationException ex,
+        NativeWebRequest request) {
+        Status status = BAD_REQUEST; //400
+        URI type = URI.create("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
+
+        final List<Violation> violations = ex.getConstraintViolations().stream()
+            .map(this::createViolation)
+            .toList();
+
+        return ResponseEntity.status(status.getStatusCode())
+            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+            .body(new ConstraintViolationProblem(
+                type,
+                status,
+                violations)
             );
     }
 
@@ -147,7 +199,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         List<Violation> violations = streamViolations.stream()
             // sorting to make tests deterministic
             .sorted(comparing(Violation::getField).thenComparing(Violation::getMessage))
-            .collect(toList());
+            .toList();
 
         return ResponseEntity.status(status.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
@@ -157,27 +209,6 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
                 violations)
             );
 
-    }
-
-    @Override
-    @ExceptionHandler({ConstraintViolationException.class})
-    public ResponseEntity<Problem> handleConstraintViolation(
-        ConstraintViolationException ex,
-        NativeWebRequest request) {
-        Status status = BAD_REQUEST; //400
-        URI type = URI.create("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
-
-        final List<Violation> violations = ex.getConstraintViolations().stream()
-            .map(this::createViolation)
-            .collect(toList());
-
-        return ResponseEntity.status(status.getStatusCode())
-            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(new ConstraintViolationProblem(
-                type,
-                status,
-                violations)
-            );
     }
 
     @ExceptionHandler({
@@ -193,7 +224,8 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         GenericServerErrorException.class,
         TaskNotFoundException.class,
         InvalidRequestException.class,
-        TaskReconfigurationException.class
+        TaskReconfigurationException.class,
+        TaskAlreadyClaimedException.class
     })
     protected ResponseEntity<Problem> handleApplicationProblemExceptions(
         AbstractThrowableProblem ex
@@ -216,19 +248,16 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
     private String extractErrors(HttpMessageNotReadableException exception) {
         String msg = null;
         Throwable cause = exception.getCause();
-        if (cause instanceof JsonParseException) {
-            JsonParseException jpe = (JsonParseException) cause;
+        if (cause instanceof JsonParseException jpe) {
             msg = jpe.getOriginalMessage();
-        } else if (cause instanceof MismatchedInputException) {
-            MismatchedInputException mie = (MismatchedInputException) cause;
+        } else if (cause instanceof MismatchedInputException mie) {
             if (mie.getPath() != null && !mie.getPath().isEmpty()) {
                 String fieldName = mie.getPath().stream()
                     .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
                     .collect(Collectors.joining("."));
                 msg = "Invalid request field: " + fieldName;
             }
-        } else if (cause instanceof JsonMappingException) {
-            JsonMappingException jme = (JsonMappingException) cause;
+        } else if (cause instanceof JsonMappingException jme) {
             msg = jme.getOriginalMessage();
             if (jme.getPath() != null && !jme.getPath().isEmpty()) {
                 String fieldName = jme.getPath().stream()

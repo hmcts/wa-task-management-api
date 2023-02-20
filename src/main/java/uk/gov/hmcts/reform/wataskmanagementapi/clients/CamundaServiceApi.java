@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.clients;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,11 +14,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamelCaseFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DecisionTableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DmnRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -51,24 +57,6 @@ public interface CamundaServiceApi {
     List<CamundaTask> searchWithCriteriaAndNoPagination(
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
         @RequestBody Map<String, Object> body);
-
-    @PostMapping(value = "/task",
-        consumes = APPLICATION_JSON_VALUE,
-        produces = APPLICATION_JSON_VALUE
-    )
-    @ResponseBody
-    List<CamundaTask> searchWithCriteriaAndPagination(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                                                      @RequestParam("firstResult") Integer firstResult,
-                                                      @RequestParam("maxResults") Integer maxResults,
-                                                      @RequestBody Map<String, Object> body);
-
-    @PostMapping(value = "/task/count",
-        consumes = APPLICATION_JSON_VALUE,
-        produces = APPLICATION_JSON_VALUE
-    )
-    @ResponseBody
-    CamundaTaskCount getTaskCount(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                                  @RequestBody Map<String, Object> body);
 
     @GetMapping(
         value = "/task/{task-id}",
@@ -128,7 +116,7 @@ public interface CamundaServiceApi {
                                                    @PathVariable("jurisdiction") String jurisdiction,
                                                    @RequestBody Map<String, Map<String, CamundaVariable>> body);
 
-    
+
     @GetMapping(
         value = "/task/{task-id}/variables",
         produces = APPLICATION_JSON_VALUE
@@ -161,4 +149,47 @@ public interface CamundaServiceApi {
     )
     List<HistoryVariableInstance> searchHistory(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                                                 @RequestBody Map<String, Object> body);
+
+    @PostMapping(
+        value = "/decision-definition/key/{dmn-table-key}/tenant-id/{jurisdiction}/evaluate",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    List<PermissionsDmnEvaluationResponse> evaluatePermissionsDmnTable(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+        @PathVariable("dmn-table-key") String dmnTableKey,
+        @PathVariable("jurisdiction") String jurisdiction,
+        DmnRequest<DecisionTableRequest> evaluateDmnRequest
+    );
+
+    @PostMapping(
+        value = "/decision-definition/key/{dmn-table-key}/tenant-id/{jurisdiction}/evaluate",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    List<ConfigurationDmnEvaluationResponse> evaluateConfigurationDmnTable(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+        @PathVariable("dmn-table-key") String dmnTableKey,
+        @PathVariable("jurisdiction") String jurisdiction,
+        DmnRequest<DecisionTableRequest> evaluateDmnRequest
+    );
+
+    @GetMapping(
+        value = "/decision-definition/",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    List<TaskTypesDmnResponse> getTaskTypesDmnTable(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+        @RequestParam("tenantIdIn") String jurisdiction,
+        @RequestParam("name") String dmnName
+    );
+
+    @GetMapping(
+        value = "/decision-definition/key/{dmn-table-key}/tenant-id/{jurisdiction}/evaluate",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    List<TaskTypesDmnEvaluationResponse> evaluateTaskTypesDmnTable(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+        @PathVariable("dmn-table-key") String dmnTableKey,
+        @PathVariable("jurisdiction") String jurisdiction,
+        DmnRequest<DecisionTableRequest> evaluateDmnRequest
+    );
 }

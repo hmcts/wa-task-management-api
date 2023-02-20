@@ -9,22 +9,35 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,9 +55,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 
 class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/%s";
+    public static final String SYSTEM_USER_1 = "system_user1";
     private static String ENDPOINT_BEING_TESTED;
-    @Autowired
-    TaskResourceRepository taskResourceRepository;
     @MockBean
     private ClientAccessControlService clientAccessControlService;
     @Autowired
@@ -53,25 +65,24 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private AuthTokenGenerator authTokenGenerator;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
-
+    @Autowired
+    private CFTTaskDatabaseService cftTaskDatabaseService;
+    @MockBean(name = "systemUserIdamInfo")
+    UserIdamTokenGeneratorInfo systemUserIdamInfo;
+    @MockBean
+    private IdamWebApi idamWebApi;
+    @Autowired
+    private IdamTokenGenerator systemUserIdamToken;
     private String taskId;
+    private String bearerAccessToken1;
 
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
-    }
-
-    private void insertDummyTaskInDb(String taskId, CFTTaskDatabaseService cftTaskDatabaseService) {
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-            UNASSIGNED
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(OffsetDateTime.now().plusDays(2));
-        cftTaskDatabaseService.saveTask(taskResource);
+        bearerAccessToken1 = "Token" + UUID.randomUUID();
+        when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
+        when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
     }
 
     @Nested
@@ -107,8 +118,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_204_and_delete_task() throws Exception {
-            CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
-            insertDummyTaskInDb(taskId, cftTaskDatabaseService);
+            createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId1");
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
@@ -131,6 +141,9 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             assertTrue(taskInDb.isPresent());
             assertEquals(CFTTaskState.TERMINATED, taskInDb.get().getState());
             assertEquals("cancelled", taskInDb.get().getTerminationReason());
+            assertEquals(SYSTEM_USER_1, taskInDb.get().getLastUpdatedUser());
+            assertEquals(TaskAction.AUTO_CANCEL.getValue(), taskInDb.get().getLastUpdatedAction());
+            assertNotNull(taskInDb.get().getLastUpdatedTimestamp());
         }
 
 
@@ -169,8 +182,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_204_and_delete_task() throws Exception {
-            CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
-            insertDummyTaskInDb(taskId, cftTaskDatabaseService);
+            createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId2");
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
 
@@ -194,7 +206,9 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             assertTrue(taskInDb.isPresent());
             assertEquals(CFTTaskState.TERMINATED, taskInDb.get().getState());
             assertEquals("completed", taskInDb.get().getTerminationReason());
-
+            assertEquals(SYSTEM_USER_1, taskInDb.get().getLastUpdatedUser());
+            assertEquals(TaskAction.TERMINATE.getValue(), taskInDb.get().getLastUpdatedAction());
+            assertNotNull(taskInDb.get().getLastUpdatedTimestamp());
         }
     }
 
@@ -231,8 +245,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_204_and_delete_task() throws Exception {
-            CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
-            insertDummyTaskInDb(taskId, cftTaskDatabaseService);
+            createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId3");
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
@@ -255,7 +268,64 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             assertTrue(taskInDb.isPresent());
             assertEquals(CFTTaskState.TERMINATED, taskInDb.get().getState());
             assertEquals("deleted", taskInDb.get().getTerminationReason());
+            assertEquals(SYSTEM_USER_1, taskInDb.get().getLastUpdatedUser());
+            assertNotNull(taskInDb.get().getLastUpdatedTimestamp());
         }
+    }
+
+    private void insertDummyTaskInDb(String jurisdiction,
+                                     String caseType,
+                                     String caseId,
+                                     String taskId, CFTTaskState cftTaskState,
+                                     TaskRoleResource taskRoleResource) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            cftTaskState
+        );
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setDueDateTime(OffsetDateTime.now());
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setCaseTypeId(caseType);
+        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+        taskResource.setLocation("765324");
+        taskResource.setLocationName("Taylor House");
+        taskResource.setRegion("TestRegion");
+        taskResource.setCaseId(caseId);
+
+        taskRoleResource.setTaskId(taskId);
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+        taskResource.setTaskRoleResources(taskRoleResourceSet);
+        cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private void createTaskAndRoleAssignments(CFTTaskState cftTaskState, String caseId) {
+        //assigner permission : manage, own, cancel
+        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
+            false, true, true, true, true, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
+        );
+        String jurisdiction = "IA";
+        String caseType = "Asylum";
+        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignerTaskRoleResource);
+
+        List<RoleAssignment> assignerRoles = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(assignerRoles, roleAssignmentRequest);
     }
 }
 

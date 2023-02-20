@@ -7,33 +7,31 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -42,22 +40,20 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorE
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -69,16 +65,31 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.AND;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL_OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE_OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_CLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.buildTaskActionAttributeForAssign;
+
 
 @Slf4j
 @Service
@@ -87,12 +98,16 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
     "PMD.DataflowAnomalyAnalysis",
     "PMD.ExcessiveImports",
     "PMD.LawOfDemeter",
-    "PMD.ExcessiveParameterList"})
+    "PMD.ExcessiveParameterList",
+    "PMD.ExcessiveClassLength",
+    "PMD.GodClass",
+    "PMD.UnusedAssignment",
+    "PMD.CyclomaticComplexity",
+    "PMD.CognitiveComplexity"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
 
     private final CamundaService camundaService;
-    private final CamundaQueryBuilder camundaQueryBuilder;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -100,15 +115,13 @@ public class TaskManagementService {
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final List<TaskOperationService> taskOperationServices;
     private final RoleAssignmentVerificationService roleAssignmentVerification;
+    private final IdamTokenGenerator idamTokenGenerator;
 
     @PersistenceContext
     private final EntityManager entityManager;
 
-    private final AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
-
     @Autowired
     public TaskManagementService(CamundaService camundaService,
-                                 CamundaQueryBuilder camundaQueryBuilder,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
                                  CFTTaskMapper cftTaskMapper,
                                  LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
@@ -117,9 +130,8 @@ public class TaskManagementService {
                                  RoleAssignmentVerificationService roleAssignmentVerification,
                                  List<TaskOperationService> taskOperationServices,
                                  EntityManager entityManager,
-                                 AllowedJurisdictionConfiguration allowedJurisdictionConfiguration) {
+                                 IdamTokenGenerator idamTokenGenerator) {
         this.camundaService = camundaService;
-        this.camundaQueryBuilder = camundaQueryBuilder;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
@@ -128,7 +140,7 @@ public class TaskManagementService {
         this.taskOperationServices = taskOperationServices;
         this.roleAssignmentVerification = roleAssignmentVerification;
         this.entityManager = entityManager;
-        this.allowedJurisdictionConfiguration = allowedJurisdictionConfiguration;
+        this.idamTokenGenerator = idamTokenGenerator;
     }
 
     /**
@@ -142,30 +154,25 @@ public class TaskManagementService {
     public Task getTask(String taskId, AccessControlResponse accessControlResponse) {
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(READ);
 
-        final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
-            .getBooleanValue(
-                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                accessControlResponse.getUserInfo().getUid(),
-                accessControlResponse.getUserInfo().getEmail()
-            );
-        if (isFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
-                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
-            );
-            Set<PermissionTypes> permissionsUnionForUser =
-                cftTaskMapper.extractUnionOfPermissionsForUser(
-                    taskResource.getTaskRoleResources(),
-                    accessControlResponse.getRoleAssignments()
-                );
+        TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
 
-            return cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
-        } else {
-            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-            roleAssignmentVerification.verifyRoleAssignments(
-                variables, accessControlResponse.getRoleAssignments(), singletonList(READ)
+        log.info("task resource due date before conversion {}", taskResource.getDueDateTime());
+        boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+
+        Set<PermissionTypes> permissionsUnionForUser =
+            cftTaskMapper.extractUnionOfPermissionsForUser(
+                taskResource.getTaskRoleResources(),
+                accessControlResponse.getRoleAssignments(),
+                granularPermissionResponseFeature
             );
-            return camundaService.getMappedTask(taskId, variables);
-        }
+
+        return cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
     }
 
 
@@ -181,40 +188,49 @@ public class TaskManagementService {
                           AccessControlResponse accessControlResponse) {
         String userId = accessControlResponse.getUserInfo().getUid();
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        String email = accessControlResponse.getUserInfo().getEmail();
 
-        final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
-            .getBooleanValue(
-                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                userId, accessControlResponse.getUserInfo().getEmail()
-            );
-        if (isFeatureEnabled) {
-            roleAssignmentVerification.verifyRoleAssignments(
-                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
-            );
-            //Lock & update Task
-            TaskResource task = findByIdAndObtainLock(taskId);
-            if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
-                throw new ConflictException("Task '" + task.getTaskId()
-                    + "' is already claimed by someone else.", null);
-            }
-            task.setState(CFTTaskState.ASSIGNED);
-            task.setAssignee(userId);
-
-            camundaService.assignTask(taskId, userId, false);
-
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
-
+        PermissionRequirements permissionsRequired;
+        if (isGranularPermissionFeatureEnabled(userId, email)) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(asList(CLAIM, OWN), AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(CLAIM, EXECUTE), AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(ASSIGN, EXECUTE), AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(ASSIGN, OWN), AND)
+                .build();
         } else {
-            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-            roleAssignmentVerification.verifyRoleAssignments(
-                variables, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)
-            );
-            camundaService.claimTask(taskId, accessControlResponse.getUserInfo().getUid());
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
         }
 
+        roleAssignmentVerification.verifyRoleAssignments(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
+        //Lock & update Task
+        TaskResource task = findByIdAndObtainLock(taskId);
+        if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
+            throw new ConflictException("Task '" + task.getTaskId()
+                                        + "' is already claimed by someone else.", null);
+        }
+        task.setState(CFTTaskState.ASSIGNED);
+        task.setAssignee(userId);
+        setTaskActionAttributes(task, userId, TaskAction.CLAIM);
+
+        camundaService.assignTask(taskId, userId, false);
+
+        //Commit transaction
+        cftTaskDatabaseService.saveTask(task);
+    }
+
+    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
+        task.setLastUpdatedTimestamp(OffsetDateTime.now());
+        task.setLastUpdatedUser(userId);
+        if (action != null) {
+            task.setLastUpdatedAction(action.getValue());
+        }
     }
 
     /**
@@ -226,45 +242,63 @@ public class TaskManagementService {
      */
     @Transactional
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
-        String userId = accessControlResponse.getUserInfo().getUid();
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
-        boolean taskHasUnassigned;
-        final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
-            .getBooleanValue(
-                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                accessControlResponse.getUserInfo().getUid(),
-                accessControlResponse.getUserInfo().getEmail()
-            );
-        if (isFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
-                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
-            );
-            String taskState = taskResource.getState().getValue();
-            taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
-
-            //Lock & update Task
-            TaskResource task = findByIdAndObtainLock(taskId);
-            task.setState(CFTTaskState.UNASSIGNED);
-            task.setAssignee(null);
-            //Perform Camunda updates
-            camundaService.unclaimTask(taskId, taskHasUnassigned);
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
+        final boolean granularPermissionFeatureEnabled = isGranularPermissionFeatureEnabled(
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+        log.info("GP for {} and {} is {}", accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail(), granularPermissionFeatureEnabled);
+        PermissionRequirements permissionsRequired;
+        if (granularPermissionFeatureEnabled) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
         } else {
-            CamundaTask camundaTask = camundaService.getUnmappedCamundaTask(taskId);
-            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-
-            roleAssignmentVerification.roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
-                camundaTask.getAssignee(),
-                userId,
-                variables,
-                accessControlResponse.getRoleAssignments(),
-                singletonList(MANAGE)
-            );
-            String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
-            taskHasUnassigned = TaskState.UNASSIGNED.value().equals(taskState);
-            camundaService.unclaimTask(taskId, taskHasUnassigned);
+            permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
         }
+
+        boolean taskHasUnassigned;
+
+        TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
+        String taskState = taskResource.getState().getValue();
+        taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
+
+        String userId = accessControlResponse.getUserInfo().getUid();
+        if (granularPermissionFeatureEnabled
+            && taskResource.getAssignee() != null && !userId.equals(taskResource.getAssignee())
+            && !checkUserHasUnassignPermission(accessControlResponse.getRoleAssignments(),
+            taskResource.getTaskRoleResources())) {
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+        }
+
+        unclaimTask(taskId, userId, taskHasUnassigned, TaskAction.UNCLAIM);
+    }
+
+    private void unclaimTask(String taskId, String userId, boolean taskHasUnassigned, TaskAction taskAction) {
+        //Lock & update Task
+        TaskResource task = findByIdAndObtainLock(taskId);
+        task.setState(CFTTaskState.UNASSIGNED);
+        task.setAssignee(null);
+        setTaskActionAttributes(task, userId, taskAction);
+        //Perform Camunda updates
+        camundaService.unclaimTask(taskId, taskHasUnassigned);
+        //Commit transaction
+        cftTaskDatabaseService.saveTask(task);
+    }
+
+    private boolean checkUserHasUnassignPermission(List<RoleAssignment> roleAssignments,
+                                                   Set<TaskRoleResource> taskRoleResources) {
+        for (RoleAssignment roleAssignment : roleAssignments) {
+            String roleName = roleAssignment.getRoleName();
+            for (TaskRoleResource taskRoleResource : taskRoleResources) {
+                if (roleName.equals(taskRoleResource.getRoleName())
+                    && Boolean.TRUE.equals(taskRoleResource.getUnassign())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -281,73 +315,162 @@ public class TaskManagementService {
     @Transactional
     public void assignTask(String taskId,
                            AccessControlResponse assignerAccessControlResponse,
-                           AccessControlResponse assigneeAccessControlResponse) {
+                           Optional<AccessControlResponse> assigneeAccessControlResponse) {
         requireNonNull(assignerAccessControlResponse.getUserInfo().getUid(), "Assigner userId cannot be null");
-        requireNonNull(assigneeAccessControlResponse.getUserInfo().getUid(), "Assignee userId cannot be null");
-        PermissionRequirements assignerPermissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(MANAGE);
-        PermissionRequirements assigneePermissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(OWN, EXECUTE);
 
-        Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-        String assigneeUserId = assigneeAccessControlResponse.getUserInfo().getUid();
+        UserInfo assigner = assignerAccessControlResponse.getUserInfo();
+        Optional<String> currentAssignee = cftTaskDatabaseService.findByIdOnly(taskId)
+            .filter(t -> CFTTaskState.ASSIGNED.equals(t.getState()))
+            .map(TaskResource::getAssignee);
+        Optional<UserInfo> assignee = assigneeAccessControlResponse.map(AccessControlResponse::getUserInfo);
 
-        final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            assignerAccessControlResponse.getUserInfo().getUid(),
-            assignerAccessControlResponse.getUserInfo().getEmail()
-        );
-        if (isRelease2EndpointsFeatureEnabled) {
-            roleAssignmentVerification.verifyRoleAssignments(
+        if (verifyActionRequired(currentAssignee, assignee)) {
+            final boolean granularPermissionEnabled = isGranularPermissionFeatureEnabled(
+                assignerAccessControlResponse.getUserInfo().getUid(),
+                assignerAccessControlResponse.getUserInfo().getEmail());
+
+            PermissionRequirements assignerPermissionsRequired = assignerPermissionRequirement(
+                granularPermissionEnabled,
+                assigner,
+                assignee,
+                currentAssignee
+            );
+            //Verify assigner role assignments
+            TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
                 taskId,
                 assignerAccessControlResponse.getRoleAssignments(),
                 assignerPermissionsRequired,
                 ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER
             );
 
-            roleAssignmentVerification.verifyRoleAssignments(
-                taskId,
-                assigneeAccessControlResponse.getRoleAssignments(),
-                assigneePermissionsRequired,
-                ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
-            );
+            if (assignee.isEmpty()) {
+                String taskState = taskResource.getState().getValue();
+                boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
+                TaskAction taskAction = buildTaskActionAttributeForAssign(assigner.getUid(), Optional.empty(),
+                    currentAssignee);
+                unclaimTask(taskId, assigner.getUid(), taskHasUnassigned, taskAction);
+            } else {
+                requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
 
-            //Lock & update Task
-            TaskResource task = findByIdAndObtainLock(taskId);
-            task.setState(CFTTaskState.ASSIGNED);
-            task.setAssignee(assigneeUserId);
+                PermissionRequirements assigneePermissionsRequired = PermissionRequirementBuilder.builder()
+                    .buildSingleRequirementWithOr(OWN, EXECUTE);
+                List<RoleAssignment> roleAssignments = assigneeAccessControlResponse
+                    .map(AccessControlResponse::getRoleAssignments).orElse(List.of());
 
-            //Perform Camunda updates
-            camundaService.assignTask(
-                taskId,
-                assigneeUserId,
-                false
-            );
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
+                roleAssignmentVerification.verifyRoleAssignments(
+                    taskId,
+                    roleAssignments,
+                    assigneePermissionsRequired,
+                    ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
+                );
 
-        } else {
-            roleAssignmentVerification.verifyRoleAssignments(
-                variables,
-                assignerAccessControlResponse.getRoleAssignments(),
-                singletonList(MANAGE),
-                ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER
-            );
-            roleAssignmentVerification.verifyRoleAssignments(
-                variables,
-                assigneeAccessControlResponse.getRoleAssignments(),
-                asList(OWN, EXECUTE),
-                ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
-            );
+                //Lock & update Task
+                TaskResource task = findByIdAndObtainLock(taskId);
+                task.setState(CFTTaskState.ASSIGNED);
+                task.setAssignee(assignee.get().getUid());
+                updateTaskActionAttributesForAssign(task, assigner.getUid(),
+                    Optional.of(assignee.get().getUid()), currentAssignee);
+                //Perform Camunda updates
+                camundaService.assignTask(
+                    taskId,
+                    assignee.get().getUid(),
+                    false
+                );
 
-            String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
-            boolean isTaskStateAssigned = TaskState.ASSIGNED.value().equals(taskState);
-            camundaService.assignTask(
-                taskId,
-                assigneeUserId,
-                isTaskStateAssigned
-            );
+                //Commit transaction
+                cftTaskDatabaseService.saveTask(task);
+            }
         }
+    }
+
+    protected void updateTaskActionAttributesForAssign(TaskResource taskResource, String assigner,
+                                                    Optional<String> newAssignee,
+                                                    Optional<String> oldAssignee) {
+        TaskAction taskAction = buildTaskActionAttributeForAssign(assigner, newAssignee, oldAssignee);
+        if (taskAction != null) {
+            setTaskActionAttributes(taskResource, assigner, taskAction);
+        }
+    }
+
+    private boolean verifyActionRequired(Optional<String> currentAssignee,
+                                         Optional<UserInfo> assignee) {
+
+        return (currentAssignee.isPresent()
+                || assignee.isPresent())
+               && (currentAssignee.isEmpty()
+                   || assignee.isEmpty()
+                   || !currentAssignee.get().equals(assignee.get().getUid()));
+    }
+
+    private PermissionRequirements assignerPermissionRequirement(boolean granularPermissionEnabled,
+                                                                 UserInfo assigner,
+                                                                 Optional<UserInfo> assignee,
+                                                                 Optional<String> currentAssignee) {
+        if (granularPermissionEnabled) {
+            if (currentAssignee.isEmpty() && assignee.isPresent()) {
+                return getPermissionToAssignAnUnassignedTask(assigner, assignee.get());
+            } else if (assignee.isPresent()) {
+                return getPermissionToAssignAnAssignedTask(assigner, assignee.get(), currentAssignee.get());
+            } else {
+                //Task is assigned to someone and assignee is no one
+                return PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNASSIGN, UNCLAIM);
+            }
+        } else {
+            return PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+        }
+    }
+
+    private PermissionRequirements getPermissionToAssignAnAssignedTask(UserInfo assigner,
+                                                                       UserInfo assignee,
+                                                                       String currentAssignee) {
+        String assigneeUid = assignee.getUid();
+
+        if (!assigner.getUid().equals(currentAssignee)
+            && assigner.getUid().equals(assigneeUid)) {
+            //Task is assigned  to someone else and requester tries to assign it to themselves
+            return PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNASSIGN_CLAIM)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, CLAIM), AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
+                .build();
+        } else if (assigner.getUid().equals(currentAssignee)
+                   && !assigner.getUid().equals(assigneeUid)) {
+            //Task is assigned to requester and requester tries to assign it to someone new
+            return PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNCLAIM_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNCLAIM, ASSIGN), AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
+                .build();
+        } else {
+            //When assigner tries to assign own task again themselves, it will be filtered out before come here.
+            //Task is assigned to someone else and requester tries to assign it to someone new
+            return PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
+                .build();
+        }
+    }
+
+    private PermissionRequirements getPermissionToAssignAnUnassignedTask(UserInfo assigner,
+                                                                         UserInfo assignee) {
+        //Task is unassigned and requester tries to assign task to someone
+        PermissionRequirementBuilder builder = PermissionRequirementBuilder.builder().initPermissionRequirement(ASSIGN);
+
+        if (assigner.getUid().equals(assignee.getUid())) {
+            //Task is unassigned and requester tries to assign task to themselves
+            return builder.joinPermissionRequirement(OR)
+                .nextPermissionRequirement(CLAIM).build();
+        }
+        return builder.build();
     }
 
     /**
@@ -361,66 +484,74 @@ public class TaskManagementService {
     public void cancelTask(String taskId,
                            AccessControlResponse accessControlResponse) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
-        final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
+        PermissionRequirements permissionsRequired;
 
-        if (isRelease2EndpointsFeatureEnabled) {
-            roleAssignmentVerification.verifyRoleAssignments(
-                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
-            );
+        String userId = accessControlResponse.getUserInfo().getUid();
+        String email = accessControlResponse.getUserInfo().getEmail();
+
+        if (isGranularPermissionFeatureEnabled(userId, email)) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(CANCEL, CANCEL_OWN);
         } else {
-            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-            roleAssignmentVerification.verifyRoleAssignments(
-                variables, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)
-            );
+            permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
         }
 
-        if (isRelease2EndpointsFeatureEnabled) {
-            //Lock & update Task
-            TaskResource task = findByIdAndObtainLock(taskId);
-            CFTTaskState previousTaskState = task.getState();
-            task.setState(CFTTaskState.CANCELLED);
+        TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
 
-            boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
+        if (isGranularPermissionFeatureEnabled(userId, email)
+            && !taskResource.getTaskRoleResources().stream().anyMatch(permission -> permission.getCancel().equals(true))
+            && (taskResource.getAssignee() == null
+                || !userId.equals(taskResource.getAssignee())
+            )
+        ) {
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+        }
 
-            log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
-                taskId, previousTaskState, isCftTaskStateExist);
+        //Lock & update Task
+        TaskResource task = findByIdAndObtainLock(taskId);
+        CFTTaskState previousTaskState = task.getState();
+        task.setState(CFTTaskState.CANCELLED);
 
-            try {
-                //Perform Camunda updates
-                camundaService.cancelTask(taskId);
-                log.info("{} cancelled in camunda", taskId);
-                //Commit transaction
-                cftTaskDatabaseService.saveTask(task);
-                log.info("{} cancelled in CFT", taskId);
-            } catch (TaskCancelException ex) {
-                if (isCftTaskStateExist) {
-                    log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda.Exception: {}",
-                        taskId, ex.getMessage());
-                    throw ex;
-                }
+        boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
-                if (!CFTTaskState.TERMINATED.equals(previousTaskState)) {
-                    task.setState(CFTTaskState.TERMINATED);
-                    cftTaskDatabaseService.saveTask(task);
-                    log.info("{} setting CFTTaskState to TERMINATED. previousTaskState : {} ",
-                        taskId, previousTaskState);
-                    return;
-                }
+        log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
+            taskId, previousTaskState, isCftTaskStateExist
+        );
 
-                log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
-                         + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
+        try {
+            //Perform Camunda updates
+            camundaService.cancelTask(taskId);
+            log.info("{} cancelled in camunda", taskId);
+
+            //set task action attributes
+            setTaskActionAttributes(task, userId, TaskAction.CANCEL);
+
+            //Commit transaction
+            cftTaskDatabaseService.saveTask(task);
+            log.info("{} cancelled in CFT", taskId);
+        } catch (TaskCancelException ex) {
+            if (isCftTaskStateExist) {
+                log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda.Exception: {}",
+                    taskId, ex.getMessage()
+                );
                 throw ex;
             }
 
-        } else {
-            camundaService.cancelTask(taskId);
-        }
+            if (!CFTTaskState.TERMINATED.equals(previousTaskState)) {
+                task.setState(CFTTaskState.TERMINATED);
+                cftTaskDatabaseService.saveTask(task);
+                log.info("{} setting CFTTaskState to TERMINATED. previousTaskState : {} ",
+                    taskId, previousTaskState
+                );
+                return;
+            }
 
+            log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
+                     + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
+            throw ex;
+        }
     }
 
     /**
@@ -434,73 +565,122 @@ public class TaskManagementService {
     public void completeTask(String taskId, AccessControlResponse accessControlResponse) {
 
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(OWN, EXECUTE);
-        boolean taskHasCompleted = false;
         final String userId = accessControlResponse.getUserInfo().getUid();
         final String userEmail = accessControlResponse.getUserInfo().getEmail();
 
-        final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            userId,
-            userEmail
+        final boolean isGranularPermissionFeatureEnabled = isGranularPermissionFeatureEnabled(userId, userEmail);
+
+        boolean taskHasCompleted;
+
+        checkCompletePermissions(taskId, accessControlResponse, isGranularPermissionFeatureEnabled, userId);
+
+        //Lock & update Task
+        TaskResource task = findByIdAndObtainLock(taskId);
+        taskHasCompleted = task.getState() == CFTTaskState.COMPLETED;
+
+        if (!taskHasCompleted) {
+            //scenario, task not completed anywhere
+            task.setState(CFTTaskState.COMPLETED);
+            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
+
+            //check the state, if not complete, complete
+            completeCamundaTask(taskId, taskHasCompleted);
+            //Commit transaction
+            cftTaskDatabaseService.saveTask(task);
+        }
+    }
+
+    private void completeCamundaTask(String taskId, boolean taskHasCompleted) {
+        try {
+            //Perform Camunda updates
+            camundaService.completeTask(taskId, taskHasCompleted);
+        } catch (TaskCompleteException e) {
+            boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
+            if (!isTaskCompleted) {
+                log.error("Task Completion failed for task ({}) due to {}.", taskId, e.getMessage());
+                throw e;
+            }
+
+            log.error("Task Completion failed for task ({}) as task is already complete", taskId);
+        }
+    }
+
+    private void checkCompletePermissions(String taskId, AccessControlResponse accessControlResponse,
+                                          boolean isGranularPermissionFeatureEnabled, String userId) {
+        PermissionRequirements permissionsRequired;
+        if (isGranularPermissionFeatureEnabled) {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(asList(OWN, EXECUTE), OR)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(COMPLETE), OR)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+                .build();
+        } else {
+            permissionsRequired = PermissionRequirementBuilder.builder()
+                .buildSingleRequirementWithOr(OWN, EXECUTE);
+        }
+
+        TaskResource taskResource;
+        taskResource = roleAssignmentVerification.verifyRoleAssignments(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
         );
 
-        if (isRelease2EndpointsFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
-                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
-            );
+        //Safe-guard
+        if (isGranularPermissionFeatureEnabled) {
+            checkAssignee(taskResource, userId, taskId,
+                accessControlResponse.getRoleAssignments());
+        } else {
+            checkAssignee(taskResource.getAssignee(), userId, taskId);
+        }
+    }
 
-            //Safe-guard
+    private void checkAssignee(TaskResource taskResource, String userId, String taskId,
+                               List<RoleAssignment> roleAssignments) {
+        if (!checkUserHasCompletePermission(roleAssignments, taskResource.getTaskRoleResources())) {
             if (taskResource.getAssignee() == null) {
                 throw new TaskStateIncorrectException(
                     String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
                 );
-            }
-        } else {
-            CamundaTask camundaTask = camundaService.getUnmappedCamundaTask(taskId);
-
-            //Safe-guard
-            if (camundaTask.getAssignee() == null) {
+            } else if (!userId.equals(taskResource.getAssignee())) {
                 throw new TaskStateIncorrectException(
-                    String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
+                    String.format("Could not complete task with id: %s as task was assigned to other user %s",
+                        taskId, taskResource.getAssignee()
+                    )
                 );
             }
+        }
+    }
 
-            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-            // Check that task state was not already completed
-            String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
-            taskHasCompleted = TaskState.COMPLETED.value().equals(taskState);
-
-            roleAssignmentVerification.roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
-                camundaTask.getAssignee(),
-                userId,
-                variables,
-                accessControlResponse.getRoleAssignments(),
-                asList(OWN, EXECUTE)
+    private void checkAssignee(String taskAssignee, String userId, String taskId) {
+        if (taskAssignee == null) {
+            throw new TaskStateIncorrectException(
+                String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
+            );
+        } else if (!userId.equals(taskAssignee)) {
+            throw new TaskStateIncorrectException(
+                String.format("Could not complete task with id: %s as task was assigned to other user %s",
+                    taskId, taskAssignee)
             );
         }
+    }
 
-        if (isRelease2EndpointsFeatureEnabled) {
-
-            //Lock & update Task
-            TaskResource task = findByIdAndObtainLock(taskId);
-            taskHasCompleted = task.getState() == CFTTaskState.COMPLETED;
-
-            // If task was not already completed complete it
-            if (taskHasCompleted) {
-                //Perform Camunda updates
-                camundaService.completeTask(taskId, taskHasCompleted);
-            } else {
-                task.setState(CFTTaskState.COMPLETED);
-                //Perform Camunda updates
-                camundaService.completeTask(taskId, taskHasCompleted);
-                //Commit transaction
-                cftTaskDatabaseService.saveTask(task);
+    private boolean checkUserHasCompletePermission(List<RoleAssignment> roleAssignments,
+                                                   Set<TaskRoleResource> taskRoleResources) {
+        if (roleAssignments != null) {
+            for (RoleAssignment roleAssignment : roleAssignments) {
+                String roleName = roleAssignment.getRoleName();
+                if (taskRoleResources != null) {
+                    for (TaskRoleResource taskRoleResource : taskRoleResources) {
+                        if (roleName.equals(taskRoleResource.getRoleName())
+                            && Boolean.TRUE.equals(taskRoleResource.getComplete())) {
+                            return true;
+                        }
+                    }
+                }
             }
-        } else {
-            camundaService.completeTask(taskId, taskHasCompleted);
         }
+        return false;
     }
 
     /**
@@ -515,175 +695,38 @@ public class TaskManagementService {
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
                                                               AccessControlResponse accessControlResponse,
                                                               CompletionOptions completionOptions) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        String userId = accessControlResponse.getUserInfo().getUid();
+        requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         boolean taskStateIsAssignedAlready;
         if (completionOptions.isAssignAndComplete()) {
-            final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                accessControlResponse.getUserInfo().getUid(),
-                accessControlResponse.getUserInfo().getEmail()
+
+            TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
+                taskId,
+                accessControlResponse.getRoleAssignments(),
+                permissionsRequired
             );
 
-            if (isRelease2EndpointsFeatureEnabled) {
-                TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
-                    taskId,
-                    accessControlResponse.getRoleAssignments(),
-                    permissionsRequired
-                );
+            final CFTTaskState state = taskResource.getState();
+            taskStateIsAssignedAlready = state.getValue().equals(CFTTaskState.ASSIGNED.getValue());
 
-                final CFTTaskState state = taskResource.getState();
-                taskStateIsAssignedAlready = state.getValue().equals(CFTTaskState.ASSIGNED.getValue());
-
-            } else {
-                Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-                roleAssignmentVerification.verifyRoleAssignments(
-                    variables, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)
-                );
-
-                String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
-                taskStateIsAssignedAlready = TaskState.ASSIGNED.value().equals(taskState);
-
-            }
-
-
-            if (isRelease2EndpointsFeatureEnabled) {
-                //Lock & update Task
-                TaskResource task = findByIdAndObtainLock(taskId);
-                task.setState(CFTTaskState.COMPLETED);
-                //Perform Camunda updates
-                camundaService.assignAndCompleteTask(
-                    taskId,
-                    accessControlResponse.getUserInfo().getUid(),
-                    taskStateIsAssignedAlready
-                );
-                //Commit transaction
-                cftTaskDatabaseService.saveTask(task);
-            } else {
-                camundaService.assignAndCompleteTask(
-                    taskId,
-                    accessControlResponse.getUserInfo().getUid(),
-                    taskStateIsAssignedAlready
-                );
-            }
+            //Lock & update Task
+            TaskResource task = findByIdAndObtainLock(taskId);
+            task.setState(CFTTaskState.COMPLETED);
+            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
+            //Perform Camunda updates
+            camundaService.assignAndCompleteTask(
+                taskId,
+                userId,
+                taskStateIsAssignedAlready
+            );
+            //Commit transaction
+            cftTaskDatabaseService.saveTask(task);
 
         } else {
             completeTask(taskId, accessControlResponse);
         }
-    }
-
-    /**
-     * Performs a search in camunda and retrieves mapped tasks also filters out tasks by role assignments permissions.
-     * This method requires {@link PermissionTypes#READ} permission.
-     * This method supports pagination parameters.
-     *
-     * @param searchTaskRequest     the search request.
-     * @param firstResult           pagination parameter the first result where to begin searching.
-     * @param maxResults            pagination parameter the max results to returns.
-     * @param accessControlResponse the access control response containing user id and role assignments.
-     * @return a list of filtered and mapped tasks {@link Task}
-     */
-    public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest,
-                                         int firstResult, int maxResults,
-                                         AccessControlResponse accessControlResponse) {
-
-        CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
-
-        //Safe-guard to avoid sending empty orQueries to camunda and abort early
-        if (query == null) {
-            return emptyList();
-        }
-        List<PermissionTypes> permissionsRequired = singletonList(READ);
-        return camundaService.searchWithCriteria(
-            query,
-            firstResult,
-            maxResults,
-            accessControlResponse,
-            permissionsRequired
-        );
-    }
-
-    /**
-     * Performs a specific search in camunda to find tasks that could be completed.
-     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
-     *
-     * @param searchEventAndCase    the search request.
-     * @param accessControlResponse the access control response containing user id and role assignments.
-     */
-    @SuppressWarnings({"PMD.CyclomaticComplexity"})
-    public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
-                                                                       AccessControlResponse accessControlResponse) {
-        //Safe-guard against unsupported Jurisdictions
-        if (!allowedJurisdictionConfiguration.getAllowedJurisdictions()
-            .contains(searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT))
-            || !allowedJurisdictionConfiguration.getAllowedCaseTypes()
-            .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))
-        ) {
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-
-        //1. Evaluate Dmn
-        final List<Map<String, CamundaVariable>> evaluateDmnResult = camundaService.evaluateTaskCompletionDmn(
-            searchEventAndCase);
-
-        // Collect task types
-        List<String> taskTypes = extractTaskTypes(evaluateDmnResult);
-
-        if (taskTypes.isEmpty()) {
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-
-        //2. Build query and perform search
-        CamundaSearchQuery camundaSearchQuery =
-            camundaQueryBuilder.createCompletableTasksQuery(searchEventAndCase.getCaseId(), taskTypes);
-        //3. Perform the search
-        List<CamundaTask> searchResults = camundaService.searchWithCriteriaAndNoPagination(camundaSearchQuery);
-
-        //Safe guard in case no search results were returned
-        if (searchResults.isEmpty()) {
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-        //4. Extract if a task is assigned and assignee is idam userId
-        String idamUserId = accessControlResponse.getUserInfo().getUid();
-
-        final List<CamundaTask> tasksAssignedToUser = searchResults.stream()
-            .filter(task -> idamUserId.equals(task.getAssignee()))
-            .collect(Collectors.toList());
-
-        if (!tasksAssignedToUser.isEmpty()) {
-            searchResults = tasksAssignedToUser;
-        }
-
-        List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
-        final List<Task> taskList = camundaService.performSearchAction(
-            searchResults,
-            accessControlResponse,
-            permissionsRequired
-        );
-
-        if (taskList.isEmpty()) {
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-
-        boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
-
-        return new GetTasksCompletableResponse<>(taskRequiredForEvent, taskList);
-    }
-
-    /**
-     * Retrieve the total amount of tasks based on a query.
-     *
-     * @param searchTaskRequest the search request.
-     * @return the amount of tasks for a specific query.
-     */
-    public long getTaskCount(SearchTaskRequest searchTaskRequest) {
-        CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
-        //Safe-guard to avoid sending empty orQueries to camunda and abort early
-        if (query == null) {
-            return 0;
-        }
-        return camundaService.getTaskCount(query);
     }
 
     /**
@@ -714,6 +757,19 @@ public class TaskManagementService {
             task.setTerminationReason(terminateInfo.getTerminateReason());
             //Perform Camunda updates
             camundaService.deleteCftTaskState(taskId);
+
+            switch (terminateInfo.getTerminateReason()) {
+                case "cancelled":
+                    setSystemUserTaskActionAttributes(task, AUTO_CANCEL);
+                    break;
+                case "completed":
+                    setSystemUserTaskActionAttributes(task, TERMINATE);
+                    break;
+                default:
+                    setSystemUserTaskActionAttributes(task, null);
+                    break;
+            }
+
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
         }
@@ -728,14 +784,15 @@ public class TaskManagementService {
      * @return The updated entity {@link TaskResource}
      */
     @Transactional(rollbackFor = Exception.class)
-    public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
+    public TaskResource initiateTask(String taskId, InitiateTaskRequestMap initiateTaskRequest) {
         //Get DueDatetime or throw exception
-        List<TaskAttribute> taskAttributes = initiateTaskRequest.getTaskAttributes();
+        Map<String, Object> taskAttributes = new ConcurrentHashMap<>(initiateTaskRequest.getTaskAttributes());
+        taskAttributes.put("taskId", taskId);
 
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
         lockTaskId(taskId, dueDate);
-        return initiateTaskProcess(taskId, initiateTaskRequest);
+        return initiateTaskProcess(taskId, taskAttributes);
     }
 
     @Transactional
@@ -752,8 +809,14 @@ public class TaskManagementService {
             noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
         }
         taskResource.setHasWarnings(true);
-
+        setSystemUserTaskActionAttributes(taskResource, ADD_WARNING);
         return cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private void setSystemUserTaskActionAttributes(TaskResource taskResource, TaskAction taskAction) {
+        String systemUserToken = idamTokenGenerator.generate();
+        String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
+        setTaskActionAttributes(taskResource, systemUserId, taskAction);
     }
 
     public Optional<TaskResource> getTaskById(String taskId) {
@@ -771,6 +834,7 @@ public class TaskManagementService {
      */
     public List<TaskRolePermissions> getTaskRolePermissions(String taskId,
                                                             AccessControlResponse accessControlResponse) {
+        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
         final Optional<TaskResource> taskResource = getTaskById(taskId);
         if (taskResource.isEmpty()) {
             throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
@@ -798,18 +862,24 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
+        boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+
         return taskResourceQueryResult.get().getTaskRoleResources().stream()
-            .map(cftTaskMapper::mapToTaskRolePermissions)
+            .map(r -> cftTaskMapper.mapToTaskRolePermissions(r, granularPermissionResponseFeature))
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
-            .collect(Collectors.toList()
-            );
+            .toList();
     }
 
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         return taskOperationServices.stream()
-            .flatMap(taskOperationService -> taskOperationService.performOperation(taskOperationRequest).stream())
+            .flatMap(taskOperationService -> taskOperationService
+                .performOperation(taskOperationRequest).stream())
             .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -819,17 +889,19 @@ public class TaskManagementService {
      * @param taskAttributes the task attributes
      * @return the due date
      */
-    private OffsetDateTime extractDueDate(List<TaskAttribute> taskAttributes) {
-        Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
-            .filter(attribute -> attribute != null && attribute.getValue() != null)
-            .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
-
-        OffsetDateTime dueDate = cftTaskMapper.readDate(attributes, TASK_DUE_DATE, null);
+    private OffsetDateTime extractDueDate(Map<String, Object> taskAttributes) {
+        Map<CamundaVariableDefinition, Object> attributes = taskAttributes.entrySet().stream()
+            .filter(key -> CamundaVariableDefinition.from(key.getKey()).isPresent())
+            .collect(Collectors.toMap(
+                key -> CamundaVariableDefinition.from(key.getKey()).get(),
+                Map.Entry::getValue
+            ));
+        OffsetDateTime dueDate = cftTaskMapper.readDate(attributes, DUE_DATE, null);
 
         if (dueDate == null) {
             Violation violation = new Violation(
-                TASK_DUE_DATE.value(),
-                "Each task to initiate must contain task_due_date field present and populated."
+                DUE_DATE.value(),
+                "Each task to initiate must contain dueDate field present and populated."
             );
             throw new CustomConstraintViolationException(singletonList(violation));
         }
@@ -837,33 +909,17 @@ public class TaskManagementService {
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")
-    private TaskResource initiateTaskProcess(String taskId, InitiateTaskRequest initiateTaskRequest) {
+    private TaskResource initiateTaskProcess(String taskId, Map<String, Object> taskAttributes) {
         try {
-            TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
-            taskResource = configureTask(taskResource);
-            boolean isOldAssigneeValid = false;
+            TaskResource taskResource = cftTaskMapper.mapToTaskResource(
+                taskId,
+                taskAttributes
+            );
 
-            if (taskResource.getAssignee() != null) {
-                log.info("Task '{}' had previous assignee, checking validity.", taskId);
-                //Task had previous assignee
-                isOldAssigneeValid =
-                    taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, taskResource.getAssignee());
-            }
+            taskAttributes.put(DUE_DATE.value(), taskResource.getDueDateTime());
 
-            if (isOldAssigneeValid) {
-                log.info("Task '{}' had previous assignee, and was valid, keeping assignee.", taskId);
-                //Keep old assignee from skeleton task and change state
-                taskResource.setState(CFTTaskState.ASSIGNED);
-            } else {
-                log.info("Task '{}' has an invalid assignee, unassign it before auto-assigning.", taskId);
-                if (taskResource.getAssignee() != null) {
-                    taskResource.setAssignee(null);
-                    taskResource.setState(CFTTaskState.UNASSIGNED);
-                }
-                log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
-                //Otherwise attempt auto-assignment
-                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
-            }
+            taskResource = configureTask(taskResource, taskAttributes);
+            taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
@@ -891,12 +947,13 @@ public class TaskManagementService {
         }
     }
 
-    private TaskResource configureTask(TaskResource taskSkeleton) {
+    private TaskResource configureTask(TaskResource taskSkeleton, Map<String, Object> taskAttributes) {
         TaskToConfigure taskToConfigure = new TaskToConfigure(
             taskSkeleton.getTaskId(),
             taskSkeleton.getTaskType(),
             taskSkeleton.getCaseId(),
-            taskSkeleton.getTaskName()
+            taskSkeleton.getTaskName(),
+            taskAttributes
         );
 
         return configureTaskService.configureCFTTask(
@@ -905,37 +962,10 @@ public class TaskManagementService {
         );
     }
 
-    private TaskResource createTaskSkeleton(String taskId, InitiateTaskRequest initiateTaskRequest) {
-        return cftTaskMapper.mapToTaskResource(
-            taskId,
-            initiateTaskRequest.getTaskAttributes()
-        );
-    }
-
     private TaskResource findByIdAndObtainLock(String taskId) {
         return cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId)
             .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
     }
-
-    private boolean isTaskRequired(List<Map<String, CamundaVariable>> evaluateDmnResult, List<String> taskTypes) {
-        /*
-         * EvaluateDmnResult contains with and without empty rows for an event.
-         * TaskTypes are extracted from evaluateDmnResult.
-         * If both the sizes are equal, it means there is no empty row and task is required for the event
-         * If they are of different sizes, it means there is an empty row and task is not required
-         */
-        return evaluateDmnResult.size() == taskTypes.size();
-    }
-
-    private List<String> extractTaskTypes(List<Map<String, CamundaVariable>> evaluateDmnResult) {
-        return evaluateDmnResult.stream()
-            .filter(result -> result.containsKey(TASK_TYPE.value()))
-            .map(result -> camundaService.getVariableValue(result.get(TASK_TYPE.value()), String.class))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-
-    }
-
 
     @SuppressWarnings({"PMD.PrematureDeclaration"})
     private void validateNoteRequest(NotesRequest notesRequest) {
@@ -977,9 +1007,15 @@ public class TaskManagementService {
                 throw new CustomConstraintViolationException(singletonList(violation));
             }
         });
-
-
     }
 
+    private boolean isGranularPermissionFeatureEnabled(String userId, String email) {
+        return launchDarklyFeatureFlagProvider
+            .getBooleanValue(
+                FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+                userId,
+                email
+            );
+    }
 
 }

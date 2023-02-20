@@ -19,6 +19,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -54,8 +55,9 @@ public class TaskRoleResource implements Serializable {
     private Boolean manage;
     @Column(columnDefinition = "boolean default false")
     private Boolean cancel;
-    @Column(columnDefinition = "boolean default false")
-    private Boolean refer;
+
+    @Transient
+    private Boolean refer = false;
 
     @Column(columnDefinition = "boolean default false")
     private Boolean complete;

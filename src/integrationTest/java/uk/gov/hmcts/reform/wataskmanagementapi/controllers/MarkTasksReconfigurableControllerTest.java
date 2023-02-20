@@ -2,16 +2,22 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
@@ -19,11 +25,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -55,6 +62,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
+    public static final String SYSTEM_USER_1 = "system_user1";
 
     @MockBean
     private ClientAccessControlService clientAccessControlService;
@@ -65,20 +73,34 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
-    private String taskId;
+    @MockBean(name = "systemUserIdamInfo")
+    UserIdamTokenGeneratorInfo systemUserIdamInfo;
 
+    @MockBean
+    private IdamWebApi idamWebApi;
+
+    @Autowired
+    private IdamTokenGenerator systemUserIdamToken;
+
+    private String taskId;
+    private String bearerAccessToken1;
 
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
+        bearerAccessToken1 = "Token" + UUID.randomUUID();
+        when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
+        when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
-        lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
-            any())).thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(
-                    CamundaValue.stringValue("caseName"),
-                    CamundaValue.stringValue("Value"),
-                    CamundaValue.booleanValue(true)
+        lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(
+            anyString(),
+            any()
+        )).thenReturn(List.of(
+            new ConfigurationDmnEvaluationResponse(
+                CamundaValue.stringValue("caseName"),
+                CamundaValue.stringValue("Value"),
+                CamundaValue.booleanValue(true)
             )
         ));
     }
@@ -100,6 +122,9 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         taskResources.forEach(task -> {
             assertNotNull(task.getReconfigureRequestTime());
             assertTrue(LocalDate.now().equals(task.getReconfigureRequestTime().toLocalDate()));
+            assertNotNull(task.getLastUpdatedTimestamp());
+            assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+            assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), task.getLastUpdatedAction());
         });
     }
 
@@ -137,6 +162,11 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
                 .findFirst().get();
             assertTrue(LocalDate.now().equals(match.getReconfigureRequestTime().toLocalDate()));
             assertEquals(match.getReconfigureRequestTime(), task1.getReconfigureRequestTime());
+            assertEquals(match.getLastUpdatedTimestamp(), task1.getLastUpdatedTimestamp());
+            assertEquals(SYSTEM_USER_1, task1.getLastUpdatedUser());
+            assertEquals(match.getLastUpdatedUser(), task1.getLastUpdatedUser());
+            assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), task1.getLastUpdatedAction());
+            assertEquals(match.getLastUpdatedAction(), task1.getLastUpdatedAction());
         });
     }
 
@@ -157,6 +187,9 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         taskResources.forEach(task -> {
             assertNotNull(task.getReconfigureRequestTime());
             assertTrue(LocalDate.now().equals(task.getReconfigureRequestTime().toLocalDate()));
+            assertNotNull(task.getLastUpdatedTimestamp());
+            assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+            assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), task.getLastUpdatedAction());
         });
     }
 
@@ -176,6 +209,9 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId4");
         assertNull(taskResources.get(0).getReconfigureRequestTime());
+        assertNull(taskResources.get(0).getLastUpdatedTimestamp());
+        assertNull(taskResources.get(0).getLastUpdatedUser());
+        assertNull(taskResources.get(0).getLastUpdatedAction());
     }
 
 
@@ -234,6 +270,9 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId6");
         taskResources.stream().forEach(task -> {
             assertNull(task.getReconfigureRequestTime());
+            assertNull(task.getLastUpdatedTimestamp());
+            assertNull(task.getLastUpdatedUser());
+            assertNull(task.getLastUpdatedAction());
         });
     }
 
@@ -260,8 +299,18 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId7");
+        //task1
         assertNull(taskResources.get(0).getReconfigureRequestTime());
+        assertNull(taskResources.get(0).getLastUpdatedTimestamp());
+        assertNull(taskResources.get(0).getLastUpdatedUser());
+        assertNull(taskResources.get(0).getLastUpdatedAction());
+
+        //task2
         assertNotNull(taskResources.get(1).getReconfigureRequestTime());
+        assertNotNull(taskResources.get(1).getLastUpdatedTimestamp());
+        assertEquals(SYSTEM_USER_1, taskResources.get(1).getLastUpdatedUser());
+        assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResources.get(1).getLastUpdatedAction());
+
     }
 
     @Test
@@ -297,18 +346,58 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId8");
+        //task1
+        assertNotNull(taskResources.stream()
+                          .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(0).getTaskId()))
+                          .findFirst().get().getReconfigureRequestTime());
         assertNotNull(taskResources.stream()
             .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(0).getTaskId()))
-            .findFirst().get().getReconfigureRequestTime());
+            .findFirst().get().getLastUpdatedTimestamp());
+        assertEquals(SYSTEM_USER_1, taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(0).getTaskId()))
+            .findFirst().get().getLastUpdatedUser());
+        assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(0).getTaskId()))
+            .findFirst().get().getLastUpdatedAction());
+        //task2
+        assertNull(taskResources.stream()
+                       .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(1).getTaskId()))
+                       .findFirst().get().getReconfigureRequestTime());
         assertNull(taskResources.stream()
             .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(1).getTaskId()))
-            .findFirst().get().getReconfigureRequestTime());
+            .findFirst().get().getLastUpdatedTimestamp());
+        assertNull(taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(1).getTaskId()))
+            .findFirst().get().getLastUpdatedUser());
+        assertNull(taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(1).getTaskId()))
+            .findFirst().get().getLastUpdatedAction());
+        //task3
+        assertNotNull(taskResources.stream()
+                          .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(2).getTaskId()))
+                          .findFirst().get().getReconfigureRequestTime());
         assertNotNull(taskResources.stream()
             .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(2).getTaskId()))
-            .findFirst().get().getReconfigureRequestTime());
+            .findFirst().get().getLastUpdatedTimestamp());
+        assertEquals(SYSTEM_USER_1, taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(2).getTaskId()))
+            .findFirst().get().getLastUpdatedUser());
+        assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(2).getTaskId()))
+            .findFirst().get().getLastUpdatedAction());
+        //task4
+        assertNull(taskResources.stream()
+                       .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(3).getTaskId()))
+                       .findFirst().get().getReconfigureRequestTime());
         assertNull(taskResources.stream()
             .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(3).getTaskId()))
-            .findFirst().get().getReconfigureRequestTime());
+            .findFirst().get().getLastUpdatedTimestamp());
+        assertNull(taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(1).getTaskId()))
+            .findFirst().get().getLastUpdatedUser());
+        assertNull(taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(1).getTaskId()))
+            .findFirst().get().getLastUpdatedAction());
     }
 
     @Test
@@ -335,6 +424,9 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId9");
         taskResources.stream().forEach(task -> {
             assertNotNull(task.getReconfigureRequestTime());
+            assertNotNull(task.getLastUpdatedTimestamp());
+            assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+            assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), task.getLastUpdatedAction());
         });
     }
 
@@ -374,13 +466,30 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId10");
         assertNotNull(taskResources.get(0).getReconfigureRequestTime());
+        assertNotNull(taskResources.get(0).getLastUpdatedTimestamp());
+        assertEquals(SYSTEM_USER_1, taskResources.get(0).getLastUpdatedUser());
+        assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResources.get(0).getLastUpdatedAction());
         assertNotNull(taskResources.get(1).getReconfigureRequestTime());
+        assertNotNull(taskResources.get(1).getLastUpdatedTimestamp());
+        assertEquals(SYSTEM_USER_1, taskResources.get(1).getLastUpdatedUser());
+        assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResources.get(1).getLastUpdatedAction());
         assertNotNull(taskResources.get(2).getReconfigureRequestTime());
+        assertNotNull(taskResources.get(2).getLastUpdatedTimestamp());
+        assertEquals(SYSTEM_USER_1, taskResources.get(2).getLastUpdatedUser());
+        assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResources.get(2).getLastUpdatedAction());
         assertNotNull(taskResources.get(3).getReconfigureRequestTime());
+        assertNotNull(taskResources.get(3).getLastUpdatedTimestamp());
+        assertEquals(SYSTEM_USER_1, taskResources.get(3).getLastUpdatedUser());
+        assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResources.get(3).getLastUpdatedAction());
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
-        TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString(), 2, 120);
+        TaskOperation operation = TaskOperation.builder()
+            .name(operationName)
+            .runId(UUID.randomUUID().toString())
+            .maxTimeLimit(2)
+            .retryWindowHours(120)
+            .build();
         return new TaskOperationRequest(operation, taskFilters(caseId));
     }
 

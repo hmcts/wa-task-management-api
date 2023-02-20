@@ -68,7 +68,11 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkTypeResource("applications", "Applications"),
             new WorkTypeResource("priority", "Priority"),
             new WorkTypeResource("access-requests", "Access requests"),
-            new WorkTypeResource("error-management", "Error management"));
+            new WorkTypeResource("error-management", "Error management"),
+            new WorkTypeResource("review-case", "Review Case"),
+            new WorkTypeResource("evidence", "Evidence"),
+            new WorkTypeResource("follow-up", "Follow Up")
+        );
 
         when(workTypeResourceRepository.findAll()).thenReturn(workTypeResources);
 
@@ -93,6 +97,10 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkType("applications", "Applications"),
             new WorkType("priority", "Priority"),
             new WorkType("access-requests", "Access requests"),
-            new WorkType("error-management", "Error management"));
+            new WorkType("error-management", "Error management"),
+            new WorkType("review-case", "Review Case"),
+            new WorkType("evidence", "Evidence"),
+            new WorkType("follow-up", "Follow Up")
+        );
     }
 }

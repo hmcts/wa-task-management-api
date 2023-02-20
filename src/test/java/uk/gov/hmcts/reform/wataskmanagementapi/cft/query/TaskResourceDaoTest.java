@@ -61,12 +61,15 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 
@@ -332,7 +335,8 @@ class TaskResourceDaoTest {
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of(
                 new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT),
@@ -342,13 +346,17 @@ class TaskResourceDaoTest {
 
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
-        List<Object[]> taskResourceSummary
-            = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
+        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
+            10,
+            searchTaskRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -363,20 +371,25 @@ class TaskResourceDaoTest {
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of()
         );
 
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
-        List<Object[]> taskResourceSummary
-            = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
+        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
+            10,
+            searchTaskRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -391,20 +404,25 @@ class TaskResourceDaoTest {
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, null))
         );
 
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
-        List<Object[]> taskResourceSummary
-            = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
+        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
+            10,
+            searchTaskRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
 
         assertNotNull(taskResourceSummary);
         assertEquals("taskId", taskResourceSummary.get(0)[0]);
@@ -419,7 +437,8 @@ class TaskResourceDaoTest {
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
@@ -445,8 +464,8 @@ class TaskResourceDaoTest {
             "Asylum"
         );
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
 
         when(query.getResultList()).thenReturn(List.of(createTaskResource()));
 
@@ -470,20 +489,22 @@ class TaskResourceDaoTest {
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         when(countQuery.getSingleResult()).thenReturn(1L);
 
         Long totalCount = taskResourceDao.getTotalCount(
             searchTaskRequest,
             roleAssignmentWithAllGrantTypes(),
-            permissionsRequired
+            permissionsRequired,
+            false
         );
 
         assertEquals(1, totalCount);
@@ -521,20 +542,22 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003"))
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         assertThatThrownBy(() -> taskResourceDao.getTaskResourceSummary(
             0,
             0,
             searchTaskRequest,
             roleAssignmentWithAllGrantTypes(),
-            permissionsRequired
+            permissionsRequired,
+            false
         ))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Limit must not be less than one");
@@ -548,20 +571,22 @@ class TaskResourceDaoTest {
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003"))
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
             ),
             List.of()
         );
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
 
         assertThatThrownBy(() -> taskResourceDao.getTaskResourceSummary(
             -1,
             25,
             searchTaskRequest,
             roleAssignmentWithAllGrantTypes(),
-            permissionsRequired
+            permissionsRequired,
+            false
         ))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Offset index must not be less than zero");

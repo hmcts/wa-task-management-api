@@ -13,8 +13,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
@@ -26,9 +26,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -36,6 +35,31 @@ import static org.mockito.Mockito.when;
 
 @Provider("wa_task_management_api_search")
 public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootContractProviderBaseTest {
+
+    @TestTemplate
+    @ExtendWith(PactVerificationInvocationContextProvider.class)
+    void pactVerificationTestTemplate(PactVerificationContext context) {
+        if (context != null) {
+            context.verifyInteraction();
+        }
+    }
+
+    @BeforeEach
+    void beforeCreate(PactVerificationContext context) {
+        MockMvcTestTarget testTarget = new MockMvcTestTarget();
+        testTarget.setControllers(new TaskSearchController(
+            accessControlService,
+            cftQueryService,
+            launchDarklyFeatureFlagProvider
+        ));
+
+        if (context != null) {
+            context.setTarget(testTarget);
+        }
+
+        testTarget.setMessageConverters(mappingJackson2HttpMessageConverter);
+
+    }
 
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
@@ -70,6 +94,26 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
     @State({"appropriate tasks are returned by criteria with work-type with warnings only"})
     public void getTasksBySearchCriteriaWithWorkTypeWithWarningsOnly() {
         setInitMockForSearchTaskWithWarningsOnly();
+    }
+
+    @State({"appropriate tasks are returned by criteria with role category"})
+    public void getTasksBySearchCriteriaWithRoleCategory() {
+        setInitMockForSearchTaskWithRoleCategory();
+    }
+
+    @State({"appropriate tasks are returned by criteria with context available task"})
+    public void getTasksBySearchCriteriaWithAvailableTasksContext() {
+        setInitMockForSearchTaskWithWarningsOnly();
+    }
+
+    @State({"appropriate tasks are returned by criteria with context all work"})
+    public void getTasksBySearchCriteriaWithAllWorkContext() {
+        setInitMockForSearchTaskWithWarningsOnly();
+    }
+
+    @State({"appropriate tasks are returned by criteria with task type"})
+    public void getTasksBySearchCriteriaWithTaskType() {
+        setInitMockForSearchTaskWithTaskType();
     }
 
     public Task createTaskWithNoWarnings() {
@@ -168,7 +212,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
             getAdditionalProperties(),
-                "nextHearingId",
+            "nextHearingId",
             ZonedDateTime.now(),
             500,
             5000,
@@ -181,7 +225,10 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             Set.of(
                 PermissionTypes.READ,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.REFER
+                PermissionTypes.REFER,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.ASSIGN,
+                PermissionTypes.UNASSIGN
             )
         );
 
@@ -223,30 +270,104 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         );
     }
 
-    @TestTemplate
-    @ExtendWith(PactVerificationInvocationContextProvider.class)
-    void pactVerificationTestTemplate(PactVerificationContext context) {
-        if (context != null) {
-            context.verifyInteraction();
-        }
+    public Task createTaskForRoleCategorySearch() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
+
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "review appeal skeleton argument",
+            "reviewAppealSkeletonArgument",
+            "unassigned",
+            "SELF",
+            "PUBLIC",
+            "review appeal skeleton argument",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "Protection",
+            "Bob Smith",
+            false,
+            new WarningValues(Collections.emptyList()),
+            "Case Management Category",
+            "hearing_work",
+            "Hearing work",
+            permissions,
+            RoleCategory.CTSC.name(),
+            "aDescription",
+            getAdditionalProperties(),
+            "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now()
+        );
     }
 
-    @BeforeEach
-    void beforeCreate(PactVerificationContext context) {
-        MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskSearchController(
-            taskManagementService,
-            accessControlService,
-            cftQueryService,
-            launchDarklyFeatureFlagProvider
-        ));
+    public Task createTaskForTaskTypeSearch() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
 
-        if (context != null) {
-            context.setTarget(testTarget);
-        }
-
-        testTarget.setMessageConverters(mappingJackson2HttpMessageConverter);
-
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "review appeal skeleton argument",
+            "reviewAppealSkeletonArgument",
+            "unassigned",
+            "SELF",
+            "PUBLIC",
+            "review appeal skeleton argument",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "Protection",
+            "Bob Smith",
+            false,
+            new WarningValues(Collections.emptyList()),
+            "Case Management Category",
+            "hearing_work",
+            "Hearing work",
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "aDescription",
+            getAdditionalProperties(),
+            "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now()
+        );
     }
 
     private void setInitMockForSearchTask() {
@@ -257,15 +378,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-
-        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(asList(createTaskWithNoWarnings(), createTaskWithNoWarnings()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
+            .thenReturn(new GetTasksResponse<>(List.of(createTaskWithNoWarnings(), createTaskWithNoWarnings()), 2L));
     }
 
     private void setInitMockForSearchWaTask() {
@@ -276,15 +390,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-
-        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(asList(createWaTask(), createWaTask()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
+            .thenReturn(new GetTasksResponse<>(List.of(createWaTask(), createWaTask()), 2L));
     }
 
     private void setInitMockForSearchTaskWithWarningsOnly() {
@@ -294,14 +401,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(singletonList(createTaskWithWarnings()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
+            .thenReturn(new GetTasksResponse<>(List.of(createTaskWithWarnings()), 1L));
     }
 
 
@@ -312,15 +413,29 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                accessControlResponse.get().getUserInfo().getEmail()
-            )
-        ).thenReturn(false);
-
-        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(singletonList(createTaskWithNoWarnings()));
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
+            .thenReturn(new GetTasksResponse<>(List.of(createTaskWithNoWarnings()), 1L));
     }
 
+    private void setInitMockForSearchTaskWithRoleCategory() {
+        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
+        UserInfo userInfo = mock(UserInfo.class);
+        when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getAccessControlResponse(anyString()))
+            .thenReturn(accessControlResponse);
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
+            .thenReturn(new GetTasksResponse<>(List.of(createTaskForRoleCategorySearch()), 1L));
+    }
+
+    private void setInitMockForSearchTaskWithTaskType() {
+        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
+        UserInfo userInfo = mock(UserInfo.class);
+        when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getAccessControlResponse(anyString()))
+            .thenReturn(accessControlResponse);
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
+            .thenReturn(new GetTasksResponse<>(List.of(createTaskForTaskTypeSearch()), 1L));
+    }
 }
