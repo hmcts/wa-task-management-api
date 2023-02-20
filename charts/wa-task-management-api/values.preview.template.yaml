@@ -43,4 +43,4 @@ java:
       initdb:
         scripts:
           init.sql: |
-            CREATE DATABASE "ccd-shared-database-replica" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE "cft_task_db_replica" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
