@@ -87,7 +87,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
             }
         }
 
-        LocalDateTime dateTime = localDate.atTime(LocalTime.parse(dateTypeIntervalData.getDateTypeTime()));
+        LocalDateTime dateTime = calculateTime(dateTypeIntervalData.getDateTypeTime(), referenceDate, localDate);
 
         return ConfigurationDmnEvaluationResponse
             .builder()
@@ -105,6 +105,19 @@ public class DueDateIntervalCalculator implements DateCalculator {
             .map(ConfigurationDmnEvaluationResponse::getValue)
             .map(CamundaValue::getValue)
             .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
+    }
+
+    private LocalDateTime calculateTime(
+        String dateTypeTime, LocalDateTime referenceDate, LocalDate calculateDate) {
+        LocalTime baseReferenceTime = referenceDate.toLocalTime();
+        LocalDateTime dateTime = calculateDate.atTime(baseReferenceTime);
+
+        if (Optional.ofNullable(dateTypeTime).isPresent()) {
+            dateTime = calculateDate.atTime(LocalTime.parse(dateTypeTime));
+        } else if (dateTime.getHour() == 0) {
+            dateTime = calculateDate.atTime(LocalTime.parse(DEFAULT_DATE_TIME));
+        }
+        return dateTime;
     }
 
     protected DateTypeIntervalData readDateTypeOriginFields(
@@ -161,7 +174,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
                               .reduce((a, b) -> b)
                               .map(ConfigurationDmnEvaluationResponse::getValue)
                               .map(CamundaValue::getValue)
-                              .orElse(DEFAULT_DATE_TIME))
+                              .orElse(null))
             .build();
     }
 }
