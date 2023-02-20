@@ -611,10 +611,124 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_task_is_created_when_count_by_role_signature_then_correct_count_returned() {
+    void given_multiple_tasks_created_when_search_request_received_then_task_ids_are_returned() {
         String taskId2 = UUID.randomUUID().toString();
-        TaskResource createdTask = createTask(taskId2);
-        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED, CFTTaskState.COMPLETED))
+            .caseIds(List.of("1623278362430412", "1623278362430413"))
+            .taskTypes(List.of("startAppeal", "reviewAppeal"))
+            .users(List.of("someAssignee", "anotherAssignee"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT)))
+            .build();
+
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+            List.of(), request);
+        assertEquals(2, taskIds.size());
+        assertEquals(taskId, taskIds.get(0));
+        assertEquals(taskId2, taskIds.get(1));
+    }
+
+    @Test
+    void given_tasks_created_when_search_request_received_then_task_ids_are_returned_and_filter_by_case_id() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED, CFTTaskState.COMPLETED))
+            .caseIds(List.of("1623278362430412"))
+            .taskTypes(List.of("startAppeal", "reviewAppeal"))
+            .users(List.of("someAssignee", "anotherAssignee"))
+            .build();
+
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+            List.of(), request);
+        assertEquals(1, taskIds.size());
+        assertEquals(taskId, taskIds.get(0));
+    }
+
+    @Test
+    void given_tasks_created_when_search_request_received_then_task_ids_are_returned_and_filter_by_task_type() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED, CFTTaskState.COMPLETED))
+            .caseIds(List.of("1623278362430412", "1623278362430413"))
+            .taskTypes(List.of("startAppeal"))
+            .users(List.of("someAssignee", "anotherAssignee"))
+            .build();
+
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+            List.of(), request);
+        assertEquals(1, taskIds.size());
+        assertEquals(taskId, taskIds.get(0));
+    }
+
+    @Test
+    void given_tasks_created_when_search_request_received_then_task_ids_are_returned_and_filter_by_assignee() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED, CFTTaskState.COMPLETED))
+            .caseIds(List.of("1623278362430412", "1623278362430413"))
+            .taskTypes(List.of("startAppeal", "reviewAppeal"))
+            .users(List.of("someAssignee"))
+            .build();
+
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+            List.of(), request);
+        assertEquals(1, taskIds.size());
+        assertEquals(taskId, taskIds.get(0));
+    }
+
+    @Test
+    void given_tasks_created_when_search_request_received_then_task_ids_are_returned_and_filter_by_state() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
 
         transactionHelper.doInNewTransaction(() -> {
             task.setIndexed(true);
@@ -627,9 +741,180 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
         SearchRequest request = SearchRequest.builder()
             .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
-            .caseIds(List.of("1623278362430412"))
-            .taskTypes(List.of("startAppeal"))
-            .users(List.of("someAssignee"))
+            .caseIds(List.of("1623278362430412", "1623278362430413"))
+            .taskTypes(List.of("startAppeal", "reviewAppeal"))
+            .users(List.of("someAssignee", "anotherAssignee"))
+            .build();
+
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+            List.of(), request);
+        assertEquals(1, taskIds.size());
+        assertEquals(taskId, taskIds.get(0));
+    }
+
+    @Test
+    void given_tasks_created_when_search_request_received_then_task_ids_are_returned_and_filter_by_filter_signature() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "WA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        Set<String> filterSignature = Set.of("*:WA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "WA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
+            .caseIds(List.of("1623278362430412", "1623278362430413"))
+            .taskTypes(List.of("startAppeal", "reviewAppeal"))
+            .users(List.of("someAssignee", "anotherAssignee"))
+            .build();
+
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+            List.of(), request);
+        assertEquals(1, taskIds.size());
+        assertEquals(taskId2, taskIds.get(0));
+    }
+
+    @Test
+    void given_tasks_created_when_search_request_received_then_task_ids_are_returned_and_filter_by_role_signature() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "WA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        Set<String> filterSignature = Set.of("*:WA:*:*:1:765324", "*:IA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("WA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
+            .caseIds(List.of("1623278362430412", "1623278362430413"))
+            .taskTypes(List.of("startAppeal", "reviewAppeal"))
+            .users(List.of("someAssignee", "anotherAssignee"))
+            .build();
+
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+            List.of(), request);
+        assertEquals(1, taskIds.size());
+        assertEquals(taskId2, taskIds.get(0));
+    }
+
+    @Test
+    void given_tasks_created_when_search_request_for_available_task_then_task_ids_without_assignee_are_returned() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", null, "1623278362430413", CFTTaskState.UNASSIGNED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .requestContext(RequestContext.AVAILABLE_TASKS)
+            .caseIds(List.of("1623278362430412", "1623278362430413"))
+            .taskTypes(List.of("startAppeal", "reviewAppeal"))
+            .users(List.of("someAssignee", "anotherAssignee"))
+            .build();
+
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+            List.of(), request);
+        assertEquals(1, taskIds.size());
+        assertEquals(taskId2, taskIds.get(0));
+    }
+
+    @Test
+    void given_tasks_created_when_search_request_without_state_filter_then_return_only_assigned_and_unassigned_tasks() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.UNASSIGNED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .caseIds(List.of("1623278362430412", "1623278362430413"))
+            .taskTypes(List.of("startAppeal", "reviewAppeal"))
+            .users(List.of("someAssignee", "anotherAssignee"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT)))
+            .build();
+
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+            List.of(), request);
+        assertEquals(2, taskIds.size());
+        assertEquals(taskId, taskIds.get(0));
+        assertEquals(taskId2, taskIds.get(1));
+    }
+
+    @Test
+    void given_tasks_created_when_search_request_with_excluded_case_id_then_tasks_from_excluded_id_is_not_returned() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED, CFTTaskState.COMPLETED))
+            .caseIds(List.of("1623278362430412", "1623278362430413"))
+            .taskTypes(List.of("startAppeal", "reviewAppeal"))
+            .users(List.of("someAssignee", "anotherAssignee"))
+            .build();
+
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+            List.of("1623278362430413", "88888888888888"), request);
+        assertEquals(1, taskIds.size());
+        assertEquals(taskId, taskIds.get(0));
+    }
+
+    @Test
+    void given_task_is_created_when_count_by_role_signature_then_correct_count_returned() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "WA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        Set<String> filterSignature = Set.of("*:IA:*:*:1:765324", "*:WA:*:*:1:765324");
+        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "WA:*:*:case-manager:*:r:U:*");
+        SearchRequest request = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED, CFTTaskState.COMPLETED))
+            .caseIds(List.of("1623278362430412", "1623278362430413"))
+            .taskTypes(List.of("startAppeal", "reviewAppeal"))
+            .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
         Long taskCount = taskResourceRepository.searchTasksCount(filterSignature, roleSignature,
@@ -640,7 +925,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     @Test
     void given_multiple_tasks_created_when_find_by_task_ids_then_return_ordered_task_list() {
         String taskId2 = UUID.randomUUID().toString();
-        TaskResource createdTask = createTask(taskId2);
+        TaskResource createdTask = createTask(taskId2, "tribunal-caseofficer", "IA",
+            "startAppeal", "someAssignee", "1623278362430412", CFTTaskState.ASSIGNED);
         createdTask.setCaseName("TestCaseB");
 
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
@@ -669,14 +955,16 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     @Test
     void given_multiple_tasks_created_when_find_task_with_multiple_order_filed_then_return_ordered_task_list() {
         String taskId2 = UUID.randomUUID().toString();
-        TaskResource createdTask = createTask(taskId2);
+        TaskResource createdTask = createTask(taskId2, "tribunal-caseofficer", "IA",
+            "startAppeal", "someAssignee", "1623278362430412", CFTTaskState.ASSIGNED);
         createdTask.setCaseName("TestCaseB");
         createdTask.setCaseCategory("caseCategoryB");
 
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
 
         String taskId3 = UUID.randomUUID().toString();
-        TaskResource createdTask2 = createTask(taskId3);
+        TaskResource createdTask2 = createTask(taskId3, "tribunal-caseofficer", "IA",
+            "startAppeal", "someAssignee", "1623278362430412", CFTTaskState.ASSIGNED);
         createdTask2.setCaseName("TestCaseB");
         createdTask2.setCaseCategory("caseCategoryC");
 
