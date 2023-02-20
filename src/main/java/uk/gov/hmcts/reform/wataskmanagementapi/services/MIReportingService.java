@@ -4,6 +4,7 @@ import org.postgresql.Driver;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
@@ -24,6 +25,9 @@ public class MIReportingService {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MIReportingService.class);
     public static final String MAIN_SLOT_NAME = "main_slot_v1";
 
+    String user;
+    String password;
+
     @Autowired
     private DataSource dataSource;
 
@@ -36,9 +40,13 @@ public class MIReportingService {
 
 
     public MIReportingService(TaskHistoryResourceRepository tasksHistoryRepository,
-                              TaskResourceRepository taskResourceRepository) {
+                              TaskResourceRepository taskResourceRepository,
+                              @Value("${spring.config.datasource.username}") String user,
+                              @Value("${spring.config.datasource.password}") String password) {
         this.taskHistoryRepository = tasksHistoryRepository;
         this.taskResourceRepository = taskResourceRepository;
+        this.user = user;
+        this.password = password;
     }
 
     public List<TaskHistoryResource> findByTaskId(String taskId) {
@@ -131,8 +139,6 @@ public class MIReportingService {
 
     void createSubscription(String host, String port, String dbName,
                             String replicaHost, String replicaPort, String replicaDbName) {
-        String user = "repl_user";
-        String password = "repl_password";
 
         String replicaUrl = "jdbc:postgresql://" + host + ":" + replicaPort + "/" + replicaDbName
             + "?user=" + user + "&password=" + password;
