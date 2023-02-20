@@ -41,8 +41,8 @@ public class MIReportingService {
 
     public MIReportingService(TaskHistoryResourceRepository tasksHistoryRepository,
                               TaskResourceRepository taskResourceRepository,
-                              @Value("${spring.datasource.username}") String user,
-                              @Value("${spring.datasource.password}") String password) {
+                              @Value("${replication.username}") String user,
+                              @Value("${replication.password}") String password) {
         this.taskHistoryRepository = tasksHistoryRepository;
         this.taskResourceRepository = taskResourceRepository;
         this.user = user;

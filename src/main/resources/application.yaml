@@ -65,6 +65,10 @@ idam:
     username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
     password: ${WA_SYSTEM_PASSWORD:password}
 
+replication:
+  username: ${REPLICATION_USERNAME:repl_user}
+  password: ${REPLICATION_PASSWORD:repl_password}
+
 spring:
   config:
     import: "optional:configtree:/mnt/secrets/wa/"

@@ -29,6 +29,8 @@ java:
     POSTGRES_REPLICA_NAME: "cft_task_db_replica"
     POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
     POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
+    REPLICATION_USERNAME: "{{ .Values.postgresql.auth.username}}"
+    REPLICATION_PASSWORD: "{{ .Values.postgresql.auth.password}}"
     POSTGRES_CONNECTION_OPTIONS: ""
   postgresql:
     enabled: true
