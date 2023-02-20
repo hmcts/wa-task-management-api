@@ -49,4 +49,22 @@ class AssignTaskRequestTest {
 
         actualAssigneeRequest.assertThat().isEqualTo(assignTaskRequest);
     }
+
+    @Test
+    void testSerializeAssigneeRequestUnassign() throws IOException {
+        String result = "{}";
+
+        JsonContent<AssignTaskRequest> assigneeRequestJsonContent = jacksonTester.write(new AssignTaskRequest());
+
+        assertThat(assigneeRequestJsonContent).isEqualToJson(result);
+    }
+
+    @Test
+    void testDeserializeAssignedRequestUnassign() throws IOException {
+        String request = "{}";
+
+        ObjectContent<AssignTaskRequest> actualAssigneeRequest = jacksonTester.parse(request);
+
+        actualAssigneeRequest.assertThat().isEqualTo(new AssignTaskRequest());
+    }
 }

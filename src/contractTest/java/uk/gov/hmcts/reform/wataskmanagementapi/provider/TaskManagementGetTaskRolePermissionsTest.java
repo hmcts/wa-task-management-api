@@ -45,7 +45,8 @@ public class TaskManagementGetTaskRolePermissionsTest extends SpringBootContract
             taskManagementService,
             accessControlService,
             systemDateProvider,
-            clientAccessControlService
+            clientAccessControlService,
+            launchDarklyFeatureFlagProvider
         ));
 
         if (context != null) {
@@ -70,7 +71,8 @@ public class TaskManagementGetTaskRolePermissionsTest extends SpringBootContract
         TaskRolePermissions taskRolePermissions = new TaskRolePermissions(
             "LEGAL_OPERATIONS",
             "tribunal-caseworker",
-            List.of(PermissionTypes.READ, PermissionTypes.MANAGE, PermissionTypes.EXECUTE),
+            List.of(PermissionTypes.READ, PermissionTypes.MANAGE, PermissionTypes.EXECUTE,
+                    PermissionTypes.COMPLETE_OWN, PermissionTypes.ASSIGN, PermissionTypes.UNCLAIM),
             List.of("IAC", "SCSS")
         );
 

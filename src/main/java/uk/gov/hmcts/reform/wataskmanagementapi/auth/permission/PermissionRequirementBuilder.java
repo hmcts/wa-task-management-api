@@ -9,6 +9,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
+@SuppressWarnings({"PMD.TooManyMethods"})
 public class PermissionRequirementBuilder {
     public static final String NOT_INITIATED_ERROR = "Permission requirements should be initiated first";
     public static final String ALREADY_INITIATED_ERROR = "Permission requirements has already been initiated";
@@ -22,6 +23,19 @@ public class PermissionRequirementBuilder {
 
     public static PermissionRequirementBuilder builder() {
         return new PermissionRequirementBuilder();
+    }
+
+    public PermissionRequirementBuilder initPermissionRequirement(PermissionTypes permissionType) {
+        if (root != null) {
+            throw new IllegalStateException(ALREADY_INITIATED_ERROR);
+        }
+
+        requireNonNull(permissionType, NULL_PERMISSION_TYPES_ERROR);
+
+        currentPermissionRequirements = new PermissionRequirements();
+        root = currentPermissionRequirements;
+        currentPermissionRequirements.setPermissionRequirement(new PermissionRequirement(permissionType));
+        return this;
     }
 
     public PermissionRequirementBuilder initPermissionRequirement(List<PermissionTypes> permissionTypes,
@@ -66,13 +80,30 @@ public class PermissionRequirementBuilder {
         return this;
     }
 
+    public PermissionRequirementBuilder nextPermissionRequirement(PermissionTypes permissionType) {
+        if (root == null) {
+            throw new IllegalStateException(NOT_INITIATED_ERROR);
+        }
+        if (currentPermissionRequirements.getPermissionJoin() == null) {
+            throw new IllegalStateException(NOT_JOINED_ERROR);
+        }
+
+        requireNonNull(permissionType, NULL_PERMISSION_TYPES_ERROR);
+
+        PermissionRequirements nextPermissionRequirements = new PermissionRequirements();
+        nextPermissionRequirements.setPermissionRequirement(new PermissionRequirement(permissionType));
+        currentPermissionRequirements.setNextPermissionRequirements(nextPermissionRequirements);
+        currentPermissionRequirements = nextPermissionRequirements;
+        return this;
+    }
+
     public PermissionRequirements build() {
         return root;
     }
 
     public PermissionRequirements buildSingleType(PermissionTypes type) {
         PermissionRequirements permissionRequirements = new PermissionRequirements();
-        permissionRequirements.setPermissionRequirement(new PermissionRequirement(List.of(type), PermissionJoin.OR));
+        permissionRequirements.setPermissionRequirement(new PermissionRequirement(type));
         return permissionRequirements;
     }
 

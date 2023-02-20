@@ -10,6 +10,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -18,20 +19,20 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,74 +48,63 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_BUSINESS_CONTEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DESCRIPTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MAJOR_PRIORITY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MINOR_PRIORITY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_PRIORITY_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SYSTEM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TERMINATION_REASON;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator.DATE_TIME_FORMATTER;
 
 
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
         "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411",
-        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity"})
+        "PMD.ExcessiveMethodLength", "PMD.NPathComplexity", "PMD.AvoidDuplicateLiterals",
+        "PMD.CognitiveComplexity", "PMD.ReturnEmptyCollectionRatherThanNull"
+    })
 @Slf4j
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
+    private final Set<PermissionTypes> permissionsNewGranular = new HashSet<>(
+        asList(
+            PermissionTypes.COMPLETE,
+            PermissionTypes.COMPLETE_OWN,
+            PermissionTypes.CANCEL_OWN,
+            PermissionTypes.CLAIM,
+            PermissionTypes.UNCLAIM,
+            PermissionTypes.ASSIGN,
+            PermissionTypes.UNASSIGN,
+            PermissionTypes.UNCLAIM_ASSIGN,
+            PermissionTypes.UNASSIGN_CLAIM,
+            PermissionTypes.UNASSIGN_ASSIGN
+        )
+    );
 
     public CFTTaskMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.objectMapper.registerModule(new JavaTimeModule());
     }
 
-    public TaskResource mapToTaskResource(String taskId, List<TaskAttribute> taskAttributes) {
+    public TaskResource mapToTaskResource(String taskId, Map<String, Object> taskAttributes) {
         log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
-        Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
-            .filter(attribute -> {
-                log.debug("filtering out null attributes: attribute({})", attribute);
-                return attribute != null && attribute.getValue() != null;
-            })
-            .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
+        Map<CamundaVariableDefinition, Object> attributes = taskAttributes.entrySet().stream()
+            .filter(key -> CamundaVariableDefinition.from(key.getKey()).isPresent())
+            .collect(Collectors.toMap(
+                key -> CamundaVariableDefinition.from(key.getKey()).get(),
+                Map.Entry::getValue
+            ));
 
         List<NoteResource> notes = extractWarningNotes(attributes);
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
-        OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
-        OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
-        OffsetDateTime priorityDate = readDate(attributes, TASK_PRIORITY_DATE, null);
+        OffsetDateTime dueDate = readDate(attributes, DUE_DATE, null);
+        OffsetDateTime createdDate = readDate(attributes, CREATED, ZonedDateTime.now().toOffsetDateTime());
+        OffsetDateTime priorityDate = readDate(attributes, PRIORITY_DATE, null);
 
-        Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
+        Objects.requireNonNull(dueDate, "DUE_DATE must not be null");
         if (priorityDate == null) {
             priorityDate = dueDate;
         }
@@ -122,40 +112,40 @@ public class CFTTaskMapper {
         WorkTypeResource workTypeResource = extractWorkType(attributes);
         return new TaskResource(
             taskId,
-            read(attributes, TASK_NAME, null),
-            read(attributes, TASK_TYPE, null),
+            read(attributes, CamundaVariableDefinition.TASK_NAME, null),
+            read(attributes, CamundaVariableDefinition.TASK_TYPE, null),
             dueDate,
             CFTTaskState.UNCONFIGURED,
-            read(attributes, TASK_SYSTEM, null),
-            read(attributes, TASK_SECURITY_CLASSIFICATION, null),
-            read(attributes, TASK_TITLE, null),
-            read(attributes, TASK_DESCRIPTION, null),
+            read(attributes, CamundaVariableDefinition.TASK_SYSTEM, null),
+            read(attributes, CamundaVariableDefinition.SECURITY_CLASSIFICATION, null),
+            read(attributes, CamundaVariableDefinition.TITLE, null),
+            read(attributes, CamundaVariableDefinition.DESCRIPTION, null),
             notes,
-            read(attributes, TASK_MAJOR_PRIORITY, 5000),
-            read(attributes, TASK_MINOR_PRIORITY, 500),
-            read(attributes, TASK_ASSIGNEE, null),
-            read(attributes, TASK_AUTO_ASSIGNED, false),
+            read(attributes, CamundaVariableDefinition.MAJOR_PRIORITY, 5000),
+            read(attributes, CamundaVariableDefinition.MINOR_PRIORITY, 500),
+            read(attributes, CamundaVariableDefinition.ASSIGNEE, null),
+            read(attributes, CamundaVariableDefinition.AUTO_ASSIGNED, false),
             executionTypeResource,
             workTypeResource,
-            read(attributes, TASK_ROLE_CATEGORY, null),
-            read(attributes, TASK_HAS_WARNINGS, false),
-            read(attributes, TASK_ASSIGNMENT_EXPIRY, null),
-            read(attributes, TASK_CASE_ID, null),
-            read(attributes, TASK_CASE_TYPE_ID, null),
-            read(attributes, TASK_CASE_NAME, null),
-            read(attributes, TASK_JURISDICTION, null),
-            read(attributes, TASK_REGION, null),
-            read(attributes, TASK_REGION_NAME, null),
-            read(attributes, TASK_LOCATION, null),
-            read(attributes, TASK_LOCATION_NAME, null),
-            read(attributes, TASK_BUSINESS_CONTEXT, null),
-            read(attributes, TASK_TERMINATION_REASON, null),
+            read(attributes, CamundaVariableDefinition.ROLE_CATEGORY, null),
+            read(attributes, CamundaVariableDefinition.HAS_WARNINGS, false),
+            read(attributes, CamundaVariableDefinition.ASSIGNMENT_EXPIRY, null),
+            read(attributes, CamundaVariableDefinition.CASE_ID, null),
+            read(attributes, CamundaVariableDefinition.CASE_TYPE_ID, null),
+            read(attributes, CamundaVariableDefinition.CASE_NAME, null),
+            read(attributes, CamundaVariableDefinition.JURISDICTION, null),
+            read(attributes, CamundaVariableDefinition.REGION, null),
+            read(attributes, CamundaVariableDefinition.REGION_NAME, null),
+            read(attributes, CamundaVariableDefinition.LOCATION, null),
+            read(attributes, CamundaVariableDefinition.LOCATION_NAME, null),
+            read(attributes, CamundaVariableDefinition.BUSINESS_CONTEXT, null),
+            read(attributes, CamundaVariableDefinition.TERMINATION_REASON, null),
             createdDate,
-            read(attributes, TASK_ROLES, null),
-            read(attributes, TASK_CASE_CATEGORY, null),
-            read(attributes, TASK_ADDITIONAL_PROPERTIES, null),
-            read(attributes, TASK_NEXT_HEARING_ID, null),
-            readDate(attributes, TASK_NEXT_HEARING_DATE, null),
+            read(attributes, CamundaVariableDefinition.TASK_ROLES, null),
+            read(attributes, CamundaVariableDefinition.CASE_CATEGORY, null),
+            read(attributes, CamundaVariableDefinition.ADDITIONAL_PROPERTIES, null),
+            read(attributes, CamundaVariableDefinition.NEXT_HEARING_ID, null),
+            readDate(attributes, CamundaVariableDefinition.NEXT_HEARING_DATE, null),
             priorityDate
         );
     }
@@ -236,26 +226,34 @@ public class CFTTaskMapper {
     }
 
 
-    public Task mapToTaskAndExtractPermissionsUnion(TaskResource taskResource, List<RoleAssignment> roleAssignments) {
+    public Task mapToTaskAndExtractPermissionsUnion(TaskResource taskResource, List<RoleAssignment> roleAssignments,
+                                                    boolean granularPermissionResponseFeature) {
         Set<PermissionTypes> permissionsUnionForUser =
             extractUnionOfPermissionsForUser(
                 taskResource.getTaskRoleResources(),
-                roleAssignments
+                roleAssignments,
+                taskResource.getCaseId(),
+                granularPermissionResponseFeature
             );
+
+        if (!granularPermissionResponseFeature) {
+            permissionsUnionForUser.removeAll(permissionsNewGranular);
+        }
 
         return mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
-                      TaskAttributeDefinition extractor,
+    public <T> T read(Map<CamundaVariableDefinition, Object> attributesMap,
+                      CamundaVariableDefinition extractor,
                       Object defaultValue) {
         return (T) map(attributesMap, extractor).orElse(defaultValue);
     }
 
+
     @SuppressWarnings("unchecked")
-    public <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
-                          TaskAttributeDefinition extractor,
+    public <T> T readDate(Map<CamundaVariableDefinition, Object> attributesMap,
+                          CamundaVariableDefinition extractor,
                           Object defaultValue) {
         Optional<T> maybeValue = map(attributesMap, extractor);
         if (maybeValue.isPresent()) {
@@ -271,29 +269,61 @@ public class CFTTaskMapper {
     }
 
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
-                                                                 List<RoleAssignment> roleAssignments) {
-        List<String> userRoleNames = roleAssignments.stream()
-            .map(RoleAssignment::getRoleName)
-            .collect(Collectors.toList());
+                                                                 List<RoleAssignment> roleAssignments,
+                                                                 boolean granularPermissionResponseFeature) {
+        Optional caseId = taskRoleResources.stream()
+            .filter(t -> t.getTaskResource() != null
+                && t.getTaskResource().getCaseId() != null).map(t -> t.getTaskResource().getCaseId())
+            .findFirst();
+        if (caseId.isPresent()) {
+            return extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments,
+                                                    (String) caseId.get(), granularPermissionResponseFeature);
+        } else {
+            return new TreeSet<PermissionTypes>();
+        }
+    }
 
+    private Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
+                                                                 List<RoleAssignment> roleAssignments,
+                                                                 String caseId,
+                                                                 boolean granularPermissionResponseFeature) {
         TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
+        if (caseId != null) {
+            List<String> userRoleNames = roleAssignments.stream()
+                .filter(ra -> !ra.getRoleType().equals(RoleType.CASE) || ra.getAttributes() != null
+                    && ra.getAttributes().get("caseId") != null
+                    && ra.getAttributes().get("caseId").equals(caseId))
+                .map(RoleAssignment::getRoleName)
+                .collect(Collectors.toList());
 
-        if (taskRoleResources != null) {
-            taskRoleResources.forEach(taskRoleResource -> {
-                if (userRoleNames.contains(taskRoleResource.getRoleName())) {
-                    Set<PermissionTypes> permissionTypes = evaluatePermissionsFoundAndCollectResults(taskRoleResource);
-                    permissionsFound.addAll(permissionTypes);
-                }
-            });
+
+            if (taskRoleResources != null) {
+                taskRoleResources.forEach(taskRoleResource -> {
+                    if (userRoleNames.contains(taskRoleResource.getRoleName())) {
+                        Set<PermissionTypes> permissionTypes = evaluatePermissionsFoundAndCollectResults(
+                            taskRoleResource);
+                        permissionsFound.addAll(permissionTypes);
+                    }
+                });
+            }
+        }
+
+        if (!granularPermissionResponseFeature) {
+            permissionsFound.removeAll(permissionsNewGranular);
         }
 
         return permissionsFound;
     }
 
-    public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
+    public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource,
+                                                        boolean granularPermissionResponseFeature) {
         List<String> authorisations = asList(taskRoleResource.getAuthorizations());
 
         final Set<PermissionTypes> permissionTypes = extractUnionOfPermissions(Set.of(taskRoleResource));
+
+        if (!granularPermissionResponseFeature) {
+            permissionTypes.removeAll(permissionsNewGranular);
+        }
 
         return new TaskRolePermissions(
             taskRoleResource.getRoleCategory(),
@@ -323,11 +353,41 @@ public class CFTTaskMapper {
         if (taskRoleResource.getRefer()) {
             accumulator.add(PermissionTypes.REFER);
         }
+        if (taskRoleResource.getClaim()) {
+            accumulator.add(PermissionTypes.CLAIM);
+        }
+        if (taskRoleResource.getAssign()) {
+            accumulator.add(PermissionTypes.ASSIGN);
+        }
+        if (taskRoleResource.getUnassign()) {
+            accumulator.add(PermissionTypes.UNASSIGN);
+        }
+        if (taskRoleResource.getUnassignAssign()) {
+            accumulator.add(PermissionTypes.UNASSIGN_ASSIGN);
+        }
+        if (taskRoleResource.getComplete()) {
+            accumulator.add(PermissionTypes.COMPLETE);
+        }
+        if (taskRoleResource.getCompleteOwn()) {
+            accumulator.add(PermissionTypes.COMPLETE_OWN);
+        }
+        if (taskRoleResource.getCancelOwn()) {
+            accumulator.add(PermissionTypes.CANCEL_OWN);
+        }
+        if (taskRoleResource.getUnassignClaim()) {
+            accumulator.add(PermissionTypes.UNASSIGN_CLAIM);
+        }
+        if (taskRoleResource.getUnclaim()) {
+            accumulator.add(PermissionTypes.UNCLAIM);
+        }
+        if (taskRoleResource.getUnclaimAssign()) {
+            accumulator.add(PermissionTypes.UNCLAIM_ASSIGN);
+        }
         return accumulator;
     }
 
-    private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
-        String workTypeId = read(attributes, TASK_WORK_TYPE, null);
+    private WorkTypeResource extractWorkType(Map<CamundaVariableDefinition, Object> attributes) {
+        String workTypeId = read(attributes, WORK_TYPE, null);
         return workTypeId == null ? null : new WorkTypeResource(workTypeId);
     }
 
@@ -358,7 +418,10 @@ public class CFTTaskMapper {
                 final String permissionsValue = permission.getValue().getValue();
 
                 final Set<PermissionTypes> permissionsFound = Arrays.stream(permissionsValue.split(","))
-                    .map(p -> PermissionTypes.from(p).orElse(null))
+
+                    .map(String:: trim)
+                    .map(p -> PermissionTypes.from(p).orElseThrow(() -> new IllegalArgumentException(
+                        "Invalid Permission Type:" + p)))
                     .collect(Collectors.toSet());
 
                 List<String> authorisations = new ArrayList<>();
@@ -394,7 +457,17 @@ public class CFTTaskMapper {
                     autoAssignable,
                     roleCategory,
                     taskResource.getTaskId(),
-                    ZonedDateTime.now().toOffsetDateTime()
+                    ZonedDateTime.now().toOffsetDateTime(),
+                    permissionsFound.contains(PermissionTypes.COMPLETE),
+                    permissionsFound.contains(PermissionTypes.COMPLETE_OWN),
+                    permissionsFound.contains(PermissionTypes.CANCEL_OWN),
+                    permissionsFound.contains(PermissionTypes.CLAIM),
+                    permissionsFound.contains(PermissionTypes.UNCLAIM),
+                    permissionsFound.contains(PermissionTypes.ASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNCLAIM_ASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN_CLAIM),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN_ASSIGN)
                 );
             }).collect(Collectors.toSet());
     }
@@ -488,9 +561,7 @@ public class CFTTaskMapper {
                     }
                     break;
                 case NEXT_HEARING_DATE:
-                    if (value != null && Strings.isNotBlank((String) value)) {
-                        taskResource.setNextHearingDate(ZonedDateTime.parse((String) value).toOffsetDateTime());
-                    }
+                    taskResource.setNextHearingDate(mapDate(value));
                     break;
                 case MINOR_PRIORITY:
                     setMinorPriority(value, taskResource);
@@ -499,18 +570,28 @@ public class CFTTaskMapper {
                     setMajorPriority(value, taskResource);
                     break;
                 case PRIORITY_DATE:
-                    if (value instanceof String) {
-                        if (Strings.isNotBlank((String) value)) {
-                            taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
-                        }
-                    } else {
-                        taskResource.setPriorityDate((OffsetDateTime) value);
-                    }
+                    taskResource.setPriorityDate(mapDate(value));
+                    break;
+                case DUE_DATE:
+                    taskResource.setDueDateTime(mapDate(value));
                     break;
                 default:
                     break;
             }
         }
+    }
+
+    public static OffsetDateTime mapDate(Object value) {
+        if (Objects.isNull(value) || value instanceof String && Strings.isBlank((String) value)) {
+            return null;
+        }
+        log.info("due date after calculation {}", value);
+        LocalDateTime dateTime = LocalDateTime.parse((String) value, DATE_TIME_FORMATTER);
+        ZoneId systemDefault = ZoneId.systemDefault();
+        log.info("system default {}", systemDefault);
+        OffsetDateTime dueDateTime = dateTime.atZone(systemDefault).toOffsetDateTime();
+        log.info("due date during initiation {}", dueDateTime);
+        return dueDateTime;
     }
 
     void setMajorPriority(Object value, TaskResource taskResource) {
@@ -566,13 +647,7 @@ public class CFTTaskMapper {
                     taskResource.setAdditionalProperties(additionalProperties);
                     break;
                 case PRIORITY_DATE:
-                    if (value instanceof String) {
-                        if (Strings.isNotBlank((String) value)) {
-                            taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
-                        }
-                    } else {
-                        taskResource.setPriorityDate((OffsetDateTime) value);
-                    }
+                    taskResource.setPriorityDate(mapDate(value));
                     break;
                 case MINOR_PRIORITY:
                     setMinorPriority(value, taskResource);
@@ -586,13 +661,10 @@ public class CFTTaskMapper {
                     }
                     break;
                 case NEXT_HEARING_DATE:
-                    if (value instanceof String) {
-                        if (Strings.isNotBlank((String) value)) {
-                            taskResource.setNextHearingDate(OffsetDateTime.parse((String) value));
-                        }
-                    } else {
-                        taskResource.setNextHearingDate((OffsetDateTime) value);
-                    }
+                    taskResource.setNextHearingDate(mapDate(value));
+                    break;
+                case DUE_DATE:
+                    taskResource.setDueDateTime(mapDate(value));
                     break;
                 default:
                     break;
@@ -612,8 +684,8 @@ public class CFTTaskMapper {
         return null;
     }
 
-    private ExecutionTypeResource extractExecutionType(Map<TaskAttributeDefinition, Object> attributes) {
-        String executionTypeName = read(attributes, TASK_EXECUTION_TYPE_NAME, null);
+    private ExecutionTypeResource extractExecutionType(Map<CamundaVariableDefinition, Object> attributes) {
+        String executionTypeName = read(attributes, EXECUTION_TYPE, null);
 
         if (executionTypeName != null) {
             Optional<ExecutionType> value = ExecutionType.from(executionTypeName);
@@ -632,9 +704,9 @@ public class CFTTaskMapper {
         return null;
     }
 
-    private List<NoteResource> extractWarningNotes(Map<TaskAttributeDefinition, Object> attributes) {
+    private List<NoteResource> extractWarningNotes(Map<CamundaVariableDefinition, Object> attributes) {
         List<NoteResource> notes = null;
-        WarningValues warningList = read(attributes, TASK_WARNINGS, null);
+        WarningValues warningList = read(attributes, WARNING_LIST, null);
         if (warningList != null) {
             List<Warning> warnings = warningList.getValues();
             if (!warnings.isEmpty()) {
@@ -663,7 +735,7 @@ public class CFTTaskMapper {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Optional<T> map(Map<TaskAttributeDefinition, Object> object, TaskAttributeDefinition extractor) {
+    private <T> Optional<T> map(Map<CamundaVariableDefinition, Object> object, CamundaVariableDefinition extractor) {
 
         if (object == null) {
             return Optional.empty();

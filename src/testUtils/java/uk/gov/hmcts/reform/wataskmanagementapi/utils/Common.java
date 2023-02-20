@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import io.restassured.http.Headers;
-import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
@@ -20,12 +19,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
 import java.io.IOException;
@@ -33,43 +32,33 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
 public class Common {
 
-    public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    public static final String DEFAULT_TASK_TYPE = "reviewTheAppeal";
+    public static final String DEFAULT_TASK_NAME = "A Task";
+    public static final WarningValues DEFAULT_WARNINGS = new WarningValues();
     public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     public static final String R2_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/r2/set-organisational-role-assignment-request.json";
     public static final String R1_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/set-organisational-role-assignment-request.json";
+    public static final String WA_CASE_TYPE = "WaCaseType";
+    public static final String WA_JURISDICTION = "WA";
     private final GivensBuilder given;
     private final RestApiActions restApiActions;
     private final RestApiActions camundaApiActions;
+
+    private final RestApiActions workflowApiActions;
     private final AuthorizationProvider authorizationProvider;
 
     private final IdamService idamService;
@@ -82,43 +71,15 @@ public class Common {
                   RestApiActions camundaApiActions,
                   AuthorizationProvider authorizationProvider,
                   IdamService idamService,
-                  RoleAssignmentServiceApi roleAssignmentServiceApi) {
+                  RoleAssignmentServiceApi roleAssignmentServiceApi,
+                  RestApiActions workflowApiActions) {
         this.given = given;
         this.restApiActions = restApiActions;
         this.camundaApiActions = camundaApiActions;
         this.authorizationProvider = authorizationProvider;
         this.idamService = idamService;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
-    }
-
-    public TestVariables setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-        Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String jurisdiction, String caseType
-    ) {
-        String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables
-            = given.createDefaultTaskVariables(caseId, jurisdiction, caseType);
-
-        variablesToUseAsOverride.keySet()
-            .forEach(key -> processVariables.put(
-                key.value(),
-                new CamundaValue<>(variablesToUseAsOverride.get(key), "String")
-            ));
-
-        List<CamundaTask> response = given
-            .iCreateATaskWithCustomVariables(processVariables)
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
-
-        if (response.isEmpty()) {
-            fail("Search did not yield any results for case id: " + caseId);
-        }
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
-
+        this.workflowApiActions = workflowApiActions;
     }
 
     public void updateTaskWithCustomVariablesOverride(TestVariables task,
@@ -127,8 +88,11 @@ public class Common {
     ) {
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
             task.getCaseId(),
-            "IA",
-            "Asylum"
+            WA_JURISDICTION,
+            WA_CASE_TYPE,
+            DEFAULT_TASK_TYPE,
+            DEFAULT_TASK_NAME,
+            Map.of()
         );
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables
@@ -137,128 +101,24 @@ public class Common {
         given.iUpdateVariablesOfTaskById(task.getTaskId(), processVariables);
     }
 
-
-    public void overrideTaskPermissions(String taskId, String permissions) {
-        given.iUpdateTaskVariable(
-            taskId,
-            Map.of("tribunal-caseworker", new CamundaValue<>(permissions, "String"))
+    public TestVariables setupWATaskAndRetrieveIds() {
+        return setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "processApplication",
+            "process application"
         );
     }
 
-    public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
-        String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-            "IA",
-            "Asylum"
-        );
-        processVariables.put(key.value(), new CamundaValue<>(value, "String"));
-
-        List<CamundaTask> response = given
-            .iCreateATaskWithCustomVariables(processVariables)
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+    public TestVariables setupWATaskAndRetrieveIds(String taskType, String taskName) {
+        return setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", taskType, taskName);
     }
 
-    public TestVariables setupWATaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value, String resourceFileName) {
-        String caseId = given.iCreateWACcdCase(resourceFileName);
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-                                                                                         "WA",
-                                                                                         "Asylum"
-        );
-        processVariables.put(key.value(), new CamundaValue<>(value, "String"));
-
-        List<CamundaTask> response = given
-            .iCreateATaskWithCustomVariables(processVariables)
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
-    }
-
-
-    public TestVariables setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
-        CamundaVariableDefinition key, String value
-    ) {
-        final String caseId = UUID.randomUUID().toString();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-            "IA",
-            "Asylum"
-        );
-        processVariables.put(key.value(), new CamundaValue<>(value, "String"));
-
-        List<CamundaTask> response = given
-            .iCreateATaskWithCustomVariables(processVariables)
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
-    }
-
-    public TestVariables setupTaskAndRetrieveIds() {
-
-        String caseId = given.iCreateACcdCase();
-
-        List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false, "IA", "Asylum")
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
-    }
-
-    public TestVariables setupTaskAndRetrieveIds(String taskType) {
-
-        String caseId = given.iCreateACcdCase();
-
-        List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, taskType)
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
-    }
-
-    public List<CamundaTask> setupTaskAndRetrieveIdsForGivenCaseId(String caseId, String taskType) {
-        List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, taskType)
-            .and()
-            .iRetrieveATasksWithProcessVariableFilter("caseId", caseId, taskType);
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-        // return taskId
-        return response;
-    }
-
-    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName) {
+    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName, String taskType, String taskName) {
 
         String caseId = given.iCreateWACcdCase(resourceFileName);
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType")
+            .iCreateATaskWithCaseId(caseId, WA_JURISDICTION, WA_CASE_TYPE, taskType, taskName)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -266,15 +126,12 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
-    public TestVariables setupTaskWithWarningsAndRetrieveIds() {
-
-        String caseId = given.iCreateACcdCase();
-
+    public TestVariables setupWATaskForGivenCaseAndRetrieveIds(String caseId, String taskType, String taskName) {
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, true, "IA", "Asylum")
+            .iCreateATaskWithCaseId(caseId, "WA", "WaCaseType", taskType, taskName)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -282,7 +139,95 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
+    }
+
+    public TestVariables setupWAStandaloneTaskAndRetrieveIds(String resourceFileName, String taskType, String taskName) {
+
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        List<CamundaTask> response = given
+            .iSendAMessageToWorkflowApi(caseId, WA_JURISDICTION, WA_CASE_TYPE, taskType, taskName)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
+    }
+
+    public TestVariables setupWATaskWithWithCustomVariableAndRetrieveIds(CamundaVariableDefinition key, String value, String resourceFileName) {
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            caseId,
+            "WA",
+            "Asylum",
+            DEFAULT_TASK_TYPE,
+            DEFAULT_TASK_NAME,
+            Map.of()
+        );
+        processVariables.put(key.value(), new CamundaValue<>(value, "String"));
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), DEFAULT_TASK_TYPE, DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
+    }
+
+    public TestVariables setupWATaskWithAdditionalPropertiesAndRetrieveIds(Map<String, String> additionalProperties, String resourceFileName, String taskType) {
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        Map<String, CamundaValue<?>> processVariables =
+            given.createDefaultTaskVariables(caseId, WA_JURISDICTION,
+                                             WA_CASE_TYPE, taskType, DEFAULT_TASK_NAME, additionalProperties);
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
+
+    }
+
+    public TestVariables setupWATaskWithWarningsAndRetrieveIds(String taskType, String taskName) {
+
+        String caseId = given.iCreateWACcdCase("requests/ccd/wa_case_data.json");
+        WarningValues warnings = new WarningValues(
+            asList(
+                new Warning("Code1", "Text1"),
+                new Warning("Code2", "Text2")
+            ));
+
+        String warningString = "WarningValues(values=[])";
+        try {
+            warningString = warnings.getValuesAsJson();
+        } catch (JsonProcessingException e) {
+            fail("Fail to create warning list: " + caseId);
+        }
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithWarnings(caseId, WA_JURISDICTION, WA_CASE_TYPE, taskType, taskName, warningString)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, DEFAULT_TASK_NAME, warnings);
     }
 
     public void cleanUpTask(String... taskId) {
@@ -293,32 +238,19 @@ public class Common {
         });
     }
 
-    public void cleanUpAndValidateCftTaskState(String taskId, String reason) {
-        log.info("Cleaning task {}", taskId);
-        Response response = camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-            authorizationProvider.getServiceAuthorizationHeadersOnly());
-
-        response.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value())
-            .body("cftTaskState.value", is(reason));
-    }
-
-    public Response getCamundaTask(String taskId) {
-        return camundaApiActions.get("/task", taskId,
-            authorizationProvider.getServiceAuthorizationHeadersOnly());
-    }
-
     public void clearAllRoleAssignments(Headers headers) {
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
     }
 
-    public void clearAllRoleAssignmentsForChallenged(Headers headers) {
+    public void setupWAOrganisationalRoleAssignment(Headers headers) {
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
-        clearAllRoleAssignmentsForUserChallenged(userInfo.getUid(), headers);
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        createCaseAllocator(userInfo, headers, WA_JURISDICTION);
+        createStandardTribunalCaseworker(userInfo, headers, WA_JURISDICTION, WA_CASE_TYPE);
     }
 
-    public void setupOrganisationalRoleAssignment(Headers headers, String roleName) {
+    public void setupWAOrganisationalRoleAssignment(Headers headers, String roleName) {
 
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -326,13 +258,12 @@ public class Common {
             "primaryLocation", "765324",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
-            "jurisdiction", "IA"
+            "jurisdiction", WA_JURISDICTION
         );
 
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
-        //Creates an organizational role for jurisdiction IA
         log.info("Creating Organizational Role");
         postRoleAssignment(
             null,
@@ -341,50 +272,6 @@ public class Common {
             userInfo.getUid(),
             roleName,
             toJsonString(attributes),
-            R1_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.STANDARD.name(),
-            RoleCategory.LEGAL_OPERATIONS.name(),
-            toJsonString(List.of()),
-            RoleType.ORGANISATION.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid());
-    }
-
-    public void setupOrganisationalRoleAssignment(Headers headers) {
-
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));//Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-        createCaseAllocator(userInfo, headers, "IA");
-        createStandardTribunalCaseworker(userInfo, headers, "IA", "Asylum");
-    }
-
-    public void setupCFTOrganisationalRoleAssignment(Headers headers, String roleName) {
-
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        //Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-
-        createCaseAllocator(userInfo, headers, "IA");
-        //Creates an organizational role for jurisdiction IA
-        log.info("Creating Organizational Role");
-        postRoleAssignment(
-            null,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            roleName,
-            toJsonString(Map.of(
-                "primaryLocation", "765324",
-                "jurisdiction", "IA"
-            )),
             R2_ROLE_ASSIGNMENT_REQUEST,
             GrantType.STANDARD.name(),
             RoleCategory.LEGAL_OPERATIONS.name(),
@@ -401,35 +288,142 @@ public class Common {
             userInfo.getUid());
     }
 
-    public void setupCFTOrganisationalRoleAssignment(Headers headers, String jurisdiction, String caseType) {
+    public void setupWAOrganisationalRoleAssignmentWithCustomAttributes(Headers headers, Map<String, String> attributes) {
 
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "tribunal-caseworker",
+            toJsonString(attributes),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupWAOrganisationalRoleAssignmentWithWorkTypes(Headers headers, String roleName) {
+
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            "region", "1",
+            //This value must match the camunda task location variable for the permission check to pass
+            "baseLocation", "765324",
+            "jurisdiction", WA_JURISDICTION,
+            "workTypes", "hearing_work,upper_tribunal,routine_work"
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction WA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            roleName,
+            toJsonString(attributes),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupCFTOrganisationalRoleAssignment(Headers headers, String jurisdiction, String caseType) {
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
         createCaseAllocator(userInfo, headers, jurisdiction);
         createSupervisor(userInfo, headers, jurisdiction);
         createStandardTribunalCaseworker(userInfo, headers, jurisdiction, caseType);
-
     }
 
-    public void setupCFTOrganisationalRoleAssignmentForChallengedAccess(Headers headers, String jurisdiction, String caseType) {
+    public void setupCFTCtscRoleAssignmentForWA(Headers headers) {
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        createCaseAllocator(userInfo, headers, WA_JURISDICTION);
+        createCtscCaseworker(userInfo, headers, WA_JURISDICTION, WA_CASE_TYPE);
+    }
 
+    public void setupHearingPanelJudgeForStandardAccess(Headers headers, String jurisdiction, String caseType) {
+        log.info("Creating hearing-panel-judge organizational Role");
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-        clearAllRoleAssignmentsForUserChallenged(userInfo.getUid(), headers);
-        createCaseAllocator(userInfo, headers, jurisdiction);
-        createSupervisor(userInfo, headers, jurisdiction);
-        createStandardTribunalCaseworker(userInfo, headers, jurisdiction, caseType);
-
-    }
-
-    private void createStandardTribunalCaseworker(UserInfo userInfo, Headers headers,
-                                                  String jurisdiction, String caseType) {
-        log.info("Creating Standard Tribunal caseworker organizational Role");
 
         postRoleAssignment(
             null,
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(), "tribunal-caseworker",
+            userInfo.getUid(),
+            "hearing-panel-judge",
+            toJsonString(
+                Map.of(
+                    "primaryLocation", "765324",
+                    "jurisdiction", jurisdiction,
+                    "caseType", caseType
+                )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.JUDICIAL.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupStandardCaseManager(Headers headers, String caseId, String jurisdiction, String caseType) {
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        log.info("Creating Case manager Organizational Role");
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "case-manager",
             toJsonString(Map.of(
                 "primaryLocation", "765324",
                 "caseType", caseType,
@@ -452,53 +446,49 @@ public class Common {
         );
     }
 
-    public void setupCFTOrganisationalRoleAssignmentForWA(Headers headers) {
-        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-        createCaseAllocator(userInfo, headers, "WA");
-        createStandardTribunalCaseworker(userInfo, headers, "WA", "WaCaseType");
-    }
-
-    public void setupLeadJudgeForSpecificAccess(Headers headers, String caseId, String jurisdiction) {
-
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-        createCaseAllocator(userInfo, headers, jurisdiction);
-        createLeaderShipJudge(userInfo, headers, jurisdiction);
-        createLeadJudge(userInfo, headers, jurisdiction, caseId);
-
-    }
-
-    public void setupFtpaJudgeForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
-
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-        createCaseAllocator(userInfo, headers, jurisdiction);
-        createSeniorJudge(userInfo, headers, jurisdiction);
-        createFtpaJudge(userInfo, headers, jurisdiction, caseType, caseId);
-
-    }
-
-    public void setupHearingPanelJudgeForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
-
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-        createCaseAllocator(userInfo, headers, jurisdiction);
-        createSeniorJudge(userInfo, headers, jurisdiction);
-        createHearingPanelJudge(userInfo, headers, jurisdiction, caseType, caseId);
-
-    }
-
     public void setupCaseManagerForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
-        //Creates an organizational role for jurisdiction IA
-        log.info("Creating Organizational Role");
+        log.info("Creating Case manager Case Role");
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "case-manager",
+            toJsonString(Map.of(
+                "caseId", caseId,
+                "caseType", caseType,
+                "jurisdiction", jurisdiction,
+                "substantive", "Y"
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.SPECIFIC.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            RoleType.CASE.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupOnlyCaseManagerForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
         createCaseAllocator(userInfo, headers, jurisdiction);
-        createStandardTribunalCaseworker(userInfo, headers, jurisdiction, caseType);
+
         log.info("Creating Case manager Organizational Role");
 
         postRoleAssignment(
@@ -530,28 +520,182 @@ public class Common {
         );
     }
 
-    public void setupChallengedAccessJudiciary(Headers headers, String caseId, String jurisdiction, String caseType) {
+    public void setupExcludedAccessJudiciary(Headers headers, String caseId, String jurisdiction, String caseType) {
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
-        clearAllRoleAssignmentsForUserChallenged(userInfo.getUid(), headers);
-
-        log.info("Creating challenged-access-judiciary Role");
+        log.info("Creating Conflict of Interest case role for judicial users Role");
 
         postRoleAssignment(
             caseId,
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo.getUid(),
-            "challenged-access-judiciary",
+            "conflict-of-interest",
+            toJsonString(Map.of(
+                "jurisdiction", jurisdiction,
+                "caseType", caseType,
+                "caseId", caseId
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.EXCLUDED.name(),
+            RoleCategory.JUDICIAL.name(),
+            toJsonString(List.of()),
+            RoleType.CASE.name(),
+            Classification.RESTRICTED.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupLeadJudgeForSpecificAccess(Headers headers, String caseId, String jurisdiction) {
+        log.info("Creating lead-judge Case Role");
+
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "lead-judge",
+            toJsonString(
+                Map.of(
+                    "primaryLocation", "765324",
+                    "jurisdiction", jurisdiction,
+                    "caseId", caseId
+                )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.SPECIFIC.name(),
+            RoleCategory.JUDICIAL.name(),
+            toJsonString(List.of()),
+            RoleType.CASE.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupFtpaJudgeForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
+        setupFtpaJudgeForSpecificAccess(headers, caseId, jurisdiction, caseType, true);
+    }
+
+    public void setupFtpaJudgeForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType, boolean clearRoleAssignments) {
+        log.info("Creating ftpa-judge Case Role");
+
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        if (clearRoleAssignments) {
+            clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        }
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "ftpa-judge",
+            toJsonString(
+                Map.of(
+                    "primaryLocation", "765324",
+                    "jurisdiction", jurisdiction,
+                    "caseType", caseType,
+                    "caseId", caseId
+                )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.SPECIFIC.name(),
+            RoleCategory.JUDICIAL.name(),
+            toJsonString(List.of()),
+            RoleType.CASE.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupFtpaJudgeForCaseAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
+
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        createStandardTribunalCaseworker(userInfo, headers, jurisdiction, caseType);
+        setupFtpaJudgeForSpecificAccess(headers, caseId, jurisdiction, caseType, false);
+        //createFtpaJudge(userInfo, headers, jurisdiction, caseType, caseId);
+    }
+
+    public void setupHearingPanelJudgeForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
+        log.info("Creating hearing-panel-judge Case Role");
+
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "hearing-panel-judge",
+            toJsonString(
+                Map.of(
+                    "primaryLocation", "765324",
+                    "jurisdiction", jurisdiction,
+                    "caseType", caseType,
+                    "caseId", caseId
+                )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.SPECIFIC.name(),
+            RoleCategory.JUDICIAL.name(),
+            toJsonString(List.of()),
+            RoleType.CASE.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupSpecificTribunalCaseWorker(String caseId, Headers headers, String jurisdiction, String caseType) {
+        log.info("Creating specific tribunal caseworker organizational Role");
+
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "tribunal-caseworker",
             toJsonString(Map.of(
                 "caseId", caseId,
                 "caseType", caseType,
-                "jurisdiction", jurisdiction,
-                "substantive", "F"
+                "jurisdiction", jurisdiction
             )),
             R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.CHALLENGED.name(),
-            RoleCategory.JUDICIAL.name(),
+            GrantType.SPECIFIC.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
             toJsonString(List.of()),
             RoleType.CASE.name(),
             Classification.PUBLIC.name(),
@@ -569,7 +713,7 @@ public class Common {
     public void setupChallengedAccessLegalOps(Headers headers, String caseId, String jurisdiction, String caseType) {
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
-        clearAllRoleAssignmentsForUserChallenged(userInfo.getUid(), headers);
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
         log.info("Creating challenged-access-legal-ops Role");
 
@@ -605,7 +749,7 @@ public class Common {
     public void setupChallengedAccessAdmin(Headers headers, String caseId, String jurisdiction, String caseType) {
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
-        clearAllRoleAssignmentsForUserChallenged(userInfo.getUid(), headers);
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
         log.info("Creating challenged-access-admin Role");
 
@@ -638,356 +782,25 @@ public class Common {
         );
     }
 
-    public void setupExcludedAccessJudiciary(Headers headers, String caseId, String jurisdiction, String caseType) {
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        log.info("Creating Conflict of Interest role for judicial users Role");
+    private void createStandardTribunalCaseworker(UserInfo userInfo, Headers headers,
+                                                  String jurisdiction, String caseType) {
+        log.info("Creating Standard Tribunal caseworker organizational Role");
 
         postRoleAssignment(
-            caseId,
+            null,
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "conflict-of-interest",
+            userInfo.getUid(), "tribunal-caseworker",
             toJsonString(Map.of(
-                "jurisdiction", jurisdiction,
-                "caseType", caseType,
-                "caseId", caseId
-            )),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.EXCLUDED.name(),
-            RoleCategory.JUDICIAL.name(),
-            toJsonString(List.of()),
-            RoleType.CASE.name(),
-            Classification.RESTRICTED.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-    }
-
-    public void setupCFTOrganisationalWithMultipleRoles(Headers headers) {
-
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        Map<String, String> attributes = Map.of(
-            "primaryLocation", "765324",
-            "region", "1",
-            //This value must match the camunda task location variable for the permission check to pass
-            "baseLocation", "765324",
-            "jurisdiction", "IA"
-        );
-
-        //Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-
-        //Creates an organizational role for jurisdiction IA
-        log.info("Creating Organizational Role");
-        postRoleAssignment(
-            null,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "tribunal-caseworker",
-            toJsonString(attributes),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.STANDARD.name(),
-            RoleCategory.LEGAL_OPERATIONS.name(),
-            toJsonString(List.of()),
-            RoleType.ORGANISATION.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-
-        postRoleAssignment(
-            null,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "tribunal-caseworker",
-            toJsonString(attributes),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.STANDARD.name(),
-            RoleCategory.LEGAL_OPERATIONS.name(),
-            toJsonString(List.of()),
-            RoleType.ORGANISATION.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-
-    }
-
-    public void setupOrganisationalRoleAssignmentWithWorkTypes(Headers headers) {
-
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        Map<String, String> attributes = Map.of(
-            "primaryLocation", "765324",
-            "region", "1",
-            //This value must match the camunda task location variable for the permission check to pass
-            "baseLocation", "765324",
-            "jurisdiction", "IA",
-            "workTypes", "hearing_work,upper_tribunal,routine_work"
-        );
-
-        //Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-
-        //Creates an organizational role for jurisdiction IA
-        log.info("Creating Organizational Role");
-        postRoleAssignment(
-            null,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "tribunal-caseworker",
-            toJsonString(attributes),
-            R1_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.STANDARD.name(),
-            RoleCategory.LEGAL_OPERATIONS.name(),
-            toJsonString(List.of()),
-            RoleType.ORGANISATION.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-    }
-
-    public void setupOrganisationalRoleAssignmentWithOutEndDate(Headers headers) {
-
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        Map<String, String> attributes = Map.of(
-            "primaryLocation", "765324",
-            "region", "1",
-            //This value must match the camunda task location variable for the permission check to pass
-            "baseLocation", "765324",
-            "jurisdiction", "IA"
-        );
-
-        //Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-
-        //Creates an organizational role for jurisdiction IA
-        log.info("Creating Organizational Role");
-        postRoleAssignment(
-            null,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "tribunal-caseworker",
-            toJsonString(attributes),
-            "requests/roleAssignment/set-organisational-role-assignment-request-without-end-date.json",
-            GrantType.STANDARD.name(),
-            RoleCategory.LEGAL_OPERATIONS.name(),
-            toJsonString(List.of()),
-            RoleType.ORGANISATION.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-    }
-
-    public void setupCFTJudicialOrganisationalRoleAssignment(Headers headers, String caseId, String jurisdiction, String caseType) {
-
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        //Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-
-        //Creates an organizational role for jurisdiction IA
-        log.info("Creating Organizational Role");
-        createCaseAllocator(userInfo, headers, jurisdiction);
-
-        log.info("Creating judge");
-        postRoleAssignment(
-            caseId,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "judge",
-            toJsonString(Map.of("jurisdiction", jurisdiction)),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.STANDARD.name(),
-            RoleCategory.JUDICIAL.name(),
-            toJsonString(List.of()),
-            RoleType.ORGANISATION.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-
-        log.info("Creating hearing judge");
-        postRoleAssignment(
-            caseId,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "hearing-judge",
-            toJsonString(Map.of(
-                "caseId", caseId,
+                "primaryLocation", "765324",
                 "caseType", caseType,
                 "jurisdiction", jurisdiction
             )),
             R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.SPECIFIC.name(),
-            RoleCategory.JUDICIAL.name(),
-            toJsonString(List.of("373")),
-            RoleType.CASE.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-
-    }
-
-    public void setupCFTAdministrativeOrganisationalRoleAssignment(Headers headers) {
-
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        //Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-
-        //Creates an organizational role for jurisdiction IA
-        log.info("Creating Organizational Role");
-        createCaseAllocator(userInfo, headers, "IA");
-        postRoleAssignment(
-            null,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "hearing-centre-admin",
-            toJsonString(Map.of(
-                "primaryLocation", "765324",
-                "jurisdiction", "IA"
-            )),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.STANDARD.name(),
-            RoleCategory.ADMIN.name(),
-            toJsonString(List.of()),
-            RoleType.ORGANISATION.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-    }
-
-    public void setupOrganisationalRoleAssignmentWithCustomAttributes(Headers headers, Map<String, String> attributes) {
-
-        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        //Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-
-        //Creates an organizational role for jurisdiction IA
-        log.info("Creating Organizational Role");
-        postRoleAssignment(
-            null,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "tribunal-caseworker",
-            toJsonString(attributes),
-            R1_ROLE_ASSIGNMENT_REQUEST,
             GrantType.STANDARD.name(),
             RoleCategory.LEGAL_OPERATIONS.name(),
             toJsonString(List.of()),
             RoleType.ORGANISATION.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-    }
-
-    public void setupRestrictedRoleAssignment(String caseId, Headers headers) {
-
-        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
-        //Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-
-        //Creates an organizational role for jurisdiction IA
-        log.info("Creating Organizational Role");
-        createCaseAllocator(userInfo, headers, "IA");
-        createSupervisor(userInfo, headers, "IA");
-        createStandardTribunalCaseworker(userInfo, headers, "IA", "Asylum");
-        createSpecificTribunalCaseWorker(caseId, headers, userInfo, "IA", "Asylum");
-    }
-
-    private void createSpecificTribunalCaseWorker(String caseId, Headers headers, UserInfo userInfo,
-                                                  String jurisidction, String caseType) {
-        log.info("Creating specific tribunal caseworker organizational Role");
-
-        postRoleAssignment(
-            caseId,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "tribunal-caseworker",
-            toJsonString(Map.of(
-                "caseId", caseId,
-                "caseType", caseType,
-                "jurisdiction", jurisidction
-            )),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.SPECIFIC.name(),
-            RoleCategory.LEGAL_OPERATIONS.name(),
-            toJsonString(List.of()),
-            RoleType.CASE.name(),
             Classification.PUBLIC.name(),
             "staff-organisational-role-mapping",
             userInfo.getUid(),
@@ -1060,23 +873,24 @@ public class Common {
         );
     }
 
-    private void createLeaderShipJudge(UserInfo userInfo, Headers headers, String jurisdiction) {
-        log.info("Creating leadership-judge organizational Role");
+    private void createCtscCaseworker(UserInfo userInfo, Headers headers,
+                                      String jurisdiction, String caseType) {
+        log.info("Creating CTSC caseworker organizational Role");
 
         postRoleAssignment(
             null,
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo.getUid(),
-            "leadership-judge",
-            toJsonString(
-                Map.of(
-                    "primaryLocation", "765324",
-                    "jurisdiction", jurisdiction
-                )),
+            "ctsc",
+            toJsonString(Map.of(
+                "primaryLocation", "765324",
+                "caseType", caseType,
+                "jurisdiction", jurisdiction
+            )),
             R2_ROLE_ASSIGNMENT_REQUEST,
             GrantType.STANDARD.name(),
-            RoleCategory.JUDICIAL.name(),
+            RoleCategory.ADMIN.name(),
             toJsonString(List.of()),
             RoleType.ORGANISATION.name(),
             Classification.PUBLIC.name(),
@@ -1091,226 +905,37 @@ public class Common {
         );
     }
 
-    private void createLeadJudge(UserInfo userInfo, Headers headers, String jurisdiction, String caseId) {
-        log.info("Creating lead-judge organizational Role");
-
-        postRoleAssignment(
-            caseId,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "lead-judge",
-            toJsonString(
-                Map.of(
-                    "primaryLocation", "765324",
-                    "jurisdiction", jurisdiction,
-                    "caseId", caseId
-                )),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.SPECIFIC.name(),
-            RoleCategory.JUDICIAL.name(),
-            toJsonString(List.of()),
-            RoleType.CASE.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-    }
-
-    private void createSeniorJudge(UserInfo userInfo, Headers headers, String jurisdiction) {
-        log.info("Creating senior-judge organizational Role");
-
-        postRoleAssignment(
-            null,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "senior-judge",
-            toJsonString(
-                Map.of(
-                    "primaryLocation", "765324",
-                    "jurisdiction", jurisdiction
-                )),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.STANDARD.name(),
-            RoleCategory.JUDICIAL.name(),
-            toJsonString(List.of()),
-            RoleType.ORGANISATION.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-    }
-
-    private void createFtpaJudge(UserInfo userInfo, Headers headers, String jurisdiction, String caseType, String caseId) {
-        log.info("Creating ftpa-judge organizational Role");
-
-        postRoleAssignment(
-            caseId,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "ftpa-judge",
-            toJsonString(
-                Map.of(
-                    "primaryLocation", "765324",
-                    "jurisdiction", jurisdiction,
-                    "caseType", caseType,
-                    "caseId", caseId
-                )),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.SPECIFIC.name(),
-            RoleCategory.JUDICIAL.name(),
-            toJsonString(List.of()),
-            RoleType.CASE.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-    }
-
-    private void createHearingPanelJudge(UserInfo userInfo, Headers headers, String jurisdiction, String caseType, String caseId) {
-        log.info("Creating hearing-panel-judge organizational Role");
-
-        postRoleAssignment(
-            caseId,
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION),
-            userInfo.getUid(),
-            "hearing-panel-judge",
-            toJsonString(
-                Map.of(
-                    "primaryLocation", "765324",
-                    "jurisdiction", jurisdiction,
-                    "caseType", caseType,
-                    "caseId", caseId
-                )),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.SPECIFIC.name(),
-            RoleCategory.JUDICIAL.name(),
-            toJsonString(List.of()),
-            RoleType.CASE.name(),
-            Classification.PUBLIC.name(),
-            "staff-organisational-role-mapping",
-            userInfo.getUid(),
-            false,
-            false,
-            null,
-            "2020-01-01T00:00:00Z",
-            null,
-            userInfo.getUid()
-        );
-    }
-
-    public void setupRestrictedRoleAssignmentForWA(String caseId, Headers headers) {
-
+    public void createStandardWARoleAssignment(Headers headers, String roleName) {
+        log.info("Creating Standard {} organizational Role", roleName);
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
-        createCaseAllocator(userInfo, headers, "WA");
-        createSupervisor(userInfo, headers, "WA");
-        createStandardTribunalCaseworker(userInfo, headers, "WA", "WaCaseType");
-        createSpecificTribunalCaseWorker(caseId, headers, userInfo, "WA", "WaCaseType");
-    }
-
-    public void insertTaskInCftTaskDb(TestVariables testVariables, String taskType, Headers authenticationHeaders) {
-        String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-                          + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
-
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, taskType),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_WARNINGS, warnings),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            testVariables.getTaskId(),
-            req,
-            authenticationHeaders
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            roleName,
+            toJsonString(Map.of(
+                "primaryLocation", "765324",
+                "caseType", "WaCaseType",
+                "jurisdiction", "WA"
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.STANDARD.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            RoleType.ORGANISATION.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
         );
-        /*
-        This workaround adjusts for a race condition which usually occurs between xx:00 and xx:15 every hour
-        where another task has been created in the database with the same id
-         */
-        if (result.getStatusCode() != HttpStatus.CREATED.value()) {
-            final String errorType = "https://github.com/hmcts/wa-task-management-api/problem/database-conflict";
-            result.then().assertThat()
-                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .body("type", equalTo(errorType));
-        }
-
-    }
-
-    public void insertTaskInCftTaskDbWithoutWarnings(TestVariables testVariables, String taskType,
-                                                     Headers authenticationHeaders) {
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, taskType),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-
-        Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            testVariables.getTaskId(),
-            req,
-            authenticationHeaders
-        );
-        /*
-        This workaround adjusts for a race condition which usually occurs between xx:00 and xx:15 every hour
-        where another task has been created in the database with the same id
-         */
-        if (result.getStatusCode() != HttpStatus.CREATED.value()) {
-            final String errorType = "https://github.com/hmcts/wa-task-management-api/problem/database-conflict";
-            result.then().assertThat()
-                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .body("type", equalTo(errorType));
-        }
     }
 
     private String toJsonString(Map<String, String> attributes) {
@@ -1402,48 +1027,11 @@ public class Common {
                 log.info("Orphaned Restricted role assignments were found.");
                 log.info("Creating a temporary role assignment to perform cleanup");
                 //Create a temporary organisational role
-                setupOrganisationalRoleAssignment(headers);
+                UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
+                createCaseAllocator(userInfo, headers, WA_JURISDICTION);
                 //Recursive
                 clearAllRoleAssignments(headers);
             }
-
-            caseRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
-            );
-
-            organisationalRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
-            );
-        }
-    }
-
-    private void clearAllRoleAssignmentsForUserChallenged(String userId, Headers headers) {
-        String userToken = headers.getValue(AUTHORIZATION);
-        String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
-
-        RoleAssignmentResource response = null;
-
-        try {
-            //Retrieve All role assignments
-            response = roleAssignmentServiceApi.getRolesForUser(userId, userToken, serviceToken);
-
-        } catch (FeignException ex) {
-            if (ex.status() == HttpStatus.NOT_FOUND.value()) {
-                System.out.println("No roles found, nothing to delete.");
-            } else {
-                ex.printStackTrace();
-            }
-        }
-
-        if (response != null) {
-            //Delete All role assignments
-            List<RoleAssignment> organisationalRoleAssignments = response.getRoleAssignmentResponse().stream()
-                .filter(assignment -> RoleType.ORGANISATION.equals(assignment.getRoleType()))
-                .collect(toList());
-
-            List<RoleAssignment> caseRoleAssignments = response.getRoleAssignmentResponse().stream()
-                .filter(assignment -> RoleType.CASE.equals(assignment.getRoleType()))
-                .collect(toList());
 
             caseRoleAssignments.forEach(assignment ->
                 roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)

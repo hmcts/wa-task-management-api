@@ -38,10 +38,10 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(caseIds, states);
     }
 
-    public List<TaskResource> getActiveTasksAndReconfigureRequestTimeIsNotNull(
-        List<CFTTaskState> states) {
-        return tasksRepository.findByStateInAndReconfigureRequestTimeIsNotNull(
-            states);
+    public List<TaskResource> getActiveTasksAndReconfigureRequestTimeGreaterThan(
+        List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime) {
+        return tasksRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
+            states, reconfigureRequestTime);
     }
 
     public List<TaskResource> getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
@@ -64,5 +64,13 @@ public class CFTTaskDatabaseService {
 
     public Optional<TaskResource> findTaskBySpecification(Specification<TaskResource> specification) {
         return tasksRepository.findOne(specification);
+    }
+
+    public Optional<String> findCaseId(String taskId) {
+        Optional<TaskResource> taskResource = findByIdOnly(taskId);
+        if (taskResource.isPresent() && taskResource.get().getCaseId() != null) {
+            return Optional.of(taskResource.get().getCaseId());
+        }
+        return Optional.empty();
     }
 }

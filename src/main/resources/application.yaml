@@ -14,8 +14,8 @@ management:
 config:
   privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
   exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler,wa_workflow_api}
-  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:ia,wa,sscs,civil}
-  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil}
+  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:ia,wa,sscs,civil,publiclaw,privatelaw,employment}
+  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,care_supervision_epo,prlapps,et_englandwales,et_englandwales_listings,et_englandwales_multiple,et_scotland,et_scotland_listings,et_scotland_multiple,et_admin}
   search:
     defaultMaxResults: 50
 
@@ -28,6 +28,7 @@ camunda:
 
 role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
+  maxResults: ${ROLE_ASSIGNMENT_MAX_RESULTS:50}
 
 security:
   anonymousPaths:
@@ -132,4 +133,15 @@ caffeine:
   timeout:
     duration: 30
     unit: MINUTES
+  task-type:
+    timeout:
+      duration: ${TASK_TYPE_CACHE_TIMEOUT_DURATION:60}
+      unit: ${TASK_TYPE_CACHE_TIMEOUT_TIMEUNIT:MINUTES}
+  calendar:
+    timeout:
+      duration: ${CALENDAR_CACHE_TIMEOUT_DURATION:24}
+      unit: ${CALENDAR_CACHE_TIMEOUT_TIMEUNIT:HOURS}
 
+bankHolidays:
+  api:
+    url: "https://www.gov.uk"

@@ -16,6 +16,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
@@ -245,6 +246,24 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         )
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .object("permissions", (value) -> {
+                            value
+                                .unorderedArray("values", (p) -> p
+                                    .stringValue(PermissionTypes.READ.value())
+                                    .stringValue(PermissionTypes.OWN.value())
+                                    .stringValue(PermissionTypes.MANAGE.value())
+                                    .stringValue(PermissionTypes.COMPLETE.value())
+                                    .stringValue(PermissionTypes.COMPLETE_OWN.value())
+                                    .stringValue(PermissionTypes.CLAIM.value())
+                                    .stringValue(PermissionTypes.ASSIGN.value())
+                                    .stringValue(PermissionTypes.UNCLAIM.value())
+                                    .stringValue(PermissionTypes.UNASSIGN_CLAIM.value())
+                                    .stringValue(PermissionTypes.UNASSIGN_ASSIGN.value())
+                                    .stringValue(PermissionTypes.UNCLAIM_ASSIGN.value())
+                                    .stringValue(PermissionTypes.CANCEL.value())
+                                    .stringValue(PermissionTypes.CANCEL_OWN.value())
+                                    .stringValue(PermissionTypes.EXECUTE.value()));
+                        })
                 )).build();
 
     }

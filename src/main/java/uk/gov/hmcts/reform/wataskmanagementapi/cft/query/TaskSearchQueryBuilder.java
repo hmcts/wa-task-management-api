@@ -1,16 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
@@ -37,12 +34,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByWorkType;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 
@@ -52,6 +50,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
     "PMD.TooManyMethods",
     "PMD.LawOfDemeter",
     "PMD.ExcessiveImports",
+    "PMD.NPathComplexity",
+    "PMD.CyclomaticComplexity"
 })
 public final class TaskSearchQueryBuilder {
 
@@ -63,15 +63,10 @@ public final class TaskSearchQueryBuilder {
     public static Predicate buildTaskSummaryQuery(
         SearchTaskRequest searchTaskRequest,
         List<RoleAssignment> roleAssignments,
-        List<PermissionTypes> permissionsRequired,
+        PermissionRequirements permissionsRequired,
+        Boolean availableTasksOnly,
         CriteriaBuilder builder,
         Root<TaskResource> root) {
-
-        final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
-
-        if (availableTasksOnly && !permissionsRequired.contains(PermissionTypes.OWN)) {
-            permissionsRequired.add(PermissionTypes.OWN);
-        }
 
         log.debug("Querying with 'available_tasks_only' set to '{}'", availableTasksOnly);
         log.debug("Querying with 'permissions required' set to '{}'", permissionsRequired);
@@ -82,7 +77,6 @@ public final class TaskSearchQueryBuilder {
         final Predicate roleAssignmentSpec = buildRoleAssignmentConstraints(
             permissionsRequired,
             roleAssignments,
-            availableTasksOnly,
             builder,
             root
         );
@@ -129,7 +123,7 @@ public final class TaskSearchQueryBuilder {
     public static Predicate buildQueryForCompletable(
         SearchEventAndCase searchEventAndCase,
         List<RoleAssignment> roleAssignments,
-        List<PermissionTypes> permissionsRequired,
+        PermissionRequirements permissionsRequired,
         List<String> taskTypes,
         CriteriaBuilder builder,
         Root<TaskResource> root) {
@@ -139,11 +133,9 @@ public final class TaskSearchQueryBuilder {
         predicates.add(searchByCaseId(searchEventAndCase.getCaseId(), builder, root));
         predicates.add(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), builder, root));
         predicates.add(searchByTaskTypes(taskTypes, builder, root));
-        //.and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
         predicates.add(buildRoleAssignmentConstraints(
             permissionsRequired,
             roleAssignments,
-            false,
             builder,
             root
         ));
@@ -164,12 +156,16 @@ public final class TaskSearchQueryBuilder {
             SearchParameterList stateParam = keyMap.get(STATE);
             cftTaskStates = getCftTaskStates(stateParam);
         }
-        SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
-        SearchParameterList locationParam = keyMap.get(LOCATION);
+        final SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
+        final SearchParameterList locationParam = keyMap.get(LOCATION);
         SearchParameterList caseIdParam = keyMap.get(CASE_ID);
-        SearchParameterList userParam = keyMap.get(USER);
-        SearchParameterList workTypeParam = keyMap.get(WORK_TYPE);
-        SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
+        if (caseIdParam == null) {
+            caseIdParam = keyMap.get(CASE_ID_CAMEL_CASE);
+        }
+        final SearchParameterList userParam = keyMap.get(USER);
+        final SearchParameterList workTypeParam = keyMap.get(WORK_TYPE);
+        final SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
+        final SearchParameterList taskTypeParam = keyMap.get(TASK_TYPE);
 
         ArrayList<Predicate> predicates = new ArrayList<>();
         predicates.add(searchByJurisdiction(
@@ -203,6 +199,11 @@ public final class TaskSearchQueryBuilder {
             roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues(),
             builder, root
         ));
+        predicates.add(searchByTaskTypes(
+            taskTypeParam == null ? Collections.emptyList() : taskTypeParam.getValues(),
+            builder, root
+        ));
+
         return builder.and(predicates.toArray(new Predicate[0]));
     }
 
@@ -234,25 +235,5 @@ public final class TaskSearchQueryBuilder {
         return map;
     }
 
-    private static EnumMap<SearchParameterKey, SearchParameterBoolean> asEnumMapForBoolean(
-        SearchTaskRequest searchTaskRequest) {
-
-        EnumMap<SearchParameterKey, SearchParameterBoolean> map = new EnumMap<>(SearchParameterKey.class);
-        if (searchTaskRequest != null && !CollectionUtils.isEmpty(searchTaskRequest.getSearchParameters())) {
-            searchTaskRequest.getSearchParameters()
-                .stream()
-                .filter(SearchParameterBoolean.class::isInstance)
-                .forEach(request -> map.put(request.getKey(), (SearchParameterBoolean) request));
-        }
-
-        return map;
-    }
-
-    private static boolean isAvailableTasksOnly(SearchTaskRequest searchTaskRequest) {
-        final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap = asEnumMapForBoolean(searchTaskRequest);
-        SearchParameterBoolean availableTasksOnly = boolKeyMap.get(AVAILABLE_TASKS_ONLY);
-
-        return availableTasksOnly != null && availableTasksOnly.getValues();
-    }
 
 }
