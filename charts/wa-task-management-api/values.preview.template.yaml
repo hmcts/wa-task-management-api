@@ -34,8 +34,17 @@ java:
       password: password
       database: cft_task_db
     primary:
+      persistence:
+        enabled: false
+      extraEnvVars:
+        - name: POSTGRESQL_WAL_LEVEL
+          value: "logical"
+      resources:
+        requests:
+          cpu: 25m
       initdb:
         user: postgres
         scripts:
           init.sql: |
             ALTER ROLE wa_user WITH SUPERUSER;
+            CREATE DATABASE "ccd-shared-database-replica" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
