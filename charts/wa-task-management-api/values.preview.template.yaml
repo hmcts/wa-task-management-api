@@ -44,6 +44,8 @@ java:
         requests:
           cpu: 25m
       initdb:
+        user: postgres
         scripts:
           init.sql: |
             CREATE DATABASE "cft_task_db_replica" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            ALTER ROLE javapostgres WITH SUPERUSER;
