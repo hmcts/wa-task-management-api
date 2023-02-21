@@ -74,7 +74,6 @@ public class MIReportingService {
             LOGGER.info("No logical replication slot present for " + MAIN_SLOT_NAME);
             return false;
         } else {
-            LOGGER.info("Found logical replication slot with name " + MAIN_SLOT_NAME);
             return true;
         }
     }
@@ -90,7 +89,6 @@ public class MIReportingService {
             LOGGER.info("No publication present");
             return false;
         } else {
-            LOGGER.info("Found publication");
             return true;
         }
     }
@@ -106,7 +104,6 @@ public class MIReportingService {
             LOGGER.info("No subscription present");
             return false;
         } else {
-            LOGGER.info("Found subscription");
             return true;
         }
     }
