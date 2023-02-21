@@ -98,6 +98,16 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
 
 
     @Test
+    void given_zero_publications_should_return_false() {
+        TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
+        when(taskResourceRepository.countPublications()).thenReturn(0);
+        miReportingService = new MIReportingService(null, taskResourceRepository,
+                                                    "repl_user", "repl_password");
+
+        assertFalse(miReportingService.isPublicationPresent());
+    }
+
+    @Test
     void given_unknown_task_id_what_happens() {
         List<TaskHistoryResource> taskHistoryResourceList
             = miReportingService.findByTaskId("1111111");
