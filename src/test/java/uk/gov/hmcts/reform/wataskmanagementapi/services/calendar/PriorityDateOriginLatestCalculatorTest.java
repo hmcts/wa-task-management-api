@@ -95,7 +95,7 @@ class PriorityDateOriginLatestCalculatorTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void should_supports_when_responses_only_contains_due_date_origin_latest(boolean isReconfigureRequest) {
+    void should_supports_when_responses_only_contains_priority_date_origin_latest(boolean isReconfigureRequest) {
         String expectedPriorityDate = GIVEN_DATE.plusDays(0)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -232,7 +232,7 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest
                                                            ).getValue().getValue());
 
-        String expectedPriorityDate = GIVEN_DATE.plusDays(3)
+        String expectedPriorityDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(resultDate).isEqualTo(expectedPriorityDate + "T18:00");
@@ -509,7 +509,7 @@ class PriorityDateOriginLatestCalculatorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
                 .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()

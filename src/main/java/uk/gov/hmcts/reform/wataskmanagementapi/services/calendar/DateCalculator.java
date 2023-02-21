@@ -126,10 +126,12 @@ public interface DateCalculator {
             .map(s -> new DateTypeObject(DateType.from(s), s)).toList();
 
         return originDateTypes.stream()
-            .flatMap(r -> configResponses.stream()
-                .filter(c -> Optional.ofNullable(DateType.from(c.getName().getValue())).isPresent()
-                    && DateType.from(c.getName().getValue()).equals(r.dateType()))
-                .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER)))
+            .flatMap(r -> {
+                return configResponses.stream()
+                    .filter(c -> Optional.ofNullable(DateType.from(c.getName().getValue())).isPresent()
+                        && DateType.from(c.getName().getValue()).equals(r.dateType()))
+                    .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER));
+            })
             .findFirst();
     }
 

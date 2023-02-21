@@ -95,7 +95,7 @@ class NextHearingDateOriginLatestCalculatorTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void should_supports_when_responses_only_contains_due_date_origin_latest(boolean isReconfigureRequest) {
+    void should_supports_when_responses_only_contains_next_hearing_date_origin_latest(boolean isReconfigureRequest) {
         String expectedNextHearingDate = GIVEN_DATE.plusDays(0)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 

@@ -42,11 +42,11 @@ public class DateTypeConfigurator {
                 .build();
         }
 
-        return dateType.getDefaultTime() == null
+        return dateType.getDefaultDateTime() == null
             ? null
             : ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue(dateType.getType()))
-            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateType.getDefaultTime())))
+            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateType.getDefaultDateTime())))
             .build();
     }
 

@@ -234,7 +234,7 @@ class DueDateOriginLatestCalculatorTest {
                                                                DUE_DATE_TYPE, isConfigurable
                                                            ).getValue().getValue());
 
-        String expectedDueDate = GIVEN_DATE.plusDays(3)
+        String expectedDueDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
@@ -511,7 +511,7 @@ class DueDateOriginLatestCalculatorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
                 .canReconfigure(CamundaValue.booleanValue(isConfigurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()

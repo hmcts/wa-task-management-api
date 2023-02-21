@@ -1102,6 +1102,7 @@ public class DueDateTypeConfiguratorTest {
                                    .build()));
     }
 
+
     @Test
     public void shouldDefaultDueDateWhenNoneOfDueDateAttributesArePresent() {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator

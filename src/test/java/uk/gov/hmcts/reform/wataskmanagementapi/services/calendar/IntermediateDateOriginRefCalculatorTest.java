@@ -243,7 +243,7 @@ class IntermediateDateOriginRefCalculatorTest {
             .build();
 
         ConfigurationDmnEvaluationResponse calculatedDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
+            .name(CamundaValue.stringValue("calculatedDate"))
             .value(CamundaValue.stringValue("priorityDate,nextHearingDate,nextHearingDuration"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -298,7 +298,7 @@ class IntermediateDateOriginRefCalculatorTest {
             .build();
 
         ConfigurationDmnEvaluationResponse calculatedDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
+            .name(CamundaValue.stringValue("calculatedDate"))
             .value(CamundaValue.stringValue("priorityDate,nexHearingDate,nextHearingDuration"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
@@ -427,7 +427,7 @@ class IntermediateDateOriginRefCalculatorTest {
             .build();
 
         ConfigurationDmnEvaluationResponse calculatedDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
+            .name(CamundaValue.stringValue("calculatedDate"))
             .value(CamundaValue.stringValue("priorityDate,nextHearingDate,nextHearingDuration"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
