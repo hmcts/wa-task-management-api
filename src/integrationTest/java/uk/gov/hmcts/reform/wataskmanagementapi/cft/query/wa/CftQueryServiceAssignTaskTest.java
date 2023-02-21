@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.wa;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,6 +73,9 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     @Autowired
     private EntityManager entityManager;
 
+    @MockBean
+    private TaskSearchAdaptor taskSearchAdaptor;
+
     private CftQueryService cftQueryService;
     private ServiceMocks mockServices;
     private final List<PermissionTypes> assignerPermissionsRequired = singletonList(MANAGE);
@@ -87,7 +91,8 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
-                                              allowedJurisdictionConfiguration, launchDarklyFeatureFlagProvider
+                                              allowedJurisdictionConfiguration, launchDarklyFeatureFlagProvider,
+                                              taskSearchAdaptor
         );
 
 

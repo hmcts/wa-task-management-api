@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -53,6 +54,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -75,6 +77,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -115,6 +119,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
     private TaskResourceDao taskResourceDao;
     @InjectMocks
     private CftQueryService cftQueryService;
+    @Mock
+    private TaskSearchAdaptor taskSearchAdaptor;
 
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
@@ -730,6 +736,32 @@ public class CftQueryServiceTest extends CamundaHelpers {
             );
 
             verify(cftTaskMapper, Mockito.never()).mapToTaskWithPermissions(any(), any());
+        }
+
+        @Test
+        void should_return_empty_response() throws SQLException {
+            when(taskSearchAdaptor.isEnabled()).thenReturn(true);
+            when(taskSearchAdaptor.searchForTasks(anyInt(), anyInt(), any(), anyList(), anyBoolean()))
+                .thenThrow(new SQLException());
+
+
+            final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+                List.of(
+                    new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+                ),
+                List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+            );
+
+            List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+
+            GetTasksResponse<Task> taskResourceList
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, false);
+
+            assertNotNull(taskResourceList);
+            assertNotNull(taskResourceList.getTasks());
+            assertEquals(0, taskResourceList.getTasks().size());
+            assertEquals(0, taskResourceList.getTotalRecords());
         }
     }
 

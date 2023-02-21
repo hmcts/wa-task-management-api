@@ -143,6 +143,8 @@ pmd {
   ruleSetFiles = files("config/pmd/ruleset.xml")
 }
 
+pmdMain { exclude '**/net/hmcts/taskperf/**' }
+
 jacocoTestCoverageVerification {
   violationRules {
     rule {
@@ -200,6 +202,8 @@ sonarqube {
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java," +
       "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**," +
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/**," +
+      "src/main/java/net/hmcts/taskperf/**"
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/**"
     property "sonar.cpd.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/services/calendar/**"
   }

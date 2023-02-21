@@ -1,0 +1,14 @@
+---
+listFilters:
+  - key: state
+    operator: IN
+    values: [ASSIGNED,UNASSIGNED]
+  - key: jurisdiction
+    operator: IN
+    values: [IA, SSCS]
+pagination:
+  firstResult: 0
+  maxResults: 25
+sort:
+  - sortBy: due_date
+    sortOrder: desc

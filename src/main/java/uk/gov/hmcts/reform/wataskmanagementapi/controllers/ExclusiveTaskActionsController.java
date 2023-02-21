@@ -68,6 +68,7 @@ public class ExclusiveTaskActionsController extends BaseController {
         }
 
         TaskResource savedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        taskManagementService.updateTaskIndex(savedTask.getTaskId());
 
         return ResponseEntity
             .status(HttpStatus.CREATED)

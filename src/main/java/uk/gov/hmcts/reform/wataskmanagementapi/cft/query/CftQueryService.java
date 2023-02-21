@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -29,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomCo
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -64,19 +66,44 @@ public class CftQueryService {
     private final AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
+    private final TaskSearchAdaptor taskSearchAdaptor;
+
     public CftQueryService(CamundaService camundaService,
                            CFTTaskMapper cftTaskMapper,
                            TaskResourceDao taskResourceDao,
                            AllowedJurisdictionConfiguration allowedJurisdictionConfiguration,
-                           LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
+                           LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
+                           TaskSearchAdaptor taskSearchAdaptor) {
         this.camundaService = camundaService;
         this.cftTaskMapper = cftTaskMapper;
         this.taskResourceDao = taskResourceDao;
         this.allowedJurisdictionConfiguration = allowedJurisdictionConfiguration;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
+        this.taskSearchAdaptor = taskSearchAdaptor;
     }
 
     public GetTasksResponse<Task> searchForTasks(
+            int firstResult,
+            int maxResults,
+            SearchTaskRequest searchTaskRequest,
+            AccessControlResponse accessControlResponse,
+            boolean granularPermissionResponseFeature) {
+        if (taskSearchAdaptor.isEnabled()) {
+            try {
+                return taskSearchAdaptor.searchForTasks(firstResult, maxResults, searchTaskRequest,
+                                                        accessControlResponse.getRoleAssignments(),
+                                                        granularPermissionResponseFeature);
+            } catch (SQLException e) {
+                log.error("POC Database connection error {}", e.getMessage());
+                return new GetTasksResponse<>(List.of(), 0);
+            }
+        } else {
+            return originalSearchForTasks(firstResult, maxResults, searchTaskRequest, accessControlResponse,
+                                          granularPermissionResponseFeature);
+        }
+    }
+
+    private GetTasksResponse<Task> originalSearchForTasks(
         int firstResult,
         int maxResults,
         SearchTaskRequest searchTaskRequest,

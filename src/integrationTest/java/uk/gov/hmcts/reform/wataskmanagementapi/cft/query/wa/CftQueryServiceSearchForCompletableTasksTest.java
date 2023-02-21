@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.wa;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,11 +67,15 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
     private CftQueryService cftQueryService;
 
+    @MockBean
+    private TaskSearchAdaptor taskSearchAdaptor;
+
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
-                                              allowedJurisdictionConfiguration, launchDarklyFeatureFlagProvider
+                                              allowedJurisdictionConfiguration, launchDarklyFeatureFlagProvider,
+                                              taskSearchAdaptor
         );
     }
 

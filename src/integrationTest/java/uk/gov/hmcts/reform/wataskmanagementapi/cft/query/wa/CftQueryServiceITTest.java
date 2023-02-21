@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.wa;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,6 +91,34 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private CftQueryService cftQueryService;
+
+    @MockBean
+    private TaskSearchAdaptor taskSearchAdaptor;
+
+    @BeforeEach
+    void setUp() {
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        cftQueryService = new CftQueryService(
+            camundaService,
+            cftTaskMapper,
+            new TaskResourceDao(entityManager),
+            allowedJurisdictionConfiguration,
+            launchDarklyFeatureFlagProvider,
+            taskSearchAdaptor
+        );
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+            userInfo.getUid(),
+            userInfo.getEmail()
+        )).thenReturn(false);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+            granularPermissionUserInfo.getUid(),
+            granularPermissionUserInfo.getEmail()
+        )).thenReturn(true);
+    }
 
     private static Stream<TaskQueryScenario> grantTypeStandardScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
@@ -1957,30 +1986,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .build();
 
         return Stream.of(filterBySingleTaskType, multipleTaskType, invalidTaskType);
-    }
-
-    @BeforeEach
-    void setUp() {
-        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(
-            camundaService,
-            cftTaskMapper,
-            new TaskResourceDao(entityManager),
-            allowedJurisdictionConfiguration,
-            launchDarklyFeatureFlagProvider
-        );
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            userInfo.getUid(),
-            userInfo.getEmail()
-        )).thenReturn(false);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            granularPermissionUserInfo.getUid(),
-            granularPermissionUserInfo.getEmail()
-        )).thenReturn(true);
     }
 
     @ParameterizedTest(name = "{0}")
