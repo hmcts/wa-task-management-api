@@ -204,7 +204,7 @@ class IntermediateDateOriginLatestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void shouldCalculateWithOriginRefDateProvided(boolean configurable) {
+    void shouldCalculateWithOriginLatestDateProvided(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -246,7 +246,7 @@ class IntermediateDateOriginLatestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void shouldCalculateWithOriginRefDateProvidedAndIntervalIsGreaterThan0(boolean configurable) {
+    void shouldCalculateWithOriginLatestDateProvidedAndIntervalIsGreaterThan0(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -297,7 +297,7 @@ class IntermediateDateOriginLatestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void shouldCalculateWithOriginRefDateProvidedAndGivenHolidays(boolean configurable) {
+    void shouldCalculateWithOriginLatestDateProvidedAndGivenHolidays(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -362,7 +362,7 @@ class IntermediateDateOriginLatestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void shouldCalculateWithOriginRefDateProvidedAndSkipNonWorkingDaysFalse(boolean configurable) {
+    void shouldCalculateWithOriginLatestDateProvidedAndSkipNonWorkingDaysFalse(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
