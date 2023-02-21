@@ -59,7 +59,7 @@ public class CFTTaskDatabaseService {
 
     public void insertAndLock(String taskId, OffsetDateTime dueDate) throws SQLException {
         OffsetDateTime created = OffsetDateTime.now();
-        tasksRepository.insertAndLock(taskId, dueDate, created, dueDate);
+        tasksRepository.insertAndLock(taskId, created, dueDate, dueDate);
     }
 
     public Optional<TaskResource> findTaskBySpecification(Specification<TaskResource> specification) {
