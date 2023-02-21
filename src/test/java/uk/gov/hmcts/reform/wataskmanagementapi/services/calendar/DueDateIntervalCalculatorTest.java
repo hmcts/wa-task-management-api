@@ -330,7 +330,6 @@ class DueDateIntervalCalculatorTest {
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
     }
 
-
     @Test
     void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessNext() {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
