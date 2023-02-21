@@ -223,12 +223,7 @@ public class CftQueryService {
     private boolean isAvailableTasksOnly(SearchTaskRequest searchTaskRequest) {
 
         RequestContext context = searchTaskRequest.getRequestContext();
-
-        if (context == null) {
-            return false;
-        } else {
-            return context.equals(RequestContext.AVAILABLE_TASKS);
-        }
+        return context != null && context.equals(RequestContext.AVAILABLE_TASKS);
     }
 
     private List<Task> mapTasksWithPermissionsUnion(List<RoleAssignment> roleAssignments,
