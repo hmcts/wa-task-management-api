@@ -58,7 +58,7 @@ public class DateTypeConfiguratorTest {
         @Test
         public void should_set_default_for_due_date_and_priority_date_when_only_due_date_given() {
             List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate);
-            List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(input, false, false);
+            var output = dateTypeConfigurator.configureDates(input, false, false);
             assertThat(output)
                 .hasSize(2)
                 .isEqualTo(List.of(
@@ -75,7 +75,7 @@ public class DateTypeConfiguratorTest {
         }
 
         @Test
-        public void should_set_default_for_due_date_and_priority_date_when_both_due_date_and_priority_dates_are_given() {
+        public void should_set_default_for_due_date_and_priority_date_if_both_due_date_and_priority_dates_are_given() {
             List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate, priorityDate);
             List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(
                 input,
