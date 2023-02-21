@@ -13,6 +13,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
 @Slf4j
@@ -40,6 +42,10 @@ public class DateTypeConfigurator {
                 .name(CamundaValue.stringValue(PRIORITY_DATE.getType()))
                 .value(dueDate.get().getValue())
                 .build();
+        }
+
+        if (dateType == NEXT_HEARING_DATE || dateType == INTERMEDIATE_DATE) {
+            return null;
         }
 
         return dateType.getDefaultTime() == null
