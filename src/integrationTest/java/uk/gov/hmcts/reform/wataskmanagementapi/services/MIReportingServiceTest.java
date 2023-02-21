@@ -58,7 +58,8 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
-        miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository);
+        miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
+                                                    "repl_user", "repl_password");
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
 
         JdbcDatabaseContainer container = TCExtendedContainerDatabaseDriver.getContainer(primaryJdbcUrl);
@@ -91,7 +92,8 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
     void given_zero_publications_should_return_false() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countPublications()).thenReturn(0);
-        miReportingService = new MIReportingService(null, taskResourceRepository);
+        miReportingService = new MIReportingService(null, taskResourceRepository,
+                                                    "repl_user", "repl_password");
 
         assertFalse(miReportingService.isPublicationPresent());
     }
