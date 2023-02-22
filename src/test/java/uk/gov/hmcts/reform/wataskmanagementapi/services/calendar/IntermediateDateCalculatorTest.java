@@ -7,28 +7,29 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
 
 @ExtendWith(MockitoExtension.class)
-class DueDateCalculatorTest {
+class IntermediateDateCalculatorTest {
 
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
-    public static final DateTypeConfigurator.DateTypeObject DUE_DATE_TYPE = new DateTypeConfigurator.DateTypeObject(
-        DUE_DATE,
-        DUE_DATE.getType()
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
+    public static final DateTypeObject INTERMEDIATE_DATE_TYPE = new DateTypeObject(
+        INTERMEDIATE_DATE,
+        "nextHearingDuration"
     );
-    private DueDateCalculator dueDateCalculator;
+    private IntermediateDateCalculator intermediateDateCalculator;
 
 
     @BeforeEach
     public void before() {
-        dueDateCalculator = new DueDateCalculator();
+        intermediateDateCalculator = new IntermediateDateCalculator();
     }
 
     @ParameterizedTest
@@ -39,21 +40,23 @@ class DueDateCalculatorTest {
         String expectedDueDate = GIVEN_DATE.plusDays(0)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
+        ConfigurationDmnEvaluationResponse nextHearingDuration = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationOrigin"))
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        ConfigurationDmnEvaluationResponse nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationTime"))
             .value(CamundaValue.stringValue("16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses
+            = List.of(nextHearingDuration, nextHearingDurationTime);
 
-        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE_TYPE, configurable)).isFalse();
+        assertThat(intermediateDateCalculator.supports(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable))
+            .isFalse();
     }
 
     @ParameterizedTest
@@ -62,15 +65,16 @@ class DueDateCalculatorTest {
     })
     void should_not_supports_when_responses_contains_only_due_date_time(boolean configurable) {
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        ConfigurationDmnEvaluationResponse nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationTime"))
             .value(CamundaValue.stringValue("16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDurationTime);
 
-        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE_TYPE, configurable)).isFalse();
+        assertThat(intermediateDateCalculator.supports(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable))
+            .isFalse();
     }
 
     @ParameterizedTest
@@ -81,21 +85,23 @@ class DueDateCalculatorTest {
         String expectedDueDate = GIVEN_DATE.plusDays(0)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
+        ConfigurationDmnEvaluationResponse nextHearingDuration = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDuration"))
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        ConfigurationDmnEvaluationResponse nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationTime"))
             .value(CamundaValue.stringValue("16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses
+            = List.of(nextHearingDuration, nextHearingDurationTime);
 
-        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE_TYPE, configurable)).isTrue();
+        assertThat(intermediateDateCalculator.supports(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable))
+            .isTrue();
     }
 
 
@@ -107,17 +113,17 @@ class DueDateCalculatorTest {
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
+        ConfigurationDmnEvaluationResponse nextHearingDuration = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDuration"))
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDuration);
 
-        String dateValue = dueDateCalculator.calculateDate(
+        String dateValue = intermediateDateCalculator.calculateDate(
             evaluationResponses,
-            DUE_DATE_TYPE,
+            INTERMEDIATE_DATE_TYPE,
             configurable
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
@@ -132,21 +138,23 @@ class DueDateCalculatorTest {
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
+        ConfigurationDmnEvaluationResponse nextHearingDuration = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDuration"))
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        ConfigurationDmnEvaluationResponse nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationTime"))
             .value(CamundaValue.stringValue("20:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses
+            = List.of(nextHearingDuration, nextHearingDurationTime);
 
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable)
+        String dateValue = intermediateDateCalculator
+            .calculateDate(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable)
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -159,21 +167,23 @@ class DueDateCalculatorTest {
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
+        ConfigurationDmnEvaluationResponse nextHearingDuration = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDuration"))
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
+        ConfigurationDmnEvaluationResponse nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationTime"))
             .value(CamundaValue.stringValue("20:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses
+            = List.of(nextHearingDuration, nextHearingDurationTime);
 
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable)
+        String dateValue = intermediateDateCalculator
+            .calculateDate(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable)
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -187,21 +197,23 @@ class DueDateCalculatorTest {
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String expectedDueDate2 = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
+        ConfigurationDmnEvaluationResponse nextHearingDuration = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDuration"))
             .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDate2 = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
+        ConfigurationDmnEvaluationResponse nextHearingDuration2 = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDuration"))
             .value(CamundaValue.stringValue(expectedDueDate2 + "T19:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDate2);
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses
+            = List.of(nextHearingDuration, nextHearingDuration2);
 
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable)
+        String dateValue = intermediateDateCalculator
+            .calculateDate(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable)
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + time);
     }
