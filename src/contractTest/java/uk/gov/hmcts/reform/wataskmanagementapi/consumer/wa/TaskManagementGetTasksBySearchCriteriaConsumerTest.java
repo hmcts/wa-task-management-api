@@ -623,7 +623,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
         return "{\n"
                + "    \"search_parameters\": [\n"
                + "         {\n"
-               + "             \"key\": \"role_category\",\n"
+               + "             \"key\": \"task_type\",\n"
                + "             \"operator\": \"IN\",\n"
                + "             \"values\":"
                + "                 [\n"
