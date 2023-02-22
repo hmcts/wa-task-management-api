@@ -48,6 +48,43 @@ module "wa_task_management_api_database" {
   sku_name           = var.database_sku_name
 }
 
+//New Azure Flexible database
+module "wa_task_management_api_database_flexible" {
+  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  product            = var.product
+  name               = "${var.postgres_db_component_name}-postgres-db-flexible"
+  location           = var.location
+  env                = var.env
+  pgsql_databases = [
+    {
+      name : var.postgresql_database_name
+    }
+  ]
+  pgsql_version      = 14
+  common_tags        = local.common_tags
+  pgsql_sku          = var.pgsql_sku
+
+  admin_user_object_id      = var.jenkins_AAD_objectId
+}
+
+//New Azure Flexible database replica
+module "wa_task_management_api_database_flexible" {
+  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  product            = var.product
+  name               = "${var.postgres_db_component_name}-postgres-db-flexible"
+  location           = var.location
+  env                = var.env
+  pgsql_databases = [
+    {
+      name : var.postgresql_database_name
+    }
+  ]
+  pgsql_version      = 14
+  common_tags        = local.common_tags
+  pgsql_sku          = var.pgsql_sku
+  
+  admin_user_object_id      = var.jenkins_AAD_objectId
+}
 
 //Save secrets in vault
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
