@@ -565,7 +565,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingOriginEarliest"))
+            .name(CamundaValue.stringValue("nextHearingDateOriginEarliest"))
             .value(CamundaValue.stringValue("dueDate"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
@@ -581,13 +581,8 @@ public class OriginEarliestDateTypeConfiguratorTest {
 
         String calculatedDueDate = dueDateValue + "T18:00";
 
-        assertThat(configurationDmnEvaluationResponses).hasSize(3)
+        assertThat(configurationDmnEvaluationResponses).hasSize(2)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("nextHearingOriginEarliest"))
-                    .value(CamundaValue.stringValue("dueDate"))
-                    .canReconfigure(CamundaValue.booleanValue(true))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(calculatedDueDate))
@@ -600,7 +595,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
     }
 
     @Test
-    public void shouldNotReCalculateDateWhenBothDueDateAndDueDateOriginEarliestAreSetForReconfiguration() {
+    public void shouldNotReCalculateDateWhenBothDueDateAndDueDateOriginEarliestAreNotSetForReconfiguration() {
         String dueDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String nextHearingDateValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -638,7 +633,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
     }
 
     @Test
-    public void shouldNotReCalculateDateWhenBothPriorityDateAndPriorityDateOriginEarliestAreSetForReconfiguration() {
+    public void shouldNotReCalculateDateWhenBothPriorityDateAndPriorityDateOriginEarliestAreNotSetForReconfiguration() {
         String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String dueDateValue = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String nextHearingDateValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -661,7 +656,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDate"))
+            .name(CamundaValue.stringValue("dueDate"))
             .value(CamundaValue.stringValue(dueDateValue + "T21:00"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
@@ -669,13 +664,12 @@ public class OriginEarliestDateTypeConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(List.of(priorityDate, dueDate, dueDateOriginRef, nextHearingDate), false, true);
 
-        String calculatedDueDate = priorityDateValue + "T18:00";
-
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
 
     @Test
-    public void shouldNotReCalculateDateWhenBothNextHearingDateAndNextHearingDateOriginEarliestAreSetForReconfiguration() {
+    public void shouldNotReCalculateDateWhenBothNextHearingDateAndOriginEarliestAreNotSetForReconfiguration() {
+        String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String dueDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String nextHearingDateValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -685,9 +679,9 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingOriginEarliest"))
-            .value(CamundaValue.stringValue("dueDate"))
+        ConfigurationDmnEvaluationResponse nextHearingDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDateOriginEarliest"))
+            .value(CamundaValue.stringValue("dueDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
@@ -697,23 +691,20 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
+        ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
+            .value(CamundaValue.stringValue(priorityDateValue + "T18:00"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(dueDate, dueDateOriginEarliest, nextHearingDate), false, true);
+            .configureDates(List.of(dueDate,priorityDate, nextHearingDateOriginEarliest, nextHearingDate), false, true);
 
-        String calculatedDueDate = dueDateValue + "T18:00";
-
-        assertThat(configurationDmnEvaluationResponses).hasSize(1)
-            .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("nextHearingOriginEarliest"))
-                    .value(CamundaValue.stringValue("dueDate"))
-                    .canReconfigure(CamundaValue.booleanValue(false))
-                    .build()
-            ));
+        assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
 
     @Test
-    public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginLatestIsConfigurable() {
+    public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginEarliestIsConfigurable() {
         String dueDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
@@ -778,9 +769,8 @@ public class OriginEarliestDateTypeConfiguratorTest {
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
 
-
     @Test
-    public void shouldRecalculateDateWhenDueDateIsConfigurableButOriginLatestIsUnConfigurable() {
+    public void shouldRecalculateDateWhenDueDateIsConfigurableButOriginEarliestIsUnConfigurable() {
         String dueDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
@@ -830,7 +820,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
-                    .value(CamundaValue.stringValue(priorityDate + "T18:00"))
+                    .value(CamundaValue.stringValue(priorityDate.getValue().getValue()))
                     .build()
             ));
     }
