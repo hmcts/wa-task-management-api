@@ -107,8 +107,7 @@ public class TaskSearchController extends BaseController {
         }
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        log.debug("Search request received '{}'", searchTaskRequest);
-        //Release 2
+        log.info("Search request received '{}'", searchTaskRequest);
 
         boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,

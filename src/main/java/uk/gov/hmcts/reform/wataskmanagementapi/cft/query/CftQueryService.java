@@ -89,7 +89,7 @@ public class CftQueryService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail()
             );
-
+        log.info("Granular permission feature flag value '{}'", isGranularPermissionEnabled);
         validateRequest(searchTaskRequest, isGranularPermissionEnabled);
 
         List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
@@ -207,6 +207,7 @@ public class CftQueryService {
         if (isGranularPermissionEnabled) {
             //When granular permission feature flag is enabled, request is expected only in new format
             RequestContext context = searchTaskRequest.getRequestContext();
+            log.info("Request context value received: '{}'", context);
             if (context == null) {
                 return PermissionRequirementBuilder.builder().buildSingleType(READ);
             } else if (context.equals(RequestContext.AVAILABLE_TASKS)) {
