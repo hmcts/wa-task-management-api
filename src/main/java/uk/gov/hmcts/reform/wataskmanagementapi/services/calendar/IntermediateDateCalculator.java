@@ -8,12 +8,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
 
 @Slf4j
 @Component
-//TODO Dummy implementation based on DueDate
-public class NextHearingDateCalculator extends DueDateCalculator {
+public class IntermediateDateCalculator extends DueDateCalculator {
 
     @Override
     public boolean supports(
@@ -21,20 +20,22 @@ public class NextHearingDateCalculator extends DueDateCalculator {
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return NEXT_HEARING_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigureRequest))
+        return INTERMEDIATE_DATE == dateTypeObject.dateType()
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeObject.dateTypeName(), isReconfigureRequest))
             .isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateType,
-        boolean isReconfigureRequest) {
+        DateTypeObject dateTypeObject,
+        boolean isReconfigureRequest
+    ) {
+        String dateTypeName = dateTypeObject.dateTypeName();
         return calculatedDate(
-            dateType,
-            getProperty(configResponses, NEXT_HEARING_DATE.getType(), isReconfigureRequest),
-            getProperty(configResponses, NEXT_HEARING_DATE_TIME, isReconfigureRequest)
+            dateTypeObject,
+            getProperty(configResponses, dateTypeName, isReconfigureRequest),
+            getProperty(configResponses, dateTypeName + TIME_SUFFIX, isReconfigureRequest)
         );
     }
 }

@@ -19,7 +19,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class PriorityDateOriginEarliestCalculatorTest {
@@ -110,7 +110,7 @@ class PriorityDateOriginEarliestCalculatorTest {
 
         assertThat(priorityDateOriginEarliestCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             configurable
         )).isFalse();
     }
@@ -131,7 +131,7 @@ class PriorityDateOriginEarliestCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin);
 
-        assertThat(priorityDateOriginEarliestCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable))
+        assertThat(priorityDateOriginEarliestCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
             .isFalse();
     }
 
@@ -156,7 +156,7 @@ class PriorityDateOriginEarliestCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses
             = List.of(priorityDateOriginEarliest, priorityDateTime);
 
-        assertThat(priorityDateOriginEarliestCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable))
+        assertThat(priorityDateOriginEarliestCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
             .isTrue();
     }
 
@@ -181,7 +181,7 @@ class PriorityDateOriginEarliestCalculatorTest {
         var configurationDmnEvaluationResponse = priorityDateOriginEarliestCalculator
             .calculateDate(
                 readPriorityDateOriginFields(configurable, priorityDateOriginEarliest, nextHearingDate),
-                PRIORITY_DATE,
+                PRIORITY_DATE_TYPE,
                 configurable
             );
 
@@ -195,7 +195,7 @@ class PriorityDateOriginEarliestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void shouldCalculateWithOriginEarliestDateProvided(boolean configurable) {
+    void shouldCalculateWithOriginRefDateProvided(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -225,7 +225,7 @@ class PriorityDateOriginEarliestCalculatorTest {
                 nextHearingDate,
                 priorityDate
             ),
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             configurable
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -237,7 +237,7 @@ class PriorityDateOriginEarliestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void shouldCalculateWithOriginEarliestDateProvidedAndIntervalIsGreaterThan0(boolean configurable) {
+    void shouldCalculateWithOriginRefDateProvidedAndIntervalIsGreaterThan0(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -274,7 +274,7 @@ class PriorityDateOriginEarliestCalculatorTest {
                                                                    priorityDate,
                                                                    priorityDateIntervalDays
                                                                ),
-                                                               PRIORITY_DATE,
+                                                               PRIORITY_DATE_TYPE,
                                                                configurable
                                                            ).getValue().getValue());
 
@@ -339,7 +339,7 @@ class PriorityDateOriginEarliestCalculatorTest {
                                                                    priorityDateIntervalDays,
                                                                    priorityDateSkipNonWorkingDays
                                                                ),
-                                                               PRIORITY_DATE,
+                                                               PRIORITY_DATE_TYPE,
                                                                configurable
                                                            ).getValue().getValue());
 
@@ -404,7 +404,7 @@ class PriorityDateOriginEarliestCalculatorTest {
                                                                    priorityDateNonWorkingDaysOfWeek,
                                                                    priorityDateSkipNonWorkingDays
                                                                ),
-                                                               PRIORITY_DATE,
+                                                               PRIORITY_DATE_TYPE,
                                                                configurable
                                                            ).getValue().getValue());
 
@@ -470,7 +470,7 @@ class PriorityDateOriginEarliestCalculatorTest {
                 priorityDateSkipNonWorkingDays,
                 priorityDateIntervalDays
             ),
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             configurable
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
@@ -538,7 +538,7 @@ class PriorityDateOriginEarliestCalculatorTest {
                 priorityDateNonWorkingDaysOfWeek,
                 priorityDateSkipNonWorkingDays
             ),
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             configurable
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
