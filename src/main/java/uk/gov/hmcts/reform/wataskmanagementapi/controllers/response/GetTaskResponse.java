@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.response;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 
 @EqualsAndHashCode
 @ToString

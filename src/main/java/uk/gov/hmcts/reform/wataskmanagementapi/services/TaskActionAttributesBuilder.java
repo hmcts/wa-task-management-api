@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.apache.commons.lang3.StringUtils;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 
 import java.time.OffsetDateTime;
