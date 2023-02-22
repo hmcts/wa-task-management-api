@@ -49,7 +49,7 @@ variable "pgsql_sku" {
   default = "GP_Standard_D2s_v3"
 }
 
-variable "jenkins_AAD_objectId" {
-  description = "The object ID of the user to be granted access to the key vault"
+variable "admin_user_object_id" {
+  default = ""
 }
 
