@@ -50,7 +50,7 @@ module "wa_task_management_api_database" {
 
 //New Azure Flexible database
 module "wa_task_management_api_database_flexible" {
-  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=db-collation"
   product            = var.product
   name               = "${var.postgres_db_component_name}-postgres-db-flexible"
   location           = var.location
@@ -70,7 +70,7 @@ module "wa_task_management_api_database_flexible" {
 
 //New Azure Flexible database replica
 module "wa_task_management_api_database_flexible_replica" {
-  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=db-collation"
   product            = var.product
   name               = "${var.postgres_db_component_name}-postgres-db-flexible"
   location           = var.location
