@@ -4,7 +4,7 @@ import org.hibernate.dialect.PostgreSQL10Dialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.type.StandardBasicTypes;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 
 import java.sql.Types;
 

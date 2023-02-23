@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskTypesService;
@@ -59,6 +60,9 @@ public class SpringBootContractProviderBaseTest {
 
     @Mock
     protected TaskTypesService taskTypesService;
+
+    @Mock
+    protected CFTTaskDatabaseService cftTaskDatabaseService;
 
     @Autowired
     protected MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
