@@ -188,18 +188,12 @@ public class CftQueryService {
             }
             return PermissionRequirementBuilder.builder().buildSingleType(READ);
         } else {
-            if (isAvailableTasksOnly(searchRequest)) {
+            if (searchRequest.isAvailableTasksOnly()) {
                 return PermissionRequirementBuilder.builder().buildSingleRequirementWithAnd(OWN, READ);
             } else {
                 return PermissionRequirementBuilder.builder().buildSingleType(READ);
             }
         }
-    }
-
-    private boolean isAvailableTasksOnly(SearchRequest searchTaskRequest) {
-
-        RequestContext context = searchTaskRequest.getRequestContext();
-        return context != null && context.equals(RequestContext.AVAILABLE_TASKS);
     }
 
     private List<Task> mapTasksWithPermissionsUnion(List<RoleAssignment> roleAssignments,
