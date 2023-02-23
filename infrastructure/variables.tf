@@ -53,3 +53,7 @@ variable "admin_user_object_id" {
   default = ""
 }
 
+variable "business_area" {
+  default = "cft"
+}
+
