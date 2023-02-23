@@ -49,9 +49,7 @@ variable "pgsql_sku" {
   default = "GP_Standard_D2s_v3"
 }
 
-variable "admin_user_object_id" {
-  default = ""
-}
+variable "admin_user_object_id" {}
 
 variable "business_area" {
   default = "cft"
