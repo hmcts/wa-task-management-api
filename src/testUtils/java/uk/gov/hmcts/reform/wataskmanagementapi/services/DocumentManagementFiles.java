@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.DocumentNames;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.documents.Document;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.documents.DocumentNames;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.BinaryResourceLoader;
 
 import java.io.IOException;

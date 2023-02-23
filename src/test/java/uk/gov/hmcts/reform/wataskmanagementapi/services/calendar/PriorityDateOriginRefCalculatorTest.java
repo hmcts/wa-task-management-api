@@ -6,8 +6,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,8 +18,8 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class PriorityDateOriginRefCalculatorTest {
@@ -109,7 +109,7 @@ class PriorityDateOriginRefCalculatorTest {
 
         assertThat(priorityDateOriginRefCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             configurable
         )).isFalse();
     }
@@ -130,7 +130,7 @@ class PriorityDateOriginRefCalculatorTest {
 
         assertThat(priorityDateOriginRefCalculator.supports(
             evaluationResponses,
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             configurable
         )).isFalse();
     }
@@ -153,7 +153,8 @@ class PriorityDateOriginRefCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOriginRef, priorityDateTime);
 
-        assertThat(priorityDateOriginRefCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable)).isTrue();
+        assertThat(priorityDateOriginRefCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
+            .isTrue();
     }
 
     @ParameterizedTest
@@ -176,7 +177,7 @@ class PriorityDateOriginRefCalculatorTest {
         var configurationDmnEvaluationResponse = priorityDateOriginRefCalculator
             .calculateDate(
                 readPriorityDateOriginFields(priorityDateOriginRef, nextHearingDate),
-                PRIORITY_DATE,
+                PRIORITY_DATE_TYPE,
                 configurable
             );
 
@@ -217,7 +218,7 @@ class PriorityDateOriginRefCalculatorTest {
                 nextHearingDate,
                 priorityDate
             ),
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             configurable
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -271,7 +272,7 @@ class PriorityDateOriginRefCalculatorTest {
                                                                    nextHearingDate,
                                                                    priorityDateIntervalDays
                                                                ),
-                                                               PRIORITY_DATE,
+                                                               PRIORITY_DATE_TYPE,
                                                                configurable
                                                            ).getValue().getValue());
 
@@ -339,7 +340,7 @@ class PriorityDateOriginRefCalculatorTest {
                                                                    priorityDateIntervalDays,
                                                                    priorityDateSkipNonWorkingDays
                                                                ),
-                                                               PRIORITY_DATE,
+                                                               PRIORITY_DATE_TYPE,
                                                                configurable
                                                            ).getValue().getValue());
 
@@ -400,7 +401,7 @@ class PriorityDateOriginRefCalculatorTest {
                                                                    priorityDateNonWorkingDaysOfWeek,
                                                                    priorityDateSkipNonWorkingDays
                                                                ),
-                                                               PRIORITY_DATE,
+                                                               PRIORITY_DATE_TYPE,
                                                                configurable
                                                            ).getValue().getValue());
 
@@ -470,7 +471,7 @@ class PriorityDateOriginRefCalculatorTest {
                 priorityDateSkipNonWorkingDays,
                 priorityDateIntervalDays
             ),
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             configurable
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
@@ -535,7 +536,7 @@ class PriorityDateOriginRefCalculatorTest {
                 priorityDateNonWorkingDaysOfWeek,
                 priorityDateSkipNonWorkingDays
             ),
-            PRIORITY_DATE,
+            PRIORITY_DATE_TYPE,
             configurable
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());

@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
