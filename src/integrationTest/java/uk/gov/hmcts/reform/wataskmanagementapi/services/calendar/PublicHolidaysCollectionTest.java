@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.Application;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.BankHolidays;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceInvalidException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceNotFoundException;
 

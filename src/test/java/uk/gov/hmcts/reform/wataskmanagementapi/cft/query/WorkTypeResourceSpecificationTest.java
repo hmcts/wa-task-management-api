@@ -8,7 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 
 import java.io.Serializable;
 import java.util.HashSet;

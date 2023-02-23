@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 

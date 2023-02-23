@@ -6,9 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
+import java.util.Arrays;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -654,11 +656,11 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_given() {
-            List<String> locations = List.of("765324", "765123");
+            List<String> roleCategories = Arrays.asList(RoleCategory.JUDICIAL.toString(),RoleCategory.ADMIN.toString());
             lenient().when(root.get(COLUMN_ROLE_CATEGORY)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
-            lenient().when(inObject.value(locations)).thenReturn(inObject);
-            Predicate predicate = searchByRoleCategory(locations, builder, root);
+            lenient().when(inObject.value(roleCategories)).thenReturn(inObject);
+            Predicate predicate = searchByRoleCategory(List.of(RoleCategory.JUDICIAL,RoleCategory.ADMIN),builder, root);
 
             assertNotNull(predicate);
 
@@ -669,7 +671,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_null() {
-            List<String> roleCategories = List.of("LEGAL_OPERATIONS", "JUDICIAL");
+            List<RoleCategory> roleCategories = List.of(RoleCategory.LEGAL_OPERATIONS, RoleCategory.JUDICIAL);
             lenient().when(root.get(COLUMN_ROLE_CATEGORY)).thenReturn(null);
             lenient().when(builder.in(null)).thenReturn(inObject);
             Predicate predicate = searchByRoleCategory(roleCategories, builder, root);
@@ -683,7 +685,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_null_with_single_spec() {
-            List<String> roleCategories = List.of("LEGAL_OPERATIONS");
+            List<RoleCategory> roleCategories = List.of(RoleCategory.LEGAL_OPERATIONS);
             lenient().when(root.get(COLUMN_ROLE_CATEGORY)).thenReturn(null);
             lenient().when(builder.in(null)).thenReturn(inObject);
             Predicate predicate = searchByRoleCategory(roleCategories, builder, root);
@@ -697,7 +699,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_role_categories_returned_from_builder_are_null() {
-            List<String> roleCategories = List.of("LEGAL_OPERATIONS", "JUDICIAL");
+            List<RoleCategory> roleCategories = List.of(RoleCategory.LEGAL_OPERATIONS, RoleCategory.JUDICIAL);
             lenient().when(root.get(COLUMN_ROLE_CATEGORY)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(roleCategories)).thenReturn(null);

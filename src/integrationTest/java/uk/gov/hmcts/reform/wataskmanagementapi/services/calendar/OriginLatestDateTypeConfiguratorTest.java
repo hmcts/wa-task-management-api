@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollectionTest.CALENDAR_URI;
 
 @SpringBootTest
@@ -77,12 +77,12 @@ public class OriginLatestDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-16T17:00"))
+                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
-                    .value(CamundaValue.stringValue("2022-10-22T21:00"))
-                    .build()
+                    .value(CamundaValue.stringValue("2022-10-26T21:00"))
+            .build()
             ));
     }
 
@@ -127,12 +127,12 @@ public class OriginLatestDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("priorityDate"))
-                    .value(CamundaValue.stringValue("2022-10-15T16:00"))
-                    .build()
+                    .value(CamundaValue.stringValue("2022-10-19T17:00"))
+            .build(),
+            ConfigurationDmnEvaluationResponse.builder()
+                .name(CamundaValue.stringValue("priorityDate"))
+                .value(CamundaValue.stringValue("2022-10-15T16:00"))
+                .build()
             ));
     }
 
@@ -169,12 +169,12 @@ public class OriginLatestDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue("2022-10-18T17:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("priorityDate"))
-                    .value(CamundaValue.stringValue("2022-10-15T16:00"))
-                    .build()
+                    .value(CamundaValue.stringValue("2022-10-19T17:00"))
+            .build(),
+            ConfigurationDmnEvaluationResponse.builder()
+                .name(CamundaValue.stringValue("priorityDate"))
+                .value(CamundaValue.stringValue("2022-10-15T16:00"))
+                .build()
             ));
     }
 
@@ -207,8 +207,8 @@ public class OriginLatestDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
-                .build(),
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
                 .value(CamundaValue.stringValue("true"))
@@ -236,8 +236,8 @@ public class OriginLatestDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
-                .build(),
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
                 .value(CamundaValue.stringValue("true"))

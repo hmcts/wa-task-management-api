@@ -18,7 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
 import java.util.ArrayList;

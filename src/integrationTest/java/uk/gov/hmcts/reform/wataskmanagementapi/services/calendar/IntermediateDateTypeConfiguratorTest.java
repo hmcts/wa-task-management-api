@@ -6,8 +6,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,8 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INTERVAL_DAYS_SUFFIX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.MUST_BE_WORKING_DAY_SUFFIX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.NON_WORKING_CALENDAR_SUFFIX;
@@ -149,12 +150,13 @@ public class IntermediateDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueDateOriginFields(configurable,
-                                                                                               dueDateOriginEarliest,
-                                                                                               priorityDate,
-                                                                                               calculatedDates,
-                                                                                               nextHearingDate,
-                                                                                               intermediateDate
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueDateOriginFields(
+            configurable,
+            dueDateOriginEarliest,
+            priorityDate,
+            calculatedDates,
+            nextHearingDate,
+            intermediateDate
         );
 
         var configurationDmnEvaluationResponses
@@ -681,6 +683,38 @@ public class IntermediateDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("priorityDate"))
                     .value(stringValue(NEXT_HEARING_DATE_VALUE))
+                    .build()
+            ));
+    }
+
+    @Test
+    public void shouldNotDefaultWhenIntermediateOriginRefElementIsNull() {
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("calculatedDates"))
+            .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDurationOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("nextHearingDurationOriginRef"))
+            .value(stringValue("nextHearingDate"))
+            .build();
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(calculatedDates, nextHearingDurationOriginRef), false, false);
+
+        String calculateDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
+        assertThat(configurationDmnEvaluationResponses).hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("calculatedDates"))
+                    .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("dueDate"))
+                    .value(stringValue(calculateDate))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("priorityDate"))
+                    .value(stringValue(calculateDate))
                     .build()
             ));
     }

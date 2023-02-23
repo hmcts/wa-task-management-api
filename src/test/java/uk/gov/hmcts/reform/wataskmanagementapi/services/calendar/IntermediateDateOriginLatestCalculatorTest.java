@@ -6,8 +6,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.IntermediateDateCalculatorTest.INTERMEDIATE_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
@@ -204,7 +204,7 @@ class IntermediateDateOriginLatestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void shouldCalculateWithOriginRefDateProvided(boolean configurable) {
+    void shouldCalculateWithOriginLatestDateProvided(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -246,7 +246,7 @@ class IntermediateDateOriginLatestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void shouldCalculateWithOriginRefDateProvidedAndIntervalIsGreaterThan0(boolean configurable) {
+    void shouldCalculateWithOriginLatestDateProvidedAndIntervalIsGreaterThan0(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -287,7 +287,7 @@ class IntermediateDateOriginLatestCalculatorTest {
                                                                configurable
                                                            ).getValue().getValue());
 
-        String expectedDueDate = GIVEN_DATE.plusDays(3)
+        String expectedDueDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
@@ -297,7 +297,7 @@ class IntermediateDateOriginLatestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void shouldCalculateWithOriginRefDateProvidedAndGivenHolidays(boolean configurable) {
+    void shouldCalculateWithOriginLatestDateProvidedAndGivenHolidays(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -362,7 +362,7 @@ class IntermediateDateOriginLatestCalculatorTest {
     @CsvSource({
         "true", "false"
     })
-    void shouldCalculateWithOriginRefDateProvidedAndSkipNonWorkingDaysFalse(boolean configurable) {
+    void shouldCalculateWithOriginLatestDateProvidedAndSkipNonWorkingDaysFalse(boolean configurable) {
         String localDateTime = GIVEN_DATE.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String latestDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -573,7 +573,7 @@ class IntermediateDateOriginLatestCalculatorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDurationNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
                 .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()

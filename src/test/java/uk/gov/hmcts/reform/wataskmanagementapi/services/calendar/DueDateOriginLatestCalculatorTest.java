@@ -7,8 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.mockito.Mockito.lenient;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
@@ -234,7 +234,7 @@ class DueDateOriginLatestCalculatorTest {
                                                                DUE_DATE_TYPE, isConfigurable
                                                            ).getValue().getValue());
 
-        String expectedDueDate = GIVEN_DATE.plusDays(3)
+        String expectedDueDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
@@ -511,7 +511,7 @@ class DueDateOriginLatestCalculatorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-                .value(CamundaValue.stringValue(""))
+                .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
                 .canReconfigure(CamundaValue.booleanValue(isConfigurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()

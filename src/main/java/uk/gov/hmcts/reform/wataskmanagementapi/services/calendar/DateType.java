@@ -15,13 +15,13 @@ public enum DateType {
 
 
     private final String type;
-    private final LocalDateTime defaultTime;
+    private final LocalDateTime defaultDateTime;
     private final DateTimeFormatter dateTimeFormatter;
     private final int order;
 
-    DateType(String type, LocalDateTime defaultTime, DateTimeFormatter dateTimeFormatter, int order) {
+    DateType(String type, LocalDateTime defaultDateTime, DateTimeFormatter dateTimeFormatter, int order) {
         this.type = type;
-        this.defaultTime = defaultTime;
+        this.defaultDateTime = defaultDateTime;
         this.dateTimeFormatter = dateTimeFormatter;
         this.order = order;
     }
@@ -37,8 +37,8 @@ public enum DateType {
         return type;
     }
 
-    public LocalDateTime getDefaultTime() {
-        return defaultTime;
+    public LocalDateTime getDefaultDateTime() {
+        return defaultDateTime;
     }
 
     public DateTimeFormatter getDateTimeFormatter() {

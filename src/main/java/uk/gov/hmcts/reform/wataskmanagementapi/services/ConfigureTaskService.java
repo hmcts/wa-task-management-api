@@ -2,9 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.configurators.TaskConfigurator;
 
 import java.util.List;

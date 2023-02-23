@@ -14,10 +14,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.MultipleQueryRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.QueryRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 

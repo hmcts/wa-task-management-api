@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.List;

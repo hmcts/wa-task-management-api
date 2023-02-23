@@ -1,14 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -16,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollectionTest.CALENDAR_URI;
 
 @SpringBootTest
@@ -72,7 +70,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
             = dateTypeConfigurator.configureDates(evaluationResponses, false, false);
 
-        Assertions.assertThat(configurationDmnEvaluationResponses)
+        assertThat(configurationDmnEvaluationResponses)
             .hasSize(4)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
@@ -128,7 +126,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
             = dateTypeConfigurator.configureDates(evaluationResponses, false, false);
 
-        Assertions.assertThat(configurationDmnEvaluationResponses)
+        assertThat(configurationDmnEvaluationResponses)
             .hasSize(4)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
@@ -180,7 +178,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
             = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable);
 
-        Assertions.assertThat(configurationDmnEvaluationResponses)
+        assertThat(configurationDmnEvaluationResponses)
             .hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
@@ -242,7 +240,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
-                .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+                .value(CamundaValue.stringValue("No"))
                 .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
@@ -277,7 +275,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
-                .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+                .value(CamundaValue.stringValue("No"))
                 .canReconfigure(CamundaValue.booleanValue(configurable))
                 .build(),
             ConfigurationDmnEvaluationResponse.builder()
@@ -354,7 +352,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 false, configurable
             );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+        assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
@@ -437,7 +435,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 false, configurable
             );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
+        assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
@@ -698,7 +696,11 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(dueDate,priorityDate, nextHearingDateOriginEarliest, nextHearingDate), false, true);
+            .configureDates(
+                List.of(dueDate, priorityDate, nextHearingDateOriginEarliest, nextHearingDate),
+                false,
+                true
+            );
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }

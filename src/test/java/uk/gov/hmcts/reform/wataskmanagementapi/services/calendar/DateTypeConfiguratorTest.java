@@ -1,24 +1,18 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.NextHearingDateCalculatorTest.NEXT_HEARING_DATE_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 
 @ExtendWith(MockitoExtension.class)
 public class DateTypeConfiguratorTest {
@@ -28,97 +22,150 @@ public class DateTypeConfiguratorTest {
         .build();
     ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
         .name(CamundaValue.stringValue("priorityDate"))
-        .value(CamundaValue.stringValue("2023-01-10T16:00"))
+        .value(CamundaValue.stringValue("2023-01-12T16:00"))
         .build();
     ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
         .name(CamundaValue.stringValue("nextHearingDate"))
-        .value(CamundaValue.stringValue("2023-01-10T16:00"))
+        .value(CamundaValue.stringValue("2023-01-15T16:00"))
         .build();
+    String calculatedDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
 
-    @Mock
-    private DateCalculator dueDateCalculator;
-    @Mock
-    private DateCalculator priorityDateCalculator;
-    @Mock
-    private DateCalculator nextHearingDateCalculator;
     private DateTypeConfigurator dateTypeConfigurator;
 
-    @BeforeEach
-    public void setUp() {
-        when(dueDateCalculator.supports(anyList(), eq(DUE_DATE_TYPE), eq(false))).thenReturn(true);
-        when(dueDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
-            .thenReturn(false);
-        when(dueDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false))).thenReturn(false);
-        when(priorityDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false)))
-            .thenReturn(true);
-        when(priorityDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
-            .thenReturn(false);
-        when(nextHearingDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
-            .thenReturn(true);
+    @Nested
+    class DefaultWithoutAnyDateCalculator {
 
-        dateTypeConfigurator = new DateTypeConfigurator(List.of(dueDateCalculator, priorityDateCalculator,
-                                                                nextHearingDateCalculator
-        ));
+
+        @BeforeEach
+        public void setUp() {
+            dateTypeConfigurator = new DateTypeConfigurator(List.of());
+        }
+
+        @Test
+        public void should_not_calculate_when_there_are_no_dmn_responses() {
+            List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
+            dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+            assertThat(evaluationResponses).isEmpty();
+        }
+
+        @Test
+        public void should_not_calculate_when_there_are_no_dmn_responses_and_initiation_due_date_found() {
+            List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
+            dateTypeConfigurator.configureDates(evaluationResponses, true, false);
+            assertThat(evaluationResponses).isEmpty();
+        }
+
+        @Test
+        public void should_set_default_for_due_date_and_priority_date_when_only_due_date_given() {
+            List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate);
+            var output = dateTypeConfigurator.configureDates(input, false, false);
+            assertThat(output)
+                .hasSize(2)
+                .isEqualTo(List.of(
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("dueDate"))
+                                   .value(CamundaValue.stringValue(calculatedDate))
+                                   .build(),
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("priorityDate"))
+                                   .value(CamundaValue.stringValue(calculatedDate))
+                                   .build()
+                           )
+                );
+        }
+
+        @Test
+        public void should_set_default_for_due_date_and_priority_date_if_both_due_date_and_priority_dates_are_given() {
+            List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate, priorityDate);
+            List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(
+                input,
+                false,
+                false
+            );
+
+            assertThat(output)
+                .hasSize(2)
+                .isEqualTo(List.of(
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("dueDate"))
+                                   .value(CamundaValue.stringValue(calculatedDate))
+                                   .build(),
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("priorityDate"))
+                                   .value(CamundaValue.stringValue(calculatedDate))
+                                   .build()
+                           )
+                );
+        }
     }
 
-    @Test
-    public void should_use_default_date_calculation_order_when_calculated_date_not_exist() {
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, priorityDate, nextHearingDate);
-        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+    @Nested
+    class DefaultWithDateCalculators {
 
-        InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
+        @BeforeEach
+        public void setUp() {
+            dateTypeConfigurator = new DateTypeConfigurator(List.of(
+                new DueDateCalculator(),
+                new PriorityDateCalculator(),
+                new NextHearingDateCalculator()
+            ));
+        }
 
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
-    }
+        @Test
+        public void should_not_calculate_when_there_are_no_dmn_responses() {
+            List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
+            dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+            assertThat(evaluationResponses).isEmpty();
+        }
 
-    @Test
-    public void should_use_date_calculation_order_when_calculated_date_exist() {
-        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("dueDate,priorityDate,nextHearingDate"))
-            .build();
+        @Test
+        public void should_not_calculate_when_there_are_no_dmn_responses_and_initiation_due_date_found() {
+            List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
+            dateTypeConfigurator.configureDates(evaluationResponses, true, false);
+            assertThat(evaluationResponses).isEmpty();
+        }
 
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(calculatedDates,
-                                                                               dueDate, priorityDate, nextHearingDate
-        );
-        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+        @Test
+        public void should_set_default_for_due_date_and_priority_date_when_only_due_date_given() {
+            List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate);
+            List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(input, false, false);
+            assertThat(output)
+                .hasSize(2)
+                .isEqualTo(List.of(
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("dueDate"))
+                                   .value(CamundaValue.stringValue(dueDate.getValue().getValue()))
+                                   .build(),
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("priorityDate"))
+                                   .value(CamundaValue.stringValue(dueDate.getValue().getValue()))
+                                   .build()
+                           )
+                );
+        }
 
-        InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
+        @Test
+        public void should_set_calculates_for_due_date_and_priority_date_for_their_values() {
+            List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate, priorityDate);
+            List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(
+                input,
+                false,
+                false
+            );
 
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
-    }
-
-    @Test
-    public void should_use_last_date_calculation_order_when_multiple_calculated_date_exist() {
-        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("dueDate,priorityDate,nextHearingDate"))
-            .build();
-
-        ConfigurationDmnEvaluationResponse calculatedDates2 = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("nextHearingDate,priorityDate,dueDate"))
-            .build();
-
-        ConfigurationDmnEvaluationResponse calculatedDates3 = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("priorityDate,dueDate,nextHearingDate"))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(calculatedDates, calculatedDates2,
-                                                                               calculatedDates3, dueDate,
-                                                                               priorityDate, nextHearingDate
-        );
-        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
-
-        InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
-
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
+            assertThat(output)
+                .hasSize(2)
+                .isEqualTo(List.of(
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("dueDate"))
+                                   .value(CamundaValue.stringValue(dueDate.getValue().getValue()))
+                                   .build(),
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("priorityDate"))
+                                   .value(CamundaValue.stringValue(priorityDate.getValue().getValue()))
+                                   .build()
+                           )
+                );
+        }
     }
 }

@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,11 +42,11 @@ public class DateTypeConfigurator {
                 .build();
         }
 
-        return dateType.getDefaultTime() == null
+        return dateType.getDefaultDateTime() == null
             ? null
             : ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue(dateType.getType()))
-            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateType.getDefaultTime())))
+            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(dateType.getDefaultDateTime())))
             .build();
     }
 
