@@ -1313,7 +1313,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             )
         );
 
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,
@@ -1372,7 +1372,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
             )
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,
@@ -1432,7 +1432,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             ),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,
@@ -1492,7 +1492,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             ),
             singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.ASCENDANT))
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,
@@ -1549,7 +1549,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             )
         );
 
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq, true);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,

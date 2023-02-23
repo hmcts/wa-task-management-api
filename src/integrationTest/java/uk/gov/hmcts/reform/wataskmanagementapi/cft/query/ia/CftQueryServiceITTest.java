@@ -38,7 +38,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -58,7 +57,6 @@ import javax.persistence.EntityManager;
 import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.LOCATION;
@@ -128,8 +126,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest,
-            scenario.granularPermission);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
@@ -181,8 +178,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         mapRoleAssignments(Classification.PUBLIC);
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, scenario.roleAssignments);
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest,
-            scenario.granularPermission);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
@@ -208,7 +204,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
                 -1, 1, searchRequest, accessControlResponse, false, false
@@ -891,11 +887,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     }
 
     private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyScenarioHappyPath() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
-            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
-        ));
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
+            ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
             .scenarioName("available_tasks_only should return only unassigned and OWN permission and PUBLIC")

@@ -35,7 +35,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -57,7 +56,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator.IN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.LOCATION;
@@ -734,11 +732,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     }
 
     private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyScenarioHappyPath() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
-            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
-        ));
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
+            ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
             .scenarioName("available_tasks_only should return only unassigned and OWN permission and PUBLIC")
@@ -840,7 +839,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
             .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM and "
-                + "excluded_grant_type_with_classification_as_restricted")
+                          + "excluded_grant_type_with_classification_as_restricted")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
@@ -905,7 +904,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
             .scenarioName("all_work should return only unassigned and MANAGE permission and "
-                + "excluded_grant_type_with_classification_as_restricted")
+                          + "excluded_grant_type_with_classification_as_restricted")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
@@ -2001,8 +2000,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest,
-            scenario.granularPermission);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
@@ -2037,8 +2035,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest,
-            scenario.granularPermission);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
@@ -2066,8 +2063,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest,
-            scenario.granularPermission);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
@@ -2095,8 +2091,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest,
-            scenario.granularPermission);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
@@ -2136,8 +2131,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest,
-            scenario.granularPermission);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
@@ -2171,7 +2165,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)
             )
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
                 -1,
@@ -2179,7 +2173,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 searchRequest,
                 accessControlResponse,
                 false,
-            false
+                false
             ))
             .hasNoCause()
             .hasMessage("Offset index must not be less than zero");
@@ -2191,7 +2185,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 searchRequest,
                 accessControlResponse,
                 false,
-            false
+                false
             ))
             .hasNoCause()
             .hasMessage("Limit must not be less than one");
@@ -2205,7 +2199,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
         ));
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -2284,7 +2278,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
         ));
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -2365,7 +2359,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
         ));
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 

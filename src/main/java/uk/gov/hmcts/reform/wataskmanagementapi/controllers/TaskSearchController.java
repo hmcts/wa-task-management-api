@@ -134,15 +134,15 @@ public class TaskSearchController extends BaseController {
             accessControlResponse.getUserInfo().getEmail()
         );
 
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, isGranularPermissionEnabled);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         if (isIndexSearchEnabled) {
+            log.info("Search tasks using search_index");
             response = cftTaskDatabaseService.searchForTasks(
                 Optional.ofNullable(firstResult).orElse(0),
                 Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 searchRequest,
-                accessControlResponse,
-                granularPermissionResponseFeature);
+                accessControlResponse);
         } else {
             response = cftQueryService.searchForTasks(
                 Optional.ofNullable(firstResult).orElse(0),

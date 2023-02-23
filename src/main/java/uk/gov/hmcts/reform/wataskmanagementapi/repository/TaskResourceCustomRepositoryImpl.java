@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
@@ -16,7 +17,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.SqlResultSetMapping;
 
-
+@Slf4j
 public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepository {
     private static final String BASE_QUERY = "%sFROM {h-schema}tasks t "
                                              + "WHERE indexed "
@@ -60,6 +61,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             PAGINATION_CLAUSE
         );
 
+        log.debug("Task search query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString, RESULT_MAPPER);
         addParameters(query, firstResult, maxResults, filterSignature, roleSignature, excludeCaseIds, searchRequest);
 
@@ -77,6 +79,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             extraConstraints(excludeCaseIds, searchRequest),
             "", "");
 
+        log.debug("Task count query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString);
         addParameters(query, filterSignature, roleSignature, excludeCaseIds, searchRequest);
 

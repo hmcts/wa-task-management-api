@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 
@@ -26,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
@@ -57,7 +55,7 @@ public class SearchTaskRequestMapperTest {
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT),
                 new SortingParameter(SortField.CASE_CATEGORY_CAMEL_CASE, SortOrder.DESCENDANT))
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         assertThat(searchRequest.getLocations(), hasItems("765324", "765325"));
         assertThat(searchRequest.getUsers(), hasItems("User1", "User2"));
         assertThat(searchRequest.getJurisdictions(), hasItems("IA", "WA"));
@@ -75,43 +73,33 @@ public class SearchTaskRequestMapperTest {
     @Test
     void shouldMapAvailableTaskOnly() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
-            )
-        );
-
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
-        assertTrue(searchRequest.isAvailableTasksOnly());
-        assertThat(searchRequest.getCftTaskStates(), hasItem(CFTTaskState.UNASSIGNED));
-
-        searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
-            )
-        );
-
-        searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
-        assertFalse(searchRequest.isAvailableTasksOnly());
-
-        searchTaskRequest = new SearchTaskRequest(
             RequestContext.AVAILABLE_TASKS,
             List.of(
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA", "WA"))
             )
         );
 
-        searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         assertTrue(searchRequest.isAvailableTasksOnly());
         assertThat(searchRequest.getCftTaskStates(), hasItem(CFTTaskState.UNASSIGNED));
 
         searchTaskRequest = new SearchTaskRequest(
             RequestContext.ALL_WORK,
             List.of(
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA", "WA"))
             )
         );
 
-        searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        assertFalse(searchRequest.isAvailableTasksOnly());
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA", "WA"))
+            )
+        );
+
+        searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         assertFalse(searchRequest.isAvailableTasksOnly());
     }
 
@@ -119,7 +107,6 @@ public class SearchTaskRequestMapperTest {
     void shouldMapCamelCaseCaseId() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             List.of(
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true),
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA", "WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324", "765325")),
                 new SearchParameterList(STATE, SearchOperator.IN,
@@ -130,13 +117,12 @@ public class SearchTaskRequestMapperTest {
             )
         );
 
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         assertThat(searchRequest.getLocations(), hasItems("765324", "765325"));
         assertThat(searchRequest.getUsers(), hasItems("User1", "User2"));
         assertThat(searchRequest.getJurisdictions(), hasItems("IA", "WA"));
         assertThat(searchRequest.getCftTaskStates(), hasItems(CFTTaskState.UNASSIGNED));
         assertThat(searchRequest.getCaseIds(), hasItems("1623278362431003", "1623278362432003"));
-        assertTrue(searchRequest.isAvailableTasksOnly());
     }
 
     @Test
@@ -145,7 +131,7 @@ public class SearchTaskRequestMapperTest {
             List.of()
         );
 
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         assertFalse(searchRequest.isAvailableTasksOnly());
         assertThat(searchRequest.getLocations(), hasSize(0));
         assertThat(searchRequest.getUsers(), hasSize(0));
@@ -159,23 +145,6 @@ public class SearchTaskRequestMapperTest {
     }
 
     @Test
-    void shouldValidateAvailableTaskOnly() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
-            )
-        );
-
-        CustomConstraintViolationException thrown = assertThrows(CustomConstraintViolationException.class, () -> {
-            SearchTaskRequestMapper.map(searchTaskRequest, true);
-        });
-
-        assertEquals("Constraint Violation", thrown.getMessage());
-        assertEquals("available_tasks_only", thrown.getViolations().get(0).getField());
-        assertEquals("Invalid request parameter", thrown.getViolations().get(0).getMessage());
-    }
-
-    @Test
     void shouldValidateWorkType() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             List.of(
@@ -184,7 +153,7 @@ public class SearchTaskRequestMapperTest {
         );
 
         CustomConstraintViolationException thrown = assertThrows(CustomConstraintViolationException.class, () -> {
-            SearchTaskRequestMapper.map(searchTaskRequest, true);
+            SearchTaskRequestMapper.map(searchTaskRequest);
         });
 
         assertEquals("Constraint Violation", thrown.getMessage());

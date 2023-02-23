@@ -100,7 +100,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
         assertEquals(8, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(8)
@@ -136,7 +136,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
 
         assertEquals(8, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -169,7 +169,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
         assertEquals(3, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(3)
@@ -196,7 +196,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
         assertEquals(4, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(4)
@@ -224,7 +224,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(1)
@@ -249,8 +249,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse,
-            false);
+            accessControlResponse);
         assertEquals(4, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(4)
@@ -278,8 +277,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse,
-            false);
+            accessControlResponse);
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(1)
@@ -303,7 +301,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
         assertEquals(8, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(8)
@@ -334,7 +332,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
 
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -361,7 +359,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
 
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -388,7 +386,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
 
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -414,7 +412,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
 
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -441,7 +439,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
         assertEquals(2, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(2)
@@ -468,7 +466,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
         assertEquals(2, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(2)
@@ -495,7 +493,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
         assertEquals(2, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(2)
@@ -520,7 +518,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
-            accessControlResponse, false);
+            accessControlResponse);
 
         response.getTasks().forEach(t -> System.out.println(t.getId()));
 

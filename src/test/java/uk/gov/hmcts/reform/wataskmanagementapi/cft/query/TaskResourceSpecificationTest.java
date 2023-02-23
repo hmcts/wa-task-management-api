@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterBoolean;
@@ -127,7 +128,7 @@ public class TaskResourceSpecificationTest {
             roleAssignmentWithSpecificGrantTypeOnly(PUBLIC)
         );
 
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, accessControlResponse.getRoleAssignments(),
@@ -143,7 +144,7 @@ public class TaskResourceSpecificationTest {
 
     @Test
     void should_build_task_query_with_empty_search_parameters() {
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(new SearchTaskRequest(emptyList()), false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(new SearchTaskRequest(emptyList()));
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
@@ -159,7 +160,7 @@ public class TaskResourceSpecificationTest {
 
     @Test
     void should_build_task_query_with_search_parameters_as_null() {
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(new SearchTaskRequest(null), false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(new SearchTaskRequest(null));
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
@@ -179,7 +180,7 @@ public class TaskResourceSpecificationTest {
             new SearchParameterList(STATE, SearchOperator.IN, singletonList(null)),
             new SearchParameterList(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, singletonList(null))
         ));
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
         List<RoleAssignment> roleAssignments = roleAssignmentWithSpecificGrantTypeOnly(PUBLIC);
@@ -196,7 +197,7 @@ public class TaskResourceSpecificationTest {
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(STATE, SearchOperator.IN, emptyList())
         ));
-        searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignments, readPermissionsRequired, false,
@@ -208,7 +209,7 @@ public class TaskResourceSpecificationTest {
 
     @Test
     void should_build_task_query_with_out_search_parameter_and_return_conjunction_as_null() {
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(new SearchTaskRequest(emptyList()), false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(new SearchTaskRequest(emptyList()));
         lenient().when(criteriaBuilder.conjunction()).thenReturn(null);
 
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
@@ -233,7 +234,7 @@ public class TaskResourceSpecificationTest {
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS")),
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
         ));
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readPermissionsRequired, false,
@@ -257,7 +258,7 @@ public class TaskResourceSpecificationTest {
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
             new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList("followUpOverdueCaseBuilding"))
         ));
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readPermissionsRequired, false,
@@ -270,18 +271,19 @@ public class TaskResourceSpecificationTest {
 
     @Test
     void should_build_task_query_with_available_task_only() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
-            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("location")),
-            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("case_id")),
-            new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser")),
-            new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
-            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true),
-            new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList("followUpOverdueCaseBuilding"))
-        ));
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("location")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("case_id")),
+                new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
+                new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, singletonList("followUpOverdueCaseBuilding"))
+            ));
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(READ);
@@ -379,9 +381,10 @@ public class TaskResourceSpecificationTest {
                 .permissionsRequired(readPermissionsRequired).availableTaskOnly(false)
                 .expectedEqualPredicate(1).expectedConjunctions(12).build();
 
-        searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
-        ));
+        searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
+            List.of()
+        );
         final SearchTaskRequestScenario availableTaskOnly =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
                 .permissionsRequired(readOwnPermissionsRequired).availableTaskOnly(true)
