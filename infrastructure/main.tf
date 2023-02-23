@@ -73,7 +73,6 @@ module "wa_task_management_api_database_flexible" {
   common_tags        = local.common_tags
   pgsql_sku          = var.pgsql_sku
 
-  admin_user_object_id      = var.admin_user_object_id
 }
 
 //New Azure Flexible database replica
@@ -93,8 +92,7 @@ module "wa_task_management_api_database_flexible_replica" {
   pgsql_version      = 14
   common_tags        = local.common_tags
   pgsql_sku          = var.pgsql_sku
-
-  admin_user_object_id      = var.admin_user_object_id
+  
 }
 
 //Save secrets in vault
