@@ -43,8 +43,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     String CHECK_PUBLICATION =
         "select count(*) from pg_publication pgp WHERE pubname='task_publication';";
 
-    String CREATE_PUBLICATION = "CREATE PUBLICATION task_publication FOR TABLE cft_task_db.tasks "
-        + "WITH (publish = 'insert,update,delete');";
+    String CREATE_PUBLICATION = "CREATE PUBLICATION task_publication FOR TABLE cft_task_db.tasks, "
+        + "cft_task_db.work_types WITH (publish = 'insert,update,delete');";
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})

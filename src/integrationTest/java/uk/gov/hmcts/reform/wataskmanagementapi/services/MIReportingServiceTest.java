@@ -114,6 +114,11 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
         assertTrue(taskHistoryResourceList.isEmpty());
     }
 
+    @Test
+    void given_a_new_worktype_in_original_db_should_appear_in_replica_database() {
+
+    }
+
     private TaskResource createAndSaveTask() {
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
@@ -125,6 +130,11 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResource.setCreated(OffsetDateTime.now());
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
         return taskResourceRepository.save(taskResource);
+    }
+
+
+    private void createWorktype() {
+
     }
 
 }
