@@ -61,7 +61,11 @@ module "wa_task_management_api_database_flexible" {
       name : var.postgresql_database_name
     }
   ]
-  wal_level          = "logical"
+  pgsql_server_configuration = [
+    {
+      wal_level = "logical"
+    }
+  ]
   pgsql_version      = 14
   common_tags        = local.common_tags
   pgsql_sku          = var.pgsql_sku
