@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS work_types;
 CREATE TABLE work_types
 (
-    id TEXT,
+    work_type_id TEXT,
     label TEXT,
     PRIMARY KEY (id)
 );
