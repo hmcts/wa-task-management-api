@@ -45,8 +45,6 @@ variable "database_sku_capacity" {
   default = "8"
 }
 
-variable "pgsql_sku" {}
-
 variable "business_area" {
   default = "cft"
 }

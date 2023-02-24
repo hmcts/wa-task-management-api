@@ -71,7 +71,6 @@ module "wa_task_management_api_database_flexible" {
 
   pgsql_version      = 14
   common_tags        = local.common_tags
-  pgsql_sku          = var.pgsql_sku
 
   admin_user_object_id = var.jenkins_AAD_objectId
 
@@ -93,7 +92,6 @@ module "wa_task_management_api_database_flexible_replica" {
   ]
   pgsql_version      = 14
   common_tags        = local.common_tags
-  pgsql_sku          = var.pgsql_sku
 
   admin_user_object_id = var.jenkins_AAD_objectId
 
