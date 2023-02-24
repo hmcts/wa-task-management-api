@@ -53,3 +53,5 @@ variable "business_area" {
   default = "cft"
 }
 
+variable jenkins_AAD_objectId {}
+
