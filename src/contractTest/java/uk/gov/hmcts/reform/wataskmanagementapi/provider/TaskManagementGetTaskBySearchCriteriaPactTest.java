@@ -72,11 +72,6 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         setInitMockForSearchWaTask();
     }
 
-    @State({"appropriate tasks are returned by criteria with available tasks only"})
-    public void getTasksBySearchCriteriaWithAvailableTasksOnly() {
-        setInitMockForSearchTask();
-    }
-
     @State({"appropriate tasks are returned by criteria with work-type"})
     public void getTasksBySearchCriteriaWithWorkType() {
         setInitMockForSearchTask();
@@ -334,29 +329,29 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         );
 
         return new Task(
-            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "b1a13dca-41a5-424f-b101-c67b439549d0",
             "review appeal skeleton argument",
             "reviewAppealSkeletonArgument",
-            "unassigned",
+            "assigned",
             "SELF",
             "PUBLIC",
             "review appeal skeleton argument",
             ZonedDateTime.now(),
             ZonedDateTime.now(),
             "10bac6bf-80a7-4c81-b2db-516aba826be6",
-            false,
+            true,
             "Case Management Task",
-            "IA",
+            "WA",
             "1",
             "765324",
             "Taylor House",
-            "Asylum",
-            "1617708245335311",
+            "WaCaseType",
+            "1617708245335399",
             "Protection",
             "Bob Smith",
             false,
             new WarningValues(Collections.emptyList()),
-            "Case Management Category",
+            "Some Case Management Category",
             "hearing_work",
             "Hearing work",
             permissions,

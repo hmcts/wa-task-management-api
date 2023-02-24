@@ -52,7 +52,7 @@ public final class TaskSearchQueryBuilder {
         CriteriaBuilder builder,
         Root<TaskResource> root) {
 
-        log.debug("Querying with 'available_tasks_only' set to '{}'", availableTasksOnly);
+        log.debug("Querying with 'AVAILABLE_TASKS' set to '{}'", availableTasksOnly);
         log.debug("Querying with 'permissions required' set to '{}'", permissionsRequired);
 
         final Predicate constrainsSpec =

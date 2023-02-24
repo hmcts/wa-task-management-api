@@ -66,7 +66,7 @@ public class CftQueryService {
 
         List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
         PermissionRequirements permissionsRequired = findPermissionRequirement(searchRequest,
-                                                                               isGranularPermissionEnabled);
+            isGranularPermissionEnabled);
         boolean availableTasksOnly = searchRequest.isAvailableTasksOnly();
 
         final List<Object[]> taskResourcesSummary = taskResourceDao.getTaskResourceSummary(
@@ -86,17 +86,17 @@ public class CftQueryService {
             = taskResourceDao.getTaskResources(searchRequest, taskResourcesSummary);
 
         Long count = taskResourceDao.getTotalCount(searchRequest,
-                                                   roleAssignments,
-                                                   permissionsRequired,
-                                                   availableTasksOnly);
+            roleAssignments,
+            permissionsRequired,
+            availableTasksOnly);
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
-                     cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                         taskResource,
-                         roleAssignments,
-                         granularPermissionResponseFeature
-                     )
+                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                    taskResource,
+                    roleAssignments,
+                    granularPermissionResponseFeature
+                )
             )
             .collect(Collectors.toList());
 
