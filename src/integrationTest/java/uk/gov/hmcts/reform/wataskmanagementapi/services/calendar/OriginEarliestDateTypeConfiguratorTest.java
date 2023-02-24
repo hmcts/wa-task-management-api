@@ -12,7 +12,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollectionTest.CALENDAR_URI;
@@ -30,6 +32,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
         "yyyy-MM-dd")) + "T16:00";
     public static final String NEXT_HEARING_DATE_VALUE = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         + "T16:00";
+    private final Map<String, Object> taskAttributes = new HashMap<>();
 
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
@@ -68,7 +71,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             configurable, dueDateOriginEarliest, priorityDateOriginEarliest, calculatedDates, nextHearingDate);
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
-            = dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+            = dateTypeConfigurator.configureDates(evaluationResponses,
+                                                  false,
+                                                  false,
+                                                  taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
             .hasSize(4)
@@ -124,7 +130,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             configurable, dueDateOriginEarliest, priorityDate, calculatedDates, nextHearingDate);
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
-            = dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+            = dateTypeConfigurator.configureDates(evaluationResponses,
+                                                  false,
+                                                  false,
+                                                  taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
             .hasSize(4)
@@ -176,7 +185,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             configurable, dueDateOriginEarliest, priorityDate, calculatedDates);
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
-            = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable);
+            = dateTypeConfigurator.configureDates(evaluationResponses,
+                                                  false,
+                                                  configurable,
+                                                  taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
             .hasSize(3)
@@ -349,8 +361,8 @@ public class OriginEarliestDateTypeConfiguratorTest {
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOriginRef, dueDateTime,
                         nextHearingDate
                 ),
-                false, configurable
-            );
+                false, configurable,
+                    taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
@@ -432,8 +444,8 @@ public class OriginEarliestDateTypeConfiguratorTest {
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOriginRef, dueDateTime,
                         nextHearingDate
                 ),
-                false, configurable
-            );
+                false, configurable,
+                    taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
@@ -484,8 +496,8 @@ public class OriginEarliestDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(List.of(dueDate, dueDateOriginEarliest, nextHearingDate, priorityDate),
-                            false, true
-            );
+                            false, true,
+                    taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
@@ -534,7 +546,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(priorityDate, dueDate, dueDateOriginRef, nextHearingDate), false, true);
+            .configureDates(List.of(priorityDate, dueDate, dueDateOriginRef, nextHearingDate),
+                            false,
+                            true,
+                            taskAttributes);
 
         String calculatedDueDate = priorityDateValue + "T18:00";
 
@@ -575,7 +590,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(dueDate, dueDateOriginEarliest, nextHearingDate), false, true);
+            .configureDates(List.of(dueDate, dueDateOriginEarliest, nextHearingDate),
+                            false,
+                            true,
+                            taskAttributes);
 
         String calculatedDueDate = dueDateValue + "T18:00";
 
@@ -624,8 +642,8 @@ public class OriginEarliestDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(List.of(dueDate, dueDateOriginEarliest, nextHearingDate, priorityDate),
-                            false, true
-            );
+                            false, true,
+                    taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -660,7 +678,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(priorityDate, dueDate, dueDateOriginRef, nextHearingDate), false, true);
+            .configureDates(List.of(priorityDate, dueDate, dueDateOriginRef, nextHearingDate),
+                            false,
+                            true,
+                            taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -699,8 +720,8 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .configureDates(
                 List.of(dueDate, priorityDate, nextHearingDateOriginEarliest, nextHearingDate),
                 false,
-                true
-            );
+                true,
+                    taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -722,7 +743,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(dueDate, dueDateOrigin), false, true);
+            .configureDates(List.of(dueDate, dueDateOrigin),
+                            false,
+                            true,
+                            taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -744,7 +768,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true);
+            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -766,7 +790,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(nextHearingDate, nextHearingDateOrigin), false, true);
+            .configureDates(List.of(nextHearingDate, nextHearingDateOrigin),
+                            false,
+                            true,
+                            taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -788,7 +815,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(dueDate, dueDateOrigin), false, true);
+            .configureDates(List.of(dueDate, dueDateOrigin),
+                            false,
+                            true,
+                            taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(
@@ -816,7 +846,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true);
+            .configureDates(List.of(priorityDate, priorityDateOrigin),
+                            false,
+                            true,
+                            taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(
@@ -844,7 +877,10 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(nextHearingDate, nextHearingDateOrigin), false, true);
+            .configureDates(List.of(nextHearingDate, nextHearingDateOrigin),
+                            false,
+                            true,
+                            taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(

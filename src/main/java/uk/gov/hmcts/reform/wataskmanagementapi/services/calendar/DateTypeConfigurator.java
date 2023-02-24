@@ -8,7 +8,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -53,7 +55,8 @@ public class DateTypeConfigurator {
     public List<ConfigurationDmnEvaluationResponse> configureDates(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean initiationDueDateFound,
-        boolean isReconfigureRequest) {
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
 
         List<DateTypeObject> calculationOrder = readCalculationOrder(configResponses);
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> responses
@@ -107,7 +110,9 @@ public class DateTypeConfigurator {
         Optional<DateCalculator> dateCalculator
             = getDateCalculator(dateProperties, dateTypeObject, isReconfigureRequest);
         if (dateCalculator.isPresent()) {
-            return dateCalculator.get().calculateDate(configResponses.get(), dateTypeObject, isReconfigureRequest);
+            return dateCalculator.get().calculateDate(configResponses.get(), dateTypeObject, isReconfigureRequest,
+                                                      new HashMap<>()
+            );
         } else {
             return isReconfigureRequest ? null : getDefaultValue(dateTypeObject.dateType, configResponses);
         }

@@ -9,7 +9,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
@@ -29,6 +31,7 @@ public class DateTypeConfiguratorTest {
         .value(CamundaValue.stringValue("2023-01-15T16:00"))
         .build();
     String calculatedDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
+    private final Map<String, Object> taskAttributes = new HashMap<>();
 
     private DateTypeConfigurator dateTypeConfigurator;
 
@@ -44,21 +47,21 @@ public class DateTypeConfiguratorTest {
         @Test
         public void should_not_calculate_when_there_are_no_dmn_responses() {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
-            dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+            dateTypeConfigurator.configureDates(evaluationResponses, false, false, taskAttributes);
             assertThat(evaluationResponses).isEmpty();
         }
 
         @Test
         public void should_not_calculate_when_there_are_no_dmn_responses_and_initiation_due_date_found() {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
-            dateTypeConfigurator.configureDates(evaluationResponses, true, false);
+            dateTypeConfigurator.configureDates(evaluationResponses, true, false, taskAttributes);
             assertThat(evaluationResponses).isEmpty();
         }
 
         @Test
         public void should_set_default_for_due_date_and_priority_date_when_only_due_date_given() {
             List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate);
-            var output = dateTypeConfigurator.configureDates(input, false, false);
+            var output = dateTypeConfigurator.configureDates(input, false, false, taskAttributes);
             assertThat(output)
                 .hasSize(2)
                 .isEqualTo(List.of(
@@ -80,7 +83,8 @@ public class DateTypeConfiguratorTest {
             List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(
                 input,
                 false,
-                false
+                false,
+                taskAttributes
             );
 
             assertThat(output)
@@ -114,21 +118,23 @@ public class DateTypeConfiguratorTest {
         @Test
         public void should_not_calculate_when_there_are_no_dmn_responses() {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
-            dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+            dateTypeConfigurator.configureDates(evaluationResponses, false, false, taskAttributes);
             assertThat(evaluationResponses).isEmpty();
         }
 
         @Test
         public void should_not_calculate_when_there_are_no_dmn_responses_and_initiation_due_date_found() {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
-            dateTypeConfigurator.configureDates(evaluationResponses, true, false);
+            dateTypeConfigurator.configureDates(evaluationResponses, true, false, taskAttributes);
             assertThat(evaluationResponses).isEmpty();
         }
 
         @Test
         public void should_set_default_for_due_date_and_priority_date_when_only_due_date_given() {
             List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate);
-            List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(input, false, false);
+            List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(input, false, false,
+                                                                                                  taskAttributes
+            );
             assertThat(output)
                 .hasSize(2)
                 .isEqualTo(List.of(
@@ -150,7 +156,8 @@ public class DateTypeConfiguratorTest {
             List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(
                 input,
                 false,
-                false
+                false,
+                taskAttributes
             );
 
             assertThat(output)

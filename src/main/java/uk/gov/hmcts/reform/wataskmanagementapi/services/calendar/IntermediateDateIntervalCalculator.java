@@ -9,7 +9,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
@@ -44,12 +46,13 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest
-    ) {
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
         Optional<LocalDateTime> referenceDate = getReferenceDate(
             dateTypeObject.dateTypeName(),
             configResponses,
-            isReconfigureRequest
+            isReconfigureRequest,
+            new HashMap<>()
         );
         return referenceDate.map(localDateTime -> calculateDate(
                 dateTypeObject,
@@ -62,7 +65,8 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
     protected Optional<LocalDateTime> getReferenceDate(
         String dateTypeName,
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        boolean reconfigure) {
+        boolean reconfigure,
+        Map<String, Object> taskAttributes) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dateTypeName + ORIGIN_SUFFIX))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())

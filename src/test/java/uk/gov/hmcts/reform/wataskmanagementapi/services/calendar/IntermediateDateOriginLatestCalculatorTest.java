@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -191,7 +192,8 @@ class IntermediateDateOriginLatestCalculatorTest {
             .calculateDate(
                 readDueDateOriginFields(configurable, nextHearingDurationOriginLatest, nextHearingDate),
                 INTERMEDIATE_DATE_TYPE,
-                configurable
+                configurable,
+                new HashMap<>()
             );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -235,7 +237,8 @@ class IntermediateDateOriginLatestCalculatorTest {
                 priorityDate
             ),
             INTERMEDIATE_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -284,7 +287,8 @@ class IntermediateDateOriginLatestCalculatorTest {
                                                                    nextHearingDurationIntervalDays
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5)
@@ -349,7 +353,8 @@ class IntermediateDateOriginLatestCalculatorTest {
                                                                    nextHearingDurationSkipNonWorkingDays
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(7)
@@ -414,7 +419,8 @@ class IntermediateDateOriginLatestCalculatorTest {
                                                                    nextHearingDurationSkipNonWorkingDays
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -480,7 +486,8 @@ class IntermediateDateOriginLatestCalculatorTest {
                 nextHearingDurationIntervalDays
             ),
             INTERMEDIATE_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -548,7 +555,8 @@ class IntermediateDateOriginLatestCalculatorTest {
                 nextHearingDurationSkipNonWorkingDays
             ),
             INTERMEDIATE_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
