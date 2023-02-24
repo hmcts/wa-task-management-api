@@ -131,4 +131,5 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
         return taskResourceRepository.save(taskResource);
     }
+
 }
