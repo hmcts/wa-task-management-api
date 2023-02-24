@@ -43,7 +43,8 @@ public class PriorityDateOriginRefCalculator extends PriorityDateIntervalCalcula
         return getOriginRefDate(
             configResponses,
             getProperty(configResponses, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest),
-            taskAttributes
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

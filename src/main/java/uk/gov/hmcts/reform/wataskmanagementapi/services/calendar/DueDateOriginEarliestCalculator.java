@@ -40,7 +40,8 @@ public class DueDateOriginEarliestCalculator extends DueDateIntervalCalculator {
         return getOriginEarliestDate(
             configResponses,
             getProperty(configResponses, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest),
-            taskAttributes
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

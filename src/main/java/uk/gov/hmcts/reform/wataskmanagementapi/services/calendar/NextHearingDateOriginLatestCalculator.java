@@ -43,7 +43,8 @@ public class NextHearingDateOriginLatestCalculator extends NextHearingDateInterv
         return getOriginLatestDate(
             configResponses,
             getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_LATEST, isReconfigureRequest),
-            taskAttributes
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

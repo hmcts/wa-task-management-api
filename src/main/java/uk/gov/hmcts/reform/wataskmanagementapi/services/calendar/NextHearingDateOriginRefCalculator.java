@@ -41,7 +41,8 @@ public class NextHearingDateOriginRefCalculator extends NextHearingDateIntervalC
         return getOriginRefDate(
             configResponses,
             getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest),
-            taskAttributes
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

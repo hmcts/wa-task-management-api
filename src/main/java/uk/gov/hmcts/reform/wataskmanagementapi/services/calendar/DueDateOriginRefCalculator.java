@@ -39,7 +39,8 @@ public class DueDateOriginRefCalculator extends DueDateIntervalCalculator {
         return getOriginRefDate(
             configResponses,
             getProperty(configResponses, DUE_DATE_ORIGIN_REF, isReconfigureRequest),
-            taskAttributes
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

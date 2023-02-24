@@ -41,7 +41,8 @@ public class PriorityDateOriginLatestCalculator extends PriorityDateIntervalCalc
         return getOriginLatestDate(
             configResponses,
             getProperty(configResponses, PRIORITY_DATE_ORIGIN_LATEST, isReconfigureRequest),
-            taskAttributes
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

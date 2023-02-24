@@ -45,7 +45,8 @@ public class IntermediateDateOriginLatestCalculator extends IntermediateDateInte
         return getOriginLatestDate(
             configResponses,
             getProperty(configResponses, dateTypeName + ORIGIN_LATEST_SUFFIX, isReconfigureRequest),
-            taskAttributes
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

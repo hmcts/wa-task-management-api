@@ -77,7 +77,8 @@ public class DateTypeConfigurator {
                     isReconfigureRequest,
                     dateTypeObject,
                     dateProperties,
-                    responses
+                    responses,
+                    taskAttributes
                 );
                 log.info("{} based in configuration is as {}", dateTypeObject.dateTypeName, dateTypeResponse);
                 filterOutOldValueAndAddDateType(responses, dateTypeObject, dateTypeResponse);
@@ -106,13 +107,13 @@ public class DateTypeConfigurator {
         boolean isReconfigureRequest,
         DateTypeObject dateTypeObject,
         List<ConfigurationDmnEvaluationResponse> dateProperties,
-        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
+        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses,
+        Map<String, Object> taskAttributes) {
         Optional<DateCalculator> dateCalculator
             = getDateCalculator(dateProperties, dateTypeObject, isReconfigureRequest);
         if (dateCalculator.isPresent()) {
-            return dateCalculator.get().calculateDate(configResponses.get(), dateTypeObject, isReconfigureRequest,
-                                                      new HashMap<>()
-            );
+            return dateCalculator.get()
+                .calculateDate(configResponses.get(), dateTypeObject, isReconfigureRequest, taskAttributes);
         } else {
             return isReconfigureRequest ? null : getDefaultValue(dateTypeObject.dateType, configResponses);
         }

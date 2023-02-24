@@ -51,7 +51,8 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
         return getOriginRefDate(
             configResponses,
             getProperty(configResponses, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigureRequest),
-            taskAttributes
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

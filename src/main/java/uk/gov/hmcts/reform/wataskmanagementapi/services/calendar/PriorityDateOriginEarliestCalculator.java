@@ -41,7 +41,8 @@ public class PriorityDateOriginEarliestCalculator extends PriorityDateIntervalCa
         return getOriginEarliestDate(
             configResponses,
             getProperty(configResponses, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigureRequest),
-            taskAttributes
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

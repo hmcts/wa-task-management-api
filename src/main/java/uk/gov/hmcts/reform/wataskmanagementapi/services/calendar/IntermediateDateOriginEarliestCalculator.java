@@ -51,7 +51,8 @@ public class IntermediateDateOriginEarliestCalculator extends IntermediateDateIn
         return getOriginEarliestDate(
             configResponses,
             getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigureRequest),
-            taskAttributes
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }
