@@ -3,5 +3,5 @@ CREATE TABLE work_types
 (
     work_type_id TEXT,
     label TEXT,
-    PRIMARY KEY (id)
+    PRIMARY KEY (work_type_id)
 );
