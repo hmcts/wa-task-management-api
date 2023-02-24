@@ -230,7 +230,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .users(List.of("someAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(taskId, taskIds.get(0));
     }
@@ -258,7 +258,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT)))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(2, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
@@ -287,7 +287,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
@@ -315,7 +315,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
@@ -343,7 +343,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .users(List.of("someAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
@@ -371,7 +371,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
@@ -400,7 +400,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId2, taskIds.get(0));
@@ -428,7 +428,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId2, taskIds.get(0));
@@ -456,7 +456,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId2, taskIds.get(0));
@@ -484,7 +484,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT)))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(2, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
@@ -513,7 +513,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
+        List<String> taskIds = taskResourceRepository.searchTasksIds(0, 25, filterSignature, roleSignature,
             List.of("1623278362430413", "88888888888888"), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
@@ -542,7 +542,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT)))
             .build();
 
-       Long taskCount = taskResourceRepository.searchTasksCount(filterSignature, roleSignature,
+        Long taskCount = taskResourceRepository.searchTasksCount(filterSignature, roleSignature,
             List.of(), request);
         assertEquals(2, taskCount);
     }
@@ -683,7 +683,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             )),
             "caseCategoryA",
             ADDITIONAL_PROPERTIES,
-                "nextHearingId",
+            "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
