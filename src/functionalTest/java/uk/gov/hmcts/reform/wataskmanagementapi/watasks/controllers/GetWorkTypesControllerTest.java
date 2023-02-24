@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,27 +25,32 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "work-types";
 
-    private TestAuthenticationCredentials caseworkerCredentials;
-
     @Before
     public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R2);
     }
 
     @After
     public void cleanUp() {
+        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
+
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+
+        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void should_return_work_types_when_user_has_work_types() {
-        common.setupWAOrganisationalRoleAssignmentWithWorkTypes(caseworkerCredentials.getHeaders(),
-                                                                "tribunal-caseworker");
+        common.setupWAOrganisationalRoleAssignmentWithWorkTypes(waCaseworkerCredentials.getHeaders(),
+            "tribunal-caseworker");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED + "/?filter-by-user=true",
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -66,11 +70,11 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_empty_work_types_when_user_has_no_work_types() {
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED + "/?filter-by-user=true",
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -85,11 +89,11 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_all_work_types() {
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED + "/?filter-by-user=false",
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())

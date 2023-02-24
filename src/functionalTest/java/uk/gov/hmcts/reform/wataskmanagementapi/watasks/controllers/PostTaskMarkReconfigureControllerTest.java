@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.util.List;
@@ -28,22 +27,24 @@ import static org.hamcrest.Matchers.equalTo;
 public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-    private TestAuthenticationCredentials assignerCredentials;
-    private TestAuthenticationCredentials assigneeCredentials;
     private String taskId;
 
     @Before
     public void setUp() {
-        assignerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        assigneeCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        assignerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        assigneeCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
     }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(assignerCredentials.getHeaders());
-        common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
         authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
+
+        common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
         authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
+
+        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test

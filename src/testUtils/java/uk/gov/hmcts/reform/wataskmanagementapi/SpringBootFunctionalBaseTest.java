@@ -76,6 +76,8 @@ public abstract class SpringBootFunctionalBaseTest {
     protected static final String TASK_GET_ROLES_ENDPOINT = "task/{task-id}/roles";
     protected static final String WA_JURISDICTION = "WA";
     protected static final String WA_CASE_TYPE = "WaCaseType";
+    protected static final String EMAIL_PREFIX_R3_5 = "wa-granular-permission-";
+    protected static final String EMAIL_PREFIX_R2 = "wa-ft-test-r2-";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
         "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
@@ -121,7 +123,16 @@ public abstract class SpringBootFunctionalBaseTest {
     @Value("${initiation_job_running}")
     private Boolean initiationJobRunning;
 
+    protected TestAuthenticationCredentials baseCaseworkerCredentials;
     protected TestAuthenticationCredentials waCaseworkerCredentials;
+    protected TestAuthenticationCredentials caseworkerCredentials;
+    protected TestAuthenticationCredentials assignerCredentials;
+    protected TestAuthenticationCredentials assigneeCredentials;
+    protected TestAuthenticationCredentials secondAssigneeCredentials;
+    protected TestAuthenticationCredentials caseworkerForReadCredentials;
+    protected TestAuthenticationCredentials currentCaseworkerCredentials;
+    protected TestAuthenticationCredentials unassignUser;
+    protected TestAuthenticationCredentials otherUser;
     protected String idamSystemUser;
 
     @Before
@@ -152,15 +163,15 @@ public abstract class SpringBootFunctionalBaseTest {
             roleAssignmentServiceApi,
             workflowApiActions);
 
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         idamSystemUser = idamTokenGenerator.getUserInfo(idamTokenGenerator.generate()).getUid();
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        common.setupWAOrganisationalRoleAssignment(baseCaseworkerCredentials.getHeaders());
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
+        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     public AtomicReference<String> getTaskId(Object taskName, String filter) {
@@ -211,7 +222,7 @@ public abstract class SpringBootFunctionalBaseTest {
     }
 
     protected void initiateTask(TestVariables testVariables) {
-        Headers headers = waCaseworkerCredentials.getHeaders();
+        Headers headers = baseCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, null, defaultInitiationAssert(testVariables));
     }
 
@@ -223,7 +234,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     protected void initiateTask(TestVariables testVariables,
                                 Consumer<Response> assertConsumer) {
-        Headers headers = waCaseworkerCredentials.getHeaders();
+        Headers headers = baseCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, null, assertConsumer);
     }
 
@@ -235,7 +246,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     protected void initiateTask(TestVariables testVariables,
                                 Map<String, String> additionalProperties) {
-        Headers headers = waCaseworkerCredentials.getHeaders();
+        Headers headers = baseCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
     }
 
