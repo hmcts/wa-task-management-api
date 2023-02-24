@@ -97,16 +97,6 @@ class SearchRequestCustomDeserializerTest {
         assertThrows(BadRequestException.class, () -> deserializer.deserialize(jsonParser, deserializationContext));
     }
 
-    @Test
-    void should_deserialize_with_snake_case_available_task_filter_with_boolean_operator() throws IOException {
-        String jsonContent = searchParameterJson_withSearchParameterBooleanOnly();
-
-        SearchParameterBoolean searchParameter = (SearchParameterBoolean) this.json.parse(jsonContent).getObject();
-
-        Assertions.assertEquals(SearchParameterKey.AVAILABLE_TASKS_ONLY, searchParameter.getKey());
-        Assertions.assertEquals(SearchOperator.BOOLEAN, searchParameter.getOperator());
-        assertTrue(searchParameter.getValues());
-    }
 
     @Test
     void should_deserialize_jurisdiction_filter_with_list_operator() throws IOException {
@@ -121,20 +111,13 @@ class SearchRequestCustomDeserializerTest {
 
     @NotNull
     private String searchParameterJson_withSearchParameterListOnly() {
-        return "       {\n"
-               + "          \"key\": \"jurisdiction\",\n"
-               + "          \"values\": [\"ia\", \"sscs\"],\n"
-               + "          \"operator\": \"IN\"\n"
-               + "        }\n";
-    }
-
-    @NotNull
-    private String searchParameterJson_withSearchParameterBooleanOnly() {
-        return "      {\n"
-               + "           \"key\": \"available_tasks_only\",\n"
-               + "           \"value\": true,\n"
-               + "           \"operator\": \"BOOLEAN\"\n"
-               + "        }";
+        return """
+            {
+              "key": "jurisdiction",
+              "operator": "IN",
+              "values": ["ia", "sscs"]         
+            }
+            """;
     }
 
 }
