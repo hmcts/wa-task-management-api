@@ -50,7 +50,8 @@ public class IntermediateDateOriginEarliestCalculator extends IntermediateDateIn
         Map<String, Object> taskAttributes) {
         return getOriginEarliestDate(
             configResponses,
-            getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigureRequest)
+            getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigureRequest),
+            taskAttributes
         );
     }
 }

@@ -50,7 +50,8 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
         Map<String, Object> taskAttributes) {
         return getOriginRefDate(
             configResponses,
-            getProperty(configResponses, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigureRequest)
+            getProperty(configResponses, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigureRequest),
+            taskAttributes
         );
     }
 }

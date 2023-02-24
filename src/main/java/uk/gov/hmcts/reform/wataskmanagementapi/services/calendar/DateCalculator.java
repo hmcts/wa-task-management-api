@@ -134,7 +134,8 @@ public interface DateCalculator {
 
     default Optional<LocalDateTime> getOriginRefDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        ConfigurationDmnEvaluationResponse originRefResponse) {
+        ConfigurationDmnEvaluationResponse originRefResponse,
+        Map<String, Object> taskAttributes) {
         List<DateTypeObject> originDateTypes = Arrays.stream(originRefResponse.getValue().getValue().split(","))
             .map(s -> new DateTypeObject(DateType.from(s), s)).toList();
 
@@ -150,7 +151,8 @@ public interface DateCalculator {
 
     default Optional<LocalDateTime> getOriginEarliestDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        ConfigurationDmnEvaluationResponse originEarliestResponse) {
+        ConfigurationDmnEvaluationResponse originEarliestResponse,
+        Map<String, Object> taskAttributes) {
         List<DateTypeObject> originDateTypes = Arrays.stream(originEarliestResponse.getValue().getValue().split(","))
             .map(s -> new DateTypeObject(DateType.from(s), s)).toList();
 
@@ -167,7 +169,8 @@ public interface DateCalculator {
 
     default Optional<LocalDateTime> getOriginLatestDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        ConfigurationDmnEvaluationResponse originLatestResponse) {
+        ConfigurationDmnEvaluationResponse originLatestResponse,
+        Map<String, Object> taskAttributes) {
 
         List<DateTypeObject> originDateTypes = Arrays.stream(originLatestResponse.getValue().getValue().split(","))
             .map(s -> new DateTypeObject(DateType.from(s), s)).toList();

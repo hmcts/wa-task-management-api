@@ -41,7 +41,8 @@ public class DueDateOriginLatestCalculator extends DueDateIntervalCalculator {
         Map<String, Object> taskAttributes) {
         return getOriginLatestDate(
             configResponses,
-            getProperty(configResponses, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest)
+            getProperty(configResponses, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest),
+            taskAttributes
         );
     }
 }

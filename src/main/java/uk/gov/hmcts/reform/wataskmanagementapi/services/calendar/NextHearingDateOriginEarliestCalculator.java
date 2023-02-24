@@ -44,7 +44,8 @@ public class NextHearingDateOriginEarliestCalculator extends NextHearingDateInte
         Map<String, Object> taskAttributes) {
         return getOriginEarliestDate(
             configResponses,
-            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest)
+            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest),
+            taskAttributes
         );
     }
 }
