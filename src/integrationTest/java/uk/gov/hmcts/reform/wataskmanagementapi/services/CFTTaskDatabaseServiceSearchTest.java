@@ -374,7 +374,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
     @Test
     void should_return_ordered_task_list_and_count_when_search_for_available_task_only_and_filter_by_authorisation() {
-        List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
+        List<RoleAssignment> roleAssignments = roleAssignmentsForSeniorTribunalCaseworker();
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         indexRecord();
 
@@ -394,7 +394,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .flatExtracting(Task::getId, Task::getCaseId)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-400000000001", "1623278362440001"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
                 ).toArray()
             );
     }
