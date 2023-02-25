@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -95,6 +94,7 @@ public class DateTypeConfigurator {
         DateType[] defaultOrder = DateType.values();
         Arrays.sort(defaultOrder, Comparator.comparing(DateType::getOrder));
         List<DateTypeObject> defaultDateTypeObjects = Arrays.stream(defaultOrder)
+            .filter(d -> d != DateType.CALCULATED_DATES)
             .map(d -> new DateTypeObject(d, d.getType()))
             .toList();
 

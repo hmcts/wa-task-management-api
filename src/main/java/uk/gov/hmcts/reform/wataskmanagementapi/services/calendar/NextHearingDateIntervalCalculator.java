@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,10 +40,11 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateType, boolean isReconfigureRequest,
+        DateTypeObject dateType,
+        boolean isReconfigureRequest,
         Map<String, Object> taskAttributes) {
 
-        var referenceDate = getReferenceDate(configResponses, isReconfigureRequest, new HashMap<>());
+        var referenceDate = getReferenceDate(configResponses, isReconfigureRequest, taskAttributes);
         return referenceDate.map(localDateTime -> calculateDate(
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),

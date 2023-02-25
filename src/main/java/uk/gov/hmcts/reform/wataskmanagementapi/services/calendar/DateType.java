@@ -11,7 +11,8 @@ public enum DateType {
     DUE_DATE("dueDate", DEFAULT_ZONED_DATE_TIME, DATE_TIME_FORMATTER, 2),
     NEXT_HEARING_DATE("nextHearingDate", null, DATE_TIME_FORMATTER, 1),
     PRIORITY_DATE("priorityDate", null, DATE_TIME_FORMATTER, 3),
-    INTERMEDIATE_DATE("intermediate", null, DATE_TIME_FORMATTER, 4);
+    INTERMEDIATE_DATE("intermediate", null, DATE_TIME_FORMATTER, 4),
+    CALCULATED_DATES("calculatedDates", null, null, 0);
 
 
     private final String type;

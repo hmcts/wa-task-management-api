@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,7 +51,7 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
             dateTypeObject.dateTypeName(),
             configResponses,
             isReconfigureRequest,
-            new HashMap<>()
+            taskAttributes
         );
         return referenceDate.map(localDateTime -> calculateDate(
                 dateTypeObject,
