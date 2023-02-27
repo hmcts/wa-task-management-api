@@ -30,4 +30,12 @@ java:
   postgresql:
     enabled: true
     auth:
+      username: wa_user
+      password: password
       database: cft_task_db
+    primary:
+      initdb:
+        user: postgres
+        scripts:
+          init.sql: |
+            ALTER ROLE wa_user WITH SUPERUSER;

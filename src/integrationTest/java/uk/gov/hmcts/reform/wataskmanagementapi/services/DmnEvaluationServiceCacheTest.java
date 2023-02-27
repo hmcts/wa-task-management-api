@@ -14,8 +14,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaObjectMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DmnRequest;
 
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
@@ -54,7 +54,7 @@ public class DmnEvaluationServiceCacheTest {
             return FAKE_TICKER::read;
         }
     }
-    
+
     @Nested
     @DisplayName("Retrieve task type")
     class Test1 {

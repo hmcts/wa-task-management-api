@@ -11,9 +11,9 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.RoleCode;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAccount;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.RoleCode;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAccount;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 
 import java.util.List;
 import java.util.Map;
