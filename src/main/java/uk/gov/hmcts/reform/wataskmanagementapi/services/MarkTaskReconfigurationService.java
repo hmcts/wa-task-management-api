@@ -4,13 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
 
 import java.time.OffsetDateTime;

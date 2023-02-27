@@ -8,7 +8,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 
 import java.util.UUID;
 

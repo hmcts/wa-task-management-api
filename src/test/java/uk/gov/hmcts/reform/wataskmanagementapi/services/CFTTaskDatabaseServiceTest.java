@@ -6,40 +6,58 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import org.springframework.data.domain.Sort;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 
 @ExtendWith(MockitoExtension.class)
 class CFTTaskDatabaseServiceTest {
 
     @Mock
     TaskResourceRepository taskResourceRepository;
+    @Mock
+    CFTTaskMapper cftTaskMapper;
 
     private CFTTaskDatabaseService cftTaskDatabaseService;
     private String taskId;
 
     @BeforeEach
     void setUp() {
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
+        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
 
         taskId = UUID.randomUUID().toString();
     }
@@ -179,5 +197,100 @@ class CFTTaskDatabaseServiceTest {
 
         assertTrue(taskBySpecification.isEmpty());
         verify(taskResourceRepository, times(1)).findOne(any());
+    }
+
+    @Test
+    void should_return_empty_list_when_search_not_find_any_task() {
+        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"}))
+            .thenReturn(List.of());
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("IA"))
+            .locations(List.of("765324"))
+            .build();
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+            accessControlResponse,
+            false);
+        assertEquals(0, response.getTotalRecords());
+        assertTrue(response.getTasks().isEmpty());
+    }
+
+    @Test
+    void should_return_task_list_and_count_when_search_find_some_task_and_sort_default_order() {
+        List<String> taskIds = List.of("1", "2");
+        List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+            .map(s -> Sort.Order.asc(s.value()))
+            .collect(Collectors.toList());
+        TaskResource taskResource = mock(TaskResource.class);
+        Task task = mock(Task.class);
+        List<TaskResource> taskResources = List.of(taskResource);
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+
+
+        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"}))
+            .thenReturn(taskIds);
+        when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
+            .thenReturn(taskResources);
+        when(taskResourceRepository.searchTasksCount(new String[]{"*:IA:*:*:*:765324"}))
+            .thenReturn(1L);
+        when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+            eq(taskResource),
+            anyList(),
+            eq(false)
+        )).thenReturn(task);
+
+
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("IA"))
+            .locations(List.of("765324"))
+            .build();
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+            accessControlResponse,
+            false);
+        assertEquals(1, response.getTotalRecords());
+        assertEquals(1, response.getTasks().size());
+        assertEquals(task, response.getTasks().get(0));
+    }
+
+    @Test
+    void should_return_task_list_and_count_when_search_find_some_task_and_sort_request_order() {
+        List<String> taskIds = List.of("1", "2");
+        List<Sort.Order> orders = Stream.of(CASE_NAME, MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+            .map(s -> Sort.Order.asc(s.value()))
+            .collect(Collectors.toList());
+        TaskResource taskResource = mock(TaskResource.class);
+        Task task = mock(Task.class);
+        List<TaskResource> taskResources = List.of(taskResource);
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+
+
+        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"}))
+            .thenReturn(taskIds);
+        when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
+            .thenReturn(taskResources);
+        when(taskResourceRepository.searchTasksCount(new String[]{"*:IA:*:*:*:765324"}))
+            .thenReturn(1L);
+        when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+            eq(taskResource),
+            anyList(),
+            eq(false)
+        )).thenReturn(task);
+
+
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("IA"))
+            .locations(List.of("765324"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .build();
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+            accessControlResponse,
+            false);
+        assertEquals(1, response.getTotalRecords());
+        assertEquals(1, response.getTasks().size());
+        assertEquals(task, response.getTasks().get(0));
     }
 }

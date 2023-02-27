@@ -4,8 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.WorkTypeResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.WorkTypeResourceRepository;
 
 import java.util.List;
 import java.util.Optional;

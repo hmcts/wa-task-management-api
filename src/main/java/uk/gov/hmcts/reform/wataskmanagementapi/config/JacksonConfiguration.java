@@ -16,8 +16,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.zalando.problem.ProblemModule;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchRequestCustomDeserializer;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;

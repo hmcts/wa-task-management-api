@@ -7,8 +7,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -65,7 +65,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(thirdDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(thirdDueDate + "T10:00"))
                                    .build()));
     }
 
@@ -348,7 +348,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(givenDueDate + "T20:00"))
                                    .build()));
 
     }

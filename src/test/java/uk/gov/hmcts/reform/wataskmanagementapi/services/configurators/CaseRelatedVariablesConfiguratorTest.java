@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.configurators;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
 
 import java.util.Map;
@@ -13,9 +13,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 
 class CaseRelatedVariablesConfiguratorTest {
 

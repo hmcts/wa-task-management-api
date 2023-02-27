@@ -23,10 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -34,14 +30,19 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -69,18 +70,15 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASS
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.BOOLEAN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator.IN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
-@SuppressWarnings("checkstyle:LineLength")
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @MockBean
@@ -620,22 +618,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_invalid_search_parameter_key() throws Exception {
-
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "someInvalidKey",
+                    "operator": "IN",
+                    "values": [
+                      "aValue"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"someInvalidKey\",\n"
-                             + "      \"operator\": \"IN\",\n"
-                             + "      \"values\": [\n"
-                             + "        \"aValue\"\n"
-                             + "      ]\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -653,21 +653,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_invalid_camelCase_work_type_search_parameter_key() throws Exception {
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "workType",
+                    "operator": "IN",
+                    "values": [
+                      "aValue"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"workType\",\n"
-                             + "      \"operator\": \"IN\",\n"
-                             + "      \"values\": [\n"
-                             + "        \"aValue\"\n"
-                             + "      ]\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -685,21 +688,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_invalid_search_parameter_operator() throws Exception {
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "work_type",
+                    "operator": "INVALID",
+                    "values": [
+                      "aValue"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"work_type\",\n"
-                             + "      \"operator\": \"INVALID\",\n"
-                             + "      \"values\": [\n"
-                             + "        \"aValue\"\n"
-                             + "      ]\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -711,7 +717,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
                     jsonPath("$.detail").value(
-                        "Invalid request field: search_parameters.[0]: Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")
+                        "Invalid request field: search_parameters.[0]: Each search_parameter element "
+                        + "must have 'key', 'values' and 'operator' fields present and populated.")
                 ));
 
     }
@@ -744,18 +751,23 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_no_operator_provided() throws Exception {
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "values": [
+                      "ia", "sscs"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "    \"search_parameters\": [\n"
-                             + "        {\n"
-                             + "            \"key\": \"jurisdiction\",\n"
-                             + "            \"values\": [\"ia\", \"sscs\"]\n"
-                             + "        }\n"
-                             + "    ]\n"
-                             + "}")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -767,25 +779,31 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
                     jsonPath("$.detail").value(
-                        "Invalid request field: search_parameters.[0]: Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")
+                        "Invalid request field: search_parameters.[0]: Each search_parameter element "
+                        + "must have 'key', 'values' and 'operator' fields present and populated.")
                 ));
     }
 
     @Test
     void should_return_400_bad_request_when_empty_string_value_provided() throws Exception {
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "",
+                    "values": [
+                      "ia", "sscs"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "    \"search_parameters\": [\n"
-                             + "        {\n"
-                             + "            \"key\": \"jurisdiction\",\n"
-                             + "            \"values\": [\"ia\", \"sscs\"],\n"
-                             + "            \"operator\": \"\"\n"
-                             + "        }\n"
-                             + "    ]\n"
-                             + "}")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andDo(MockMvcResultHandlers.print())
@@ -798,26 +816,32 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
                     jsonPath("$.detail").value(
-                        "Invalid request field: search_parameters.[0]: Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")
+                        "Invalid request field: search_parameters.[0]: Each search_parameter element "
+                        + "must have 'key', 'values' and 'operator' fields present and populated.")
                 ));
 
     }
 
     @Test
     void should_return_400_bad_request_when_null_operator_provided() throws Exception {
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": null,
+                    "values": [
+                      "ia", "sscs"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "    \"search_parameters\": [\n"
-                             + "        {\n"
-                             + "            \"key\": \"jurisdiction\",\n"
-                             + "            \"values\": [\"ia\", \"sscs\"],\n"
-                             + "            \"operator\": null\n"
-                             + "        }\n"
-                             + "    ]\n"
-                             + "}")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -829,25 +853,32 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
                     jsonPath("$.detail").value(
-                        "Invalid request field: search_parameters.[0]: Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")
+                        "Invalid request field: search_parameters.[0]: Each search_parameter element "
+                        + "must have 'key', 'values' and 'operator' fields present and populated.")
                 ));
     }
 
     @Test
     void should_return_400_bad_request_when_operator_with_null_value_provided() throws Exception {
+        String content = """
+            {
+                "request_context": "AVAILABLE_TASKS",
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "null",
+                    "values": [
+                      "IA"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "    \"search_parameters\": [\n"
-                             + "        {\n"
-                             + "            \"key\": \"jurisdiction\",\n"
-                             + "            \"values\": [\"ia\", \"sscs\"],\n"
-                             + "             \"operator\": \"null\"\n"
-                             + "        }\n"
-                             + "    ]\n"
-                             + "}")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andDo(MockMvcResultHandlers.print())
@@ -870,19 +901,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_null_key_provided() throws Exception {
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": null,
+                    "operator": "IN",
+                    "values": [
+                      "ia", "something"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "    \"search_parameters\": [\n"
-                             + "        {\n"
-                             + "            \"key\": null,\n"
-                             + "            \"values\": [\"ia\", \"something\"],\n"
-                             + "            \"operator\": \"IN\"\n"
-                             + "        }\n"
-                             + "    ]\n"
-                             + "}")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -905,19 +941,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_key_and_values_are_empty() throws Exception {
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "",
+                    "operator": "IN",
+                    "values": [
+                      "", ""
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "    \"search_parameters\": [\n"
-                             + "        {\n"
-                             + "            \"key\": \"\",\n"
-                             + "            \"values\": [\"\", \"\"],\n"
-                             + "            \"operator\": \"IN\"\n"
-                             + "        }\n"
-                             + "    ]\n"
-                             + "}")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -937,19 +978,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_empty_string_key_provided() throws Exception {
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "",
+                    "operator": "IN",
+                    "values": [
+                      "ia", "something"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "    \"search_parameters\": [\n"
-                             + "        {\n"
-                             + "            \"key\": \"\",\n"
-                             + "            \"values\": [\"ia\", \"something\"],\n"
-                             + "            \"operator\": \"IN\"\n"
-                             + "        }\n"
-                             + "    ]\n"
-                             + "}")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -969,19 +1015,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_invalid_first_result_pagination_param_provided() throws Exception {
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "ia"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task?first_result=-1&max_results=2")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                                 + "  \"search_parameters\": [\n"
-                                 + "    {\n"
-                                 + "      \"key\": \"jurisdiction\",\n"
-                                 + "      \"values\": [\"ia\"],\n"
-                                 + "      \"operator\": \"IN\"\n"
-                                 + "    }\n"
-                                 + "  ]\n"
-                                 + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -1003,19 +1054,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_a_400_with_empty_search_results_with_negative_maxResults_pagination() throws Exception {
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "ia"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task?first_result=0&max_results=-2")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                                 + "  \"search_parameters\": [\n"
-                                 + "    {\n"
-                                 + "      \"key\": \"jurisdiction\",\n"
-                                 + "      \"values\": [\"ia\"],\n"
-                                 + "      \"operator\": \"IN\"\n"
-                                 + "    }\n"
-                                 + "  ]\n"
-                                 + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -1055,19 +1111,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "ia", null
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"jurisdiction\",\n"
-                             + "      \"values\": [\"ia\", null],\n"
-                             + "      \"operator\": \"IN\"\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -1095,19 +1156,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      null
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"jurisdiction\",\n"
-                             + "      \"values\": [null],\n"
-                             + "      \"operator\": \"IN\"\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -1135,31 +1201,26 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "work_type",
+                    "operator": "IN",
+                    "values": [
+                      "hearing_work","upper_tribunal","routine_work","routine_work","decision_making_work",
+                      "applications","priority","error_management","access_requests","review_case","evidence",
+                      "follow_up"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"work_type\",\n"
-                             + "      \"values\": [\n"
-                             + "        \"hearing_work\",\n"
-                             + "        \"upper_tribunal\",\n"
-                             + "        \"routine_work\",\n"
-                             + "        \"decision_making_work\",\n"
-                             + "        \"applications\",\n"
-                             + "        \"priority\",\n"
-                             + "        \"error_management\",\n"
-                             + "        \"access_requests\",\n"
-                             + "        \"review_case\",\n"
-                             + "        \"evidence\",\n"
-                             + "        \"follow_up\"\n"
-                             + "      ],\n"
-                             + "      \"operator\": \"IN\"\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpectAll(status().isOk());
@@ -1169,22 +1230,24 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     void should_return_400_bad_request_when_invalid_case_role_category_search_parameter_key()
         throws Exception {
 
-
+        String content = """
+            {
+                "search_parameters": [
+                  {
+                    "key": "roleCategory",
+                    "operator": "IN",
+                    "values": [
+                      "aValue"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"roleCategory\",\n"
-                             + "      \"operator\": \"IN\",\n"
-                             + "      \"values\": [\n"
-                             + "        \"aValue\"\n"
-                             + "      ]\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -1200,53 +1263,28 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_400_bad_request_when_invalid_case_available_tasks_only_search_parameter_key()
+    void should_return_400_bad_request_when_invalid_case_available_tasks_search_parameter_key()
         throws Exception {
 
+        String content = """
+            {
+                "search_parameters": [
+                "request_context": "INVALID_VALUE",
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "ia"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"availableTtasksOnly\",\n"
-                             + "      \"operator\": \"BOOLEAN\",\n"
-                             + "      \"value\": true\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-            )
-            .andExpect(
-                ResultMatcher.matchAll(
-                    status().isBadRequest(),
-                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type")
-                        .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
-                    jsonPath("$.title").value("Bad Request"),
-                    jsonPath("$.status").value(400),
-                    jsonPath("$.detail").value("Invalid request field: search_parameters.[0].key")
-                ));
-    }
-
-    @Test
-    void should_return_400_bad_request_when_available_tasks_only_is_set_with_empty_value()
-        throws Exception {
-
-        mockMvc.perform(
-                post("/task")
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"available_tasks_only\",\n"
-                             + "      \"operator\": \"BOOLEAN\",\n"
-                             + "      \"value\": \n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -1258,7 +1296,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
                     jsonPath("$.detail").value("Invalid request field: search_parameters.[0]: "
-                                               + "Unexpected character ('}' (code 125)): expected a value")
+                                               + "Each search_parameter element must have "
+                                               + "'key', 'values' and 'operator' fields present and populated.")
                 ));
     }
 
@@ -1282,40 +1321,45 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
+        String content = """
+            {
+                "request_context": "AVAILABLE_TASKS",
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "IA"
+                    ]
+                  }
+                ]
+              }
+            """;
+
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"available_tasks_only\",\n"
-                             + "      \"operator\": \"BOOLEAN\",\n"
-                             + "      \"value\": true\n"
-                             + "    },\n"
-                             + "    {\n"
-                             + "      \"key\": \"jurisdiction\",\n"
-                             + "      \"operator\": \"IN\",\n"
-                             + "      \"values\": [ \"IA\" ]\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                    .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk());
 
         SearchTaskRequest expectedReq = new SearchTaskRequest(
-            asList(
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, BOOLEAN, true),
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
                 new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
             )
         );
 
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
+
         verify(cftQueryService, times(1)).searchForTasks(
             0,
             50,
-            expectedReq,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
     }
@@ -1340,39 +1384,42 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
+        String content = """
+            {
+                "request_context": "AVAILABLE_TASKS",
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "IA"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
             post("/task")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content("{\n"
-                         + "  \"search_parameters\": [\n"
-                         + "    {\n"
-                         + "      \"key\": \"available_tasks_only\",\n"
-                         + "      \"operator\": \"BOOLEAN\",\n"
-                         + "      \"value\": false\n"
-                         + "    },\n"
-                         + "    {\n"
-                         + "      \"key\": \"jurisdiction\",\n"
-                         + "      \"operator\": \"IN\",\n"
-                         + "      \"values\": [ \"IA\" ]\n"
-                         + "    }\n"
-                         + "  ]\n"
-                         + "}\n")
+                .content(content)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(status().isOk());
 
         SearchTaskRequest expectedReq = new SearchTaskRequest(
-            asList(
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, BOOLEAN, false),
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
                 new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
             )
         );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,
             50,
-            expectedReq,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
     }
@@ -1397,40 +1444,50 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
+        String content = """
+            {
+                "request_context": "AVAILABLE_TASKS",
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "ia"
+                    ]
+                  }
+                ],
+                "sorting_parameters": [
+                  {
+                    "sort_by": "dueDate",
+                    "sort_order": "asc"
+                  }
+                ]
+              }
+            """;
+
         mockMvc.perform(
             post("/task")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"available_tasks_only\",\n"
-                             + "      \"operator\": \"BOOLEAN\",\n"
-                             + "      \"value\": false\n"
-                             + "    }\n"
-                             + "  ],\n"
-                             + "  \"sorting_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"sort_by\": \"dueDate\",\n"
-                             + "      \"sort_order\": \"asc\"\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                .content(content)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(status().isOk());
 
         SearchTaskRequest expectedReq = new SearchTaskRequest(
-            asList(
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, BOOLEAN, false)
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
+                new SearchParameterList(JURISDICTION, IN, asList("ia"))
             ),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
         );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,
             50,
-            expectedReq,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
     }
@@ -1454,41 +1511,49 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-
+        String content = """
+            {
+                "request_context": "AVAILABLE_TASKS",
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "IA"
+                    ]
+                  }
+                ],
+                "sorting_parameters": [
+                  {
+                    "sort_by": "due_date",
+                    "sort_order": "asc"
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
             post("/task")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"available_tasks_only\",\n"
-                             + "      \"operator\": \"BOOLEAN\",\n"
-                             + "      \"value\": false\n"
-                             + "    }\n"
-                             + "  ],\n"
-                             + "  \"sorting_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"sort_by\": \"due_date\",\n"
-                             + "      \"sort_order\": \"asc\"\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                .content(content)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(status().isOk());
 
         SearchTaskRequest expectedReq = new SearchTaskRequest(
-            asList(
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, BOOLEAN, false)
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
+                new SearchParameterList(JURISDICTION, IN, List.of("IA"))
             ),
             singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.ASCENDANT))
         );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
 
         verify(cftQueryService, times(1)).searchForTasks(
             0,
             50,
-            expectedReq,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
     }
@@ -1513,21 +1578,25 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(new RoleAssignmentResource(allTestRoles));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-
+        String content = String.format("""
+            {
+                "request_context": "%s",
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "IA"
+                    ]
+                  }
+                ]
+              }
+            """, context.toString());
         mockMvc.perform(
             post("/task")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content("{\n"
-                             + "  \"request_context\": \"" + context.toString() + "\",\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"jurisdiction\",\n"
-                             + "      \"operator\": \"IN\",\n"
-                             + "      \"values\": [ \"IA\" ]\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                .content(content)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(status().isOk());
 
@@ -1538,11 +1607,14 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             )
         );
 
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
+
         verify(cftQueryService, times(1)).searchForTasks(
             0,
             50,
-            expectedReq,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
     }
@@ -1564,20 +1636,25 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
+        String content = """
+            {
+                "request_context": "GENERAL_SEARCH",
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "IA"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
             post("/task")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content("{\n"
-                             + "  \"request_context\": \"GENERAL_SEARCH\",\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"jurisdiction\",\n"
-                             + "      \"operator\": \"IN\",\n"
-                             + "      \"values\": [ \"IA\" ]\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                .content(content)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
             ResultMatcher.matchAll(
@@ -1610,20 +1687,25 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
+        String content = """
+            {
+                "request_context": "",
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "IA"
+                    ]
+                  }
+                ]
+              }
+            """;
         mockMvc.perform(
             post("/task")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content("{\n"
-                             + "  \"request_context\": \"\",\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"jurisdiction\",\n"
-                             + "      \"operator\": \"IN\",\n"
-                             + "      \"values\": [ \"IA\" ]\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
+                .content(content)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
             ResultMatcher.matchAll(

@@ -17,10 +17,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaExceptionMessage;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;

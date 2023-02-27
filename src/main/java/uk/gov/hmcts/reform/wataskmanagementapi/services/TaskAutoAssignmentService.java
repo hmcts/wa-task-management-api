@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 
 import java.util.ArrayList;

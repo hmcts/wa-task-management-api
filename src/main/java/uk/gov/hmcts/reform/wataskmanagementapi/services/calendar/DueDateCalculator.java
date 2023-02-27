@@ -2,8 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,10 +19,10 @@ public class DueDateCalculator implements DateCalculator {
     @Override
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        DateType dateType,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return DUE_DATE == dateType
+        return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest))
             .isPresent();
     }
@@ -29,26 +30,26 @@ public class DueDateCalculator implements DateCalculator {
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType, boolean isReconfigureRequest) {
+        DateTypeObject dateType, boolean isReconfigureRequest) {
         var dueDateResponse = getProperty(configResponses, DUE_DATE.getType(), isReconfigureRequest);
         var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest);
         return calculatedDate(dateType, dueDateResponse, dueDateTimeResponse);
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(
-        DateType dateType,
+        DateTypeObject dateType,
         ConfigurationDmnEvaluationResponse dueDateResponse,
         ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         LocalDateTime calculatedDate = calculatedDate(dueDateResponse, dueDateTimeResponse);
         return ConfigurationDmnEvaluationResponse
             .builder()
-            .name(CamundaValue.stringValue(dateType.getType()))
-            .value(CamundaValue.stringValue(dateType.getDateTimeFormatter().format(calculatedDate)))
+            .name(CamundaValue.stringValue(dateType.dateTypeName()))
+            .value(CamundaValue.stringValue(dateType.dateType().getDateTimeFormatter().format(calculatedDate)))
             .build();
     }
 
     private LocalDateTime calculatedDate(ConfigurationDmnEvaluationResponse dueDateResponse,
-                                 ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
+                                         ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         if (Optional.ofNullable(dueDateTimeResponse).isPresent()) {
             return calculateDueDateFrom(dueDateResponse, dueDateTimeResponse);
         } else {
@@ -67,7 +68,7 @@ public class DueDateCalculator implements DateCalculator {
     }
 
     private LocalDateTime calculateDueDateFrom(ConfigurationDmnEvaluationResponse dueDateResponse,
-                                       ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
+                                               ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
         String dueDate = dueDateResponse.getValue().getValue();
         return addTimeToDate(dueDateTimeResponse, parseDateTime(dueDate));
     }

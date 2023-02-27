@@ -20,23 +20,23 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -66,7 +66,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASS
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 

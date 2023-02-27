@@ -16,10 +16,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskPermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
@@ -51,6 +51,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
         testTarget.setControllers(new TaskSearchController(
             accessControlService,
             cftQueryService,
+            cftTaskDatabaseService,
             launchDarklyFeatureFlagProvider
         ));
 
