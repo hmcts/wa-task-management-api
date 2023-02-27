@@ -224,12 +224,4 @@ public interface DateCalculator {
             ? ((OffsetDateTime) dateObject).toLocalDateTime()
             : null;
     }
-
-    private static boolean isDateTypePresentInReferredDates(List<DateTypeObject> originDateTypes,
-                                                            ConfigurationDmnEvaluationResponse dmnEvaluationResponse) {
-        String dateTypeValue = dmnEvaluationResponse.getName().getValue();
-        DateType dateType = DateType.from(dateTypeValue);
-        return dateType != DateType.CALCULATED_DATES
-            && originDateTypes.contains(new DateTypeObject(dateType, dateTypeValue));
-    }
 }

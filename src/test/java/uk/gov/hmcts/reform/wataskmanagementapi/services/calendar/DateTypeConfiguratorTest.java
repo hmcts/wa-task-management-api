@@ -36,7 +36,7 @@ public class DateTypeConfiguratorTest {
         .name(CamundaValue.stringValue("nextHearingDate"))
         .value(CamundaValue.stringValue("2023-01-15T16:00"))
         .build();
-    String calculatedDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
+    String defaultDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 
     private final Map<String, Object> taskAttributes = new HashMap<>();
@@ -53,17 +53,39 @@ public class DateTypeConfiguratorTest {
         }
 
         @Test
-        public void should_not_calculate_when_there_are_no_dmn_responses() {
+        void should_return_default_calculated_dates_when_there_are_no_dmn_responses() {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
-            dateTypeConfigurator.configureDates(evaluationResponses, false, false, taskAttributes);
-            assertThat(evaluationResponses).isEmpty();
+            List<ConfigurationDmnEvaluationResponse> dmnEvaluationResponses = dateTypeConfigurator.configureDates(
+                evaluationResponses,
+                false,
+                false,
+                taskAttributes
+            );
+            assertThat(dmnEvaluationResponses)
+                .hasSize(2)
+                .isEqualTo(List.of(
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("dueDate"))
+                                   .value(CamundaValue.stringValue(defaultDate))
+                                   .build(),
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("priorityDate"))
+                                   .value(CamundaValue.stringValue(defaultDate))
+                                   .build()
+                           )
+                );
         }
 
         @Test
         public void should_not_calculate_when_there_are_no_dmn_responses_and_initiation_due_date_found() {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
-            dateTypeConfigurator.configureDates(evaluationResponses, true, false, taskAttributes);
-            assertThat(evaluationResponses).isEmpty();
+            List<ConfigurationDmnEvaluationResponse> dmnEvaluationResponses = dateTypeConfigurator.configureDates(
+                evaluationResponses,
+                true,
+                false,
+                taskAttributes
+            );
+            assertThat(dmnEvaluationResponses).isEmpty();
         }
 
         @Test
@@ -75,11 +97,11 @@ public class DateTypeConfiguratorTest {
                 .isEqualTo(List.of(
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(calculatedDate))
+                                   .value(CamundaValue.stringValue(defaultDate))
                                    .build(),
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(calculatedDate))
+                                   .value(CamundaValue.stringValue(defaultDate))
                                    .build()
                            )
                 );
@@ -100,11 +122,11 @@ public class DateTypeConfiguratorTest {
                 .isEqualTo(List.of(
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(calculatedDate))
+                                   .value(CamundaValue.stringValue(defaultDate))
                                    .build(),
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(calculatedDate))
+                                   .value(CamundaValue.stringValue(defaultDate))
                                    .build()
                            )
                 );
@@ -124,21 +146,43 @@ public class DateTypeConfiguratorTest {
         }
 
         @Test
-        public void should_not_calculate_when_there_are_no_dmn_responses() {
+        void should_return_default_calculated_dates_when_there_are_no_dmn_responses() {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
-            dateTypeConfigurator.configureDates(evaluationResponses, false, false, taskAttributes);
-            assertThat(evaluationResponses).isEmpty();
+            List<ConfigurationDmnEvaluationResponse> dmnEvaluationResponses = dateTypeConfigurator.configureDates(
+                evaluationResponses,
+                false,
+                false,
+                taskAttributes
+            );
+            assertThat(dmnEvaluationResponses)
+                .hasSize(2)
+                .isEqualTo(List.of(
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("dueDate"))
+                                   .value(CamundaValue.stringValue(defaultDate))
+                                   .build(),
+                               ConfigurationDmnEvaluationResponse.builder()
+                                   .name(CamundaValue.stringValue("priorityDate"))
+                                   .value(CamundaValue.stringValue(defaultDate))
+                                   .build()
+                           )
+                );
         }
 
         @Test
-        public void should_not_calculate_when_there_are_no_dmn_responses_and_initiation_due_date_found() {
+        void should_not_calculate_when_there_are_no_dmn_responses_and_initiation_due_date_found() {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
-            dateTypeConfigurator.configureDates(evaluationResponses, true, false, taskAttributes);
-            assertThat(evaluationResponses).isEmpty();
+            List<ConfigurationDmnEvaluationResponse> dmnEvaluationResponses = dateTypeConfigurator.configureDates(
+                evaluationResponses,
+                true,
+                false,
+                taskAttributes
+            );
+            assertThat(dmnEvaluationResponses).isEmpty();
         }
 
         @Test
-        public void should_set_default_for_due_date_and_priority_date_when_only_due_date_given() {
+        void should_set_default_for_due_date_and_priority_date_when_only_due_date_given() {
             List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate);
             List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(input, false, false,
                                                                                                   taskAttributes
@@ -159,7 +203,7 @@ public class DateTypeConfiguratorTest {
         }
 
         @Test
-        public void should_set_calculates_for_due_date_and_priority_date_for_their_values() {
+        void should_set_calculates_for_due_date_and_priority_date_for_their_values() {
             List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate, priorityDate);
             List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(
                 input,
@@ -204,7 +248,7 @@ public class DateTypeConfiguratorTest {
         }
 
         @Test
-        public void should_calculate_using_task_resource_attributes() {
+        void should_calculate_using_task_resource_attributes() {
             String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             String dueDateValue = GIVEN_DATE.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             LocalDateTime taskResourceDueDate = GIVEN_DATE.minusDays(4);
