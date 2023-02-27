@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface DateCalculator {
     String ORIGIN_SUFFIX = "Origin";
@@ -137,24 +138,14 @@ public interface DateCalculator {
     default Optional<LocalDateTime> getOriginRefDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         ConfigurationDmnEvaluationResponse originRefResponse,
-        Map<String, Object> taskAttributes, boolean isReconfigureRequest) {
-        List<DateTypeObject> referenceDates = getReferenceDates(originRefResponse);
-
-        if (isReconfigureRequest) {
-            return referenceDates.stream()
-                .map(DateTypeObject::dateTypeName)
-                .map(dateTypeName -> getMatchingConfigResponseDate(configResponses, dateTypeName)
-                    .orElse(getTaskAttributeDate(taskAttributes, dateTypeName)))
-                .filter(Objects::nonNull)
-                .findFirst();
-        }
-
-        return referenceDates.stream()
-            .flatMap(r -> configResponses.stream()
-                .filter(c -> Optional.ofNullable(DateType.from(c.getName().getValue())).isPresent()
-                    && DateType.from(c.getName().getValue()).equals(r.dateType()))
-                .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER)))
-            .findFirst();
+        Map<String, Object> taskAttributes,
+        boolean isReconfigureRequest) {
+        return getReferenceDateValues(
+            configResponses,
+            taskAttributes,
+            isReconfigureRequest,
+            getReferenceDates(originRefResponse)
+        ).findFirst();
     }
 
     private static List<DateTypeObject> getReferenceDates(ConfigurationDmnEvaluationResponse originRefResponse) {
@@ -167,23 +158,13 @@ public interface DateCalculator {
         ConfigurationDmnEvaluationResponse originEarliestResponse,
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest) {
-        List<DateTypeObject> referenceDates = getReferenceDates(originEarliestResponse);
-
-        if (isReconfigureRequest) {
-            return referenceDates.stream()
-                .map(DateTypeObject::dateTypeName)
-                .map(dateTypeName -> getMatchingConfigResponseDate(configResponses, dateTypeName)
-                    .orElse(getTaskAttributeDate(taskAttributes, dateTypeName)))
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo);
-        }
-
-        return configResponses.stream()
-            .filter(r -> isDateTypePresentInReferredDates(referenceDates, r))
-            .map(r -> LocalDateTime.parse(r.getValue().getValue(), DATE_TIME_FORMATTER))
-            .min(LocalDateTime::compareTo);
+        return getReferenceDateValues(
+            configResponses,
+            taskAttributes,
+            isReconfigureRequest,
+            getReferenceDates(originEarliestResponse)
+        ).min(LocalDateTime::compareTo);
     }
-
 
     default Optional<LocalDateTime> getOriginLatestDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
@@ -191,32 +172,48 @@ public interface DateCalculator {
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest) {
 
-        List<DateTypeObject> referenceDates = getReferenceDates(originLatestResponse);
-
-        if (isReconfigureRequest) {
-            return referenceDates.stream()
-                .map(DateTypeObject::dateTypeName)
-                .map(dateTypeName -> getMatchingConfigResponseDate(configResponses, dateTypeName)
-                    .orElse(getTaskAttributeDate(taskAttributes, dateTypeName)))
-                .filter(Objects::nonNull)
-                .max(LocalDateTime::compareTo);
-        }
-
-        return configResponses.stream()
-            .filter(r -> isDateTypePresentInReferredDates(referenceDates, r))
-            .map(r -> LocalDateTime.parse(r.getValue().getValue(), DATE_TIME_FORMATTER))
-            .max(LocalDateTime::compareTo);
+        return getReferenceDateValues(
+            configResponses,
+            taskAttributes,
+            isReconfigureRequest,
+            getReferenceDates(originLatestResponse)
+        ).max(LocalDateTime::compareTo);
     }
 
-    private static Optional<LocalDateTime> getMatchingConfigResponseDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, String dateTypeName) {
+    private static Stream<LocalDateTime> getReferenceDateValues(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        Map<String, Object> taskAttributes,
+        boolean isReconfigureRequest,
+        List<DateTypeObject> referenceDates) {
+        return referenceDates.stream()
+            .map(DateTypeObject::dateTypeName)
+            .map(t -> getMatchingConfigResponseDate(configResponses, taskAttributes, isReconfigureRequest, t))
+            .filter(Objects::nonNull);
+    }
+
+    private static LocalDateTime getMatchingConfigResponseDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        Map<String, Object> taskAttributes,
+        boolean isReconfigureRequest,
+        String dateTypeName) {
         return configResponses.stream()
             .filter(c -> c.getName().getValue().equals(dateTypeName))
             .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER))
-            .findFirst();
+            .findFirst()
+            .orElse(defaultWithTaskAttributes(taskAttributes, isReconfigureRequest, dateTypeName));
     }
 
-    private static LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes, String keyName) {
+    private static LocalDateTime defaultWithTaskAttributes(
+        Map<String, Object> taskAttributes,
+        boolean isReconfigureRequest,
+        String dateTypeName) {
+        return isReconfigureRequest
+            ? getTaskAttributeDate(taskAttributes, dateTypeName)
+            : null;
+    }
+
+    private static LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes,
+                                                      String keyName) {
         Object dateObject;
         if (keyName.equals("dueDate")) {
             dateObject = taskAttributes.get("dueDateTime");
