@@ -345,7 +345,7 @@ class TaskResourceDaoTest {
                 new SortingParameter(SortField.LOCATION_NAME_CAMEL_CASE, SortOrder.DESCENDANT)
             )
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
@@ -379,7 +379,7 @@ class TaskResourceDaoTest {
             List.of()
         );
 
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
@@ -413,7 +413,7 @@ class TaskResourceDaoTest {
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, null))
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
@@ -446,7 +446,7 @@ class TaskResourceDaoTest {
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         when(query.getResultList()).thenReturn(List.of(createTaskResource()));
 
         List<TaskResource> taskResources = taskResourceDao.getTaskResources(
@@ -498,7 +498,7 @@ class TaskResourceDaoTest {
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleType(PermissionTypes.READ);
 
@@ -551,7 +551,7 @@ class TaskResourceDaoTest {
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleType(PermissionTypes.READ);
 
@@ -580,7 +580,7 @@ class TaskResourceDaoTest {
             ),
             List.of()
         );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest, false);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleType(PermissionTypes.READ);
 

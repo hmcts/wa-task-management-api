@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
@@ -8,7 +7,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
@@ -20,7 +18,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
@@ -43,7 +40,7 @@ public final class SearchTaskRequestMapper {
         //Utility class constructor
     }
 
-    public static SearchRequest map(SearchTaskRequest clientRequest, boolean isGranularPermissionEnabled) {
+    public static SearchRequest map(SearchTaskRequest clientRequest) {
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(clientRequest);
 
         boolean availableTasksOnly = isAvailableTasksOnly(clientRequest);
@@ -71,7 +68,7 @@ public final class SearchTaskRequestMapper {
         final SearchParameterList taskTypeParam = keyMap.get(TASK_TYPE);
         final List<SortingParameter> sortingParameters = clientRequest.getSortingParameters();
 
-        validateRequest(clientRequest, workTypes, isGranularPermissionEnabled);
+        validateRequest(workTypes);
 
         return SearchRequest.builder()
             .requestContext(requestContext)
@@ -87,59 +84,28 @@ public final class SearchTaskRequestMapper {
             .build();
     }
 
-    private static void validateRequest(SearchTaskRequest searchTaskRequest, List<String> workTypes,
-                                 boolean isGranularPermissionEnabled) {
+    private static void validateRequest(List<String> workTypes) {
         List<Violation> violations = new ArrayList<>();
         //Validate
         workTypes.forEach(value -> {
             if (!ALLOWED_WORK_TYPES.contains(value)) {
                 violations.add(new Violation(
-                        value,
-                        WORK_TYPE.value() + " must be one of " + Arrays.toString(ALLOWED_WORK_TYPES.toArray())
+                    value,
+                    WORK_TYPE.value() + " must be one of " + Arrays.toString(ALLOWED_WORK_TYPES.toArray())
                 ));
             }
         });
-
-        if (isGranularPermissionEnabled) {
-            final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap =
-                    asEnumMapForBoolean(searchTaskRequest);
-            if (boolKeyMap.containsKey(AVAILABLE_TASKS_ONLY)) {
-                violations.add(new Violation(AVAILABLE_TASKS_ONLY.value(), "Invalid request parameter"));
-            }
-        }
 
         if (!violations.isEmpty()) {
             throw new CustomConstraintViolationException(violations);
         }
     }
 
-    // TODO: Once the granular permission feature flag enabled or available_tasks_only parameter is depreciated,
-    // this method should only check AVAILABLE_TASK_ONLY context
     private static boolean isAvailableTasksOnly(SearchTaskRequest searchTaskRequest) {
-        final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap = asEnumMapForBoolean(searchTaskRequest);
-        SearchParameterBoolean availableTasksOnly = boolKeyMap.get(AVAILABLE_TASKS_ONLY);
 
         RequestContext context = searchTaskRequest.getRequestContext();
 
-        if (context == null) {
-            return availableTasksOnly != null && availableTasksOnly.getValues();
-        } else {
-            return context.equals(RequestContext.AVAILABLE_TASKS);
-        }
-    }
-
-    private static EnumMap<SearchParameterKey, SearchParameterBoolean> asEnumMapForBoolean(
-            SearchTaskRequest searchTaskRequest) {
-
-        EnumMap<SearchParameterKey, SearchParameterBoolean> map = new EnumMap<>(SearchParameterKey.class);
-        if (searchTaskRequest != null && !CollectionUtils.isEmpty(searchTaskRequest.getSearchParameters())) {
-            searchTaskRequest.getSearchParameters()
-                    .stream()
-                    .filter(SearchParameterBoolean.class::isInstance)
-                    .forEach(request -> map.put(request.getKey(), (SearchParameterBoolean) request));
-        }
-
-        return map;
+        return context != null && context.equals(RequestContext.AVAILABLE_TASKS);
     }
 
     private static List<CFTTaskState> getCftTaskStates(SearchParameterList stateParam) {
@@ -161,9 +127,9 @@ public final class SearchTaskRequestMapper {
         EnumMap<SearchParameterKey, SearchParameterList> map = new EnumMap<>(SearchParameterKey.class);
         if (searchTaskRequest != null && searchTaskRequest.getSearchParameters() != null) {
             searchTaskRequest.getSearchParameters()
-                    .stream()
-                    .filter(SearchParameterList.class::isInstance)
-                    .forEach(request -> map.put(request.getKey(), (SearchParameterList) request));
+                .stream()
+                .filter(SearchParameterList.class::isInstance)
+                .forEach(request -> map.put(request.getKey(), (SearchParameterList) request));
         }
         return map;
     }

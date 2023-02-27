@@ -71,23 +71,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact testSearchQueryWithAvailableTasksOnly200(PactDslWithProvider builder) {
-        return builder
-            .given("appropriate tasks are returned by criteria with available tasks only")
-            .uponReceiving("Provider receives a POST /task request from a WA API")
-            .path(WA_SEARCH_QUERY)
-            .method(HttpMethod.POST.toString())
-            .headers(getTaskManagementServiceResponseHeaders())
-            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
-            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseWithAvailableTasks(), String.valueOf(ContentType.JSON))
-            .willRespondWith()
-            .status(HttpStatus.OK.value())
-            .body(createResponseForGetTask())
-            .toPact();
-    }
-
-    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQueryWithWorkType200(PactDslWithProvider builder) {
         return builder
             .given("appropriate tasks are returned by criteria with work-type")
@@ -227,19 +210,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
             .body(createSearchEventCaseRequestForWa())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "testSearchQueryWithAvailableTasksOnly200", pactVersion = PactSpecVersion.V3)
-    void testSearchQueryWithAvailableTasksOnly200Test(MockServer mockServer) {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(createSearchEventCaseWithAvailableTasks())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -485,160 +455,130 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
 
     private String createSearchEventCaseRequest() {
 
-        return "{\n"
-               + "    \"search_parameters\": [\n"
-               + "         {\n"
-               + "             \"key\": \"jurisdiction\",\n"
-               + "             \"operator\": \"IN\",\n"
-               + "             \"values\":"
-               + "                 [\n"
-               + "                     \"IA\"\n"
-               + "                 ]\n"
-               + "          }\n"
-               + "      ]\n"
-               + "  }\n";
+        return """
+            {
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "IA"
+                    ]
+                  }
+                ]
+              }
+            """;
 
     }
 
     private String createSearchEventCaseRequestForWa() {
 
-        return "{\n"
-               + "    \"search_parameters\": [\n"
-               + "         {\n"
-               + "             \"key\": \"jurisdiction\",\n"
-               + "             \"operator\": \"IN\",\n"
-               + "             \"values\":"
-               + "                 [\n"
-               + "                     \"WA\"\n"
-               + "                 ]\n"
-               + "          }\n"
-               + "      ]\n"
-               + "  }\n";
+        return """
+            {
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "WA"
+                    ]
+                  }
+                ]
+              }
+            """;
 
     }
 
     private String createSearchEventCaseWithWorkTypeRequest() {
-
-        return "{\n"
-               + "    \"search_parameters\": [\n"
-               + "        {\n"
-               + "            \"key\": \"jurisdiction\",\n"
-               + "            \"operator\": \"IN\",\n"
-               + "            \"values\": [\n"
-               + "                \"IA\"\n"
-               + "            ]\n"
-               + "        },\n"
-               + "        {\n"
-               + "            \"key\": \"work_type\",\n"
-               + "            \"operator\": \"IN\",\n"
-               + "            \"values\": [\n"
-               + "                \"routine_work\",\n"
-               + "                \"decision_making_work\",\n"
-               + "                \"hearing_work\",\n"
-               + "                \"applications\",\n"
-               + "                \"upper_tribunal\",\n"
-               + "                \"priority\",\n"
-               + "                \"access_requests\",\n"
-               + "                \"error_management\",\n"
-               + "                \"review_case\",\n"
-               + "                \"evidence\",\n"
-               + "                \"follow_up\"\n"
-               + "            ]\n"
-               + "        }\n"
-               + "    ]\n"
-               + "}";
-    }
-
-    private String createSearchEventCaseWithAvailableTasks() {
-
-        return "{\n"
-               + "    \"search_parameters\": [\n"
-               + "        {\n"
-               + "            \"key\": \"jurisdiction\",\n"
-               + "            \"operator\": \"IN\",\n"
-               + "            \"values\": [\n"
-               + "                \"IA\"\n"
-               + "            ]\n"
-               + "        },\n"
-               + "        {\n"
-               + "            \"key\": \"available_tasks_only\",\n"
-               + "            \"operator\": \"BOOLEAN\",\n"
-               + "            \"value\": true"
-               + "        }\n"
-               + "    ]\n"
-               + "}";
+        return """
+            {
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "IA"
+                    ]
+                  },
+                  {
+                    "key": "work_type",
+                    "operator": "IN",
+                    "values": [
+                      "routine_work","decision_making_work","hearing_work","applications","upper_tribunal","priority",
+                      "access_requests","error_management","review_case","evidence","follow_up"
+                    ]
+                  }
+                ]
+              }
+            """;
     }
 
     private String createSearchEventCaseWithAvailableTasksContext() {
 
-        return "{\n"
-            + "    \"request_context\": \"AVAILABLE_TASKS\",\n"
-            + "    \"search_parameters\": [\n"
-            + "        {\n"
-            + "            \"key\": \"jurisdiction\",\n"
-            + "            \"operator\": \"IN\",\n"
-            + "            \"values\": [\n"
-            + "                \"IA\"\n"
-            + "            ]\n"
-            + "        }\n"
-            + "    ]\n"
-            + "}";
+        return """
+            {
+                "request_context": "AVAILABLE_TASKS",
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "IA"
+                    ]
+                  }
+                ]
+              }
+            """;
     }
 
     private String createSearchEventCaseWithAllWorkContext() {
-
-        return "{\n"
-            + "    \"request_context\": \"ALL_WORK\",\n"
-            + "    \"search_parameters\": [\n"
-            + "        {\n"
-            + "            \"key\": \"jurisdiction\",\n"
-            + "            \"operator\": \"IN\",\n"
-            + "            \"values\": [\n"
-            + "                \"IA\"\n"
-            + "            ]\n"
-            + "        }\n"
-            + "    ]\n"
-            + "}";
+        return """
+            {
+                "request_context": "ALL_WORK",
+                "search_parameters": [
+                  {
+                    "key": "jurisdiction",
+                    "operator": "IN",
+                    "values": [
+                      "IA"
+                    ]
+                  }
+                ]
+              }
+            """;
     }
 
     private String createSearchByRoleCategoryRequest() {
-
-        return "{\n"
-               + "    \"search_parameters\": [\n"
-               + "         {\n"
-               + "             \"key\": \"role_category\",\n"
-               + "             \"operator\": \"IN\",\n"
-               + "             \"values\":"
-               + "                 [\n"
-               + "                     \"CTSC\"\n"
-               + "                 ]\n"
-               + "          }\n"
-               + "      ]\n"
-               + "  }\n";
-
+        return """
+            {
+                "search_parameters": [
+                  {
+                    "key": "role_category",
+                    "operator": "IN",
+                    "values": [
+                      "CTSC"
+                    ]
+                  }
+                ]
+              }
+            """;
     }
 
     private String createSearchWithTaskTypeRequest() {
-
-        return "{\n"
-               + "    \"search_parameters\": [\n"
-               + "         {\n"
-               + "             \"key\": \"role_category\",\n"
-               + "             \"operator\": \"IN\",\n"
-               + "             \"values\":"
-               + "                 [\n"
-               + "                     \"processApplication\",\n"
-               + "                     \"reviewAppealSkeletonArgument\",\n"
-               + "                     \"decideOnTimeExtension\",\n"
-               + "                     \"followUpOverdueCaseBuilding\",\n"
-               + "                     \"attendCma\",\n"
-               + "                     \"reviewRespondentResponse\",\n"
-               + "                     \"followUpOverdueRespondentEvidence\"\n"
-               + "                 ]\n"
-               + "          }\n"
-               + "      ]\n"
-               + "  }\n";
-
+        return """
+            {
+                "search_parameters": [
+                  {
+                    "key": "task_type",
+                    "operator": "IN",
+                    "values": [
+                      "processApplication", "reviewAppealSkeletonArgument", "decideOnTimeExtension", "attendCma",
+                      "followUpOverdueCaseBuilding", "reviewRespondentResponse", "followUpOverdueRespondentEvidence"
+                    ]
+                  }
+                ]
+              }
+            """;
     }
 
     private DslPart createResponseForGetTaskForRoleCategory() {
@@ -682,10 +622,10 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             o -> o
                 .minArrayLike("tasks", 1, 1,
                     task -> task
-                        .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
+                        .stringType("id", "b1a13dca-41a5-424f-b101-c67b439549d0")
                         .stringType("name", "review appeal skeleton argument")
                         .stringType("type", "reviewAppealSkeletonArgument")
-                        .stringType("task_state", "unassigned")
+                        .stringType("task_state", "assigned")
                         .stringType("task_system", "SELF")
                         .stringType("security_classification", "PUBLIC")
                         .stringType("task_title", "review appeal skeleton argument")
@@ -699,7 +639,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("location", "765324")
                         .stringType("location_name", "Taylor House")
                         .stringType("case_type_id", "WaCaseType")
-                        .stringType("case_id", "1617708245335311")
+                        .stringType("case_id", "1617708245335399")
                         .stringType("case_category", "Protection")
                         .stringType("case_name", "Bob Smith")
                         .booleanType("warnings", false)

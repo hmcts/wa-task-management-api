@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 
 @SpringBootTest
@@ -478,7 +480,8 @@ public class NextHearingDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(List.of(defaultNextHearingDateTime), false,
-                            Boolean.parseBoolean(isReConfigurationRequest));
+                            Boolean.parseBoolean(isReConfigurationRequest)
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
             .isEqualTo(List.of(
@@ -1024,4 +1027,43 @@ public class NextHearingDateTypeConfiguratorTest {
                     .build()
             ));
     }
+
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    public void shouldNotProvideDefaultForNextHearingDateWhenNoneOfAttributesArePresent(boolean configurable) {
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("calculatedDates"))
+            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(calculatedDates), false, configurable);
+
+        assertThat(configurationDmnEvaluationResponses)
+            .filteredOn(r -> r.getName().getValue().equals("nextHearingDate"))
+            .isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void shouldNotDefaultWhenOriginRefAttributesPresentButAreEmpty(boolean configurable) {
+        ConfigurationDmnEvaluationResponse nextHearingDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDateOriginRef"))
+            .value(CamundaValue.stringValue("dueDate"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("calculatedDates"))
+            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(calculatedDates, nextHearingDateOriginRef), false, configurable);
+
+        assertThat(configurationDmnEvaluationResponses)
+            .filteredOn(r -> r.getName().getValue().equals("nextHearingDate"))
+            .isEmpty();
+    }
+
 }
