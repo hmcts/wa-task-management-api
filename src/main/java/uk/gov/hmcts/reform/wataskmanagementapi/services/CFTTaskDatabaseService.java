@@ -129,8 +129,7 @@ public class CFTTaskDatabaseService {
             .map(taskResource ->
                 cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
                     taskResource,
-                    roleAssignments,
-                    true
+                    roleAssignments
                 )
             )
             .collect(Collectors.toList());

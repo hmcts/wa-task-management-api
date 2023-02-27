@@ -284,8 +284,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
-            anyList(),
-            eq(true)
+            anyList()
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
@@ -329,8 +328,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
-            anyList(),
-            eq(true)
+            anyList()
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
@@ -374,8 +372,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
-            anyList(),
-            eq(true)
+            anyList()
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,

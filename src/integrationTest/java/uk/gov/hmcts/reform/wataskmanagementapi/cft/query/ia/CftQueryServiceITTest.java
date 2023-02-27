@@ -113,9 +113,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
-            accessControlResponse,
-            false,
-            scenario.granularPermission
+            accessControlResponse
         );
 
         //then

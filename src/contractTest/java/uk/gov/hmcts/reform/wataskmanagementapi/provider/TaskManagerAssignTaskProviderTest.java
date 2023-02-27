@@ -36,8 +36,7 @@ public class TaskManagerAssignTaskProviderTest extends SpringBootContractProvide
             taskManagementService,
             accessControlService,
             systemDateProvider,
-            clientAccessControlService,
-            launchDarklyFeatureFlagProvider
+            clientAccessControlService
         ));
         if (context != null) {
             context.setTarget(testTarget);

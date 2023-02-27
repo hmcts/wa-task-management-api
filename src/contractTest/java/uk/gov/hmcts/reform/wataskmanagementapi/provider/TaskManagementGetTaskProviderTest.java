@@ -64,8 +64,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             taskManagementService,
             accessControlService,
             systemDateProvider,
-            clientAccessControlService,
-            launchDarklyFeatureFlagProvider
+            clientAccessControlService
         ));
 
         if (context != null) {

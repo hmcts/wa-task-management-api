@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
@@ -56,13 +55,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE_OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.GRANULAR_PERMISSION_FEATURE;
 
 @ExtendWith(MockitoExtension.class)
 class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
 
-    public static final String A_TASK_TYPE = "aTaskType";
-    public static final String A_TASK_NAME = "aTaskName";
     @Mock
     CamundaService camundaService;
     @Mock
@@ -71,8 +67,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
     CftQueryService cftQueryService;
     @Mock
     CFTTaskMapper cftTaskMapper;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
@@ -99,7 +93,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
@@ -243,51 +236,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
 
-                when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                         GRANULAR_PERMISSION_FEATURE,
-                         IDAM_USER_ID,
-                         IDAM_USER_EMAIL
-                     )
-                ).thenReturn(true);
-
-                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-                taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                );
-                boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value()
-                    .equals(mockedVariables.get("taskState"));
-                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
-                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
-                verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
-            }
-
-            @Test
-            void should_succeed_and_gp_feature_flag_is_off() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-                when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-                TaskResource taskResource = spy(TaskResource.class);
-
-                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                    .thenReturn(Optional.of(taskResource));
-                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-                when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
-                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
-                    .buildSingleRequirementWithOr(OWN, EXECUTE);
-                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
-                    .thenReturn(Optional.of(taskResource));
-                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
-
-                when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                         GRANULAR_PERMISSION_FEATURE,
-                         IDAM_USER_ID,
-                         IDAM_USER_EMAIL
-                     )
-                ).thenReturn(false);
-
                 Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
@@ -315,13 +263,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 TaskResource taskResource = spy(TaskResource.class);
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
-                when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                         GRANULAR_PERMISSION_FEATURE,
-                         IDAM_USER_ID,
-                         IDAM_USER_EMAIL
-                     )
-                ).thenReturn(true);
-
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
@@ -331,40 +272,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
                                 + "The request failed the Role Assignment checks performed.");
-
-                verify(camundaService, times(0)).completeTask(any(), anyBoolean());
-            }
-
-            @Test
-            void should_throw_role_assignment_verification_exception_when_has_access_returns_false_gp_flag_off() {
-
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                RoleAssignment roleAssignment = mock(RoleAssignment.class);
-                when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
-                List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
-                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-                when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-                TaskResource taskResource = spy(TaskResource.class);
-                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
-
-                when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                         GRANULAR_PERMISSION_FEATURE,
-                         IDAM_USER_ID,
-                         IDAM_USER_EMAIL
-                     )
-                ).thenReturn(false);
-
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(RoleAssignmentVerificationException.class)
-                    .hasNoCause()
-                    .hasMessage("Role Assignment Verification: "
-                                    + "The request failed the Role Assignment checks performed.");
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -389,49 +296,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
 
-                when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                         GRANULAR_PERMISSION_FEATURE,
-                         IDAM_USER_ID,
-                         IDAM_USER_EMAIL
-                     )
-                ).thenReturn(true);
-
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(TaskStateIncorrectException.class)
-                    .hasNoCause()
-                    .hasMessage(
-                        String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
-                    );
-
-                verify(camundaService, times(0)).completeTask(any(), anyBoolean());
-            }
-
-            @Test
-            void should_throw_task_state_incorrect_exception_when_task_has_no_assignee_gp_flag_off() {
-
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-                when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-                TaskResource taskResource = spy(TaskResource.class);
-
-                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
-                    .buildSingleRequirementWithOr(OWN, EXECUTE);
-                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
-                    .thenReturn(Optional.of(taskResource));
-                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
-
-                when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                         GRANULAR_PERMISSION_FEATURE,
-                         IDAM_USER_ID,
-                         IDAM_USER_EMAIL
-                     )
-                ).thenReturn(false);
-
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
@@ -455,42 +319,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
-
-                when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                         GRANULAR_PERMISSION_FEATURE,
-                         IDAM_USER_ID,
-                         IDAM_USER_EMAIL
-                     )
-                ).thenReturn(true);
-
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(TaskNotFoundException.class)
-                    .hasNoCause()
-                    .hasMessage("Task Not Found Error: The task could not be found.");
-
-                verify(camundaService, times(0)).completeTask(any(), anyBoolean());
-                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
-            }
-
-            @Test
-            void should_throw_exception_when_task_resource_not_found_gp_flag_off() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-                when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-                TaskResource taskResource = spy(TaskResource.class);
-
-                when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                         GRANULAR_PERMISSION_FEATURE,
-                         IDAM_USER_ID,
-                         IDAM_USER_EMAIL
-                     )
-                ).thenReturn(false);
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
