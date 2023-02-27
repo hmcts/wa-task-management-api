@@ -1,9 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -123,18 +128,21 @@ public final class TaskQuerySpecification {
         return builder.in(root.get(WORK_TYPE).get(WORK_TYPE_ID)).value(workTypes);
     }
 
-    public static Predicate searchByRoleCategory(List<String> roleCategories,
+    public static Predicate searchByRoleCategory(List<RoleCategory> roleCategories,
                                                  CriteriaBuilder builder,
                                                  Root<TaskResource> root) {
-        if (isEmpty(roleCategories)) {
+        List<String> roleCategoryTexts = Stream.ofNullable(roleCategories)
+            .flatMap(Collection::stream)
+            .map(Objects::toString).collect(Collectors.toList());
+        if (isEmpty(roleCategoryTexts)) {
             return builder.conjunction();
-        } else if (hasSingleElement(roleCategories)) {
-            return builder.equal(root.get(ROLE_CATEGORY), roleCategories.get(0));
+        } else if (hasSingleElement(roleCategoryTexts)) {
+            return builder.equal(root.get(ROLE_CATEGORY), roleCategoryTexts.get(0));
         }
-        return builder.in(root.get(ROLE_CATEGORY)).value(roleCategories);
+        return builder.in(root.get(ROLE_CATEGORY)).value(roleCategoryTexts);
     }
 
-    private static boolean hasSingleElement(List<String> list) {
+    private static boolean hasSingleElement(List<?> list) {
         return list.size() == SINGLE_ELEMENT;
     }
 }

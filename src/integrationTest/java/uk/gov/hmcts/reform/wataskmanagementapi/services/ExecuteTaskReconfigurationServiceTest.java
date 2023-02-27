@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,13 +11,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -34,11 +35,13 @@ public class ExecuteTaskReconfigurationServiceTest {
     private TaskAutoAssignmentService taskAutoAssignmentService;
     @Autowired
     TaskResourceRepository taskResourceRepository;
+
     private ExecuteTaskReconfigurationService executeTaskReconfigurationService;
 
     @BeforeEach
     void setUp() {
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository,cftTaskMapper);
         executeTaskReconfigurationService = new ExecuteTaskReconfigurationService(
             cftTaskDatabaseService,
             configureTaskService,

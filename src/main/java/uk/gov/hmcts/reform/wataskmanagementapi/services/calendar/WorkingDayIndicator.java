@@ -25,7 +25,7 @@ public class WorkingDayIndicator {
      */
     public boolean isWorkingDay(LocalDate date, List<String> uri, List<String> nonWorkingDaysOfWeek) {
         return !isPublicHoliday(date, uri)
-                && !isCustomNonWorkingDay(nonWorkingDaysOfWeek, date);
+            && !isCustomNonWorkingDay(nonWorkingDaysOfWeek, date);
     }
 
     private boolean isPublicHoliday(LocalDate date, List<String> uri) {
