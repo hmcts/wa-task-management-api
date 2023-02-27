@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
@@ -27,8 +26,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -91,16 +88,12 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @SpyBean
     private CftQueryService cftQueryService;
     @Mock
     private UserInfo mockedUserInfo;
-    @MockBean
-    private ClientAccessControlService clientAccessControlService;
     private String taskId;
     private ServiceMocks mockServices;
 
@@ -362,57 +355,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_task_with_old_permissions_when_granular_permission_flag_off() throws Exception {
-        String caseId = "searchCriteriaCaseId3";
-        mockServices.mockUserInfo();
-        // create role assignments with IA, Organisation and SCSS , Case
-        List<RoleAssignment> roleAssignments = mockServices.createRoleAssignmentsWithSCSSandIA(caseId);
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
-            roleAssignments
-        );
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(accessControlResponse);
-
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            true, true, true, false, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
-            taskId, OffsetDateTime.now(), true, true, true, true,
-            true, true, true, true, true, true
-        );
-
-        insertDummyTaskInDb(caseId, taskId, "SSCS", "Asylum", taskRoleResource);
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameterList(JURISDICTION, IN, singletonList("SSCS"))
-        ));
-
-        mockMvc.perform(
-            post("/task")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchTaskRequest))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpectAll(
-            status().isOk(),
-            jsonPath("total_records").value(1),
-            jsonPath("$.tasks").isNotEmpty(),
-            jsonPath("$.tasks.length()").value(1),
-            jsonPath("$.tasks[0].jurisdiction").value("SSCS"),
-            jsonPath("$.tasks[0].permissions.values[0]").value("Read"),
-            jsonPath("$.tasks[0].permissions.values[1]").value("Own"),
-            jsonPath("$.tasks[0].permissions.values[2]").value("Execute"),
-            jsonPath("$.tasks[0].permissions.values.length()").value(3)
-        ).andReturn();
-
-    }
-
-    @Test
     void should_return_task_with_granular_permissions_when_permission_flag_on() throws Exception {
         String caseId = "searchCriteriaCaseId4";
         mockServices.mockUserInfo();
@@ -442,12 +384,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, IN, singletonList("SSCS"))
         ));
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
-            mockedUserInfo.getUid(),
-            mockedUserInfo.getEmail()
-        )).thenReturn(true);
 
         mockMvc.perform(
                 post("/task")
@@ -1358,9 +1294,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
     }
 
@@ -1418,9 +1352,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
     }
 
@@ -1486,9 +1418,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
     }
 
@@ -1552,9 +1482,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
     }
 
@@ -1613,9 +1541,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             0,
             50,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
     }
 
