@@ -778,12 +778,15 @@ public class TaskManagementService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TaskResource updateTaskIndex(String taskId) {
-        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).orElse(null);
-        if (taskResource != null) {
+        Optional<TaskResource> findTaskResponse = cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
+        if (findTaskResponse.isPresent()) {
+            TaskResource taskResource = findTaskResponse.get();
             taskResource.setIndexed(true);
-            cftTaskDatabaseService.saveTask(taskResource);
+
+            return cftTaskDatabaseService.saveTask(taskResource);
+        } else {
+            throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
         }
-        return taskResource;
     }
 
     /**

@@ -502,7 +502,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             TaskResource taskResource = new TaskResource(
                 taskId, "taskName", "taskType", CFTTaskState.ASSIGNED
             );
-            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(any())).thenReturn(taskResource);
 
             taskManagementService.updateTaskIndex(taskId);
@@ -511,9 +512,13 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
         @Test
         void should_complete_for_null_task() {
-            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.empty());
-            taskManagementService.updateTaskIndex(taskId);
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.empty());
 
+            assertThatThrownBy(() -> taskManagementService.updateTaskIndex(taskId))
+                .isInstanceOf(TaskNotFoundException.class)
+                .hasNoCause()
+                .hasMessage("Task Not Found Error: The task could not be found.");
             verify(cftTaskDatabaseService, times(0)).saveTask(any());
         }
     }

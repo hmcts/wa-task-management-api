@@ -173,12 +173,12 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         assertEquals(3, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(3)
-            .flatExtracting(Task::getId, Task::getCaseId)
+            .flatExtracting(Task::getId, Task::getCaseId, Task::getTaskState)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-100000000001", "1623278362410001"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003", "assigned",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001", "assigned",
+                    "8d6cc5cf-c973-11eb-aaaa-100000000001", "1623278362410001", "assigned"
                 ).toArray()
             );
     }
@@ -200,13 +200,13 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         assertEquals(4, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(4)
-            .flatExtracting(Task::getId, Task::getCaseId)
+            .flatExtracting(Task::getId, Task::getCaseId, Task::getJurisdiction)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003", "WA",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004", "WA",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001", "WA",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002", "WA"
                 ).toArray()
             );
     }
@@ -228,10 +228,10 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(1)
-            .flatExtracting(Task::getId, Task::getCaseId)
+            .flatExtracting(Task::getId, Task::getCaseId, Task::getRoleCategory)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-200000000001", "1623278362420001"
+                    "8d6cc5cf-c973-11eb-aaaa-200000000001", "1623278362420001", "CTSC"
                 ).toArray()
             );
     }
@@ -253,13 +253,13 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         assertEquals(4, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(4)
-            .flatExtracting(Task::getId, Task::getCaseId)
+            .flatExtracting(Task::getId, Task::getCaseId, Task::getLocation)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003", "765324",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004", "765324",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001", "765324",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002", "765324"
                 ).toArray()
             );
     }
@@ -281,10 +281,10 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(1)
-            .flatExtracting(Task::getId, Task::getCaseId)
+            .flatExtracting(Task::getId, Task::getCaseId, Task::getWorkTypeId)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-400000000001", "1623278362440001"
+                    "8d6cc5cf-c973-11eb-aaaa-400000000001", "1623278362440001", "follow_up"
                 ).toArray()
             );
     }
@@ -434,7 +434,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         SearchRequest searchRequest = SearchRequest.builder()
             .jurisdictions(List.of("WA"))
             .users(List.of("USER1", "USER2"))
-            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT)))
             .build();
 
 
@@ -497,11 +497,11 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         assertEquals(2, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
             .hasSize(2)
-            .flatExtracting(Task::getId, Task::getCaseId)
+            .flatExtracting(Task::getId, Task::getCaseId, Task::getType)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001", "reviewAppeal",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002", "reviewAppeal"
                 ).toArray()
             );
     }

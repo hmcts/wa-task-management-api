@@ -61,7 +61,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             PAGINATION_CLAUSE
         );
 
-        log.debug("Task search query [{}]", queryString);
+        log.info("Task search query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString, RESULT_MAPPER);
         addParameters(query, firstResult, maxResults, filterSignature, roleSignature, excludeCaseIds, searchRequest);
 
@@ -79,7 +79,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             extraConstraints(excludeCaseIds, searchRequest),
             "", "");
 
-        log.debug("Task count query [{}]", queryString);
+        log.info("Task count query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString);
         addParameters(query, filterSignature, roleSignature, excludeCaseIds, searchRequest);
 
