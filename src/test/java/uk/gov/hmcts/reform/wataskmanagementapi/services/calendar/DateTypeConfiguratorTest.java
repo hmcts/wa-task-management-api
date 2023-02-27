@@ -4,16 +4,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.BDDMockito.given;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +37,8 @@ public class DateTypeConfiguratorTest {
         .value(CamundaValue.stringValue("2023-01-15T16:00"))
         .build();
     String calculatedDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
+
     private final Map<String, Object> taskAttributes = new HashMap<>();
 
     private DateTypeConfigurator dateTypeConfigurator;
@@ -173,6 +181,87 @@ public class DateTypeConfiguratorTest {
                                    .build()
                            )
                 );
+        }
+    }
+
+    @Nested
+    class ReconfigurationDateCalculationForOriginRef {
+
+        @Mock
+        WorkingDayIndicator workingDayIndicator;
+
+        @BeforeEach
+        public void setUp() {
+            dateTypeConfigurator = new DateTypeConfigurator(List.of(
+                new DueDateCalculator(),
+                new NextHearingDateCalculator(),
+                new PriorityDateCalculator(),
+                new DueDateIntervalCalculator(workingDayIndicator),
+                new DueDateOriginEarliestCalculator(workingDayIndicator)
+            ));
+
+            given(workingDayIndicator.isWorkingDay(any(), anyList(), anyList())).willReturn(true);
+        }
+
+        @Test
+        public void should_calculate_using_task_resource_attributes() {
+            String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String dueDateValue = GIVEN_DATE.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDateTime taskResourceDueDate = GIVEN_DATE.minusDays(4);
+            taskAttributes.put("priorityDate", taskResourceDueDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+
+            ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+                .name(CamundaValue.stringValue("calculatedDates"))
+                .value(CamundaValue.stringValue("nextHearingDate,priorityDate,dueDate"))
+                .build();
+
+            ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+                .name(CamundaValue.stringValue("nextHearingDate"))
+                .value(CamundaValue.stringValue(nextHearingDateValue + "T18:00"))
+                .canReconfigure(CamundaValue.booleanValue(true))
+                .build();
+
+            ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
+                .name(CamundaValue.stringValue("priorityDate"))
+                .value(CamundaValue.stringValue(dueDateValue + "T21:00"))
+                .canReconfigure(CamundaValue.booleanValue(false))
+                .build();
+
+            ConfigurationDmnEvaluationResponse dueDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+                .name(CamundaValue.stringValue("dueDateOriginEarliest"))
+                .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+                .canReconfigure(CamundaValue.booleanValue(true))
+                .build();
+
+            List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
+                calculatedDates,
+                nextHearingDate,
+                priorityDate,
+                dueDateOriginEarliest
+            );
+            List<ConfigurationDmnEvaluationResponse> dmnEvaluationResponses = dateTypeConfigurator.configureDates(
+                evaluationResponses,
+                false,
+                true,
+                taskAttributes
+            );
+            assertThat(dmnEvaluationResponses).hasSize(3)
+                .isEqualTo(List.of(
+                    ConfigurationDmnEvaluationResponse.builder()
+                        .name(CamundaValue.stringValue("calculatedDates"))
+                        .value(CamundaValue.stringValue("nextHearingDate,priorityDate,dueDate"))
+                        .build(),
+                    ConfigurationDmnEvaluationResponse.builder()
+                        .name(CamundaValue.stringValue("nextHearingDate"))
+                        .value(CamundaValue.stringValue(nextHearingDateValue + "T18:00"))
+                        .build(),
+                    ConfigurationDmnEvaluationResponse.builder()
+                        .name(CamundaValue.stringValue("dueDate"))
+                        .value(CamundaValue.stringValue(taskResourceDueDate
+                                                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                                            + "T18:00"))
+                        .build()
+                ));
         }
     }
 }
