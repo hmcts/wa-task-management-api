@@ -27,9 +27,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.util.Optional;
 import javax.validation.Valid;
@@ -51,6 +54,7 @@ public class TaskSearchController extends BaseController {
     private static final Logger LOG = getLogger(TaskSearchController.class);
     private final AccessControlService accessControlService;
     private final CftQueryService cftQueryService;
+    private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Value("${config.search.defaultMaxResults}")
@@ -60,11 +64,13 @@ public class TaskSearchController extends BaseController {
     @Autowired
     public TaskSearchController(AccessControlService accessControlService,
                                 CftQueryService cftQueryService,
+                                CFTTaskDatabaseService cftTaskDatabaseService,
                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider
     ) {
         super();
         this.accessControlService = accessControlService;
         this.cftQueryService = cftQueryService;
+        this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
@@ -116,13 +122,35 @@ public class TaskSearchController extends BaseController {
             accessControlResponse.getUserInfo().getEmail()
         );
 
-        response = cftQueryService.searchForTasks(
-            Optional.ofNullable(firstResult).orElse(0),
-            Optional.ofNullable(maxResults).orElse(defaultMaxResults),
-            searchTaskRequest,
-            accessControlResponse,
-            granularPermissionResponseFeature
+        boolean isGranularPermissionEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
         );
+
+        boolean isIndexSearchEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+
+        if (isIndexSearchEnabled) {
+            response = cftTaskDatabaseService.searchForTasks(
+                searchRequest,
+                accessControlResponse,
+                granularPermissionResponseFeature);
+        } else {
+            response = cftQueryService.searchForTasks(
+                Optional.ofNullable(firstResult).orElse(0),
+                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
+                searchRequest,
+                accessControlResponse,
+                granularPermissionResponseFeature,
+                isGranularPermissionEnabled
+            );
+        }
 
         return ResponseEntity
             .ok()

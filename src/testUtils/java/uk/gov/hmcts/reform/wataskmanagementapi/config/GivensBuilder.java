@@ -12,14 +12,14 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaSendMessageRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.request.SendMessageRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.documents.Document;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 
@@ -39,10 +39,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.DocumentNames.NOTICE_OF_APPEAL_PDF;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.documents.DocumentNames.NOTICE_OF_APPEAL_PDF;
 
 @Slf4j
 public class GivensBuilder {

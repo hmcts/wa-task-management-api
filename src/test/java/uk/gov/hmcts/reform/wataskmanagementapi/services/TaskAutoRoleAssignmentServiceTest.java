@@ -18,11 +18,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
