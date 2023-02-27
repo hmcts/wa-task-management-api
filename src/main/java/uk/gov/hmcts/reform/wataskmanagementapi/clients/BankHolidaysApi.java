@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.clients;
 
 import feign.RequestLine;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.BankHolidays;
 
 public interface BankHolidaysApi {
 

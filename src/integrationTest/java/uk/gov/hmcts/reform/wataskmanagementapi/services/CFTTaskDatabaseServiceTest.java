@@ -4,8 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -20,12 +20,14 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     TaskResourceRepository taskResourceRepository;
+    @Autowired
+    CFTTaskMapper cftTaskMapper;
 
     CFTTaskDatabaseService cftTaskDatabaseService;
 
     @BeforeEach
     void setUp() {
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
+        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
     }
 
     @Test

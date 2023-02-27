@@ -1,13 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskPermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;

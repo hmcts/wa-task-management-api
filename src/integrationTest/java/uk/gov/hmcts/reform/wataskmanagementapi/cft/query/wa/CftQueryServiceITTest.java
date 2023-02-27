@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.wa;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,19 +25,18 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
@@ -52,20 +52,18 @@ import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator.IN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator.IN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.WORK_TYPE;
 
 @ActiveProfiles("integration")
 @DataJpaTest
@@ -73,13 +71,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/search_tasks_data.sql")
+@Slf4j
 public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
-    private static final UserInfo granularPermissionUserInfo = UserInfo.builder()
-        .email("granular_user@test.com")
-        .uid("granular_user").build();
+
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
     @MockBean
     private CamundaService camundaService;
@@ -87,8 +84,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private EntityManager entityManager;
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
     private CftQueryService cftQueryService;
 
     private static Stream<TaskQueryScenario> grantTypeStandardScenarioHappyPath() {
@@ -735,15 +731,16 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     }
 
-    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyScenarioHappyPath() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
-            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
-        ));
+    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksScenarioHappyPath() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
+            ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN permission and PUBLIC")
+            .scenarioName("available_tasks should return only unassigned and OWN permission and PUBLIC")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
@@ -758,7 +755,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN permission and PRIVATE")
+            .scenarioName("available_tasks should return only unassigned and OWN permission and PRIVATE")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
@@ -810,28 +807,30 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         );
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM permission and PUBLIC")
+            .scenarioName("available_tasks should return only unassigned and OWN and CLAIM permission and PUBLIC")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
-            .userInfo(granularPermissionUserInfo)
+            .userInfo(userInfo)
+            .granularPermission(true)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
                 )
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM permission and PRIVATE")
+            .scenarioName("available_tasks should return only unassigned and OWN and CLAIM permission and PRIVATE")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
-            .userInfo(granularPermissionUserInfo)
+            .userInfo(userInfo)
+            .granularPermission(true)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000041", "1623278362400041",
                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
@@ -839,15 +838,16 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM and "
-                + "excluded_grant_type_with_classification_as_restricted")
+            .scenarioName("available_tasks should return only unassigned and OWN and CLAIM and "
+                          + "excluded_grant_type_with_classification_as_restricted")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(3)
             .expectedTotalRecords(3)
-            .userInfo(granularPermissionUserInfo)
+            .userInfo(userInfo)
+            .granularPermission(true)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000042", "1623278362400042",
                     "8d6cc5cf-c973-11eb-aaaa-000000000041", "1623278362400041",
@@ -879,7 +879,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(1)
             .expectedTotalRecords(1)
-            .userInfo(granularPermissionUserInfo)
+            .userInfo(userInfo)
+            .granularPermission(true)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007"
                 )
@@ -893,7 +894,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(2)
             .expectedTotalRecords(2)
-            .userInfo(granularPermissionUserInfo)
+            .userInfo(userInfo)
+            .granularPermission(true)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007"
@@ -902,14 +904,15 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
             .scenarioName("all_work should return only unassigned and MANAGE permission and "
-                + "excluded_grant_type_with_classification_as_restricted")
+                          + "excluded_grant_type_with_classification_as_restricted")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(3)
             .expectedTotalRecords(3)
-            .userInfo(granularPermissionUserInfo)
+            .userInfo(userInfo)
+            .granularPermission(true)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
                     "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
@@ -1966,21 +1969,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             camundaService,
             cftTaskMapper,
             new TaskResourceDao(entityManager),
-            allowedJurisdictionConfiguration,
-            launchDarklyFeatureFlagProvider
+            allowedJurisdictionConfiguration
         );
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            userInfo.getUid(),
-            userInfo.getEmail()
-        )).thenReturn(false);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            granularPermissionUserInfo.getUid(),
-            granularPermissionUserInfo.getEmail()
-        )).thenReturn(true);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -1990,7 +1980,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "grantTypeChallengedScenarioHappyPath",
         "grantTypeWithStandardAndExcludedScenarioHappyPath",
         "grantTypeWithChallengedAndExcludedScenarioHappyPath",
-        "grantTypeWithAvailableTasksOnlyScenarioHappyPath",
+        "grantTypeWithAvailableTasksScenarioHappyPath",
         "inActiveRole",
         "sortByFieldScenario",
         "paginatedResultsScenario",
@@ -2005,18 +1995,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "searchByTaskTypeScenario"
     })
     void should_retrieve_tasks(TaskQueryScenario scenario) {
+        log.info("Running scenario: {}", scenario.scenarioName);
 
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest
+        );
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
-            scenario.searchTaskRequest,
+            searchRequest,
             accessControlResponse,
-            false
+            false,
+            scenario.granularPermission
         );
 
         //then
@@ -2042,14 +2036,17 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest
+        );
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
-            scenario.searchTaskRequest,
+            searchRequest,
             accessControlResponse,
-            false
+            false,
+            scenario.granularPermission
         );
         //then
         Assertions.assertThat(allTasks.getTasks().get(0).getPermissions().getValues().contains(
@@ -2068,14 +2065,17 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest
+        );
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
-            scenario.searchTaskRequest,
+            searchRequest,
             accessControlResponse,
-            true
+            true,
+            scenario.granularPermission
         );
 
         //then
@@ -2094,14 +2094,17 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest
+        );
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
-            scenario.searchTaskRequest,
+            searchRequest,
             accessControlResponse,
-            false
+            false,
+            scenario.granularPermission
         );
 
         //then
@@ -2132,14 +2135,17 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest
+        );
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
-            scenario.searchTaskRequest,
+            searchRequest,
             accessControlResponse,
-            false
+            false,
+            scenario.granularPermission
         );
 
         //then
@@ -2164,12 +2170,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)
             )
         );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
                 -1,
                 1,
-                searchTaskRequest,
+                searchRequest,
                 accessControlResponse,
+                false,
                 false
             ))
             .hasNoCause()
@@ -2179,8 +2187,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
                 0,
                 0,
-                searchTaskRequest,
+                searchRequest,
                 accessControlResponse,
+                false,
                 false
             ))
             .hasNoCause()
@@ -2195,6 +2204,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
         ));
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -2218,8 +2228,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             0,
             10,
-            searchTaskRequest,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
 
@@ -2252,8 +2263,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         allTasks = cftQueryService.searchForTasks(
             0,
             10,
-            searchTaskRequest,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
 
@@ -2271,6 +2283,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
         ));
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -2295,8 +2308,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             0,
             10,
-            searchTaskRequest,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
 
@@ -2330,8 +2344,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         allTasks = cftQueryService.searchForTasks(
             0,
             10,
-            searchTaskRequest,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
 
@@ -2349,6 +2364,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
         ));
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -2374,8 +2390,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             0,
             10,
-            searchTaskRequest,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
 
@@ -2409,8 +2426,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         allTasks = cftQueryService.searchForTasks(
             0,
             10,
-            searchTaskRequest,
+            searchRequest,
             accessControlResponse,
+            false,
             false
         );
 
@@ -2436,6 +2454,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         int expectedAmountOfTasksInResponse;
         int expectedTotalRecords;
         List<String> expectedTaskDetails;
+        boolean granularPermission;
 
         @Override
         public String toString() {
