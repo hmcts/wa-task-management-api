@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,10 +11,10 @@ import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -60,7 +61,8 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
     void setUp() {
         miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
                                                     "repl_user", "repl_password");
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
 
         JdbcDatabaseContainer container = TCExtendedContainerDatabaseDriver.getContainer(primaryJdbcUrl);
         JdbcDatabaseContainer containerReplica = TCExtendedContainerDatabaseDriver.getContainer(replicaJdbcUrl);

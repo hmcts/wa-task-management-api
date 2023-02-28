@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ReplicationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

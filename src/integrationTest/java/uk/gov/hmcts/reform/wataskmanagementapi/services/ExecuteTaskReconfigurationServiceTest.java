@@ -10,8 +10,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
@@ -35,7 +33,6 @@ public class ExecuteTaskReconfigurationServiceTest {
     private TaskAutoAssignmentService taskAutoAssignmentService;
     @Autowired
     TaskResourceRepository taskResourceRepository;
-
     private ExecuteTaskReconfigurationService executeTaskReconfigurationService;
 
     @BeforeEach
@@ -64,10 +61,10 @@ public class ExecuteTaskReconfigurationServiceTest {
 
         Assertions.assertThatThrownBy(() -> executeTaskReconfigurationService.performOperation(taskOperationRequest))
             .hasMessageContaining("Task Execute Reconfiguration Failed: "
-                                  + "Task Reconfiguration process failed to execute "
-                                  + "reconfiguration for the following tasks:")
+                                      + "Task Reconfiguration process failed to execute "
+                                      + "reconfiguration for the following tasks:")
             .hasMessageContaining("8d6cc5cf-c973-11eb-bdba-0242ac222001", "taskName", "ASSIGNED",
-                "2022-10-18T10:19:45.345875+01:00", "2022-05-09T20:15:45.345875+01:00", "");
+                                  "2022-10-18T10:19:45.345875+01:00", "2022-05-09T20:15:45.345875+01:00", "");
     }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
