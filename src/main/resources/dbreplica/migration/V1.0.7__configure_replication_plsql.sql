@@ -8,6 +8,10 @@ AS $function$
 declare
   l_update_id bigint;
 begin
+insert into cft_task_db.reportable_task
+ (task_id)
+ values
+   (l_task.task_id);
 insert into cft_task_db.task_history
 (task_id, task_name, task_type, due_date_time,
  state, task_system, security_classification,

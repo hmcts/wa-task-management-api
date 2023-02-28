@@ -123,6 +123,11 @@ create table cft_task_db.task_history
 create index task_history_update_id_idx on cft_task_db.task_history (task_id, update_id);
 create index task_history_updated_idx on cft_task_db.task_history (task_id, updated);
 
+create table cft_task_db.reportable_task
+(
+  task_id TEXT
+);
+
 -- /*
 --  * Identifies the update record which holds the latest task data.
 --  */
