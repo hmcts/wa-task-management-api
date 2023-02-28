@@ -15,7 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Mark
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
@@ -63,7 +63,7 @@ class TaskReconfigurationControllerTest {
 
         ResponseEntity response = taskReconfigurationController.performOperation(
             SERVICE_AUTHORIZATION_TOKEN,
-            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE)
+            taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE)
         );
 
         assertNotNull(response);
@@ -78,7 +78,7 @@ class TaskReconfigurationControllerTest {
 
         assertThatThrownBy(() -> taskReconfigurationController.performOperation(
             SERVICE_AUTHORIZATION_TOKEN,
-            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE)
+            taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE)
         ))
             .isInstanceOf(GenericForbiddenException.class)
             .hasNoCause()
@@ -87,9 +87,9 @@ class TaskReconfigurationControllerTest {
                         + "client/user had insufficient rights to a resource.");
     }
 
-    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName) {
+    private TaskOperationRequest taskOperationRequest(TaskOperationType operationName) {
         TaskOperation operation = TaskOperation.builder()
-            .name(operationName)
+            .type(operationName)
             .runId("run_id1")
             .maxTimeLimit(2)
             .retryWindowHours(120)

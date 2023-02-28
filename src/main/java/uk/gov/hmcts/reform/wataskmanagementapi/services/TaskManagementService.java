@@ -48,6 +48,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomCo
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -777,11 +778,11 @@ public class TaskManagementService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public TaskResource updateTaskIndex(String taskId) {
+    public TaskResource updateTaskIndex(String taskId, boolean indexed) {
         Optional<TaskResource> findTaskResponse = cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
         if (findTaskResponse.isPresent()) {
             TaskResource taskResource = findTaskResponse.get();
-            taskResource.setIndexed(true);
+            taskResource.setIndexed(indexed);
 
             return cftTaskDatabaseService.saveTask(taskResource);
         } else {
@@ -889,11 +890,23 @@ public class TaskManagementService {
     }
 
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
-        return taskOperationServices.stream()
+        List<TaskResource> successfulTaskResources = taskOperationServices.stream()
             .flatMap(taskOperationService -> taskOperationService
                 .performOperation(taskOperationRequest).stream())
             .filter(Objects::nonNull)
             .toList();
+
+        List<TaskResource> indexUpdatedTaskResources = new ArrayList<>();
+        if (successfulTaskResources != null) {
+            successfulTaskResources.forEach(t -> {
+                TaskResource taskResource = updateTaskIndex(t.getTaskId(),
+                    taskOperationRequest.getOperation().getType().isIndexed());
+                indexUpdatedTaskResources.add(taskResource);
+            });
+            return indexUpdatedTaskResources;
+        }
+
+        return successfulTaskResources;
     }
 
     /**

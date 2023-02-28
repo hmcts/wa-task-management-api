@@ -8,7 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
@@ -76,7 +76,7 @@ public class MarkTaskReconfigurationService implements TaskOperationService {
     @Override
     @Transactional(noRollbackFor = TaskReconfigurationException.class)
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
-        if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.MARK_TO_RECONFIGURE)) {
+        if (taskOperationRequest.getOperation().getType().equals(TaskOperationType.MARK_TO_RECONFIGURE)) {
             return markTasksToReconfigure(taskOperationRequest.getTaskFilter());
         }
         return List.of();
