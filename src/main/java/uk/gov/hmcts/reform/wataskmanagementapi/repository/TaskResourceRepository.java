@@ -69,21 +69,21 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
                    + "FROM {h-schema}tasks t "
                    + "WHERE indexed "
                    + "AND state IN ('ASSIGNED','UNASSIGNED') "
-                   + "AND {h-schema}filter_signatures(t.task_id) && :filter_signature ",
-        //+ "AND {h-schema}role_signatures(t.task_id) && :role_signature",
+                   + "AND {h-schema}filter_signatures(t.task_id) && :filter_signature "
+                   + "AND {h-schema}role_signatures(t.task_id) && :role_signature",
         nativeQuery = true)
     @Transactional
-    List<String> searchTasksIds(@Param("filter_signature") String[] filterSignature);
-    //@Param("role_signature") String[] roleSignature
+    List<String> searchTasksIds(@Param("filter_signature") String[] filterSignature,
+                                @Param("role_signature") String[] roleSignature);
 
     @Query(value = "SELECT count(*) "
                    + "FROM {h-schema}tasks t "
                    + "WHERE indexed "
                    + "AND state IN ('ASSIGNED','UNASSIGNED') "
-                   + "AND {h-schema}filter_signatures(t.task_id) && :filter_signature ",
-        //+ "AND {h-schema}role_signatures(t.task_id) && :role_signature",
+                   + "AND {h-schema}filter_signatures(t.task_id) && :filter_signature "
+                   + "AND {h-schema}role_signatures(t.task_id) && :role_signature",
         nativeQuery = true)
     @Transactional
-    Long searchTasksCount(@Param("filter_signature") String[] filterSignature);
-    //@Param("role_signature") String[] roleSignature
+    Long searchTasksCount(@Param("filter_signature") String[] filterSignature,
+                          @Param("role_signature") String[] roleSignature);
 }
