@@ -20,7 +20,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 @SuppressWarnings({
-    "PMD.UseVarargs"})
+    "PMD.UseVarargs", "PMD.TooManyMethods"})
 public interface TaskResourceRepository extends CrudRepository<TaskResource, String>,
     JpaSpecificationExecutor<TaskResource>, TaskResourceCustomRepository {
 
