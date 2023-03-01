@@ -41,6 +41,7 @@ CREATE TABLE "cft_task_db"."tasks"
   "last_updated_timestamp" Timestamp Without Time Zone,
   "last_updated_user" Text,
   "last_updated_action" Text,
+  "indexed" Boolean DEFAULT false,
   PRIMARY KEY ( "task_id" )
 );
 
