@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
@@ -21,28 +22,31 @@ public class NextHearingDateOriginEarliestCalculator extends NextHearingDateInte
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         ConfigurationDmnEvaluationResponse nextHearingDateOriginEarliest = getProperty(
-            dueDateProperties,
+            configResponses,
             NEXT_HEARING_DATE_ORIGIN_EARLIEST,
             isReconfigureRequest
         );
         return NEXT_HEARING_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
-            .isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigureRequest))
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, NEXT_HEARING_DATE.getType())
+            && Optional.ofNullable(getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
             .isEmpty()
             && Optional.ofNullable(nextHearingDateOriginEarliest).isPresent();
     }
 
     @Override
-    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
-                                                       boolean isReconfigureRequest) {
+    protected Optional<LocalDateTime> getReferenceDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
         return getOriginEarliestDate(
             configResponses,
-            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest)
+            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest),
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

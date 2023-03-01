@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
@@ -27,20 +28,23 @@ public class NextHearingDateOriginLatestCalculator extends NextHearingDateInterv
         boolean isReconfigureRequest) {
 
         return NEXT_HEARING_DATE == dateType.dateType()
-            && Optional.ofNullable(
-            getProperty(configResponses, NEXT_HEARING_DATE.getType(), isReconfigureRequest)).isEmpty()
-            && Optional.ofNullable(
-            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, NEXT_HEARING_DATE.getType())
+            && Optional.ofNullable(getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
+            .isEmpty()
             && Optional.ofNullable(
             getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_LATEST, isReconfigureRequest)).isPresent();
     }
 
     @Override
-    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
-                                                       boolean isReconfigureRequest) {
+    protected Optional<LocalDateTime> getReferenceDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
         return getOriginLatestDate(
             configResponses,
-            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_LATEST, isReconfigureRequest)
+            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_LATEST, isReconfigureRequest),
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

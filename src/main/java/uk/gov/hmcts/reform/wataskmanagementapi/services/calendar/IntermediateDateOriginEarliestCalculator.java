@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
@@ -21,33 +22,37 @@ public class IntermediateDateOriginEarliestCalculator extends IntermediateDateIn
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         String dateTypeName = dateTypeObject.dateTypeName();
         ConfigurationDmnEvaluationResponse intermediateOrigin = getProperty(
-            dueDateProperties,
+            configResponses,
             dateTypeName + ORIGIN_SUFFIX,
             isReconfigureRequest
         );
         ConfigurationDmnEvaluationResponse intermediateOriginEarliest = getProperty(
-            dueDateProperties,
+            configResponses,
             dateTypeName + ORIGIN_EARLIEST_SUFFIX,
             isReconfigureRequest
         );
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(intermediateOrigin).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigureRequest)).isEmpty()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, dateTypeName)
             && Optional.ofNullable(intermediateOriginEarliest).isPresent();
     }
 
     @Override
-    protected Optional<LocalDateTime> getReferenceDate(String dateTypeName,
-                                                       List<ConfigurationDmnEvaluationResponse> configResponses,
-                                                       boolean isReconfigureRequest) {
+    protected Optional<LocalDateTime> getReferenceDate(
+        String dateTypeName,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
         return getOriginEarliestDate(
             configResponses,
-            getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigureRequest)
+            getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigureRequest),
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }
