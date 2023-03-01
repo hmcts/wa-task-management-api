@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 
 import java.util.List;
 
