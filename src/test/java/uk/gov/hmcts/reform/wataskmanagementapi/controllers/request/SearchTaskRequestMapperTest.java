@@ -106,11 +106,12 @@ public class SearchTaskRequestMapperTest {
     @Test
     void shouldMapCamelCaseCaseId() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
             List.of(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA", "WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324", "765325")),
                 new SearchParameterList(STATE, SearchOperator.IN,
-                Arrays.stream(CFTTaskState.values()).map(CFTTaskState::getValue).collect(Collectors.toList())),
+                    Arrays.stream(CFTTaskState.values()).map(CFTTaskState::getValue).collect(Collectors.toList())),
                 new SearchParameterList(USER, SearchOperator.IN, asList("User1", "User2")),
                 new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003",
                     "1623278362432003"))
@@ -159,6 +160,6 @@ public class SearchTaskRequestMapperTest {
         assertEquals("Constraint Violation", thrown.getMessage());
         assertEquals("Invalid_work_type", thrown.getViolations().get(0).getField());
         assertEquals("work_type must be one of " + Arrays.toString(SearchTaskRequestMapper
-                .ALLOWED_WORK_TYPES.toArray()), thrown.getViolations().get(0).getMessage());
+            .ALLOWED_WORK_TYPES.toArray()), thrown.getViolations().get(0).getMessage());
     }
 }

@@ -13,9 +13,9 @@ public enum RoleCategory {
     LEGAL_OPERATIONS("L"),
     ADMIN("A"),
     CTSC("C"),
-    @JsonEnumDefaultValue UNKNOWN("U");
+    @JsonEnumDefaultValue UNKNOWN(null);
 
-    private String abbreviation;
+    private final String abbreviation;
 
     RoleCategory(String abbreviation) {
         this.abbreviation = abbreviation;

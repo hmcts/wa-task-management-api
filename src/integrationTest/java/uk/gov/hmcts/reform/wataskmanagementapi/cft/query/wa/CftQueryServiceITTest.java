@@ -731,7 +731,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     }
 
-    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyScenarioHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.AVAILABLE_TASKS,
             List.of(
@@ -740,7 +740,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN permission and PUBLIC")
+            .scenarioName("available_tasks should return only unassigned and OWN permission and PUBLIC")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
@@ -755,7 +755,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN permission and PRIVATE")
+            .scenarioName("available_tasks should return only unassigned and OWN permission and PRIVATE")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
@@ -807,7 +807,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         );
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM permission and PUBLIC")
+            .scenarioName("available_tasks should return only unassigned and OWN and CLAIM permission and PUBLIC")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
@@ -822,7 +822,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM permission and PRIVATE")
+            .scenarioName("available_tasks should return only unassigned and OWN and CLAIM permission and PRIVATE")
             .firstResult(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
@@ -838,7 +838,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
-            .scenarioName("available_tasks_only should return only unassigned and OWN and CLAIM and "
+            .scenarioName("available_tasks should return only unassigned and OWN and CLAIM and "
                           + "excluded_grant_type_with_classification_as_restricted")
             .firstResult(0)
             .maxResults(10)
@@ -1980,7 +1980,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "grantTypeChallengedScenarioHappyPath",
         "grantTypeWithStandardAndExcludedScenarioHappyPath",
         "grantTypeWithChallengedAndExcludedScenarioHappyPath",
-        "grantTypeWithAvailableTasksOnlyScenarioHappyPath",
+        "grantTypeWithAvailableTasksScenarioHappyPath",
         "inActiveRole",
         "sortByFieldScenario",
         "paginatedResultsScenario",

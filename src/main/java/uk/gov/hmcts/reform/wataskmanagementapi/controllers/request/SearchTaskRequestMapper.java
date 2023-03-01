@@ -49,6 +49,8 @@ public final class SearchTaskRequestMapper {
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (availableTasksOnly) {
             cftTaskStates.add(CFTTaskState.UNASSIGNED);
+            //TODO: Remove this once the available_tasks_only parameter is depreciated
+            requestContext = RequestContext.AVAILABLE_TASKS;
         } else {
             SearchParameterList stateParam = keyMap.get(STATE);
             cftTaskStates = getCftTaskStates(stateParam);
@@ -88,8 +90,8 @@ public final class SearchTaskRequestMapper {
         workTypes.forEach(value -> {
             if (!ALLOWED_WORK_TYPES.contains(value)) {
                 violations.add(new Violation(
-                        value,
-                        WORK_TYPE.value() + " must be one of " + Arrays.toString(ALLOWED_WORK_TYPES.toArray())
+                    value,
+                    WORK_TYPE.value() + " must be one of " + Arrays.toString(ALLOWED_WORK_TYPES.toArray())
                 ));
             }
         });
@@ -119,9 +121,9 @@ public final class SearchTaskRequestMapper {
         EnumMap<SearchParameterKey, SearchParameterList> map = new EnumMap<>(SearchParameterKey.class);
         if (searchTaskRequest != null && searchTaskRequest.getSearchParameters() != null) {
             searchTaskRequest.getSearchParameters()
-                    .stream()
-                    .filter(SearchParameterList.class::isInstance)
-                    .forEach(request -> map.put(request.getKey(), (SearchParameterList) request));
+                .stream()
+                .filter(SearchParameterList.class::isInstance)
+                .forEach(request -> map.put(request.getKey(), (SearchParameterList) request));
         }
         return map;
     }
