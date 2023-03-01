@@ -159,8 +159,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         initiateTask(taskVariables);
 
         taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                         "processApplication",
-                                                         "process application");
+            "processApplication",
+            "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
@@ -777,10 +777,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
             asList(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
-                new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
             ),
             List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
