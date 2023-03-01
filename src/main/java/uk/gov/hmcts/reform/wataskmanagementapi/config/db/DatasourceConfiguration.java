@@ -20,7 +20,7 @@ import javax.sql.DataSource;
 @EnableTransactionManagement
 @EnableJpaRepositories(
     entityManagerFactoryRef = "entityManagerFactory",
-    basePackages = {"uk.gov.hmcts.reform.wataskmanagementapi.cft.repository"}
+    basePackages = {"uk.gov.hmcts.reform.wataskmanagementapi.repository"}
 )
 public class DatasourceConfiguration {
     @Primary
@@ -38,7 +38,7 @@ public class DatasourceConfiguration {
     ) {
         return builder
             .dataSource(dataSource)
-            .packages("uk.gov.hmcts.reform.wataskmanagementapi.cft.entities")
+            .packages("uk.gov.hmcts.reform.wataskmanagementapi.entity")
             .persistenceUnit("cft_task_db")
             .build();
     }
