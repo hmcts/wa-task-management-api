@@ -225,14 +225,13 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
-        assertEquals(2, response.getTotalRecords());
+        assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
-            .hasSize(2)
+            .hasSize(1)
             .flatExtracting(Task::getId, Task::getCaseId)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
+                    "8d6cc5cf-c973-11eb-aaaa-200000000001", "1623278362420001"
                 ).toArray()
             );
     }
@@ -281,14 +280,13 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse,
             false);
-        assertEquals(2, response.getTotalRecords());
+        assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
-            .hasSize(2)
+            .hasSize(1)
             .flatExtracting(Task::getId, Task::getCaseId)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
+                    "8d6cc5cf-c973-11eb-aaaa-400000000001", "1623278362440001"
                 ).toArray()
             );
     }
