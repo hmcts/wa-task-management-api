@@ -10,9 +10,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
