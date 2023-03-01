@@ -71,16 +71,16 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
     //BASE_LOCATION,
     //CASE_ID,
     //classification,
-
     //roleAssignment.getRoleName()
-    //permission - one for available task, one for all work
-    //authorisation; - one here
+    //permission
+    //authorisation
 
     // ** Extra Param **
-    //USER("user"),
+    //USER("user"), as assignee
+    //USER("user"), as assignee is null for available task only
     //TASK_TYPE("task_type"),
-    //CASE_ID("case_id"),
-    //CASE_ID_CAMEL_CASE("caseId"),
+    //CASE_ID("case_id") or CASE_ID_CAMEL_CASE("caseId")
+    //CASE_ID("case_id") excluded case_id in role assignments
 
 
     @Test
@@ -99,7 +99,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
         assertEquals(8, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -135,7 +135,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
 
         assertEquals(8, response.getTotalRecords());
@@ -164,24 +164,21 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
 
         SearchRequest searchRequest = SearchRequest.builder()
             .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
-            .jurisdictions(List.of("WA"))
-            .locations(List.of("765324"))
-            .roleCategories(List.of(RoleCategory.JUDICIAL))
-            .workTypes(List.of("hearing_work"))
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
-        assertEquals(2, response.getTotalRecords());
+        assertEquals(3, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
-            .hasSize(2)
+            .hasSize(3)
             .flatExtracting(Task::getId, Task::getCaseId)
             .containsExactly(
                 newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                    "8d6cc5cf-c973-11eb-aaaa-100000000001", "1623278362410001"
                 ).toArray()
             );
     }
@@ -193,25 +190,23 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         indexRecord();
 
         SearchRequest searchRequest = SearchRequest.builder()
-            .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
             .jurisdictions(List.of("WA"))
-            .locations(List.of("765324"))
-            .roleCategories(List.of(RoleCategory.JUDICIAL))
-            .workTypes(List.of("hearing_work"))
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
-        assertEquals(2, response.getTotalRecords());
+        assertEquals(4, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
-            .hasSize(2)
+            .hasSize(4)
             .flatExtracting(Task::getId, Task::getCaseId)
             .containsExactly(
                 newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
                 ).toArray()
             );
     }
@@ -223,25 +218,20 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         indexRecord();
 
         SearchRequest searchRequest = SearchRequest.builder()
-            .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
-            .jurisdictions(List.of("WA", "IA"))
-            .locations(List.of("765324"))
-            .roleCategories(List.of(RoleCategory.JUDICIAL))
-            .workTypes(List.of("hearing_work"))
+            .roleCategories(List.of(RoleCategory.CTSC))
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
-        assertEquals(2, response.getTotalRecords());
+        assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
-            .hasSize(2)
+            .hasSize(1)
             .flatExtracting(Task::getId, Task::getCaseId)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
+                    "8d6cc5cf-c973-11eb-aaaa-200000000001", "1623278362420001"
                 ).toArray()
             );
     }
@@ -253,26 +243,24 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         indexRecord();
 
         SearchRequest searchRequest = SearchRequest.builder()
-            .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
-            .jurisdictions(List.of("WA", "IA"))
             .locations(List.of("765324"))
-            .roleCategories(List.of(RoleCategory.JUDICIAL))
-            .workTypes(List.of("hearing_work"))
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse,
             false);
-        assertEquals(2, response.getTotalRecords());
+        assertEquals(4, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
-            .hasSize(2)
+            .hasSize(4)
             .flatExtracting(Task::getId, Task::getCaseId)
             .containsExactly(
                 newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
                 ).toArray()
             );
     }
@@ -284,43 +272,37 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         indexRecord();
 
         SearchRequest searchRequest = SearchRequest.builder()
-            .cftTaskStates(List.of(CFTTaskState.ASSIGNED))
-            .jurisdictions(List.of("IA", "WA"))
-            .locations(List.of("765324"))
-            .roleCategories(List.of(RoleCategory.JUDICIAL))
-            .workTypes(List.of("hearing_work"))
+            .workTypes(List.of("follow_up"))
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse,
             false);
-        assertEquals(2, response.getTotalRecords());
+        assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
-            .hasSize(2)
+            .hasSize(1)
             .flatExtracting(Task::getId, Task::getCaseId)
             .containsExactly(
                 newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001"
+                    "8d6cc5cf-c973-11eb-aaaa-400000000001", "1623278362440001"
                 ).toArray()
             );
     }
 
     @Test
-    void should_return_task_list_filtered_by_role_assignemnt_jurisdiction_region_and_location() {
+    void should_return_task_list_filtered_by_role_assignment() {
         List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         indexRecord();
 
         SearchRequest searchRequest = SearchRequest.builder()
-            .cftTaskStates(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED))
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
         assertEquals(8, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -351,9 +333,8 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
-        response.getTasks().forEach(t -> System.out.println(t.getId()));
 
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -379,9 +360,8 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
-        response.getTasks().forEach(t -> System.out.println(t.getId()));
 
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -407,9 +387,8 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
-        response.getTasks().forEach(t -> System.out.println(t.getId()));
 
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -434,9 +413,8 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .build();
 
 
-        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(searchRequest,
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
             accessControlResponse, false);
-        response.getTasks().forEach(t -> System.out.println(t.getId()));
 
         assertEquals(1, response.getTotalRecords());
         Assertions.assertThat(response.getTasks())
@@ -445,6 +423,118 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .containsExactly(
                 newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007"
+                ).toArray()
+            );
+    }
+
+    @Test
+    void should_return_ordered_task_list_and_count_when_search_for_assignee() {
+        List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+        indexRecord();
+
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("WA"))
+            .users(List.of("USER1", "USER2"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .build();
+
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
+            accessControlResponse, false);
+        assertEquals(2, response.getTotalRecords());
+        Assertions.assertThat(response.getTasks())
+            .hasSize(2)
+            .flatExtracting(Task::getId, Task::getCaseId)
+            .containsExactly(
+                newArrayList(
+                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004"
+                ).toArray()
+            );
+    }
+
+    @Test
+    void should_return_ordered_task_list_and_count_when_search_for_case_id() {
+        List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+        indexRecord();
+
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("WA"))
+            .caseIds(List.of("1623278362400004", "1623278362400003"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .build();
+
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
+            accessControlResponse, false);
+        assertEquals(2, response.getTotalRecords());
+        Assertions.assertThat(response.getTasks())
+            .hasSize(2)
+            .flatExtracting(Task::getId, Task::getCaseId)
+            .containsExactly(
+                newArrayList(
+                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004"
+                ).toArray()
+            );
+    }
+
+    @Test
+    void should_return_ordered_task_list_and_count_when_search_for_task_type() {
+        List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+        indexRecord();
+
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("WA"))
+            .taskTypes(List.of("reviewAppeal"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .build();
+
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
+            accessControlResponse, false);
+        assertEquals(2, response.getTotalRecords());
+        Assertions.assertThat(response.getTasks())
+            .hasSize(2)
+            .flatExtracting(Task::getId, Task::getCaseId)
+            .containsExactly(
+                newArrayList(
+                    "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000002", "1623278362400002"
+                ).toArray()
+            );
+    }
+
+    @Test
+    void should_return_ordered_task_list_and_count_and_filter_out_tasks_from_excluded_tasks() {
+        List<RoleAssignment> roleAssignments = roleAssignmentsForExclusion();
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+        indexRecord();
+
+        SearchRequest searchRequest = SearchRequest.builder()
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .build();
+
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
+            accessControlResponse, false);
+
+        response.getTasks().forEach(t -> System.out.println(t.getId()));
+
+        assertEquals(5, response.getTotalRecords());
+        Assertions.assertThat(response.getTasks())
+            .hasSize(5)
+            .flatExtracting(Task::getId, Task::getCaseId)
+            .containsExactly(
+                newArrayList(
+                    "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000036", "1623278362400036",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
                 ).toArray()
             );
     }
@@ -552,7 +642,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(IA_JURISDICTION)
-                    .region("1")
+                    .region("2")
                     .baseLocation("765325")
                     .build()
             )
@@ -577,6 +667,55 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
         createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
+
+        return roleAssignments;
+    }
+
+    private static List<RoleAssignment> roleAssignmentsForExclusion() {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(
+                TestRolesWithGrantType.STANDARD_SENIOR_TRIBUNAL_CASE_WORKER_PUBLIC
+            )
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .region("1")
+                    .baseLocation(PRIMARY_LOCATION)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_LEGAL)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .baseLocation(PRIMARY_LOCATION)
+                    .region("1")
+                    .caseId("1623278362400044")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_LEGAL)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .baseLocation(PRIMARY_LOCATION)
+                    .region("1")
+                    .caseId("1623278362400045")
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }

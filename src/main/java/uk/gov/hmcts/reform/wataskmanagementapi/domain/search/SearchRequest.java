@@ -21,7 +21,6 @@ public class SearchRequest {
     private List<String> regions;
     private List<String> caseIds;
     private List<String> users;
-    private List<String> taskIds;
     private List<String> taskTypes;
     private List<String> workTypes;
     private List<RoleCategory> roleCategories;
