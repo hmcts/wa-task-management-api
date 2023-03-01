@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithoutAttributes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
@@ -201,9 +203,12 @@ class CFTTaskDatabaseServiceTest {
 
     @Test
     void should_return_empty_list_when_search_not_find_any_task() {
-        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"}))
+        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"},
+            new String[]{"*:*:*:hmcts-judiciary:*:r:U:*"}))
             .thenReturn(List.of());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlResponse.getRoleAssignments())
+            .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
         SearchRequest searchRequest = SearchRequest.builder()
             .jurisdictions(List.of("IA"))
@@ -227,13 +232,16 @@ class CFTTaskDatabaseServiceTest {
         Task task = mock(Task.class);
         List<TaskResource> taskResources = List.of(taskResource);
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlResponse.getRoleAssignments())
+            .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
-
-        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"}))
+        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"},
+            new String[]{"*:*:*:hmcts-judiciary:*:r:U:*"}))
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
-        when(taskResourceRepository.searchTasksCount(new String[]{"*:IA:*:*:*:765324"}))
+        when(taskResourceRepository.searchTasksCount(new String[]{"*:IA:*:*:*:765324"},
+            new String[]{"*:*:*:hmcts-judiciary:*:r:U:*"}))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
@@ -265,13 +273,16 @@ class CFTTaskDatabaseServiceTest {
         Task task = mock(Task.class);
         List<TaskResource> taskResources = List.of(taskResource);
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlResponse.getRoleAssignments())
+            .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
-
-        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"}))
+        when(taskResourceRepository.searchTasksIds(new String[]{"*:IA:*:*:*:765324"},
+            new String[]{"*:*:*:hmcts-judiciary:*:r:U:*"}))
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
-        when(taskResourceRepository.searchTasksCount(new String[]{"*:IA:*:*:*:765324"}))
+        when(taskResourceRepository.searchTasksCount(new String[]{"*:IA:*:*:*:765324"},
+            new String[]{"*:*:*:hmcts-judiciary:*:r:U:*"}))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),

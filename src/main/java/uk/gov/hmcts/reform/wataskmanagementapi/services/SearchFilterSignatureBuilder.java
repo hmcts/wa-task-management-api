@@ -28,7 +28,7 @@ public final class SearchFilterSignatureBuilder {
                 for (String roleCategory :
                     defaultToWildcard(abbreviateRoleCategories(searchTaskRequest.getRoleCategories()))) {
                     for (String workType : defaultToWildcard(searchTaskRequest.getWorkTypes())) {
-                        for (String region : defaultToWildcard(searchTaskRequest.getRegion())) {
+                        for (String region : defaultToWildcard(searchTaskRequest.getRegions())) {
                             for (String location : defaultToWildcard(searchTaskRequest.getLocations())) {
                                 filterSignatures.add(String.join(":",
                                     state, jurisdiction, roleCategory, workType, region, location));
