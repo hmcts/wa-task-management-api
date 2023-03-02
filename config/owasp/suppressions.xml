@@ -45,6 +45,12 @@
     <notes>temp</notes>
     <cve>CVE-2022-42252</cve>
   </suppress>
+  <suppress>
+    <notes>
+      jackson-core-2.13.4 is directly used by spring-boot-starter-json 2.7.7, spring boot 3 needed
+    </notes>
+    <cve>CVE-2022-45688</cve>
+  </suppress>
   <suppress until ="2023-12-31">
     <notes>Wait for updates on dependencies</notes>
     <cve>CVE-2021-37533</cve>
