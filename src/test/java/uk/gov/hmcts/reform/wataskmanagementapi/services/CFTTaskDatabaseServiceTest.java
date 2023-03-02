@@ -81,6 +81,20 @@ class CFTTaskDatabaseServiceTest {
     }
 
     @Test
+    void should_find_by_id_and_wait_and_obtain_pessimistic_write_lock() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByIdAndWaitForLock(taskId)).thenReturn(Optional.of(someTaskResource));
+
+        final Optional<TaskResource> actualTaskResource =
+            cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId);
+
+        assertNotNull(actualTaskResource);
+        assertTrue(actualTaskResource.isPresent());
+        assertEquals(someTaskResource, actualTaskResource.get());
+    }
+
+    @Test
     void should_find_by_id_only() {
         TaskResource someTaskResource = mock(TaskResource.class);
 

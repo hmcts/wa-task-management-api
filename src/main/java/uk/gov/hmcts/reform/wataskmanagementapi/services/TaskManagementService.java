@@ -48,7 +48,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomCo
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +57,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
+import javax.persistence.LockTimeoutException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -778,15 +778,21 @@ public class TaskManagementService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public TaskResource updateTaskIndex(String taskId, boolean indexed) {
-        Optional<TaskResource> findTaskResponse = cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
-        if (findTaskResponse.isPresent()) {
-            TaskResource taskResource = findTaskResponse.get();
-            taskResource.setIndexed(indexed);
+    public void updateTaskIndex(String taskId, boolean indexed) {
+        try {
+            Optional<TaskResource> findTaskResponse = cftTaskDatabaseService
+                .findByIdAndWaitAndObtainPessimisticWriteLock(taskId);
 
-            return cftTaskDatabaseService.saveTask(taskResource);
-        } else {
-            throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
+            if (findTaskResponse.isPresent()) {
+                TaskResource taskResource = findTaskResponse.get();
+                taskResource.setIndexed(indexed);
+
+                cftTaskDatabaseService.saveTask(taskResource);
+            } else {
+                throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
+            }
+        } catch (LockTimeoutException ex) {
+            log.error("Failed to update indexed field of taskId:{} to {}. Error:{}", taskId, indexed, ex.getMessage());
         }
     }
 
@@ -896,14 +902,9 @@ public class TaskManagementService {
             .filter(Objects::nonNull)
             .toList();
 
-        List<TaskResource> indexUpdatedTaskResources = new ArrayList<>();
         if (successfulTaskResources != null) {
-            successfulTaskResources.forEach(t -> {
-                TaskResource taskResource = updateTaskIndex(t.getTaskId(),
-                    taskOperationRequest.getOperation().getType().isIndexed());
-                indexUpdatedTaskResources.add(taskResource);
-            });
-            return indexUpdatedTaskResources;
+            successfulTaskResources.forEach(t ->
+                updateTaskIndex(t.getTaskId(), taskOperationRequest.getOperation().getType().isIndexed()));
         }
 
         return successfulTaskResources;

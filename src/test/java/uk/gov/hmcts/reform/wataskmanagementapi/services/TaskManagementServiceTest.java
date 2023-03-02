@@ -13,7 +13,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -385,7 +384,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             TaskResource taskResource = new TaskResource(
                 taskId, "taskName", "taskType", CFTTaskState.ASSIGNED
             );
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(any())).thenReturn(taskResource);
 
@@ -396,7 +395,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
         void should_complete_for_null_task(boolean index) {
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> taskManagementService.updateTaskIndex(taskId, index))
@@ -3552,23 +3551,15 @@ class TaskManagementServiceTest extends CamundaHelpers {
             List<TaskResource> tasks = taskResources(false);
 
             lenient().when(markTaskReconfigurationService.performOperation(
-                argThat(new ArgumentMatcher<TaskOperationRequest>() {
-                    @Override
-                    public boolean matches(TaskOperationRequest argument) {
-                        return argument.getOperation().getType().equals(TaskOperationType.MARK_TO_RECONFIGURE);
-                    }
-                }))).thenReturn(tasks);
+                argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.MARK_TO_RECONFIGURE))))
+                .thenReturn(tasks);
 
             lenient().when(executeTaskReconfigurationService.performOperation(
-                argThat(new ArgumentMatcher<TaskOperationRequest>() {
-                    @Override
-                    public boolean matches(TaskOperationRequest argument) {
-                        return argument.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE);
-                    }
-                }))).thenReturn(tasks);
+                argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE))))
+                .thenReturn(tasks);
 
             tasks.forEach(t -> {
-                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(t.getTaskId()))
+                when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(t.getTaskId()))
                     .thenReturn(Optional.of(t));
                 when(cftTaskDatabaseService.saveTask(t)).thenReturn(t);
             });
@@ -3577,7 +3568,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 taskOperationRequest(TaskOperationType.EXECUTE_RECONFIGURE));
 
             assertNotNull(updated);
-            updated.forEach(t -> assertTrue(t.getIndexed()));
+            verify(cftTaskDatabaseService, times(2)).saveTask(argThat(TaskResource::getIndexed));
         }
 
         @Test
@@ -3585,23 +3576,15 @@ class TaskManagementServiceTest extends CamundaHelpers {
             List<TaskResource> tasks = taskResources(true);
 
             lenient().when(markTaskReconfigurationService.performOperation(
-                argThat(new ArgumentMatcher<TaskOperationRequest>() {
-                    @Override
-                    public boolean matches(TaskOperationRequest argument) {
-                        return argument.getOperation().getType().equals(TaskOperationType.MARK_TO_RECONFIGURE);
-                    }
-                }))).thenReturn(tasks);
+                argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.MARK_TO_RECONFIGURE))))
+                .thenReturn(tasks);
 
             lenient().when(executeTaskReconfigurationService.performOperation(
-                argThat(new ArgumentMatcher<TaskOperationRequest>() {
-                    @Override
-                    public boolean matches(TaskOperationRequest argument) {
-                        return argument.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE);
-                    }
-                }))).thenReturn(tasks);
+                argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE))))
+                .thenReturn(tasks);
 
             tasks.forEach(t -> {
-                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(t.getTaskId()))
+                when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(t.getTaskId()))
                     .thenReturn(Optional.of(t));
                 when(cftTaskDatabaseService.saveTask(t)).thenReturn(t);
             });
@@ -3610,7 +3593,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE));
 
             assertNotNull(updated);
-            updated.forEach(t -> assertFalse(t.getIndexed()));
+            verify(cftTaskDatabaseService, times(2)).saveTask(argThat(argument -> !argument.getIndexed()));
         }
 
         private List<TaskResource> taskResources(boolean index) {

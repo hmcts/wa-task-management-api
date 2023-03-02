@@ -46,6 +46,10 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findById(taskId);
     }
 
+    public Optional<TaskResource> findByIdAndWaitAndObtainPessimisticWriteLock(String taskId) {
+        return tasksRepository.findByIdAndWaitForLock(taskId);
+    }
+
     public Optional<TaskResource> findByIdOnly(String taskId) {
         return tasksRepository.getByTaskId(taskId);
     }
