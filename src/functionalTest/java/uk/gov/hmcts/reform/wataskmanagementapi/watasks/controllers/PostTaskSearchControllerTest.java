@@ -765,11 +765,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupWAOrganisationalRoleAssignment(ginIndexCaseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("followUpOverdueRespondentEvidence", "follow Up Overdue Respondent Evidence");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
+        taskVariables = common.setupWATaskAndRetrieveIds("followUpOverdueRespondentEvidence", "follow Up Overdue Respondent Evidence");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
