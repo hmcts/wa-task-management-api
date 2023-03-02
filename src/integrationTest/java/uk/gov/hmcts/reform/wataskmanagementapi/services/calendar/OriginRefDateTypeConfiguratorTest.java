@@ -479,13 +479,13 @@ public class OriginRefDateTypeConfiguratorTest {
         String dueDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String nextHearingDateValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
             .value(CamundaValue.stringValue(dueDateValue + "T18:00"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateOriginRef"))
             .value(CamundaValue.stringValue("nextHearingDate"))
             .canReconfigure(CamundaValue.booleanValue(true))
@@ -498,7 +498,7 @@ public class OriginRefDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(dueDate, dueDateOriginRef, nextHearingDate), false, true);
+            .configureDates(List.of(priorityDate, priorityDateOriginRef, nextHearingDate), false, true);
 
         String calculatedDueDate = dueDateValue + "T18:00";
 
@@ -520,9 +520,9 @@ public class OriginRefDateTypeConfiguratorTest {
         String dueDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String nextHearingDateValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(dueDateValue + "T18:00"))
+            .value(CamundaValue.stringValue(nextHearingDateValue + "T18:00"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
@@ -532,26 +532,26 @@ public class OriginRefDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(nextHearingDateValue + "T21:00"))
+            .value(CamundaValue.stringValue(dueDateValue + "T21:00"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(List.of(dueDate, nextHearingDateOriginRef, nextHearingDate), false, true);
 
-        String calculatedDueDate = dueDateValue + "T18:00";
+        String calculatedNextHearingDate = nextHearingDateValue + "T18:00";
 
         assertThat(configurationDmnEvaluationResponses).hasSize(2)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
-                    .value(CamundaValue.stringValue(calculatedDueDate))
+                    .value(CamundaValue.stringValue(calculatedNextHearingDate))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(nextHearingDateValue + "T21:00"))
+                    .value(CamundaValue.stringValue(dueDateValue + "T21:00"))
                     .build()
             ));
     }
@@ -607,7 +607,7 @@ public class OriginRefDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateOriginRef"))
             .value(CamundaValue.stringValue("nextHearingDate,dueDate"))
             .canReconfigure(CamundaValue.booleanValue(false))
@@ -619,13 +619,13 @@ public class OriginRefDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDate"))
+            .name(CamundaValue.stringValue("dueDate"))
             .value(CamundaValue.stringValue(dueDateValue + "T21:00"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(priorityDate, dueDate, dueDateOriginRef, nextHearingDate), false, true);
+            .configureDates(List.of(priorityDate, dueDate, priorityDateOriginRef, nextHearingDate), false, true);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -636,7 +636,7 @@ public class OriginRefDateTypeConfiguratorTest {
         String nextHearingDateValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDate"))
+            .name(CamundaValue.stringValue("dueDate"))
             .value(CamundaValue.stringValue(dueDateValue + "T18:00"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
@@ -648,7 +648,7 @@ public class OriginRefDateTypeConfiguratorTest {
             .build();
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
+            .name(CamundaValue.stringValue("nextHearingDate"))
             .value(CamundaValue.stringValue(nextHearingDateValue + "T21:00"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
@@ -669,14 +669,14 @@ public class OriginRefDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginRef"))
             .value(CamundaValue.stringValue("priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(dueDate, dueDateOrigin), false, true);
+            .configureDates(List.of(dueDate, dueDateOriginRef), false, true);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -692,14 +692,14 @@ public class OriginRefDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateOriginRef"))
             .value(CamundaValue.stringValue("priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true);
+            .configureDates(List.of(priorityDate, priorityDateOriginRef), false, true);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -714,14 +714,14 @@ public class OriginRefDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateOriginRef"))
             .value(CamundaValue.stringValue("priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(nextHearingDate, nextHearingDateOrigin), false, true);
+            .configureDates(List.of(nextHearingDate, nextHearingDateOriginRef), false, true);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -737,14 +737,14 @@ public class OriginRefDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOriginRef"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(dueDate, dueDateOrigin), false, true);
+            .configureDates(List.of(dueDate, dueDateOriginRef), false, true);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(
@@ -765,14 +765,14 @@ public class OriginRefDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateOriginRef"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true);
+            .configureDates(List.of(priorityDate, priorityDateOriginRef), false, true);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(
@@ -793,14 +793,14 @@ public class OriginRefDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateOriginRef"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(nextHearingDate, nextHearingDateOrigin), false, true);
+            .configureDates(List.of(nextHearingDate, nextHearingDateOriginRef), false, true);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(

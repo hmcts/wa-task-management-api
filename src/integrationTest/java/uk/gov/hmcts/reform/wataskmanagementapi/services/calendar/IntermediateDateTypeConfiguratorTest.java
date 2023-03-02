@@ -744,23 +744,23 @@ public class IntermediateDateTypeConfiguratorTest {
 
     @Test
     public void shouldNotRecalculateDateWhenPriorityDateIsUnconfigurableButIntermediateIsConfigurable() {
-        String dueDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String dueDateDurationValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String priorityDateDurationValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
-            .value(CamundaValue.stringValue(dueDateValue + "T18:00"))
+            .value(CamundaValue.stringValue(priorityDateValue + "T18:00"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateDuration = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateDuration"))
-            .value(CamundaValue.stringValue(dueDateDurationValue + "T20:00"))
+            .value(CamundaValue.stringValue(priorityDateDurationValue + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true);
+            .configureDates(List.of(priorityDate, priorityDateDuration), false, true);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -776,14 +776,14 @@ public class IntermediateDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateDuration = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateDuration"))
             .value(CamundaValue.stringValue(dueDateDurationValue + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(nextHearingDate, nextHearingDateOrigin), false, true);
+            .configureDates(List.of(nextHearingDate, nextHearingDateDuration), false, true);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }

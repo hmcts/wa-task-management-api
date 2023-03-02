@@ -1066,11 +1066,8 @@ public class NextHearingDateTypeConfiguratorTest {
             .isEmpty();
     }
 
-    /// multiple
-
-
     @Test
-    public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginIsConfigurable() {
+    public void shouldNotRecalculateDateWhenNextHearingDateIsUnconfigurableButOriginIsConfigurable() {
         String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String nextHearingDateOriginValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -1093,7 +1090,7 @@ public class NextHearingDateTypeConfiguratorTest {
     }
 
     @Test
-    public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginLatestIsConfigurable() {
+    public void shouldNotRecalculateDateWhenNextHearingDateIsUnconfigurableButOriginLatestIsConfigurable() {
         String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
@@ -1115,7 +1112,7 @@ public class NextHearingDateTypeConfiguratorTest {
     }
 
     @Test
-    public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginDurationIsConfigurable() {
+    public void shouldNotRecalculateDateWhenNextHearingDateIsUnconfigurableButOriginDurationIsConfigurable() {
         String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String nextHearingDateDurationValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
