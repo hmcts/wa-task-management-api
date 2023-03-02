@@ -183,8 +183,8 @@ class NextHearingDateOriginEarliestCalculatorTest {
                 readNextHearingDateOriginFields(configurable, nextHearingDateOriginEarliest, nextHearingDate),
                 NEXT_HEARING_DATE_TYPE,
                 configurable,
-                new HashMap<>()
-            );
+                new HashMap<>(),
+                    new ArrayList<>());
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -228,8 +228,8 @@ class NextHearingDateOriginEarliestCalculatorTest {
             ),
             NEXT_HEARING_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        );
+            new HashMap<>(),
+                new ArrayList<>());
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
         assertThat(resultDate).isEqualTo(localDateTime + "T18:00");
@@ -278,8 +278,8 @@ class NextHearingDateOriginEarliestCalculatorTest {
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(1)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -344,8 +344,8 @@ class NextHearingDateOriginEarliestCalculatorTest {
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -410,8 +410,8 @@ class NextHearingDateOriginEarliestCalculatorTest {
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -477,8 +477,8 @@ class NextHearingDateOriginEarliestCalculatorTest {
             ),
             NEXT_HEARING_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        ).getValue().getValue();
+            new HashMap<>(),
+                new ArrayList<>()).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
         String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -546,8 +546,8 @@ class NextHearingDateOriginEarliestCalculatorTest {
             ),
             NEXT_HEARING_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        );
+            new HashMap<>(),
+                new ArrayList<>());
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

@@ -31,7 +31,7 @@ public class IntermediateDateCalculator extends DueDateCalculator {
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
+        Map<String, Object> taskAttributes, List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         String dateTypeName = dateTypeObject.dateTypeName();
         return calculatedDate(
             dateTypeObject,

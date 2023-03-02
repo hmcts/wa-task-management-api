@@ -35,9 +35,10 @@ public class DueDateOriginRefCalculator extends DueDateIntervalCalculator {
     protected Optional<LocalDateTime> getReferenceDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return getOriginRefDate(
-            configResponses,
+            calculatedConfigurations,
             getProperty(configResponses, DUE_DATE_ORIGIN_REF, isReconfigureRequest),
             taskAttributes,
             isReconfigureRequest

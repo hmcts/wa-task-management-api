@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -185,8 +186,8 @@ class IntermediateDateIntervalCalculatorTest {
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
 
@@ -245,8 +246,8 @@ class IntermediateDateIntervalCalculatorTest {
                 ),
                 INTERMEDIATE_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
-            ).getValue().getValue();
+                new HashMap<>(),
+                    new ArrayList<>()).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDurationValue)).isEqualTo(scenario.expectedDate);
     }
@@ -303,8 +304,8 @@ class IntermediateDateIntervalCalculatorTest {
                 ),
                 INTERMEDIATE_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
-            ).getValue().getValue();
+                new HashMap<>(),
+                    new ArrayList<>()).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDurationValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
     }
@@ -364,8 +365,8 @@ class IntermediateDateIntervalCalculatorTest {
                 ),
                 INTERMEDIATE_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
-            ).getValue().getValue();
+                new HashMap<>(),
+                    new ArrayList<>()).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDurationValue)).isEqualTo(scenario.expectedDate);
     }
@@ -419,8 +420,8 @@ class IntermediateDateIntervalCalculatorTest {
             ),
             INTERMEDIATE_DATE_TYPE,
             false,
-            new HashMap<>()
-        ).getValue().getValue();
+            new HashMap<>(),
+                new ArrayList<>()).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
         String expectedDueDate = GIVEN_DATE.plusDays(4)
@@ -486,8 +487,8 @@ class IntermediateDateIntervalCalculatorTest {
                 ),
                 INTERMEDIATE_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
-            ).getValue().getValue();
+                new HashMap<>(),
+                    new ArrayList<>()).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDurationValue)).isEqualTo(scenario.expectedDate);
     }
@@ -543,8 +544,8 @@ class IntermediateDateIntervalCalculatorTest {
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
                                                                scenario.configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
     }
@@ -569,8 +570,8 @@ class IntermediateDateIntervalCalculatorTest {
                 List.of(nextHearingDurationOrigin),
                 INTERMEDIATE_DATE_TYPE,
                 configurable,
-                new HashMap<>()
-            ).getValue().getValue());
+                new HashMap<>(),
+                    new ArrayList<>()).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
@@ -601,8 +602,8 @@ class IntermediateDateIntervalCalculatorTest {
             List.of(nextHearingDurationOrigin, nextHearingDurationTime),
             INTERMEDIATE_DATE_TYPE,
             false,
-            new HashMap<>()
-        ).getValue().getValue());
+            new HashMap<>(),
+                new ArrayList<>()).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 

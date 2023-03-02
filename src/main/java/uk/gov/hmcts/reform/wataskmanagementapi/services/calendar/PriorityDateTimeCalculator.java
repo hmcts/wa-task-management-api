@@ -47,7 +47,7 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
         DateTypeObject dateType,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
+        Map<String, Object> taskAttributes, List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return calculatedDate(dateType, getProperty(priorityDateProperties, PRIORITY_DATE_TIME, isReconfigureRequest));
     }
 }

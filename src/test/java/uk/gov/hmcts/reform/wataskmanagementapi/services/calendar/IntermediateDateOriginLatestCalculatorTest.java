@@ -193,8 +193,8 @@ class IntermediateDateOriginLatestCalculatorTest {
                 readDueDateOriginFields(configurable, nextHearingDurationOriginLatest, nextHearingDate),
                 INTERMEDIATE_DATE_TYPE,
                 configurable,
-                new HashMap<>()
-            );
+                new HashMap<>(),
+                    new ArrayList<>());
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -238,8 +238,8 @@ class IntermediateDateOriginLatestCalculatorTest {
             ),
             INTERMEDIATE_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        );
+            new HashMap<>(),
+                new ArrayList<>());
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
         assertThat(resultDate).isEqualTo(latestDateTime + "T18:00");
@@ -288,8 +288,8 @@ class IntermediateDateOriginLatestCalculatorTest {
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -354,8 +354,8 @@ class IntermediateDateOriginLatestCalculatorTest {
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(7)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -420,8 +420,8 @@ class IntermediateDateOriginLatestCalculatorTest {
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -487,8 +487,8 @@ class IntermediateDateOriginLatestCalculatorTest {
             ),
             INTERMEDIATE_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        ).getValue().getValue();
+            new HashMap<>(),
+                new ArrayList<>()).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
         String expectedDueDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -556,8 +556,8 @@ class IntermediateDateOriginLatestCalculatorTest {
             ),
             INTERMEDIATE_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        );
+            new HashMap<>(),
+                new ArrayList<>());
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

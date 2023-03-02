@@ -167,8 +167,8 @@ class DueDateOriginRefCalculatorTest {
 
         var configurationDmnEvaluationResponse = dueDateOriginRefCalculator
             .calculateDate(readDueDateOriginFields(dueDateOriginRef, nextHearingDate), DUE_DATE_TYPE, configurable,
-                           new HashMap<>()
-            );
+                           new HashMap<>(),
+                    new ArrayList<>());
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -209,8 +209,8 @@ class DueDateOriginRefCalculatorTest {
             ),
             DUE_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        );
+            new HashMap<>(),
+                new ArrayList<>());
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
         assertThat(resultDate).isEqualTo(latestDateTime + time);
@@ -264,8 +264,8 @@ class DueDateOriginRefCalculatorTest {
                                                                ),
                                                                DUE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -333,8 +333,8 @@ class DueDateOriginRefCalculatorTest {
                                                                ),
                                                                DUE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -395,8 +395,8 @@ class DueDateOriginRefCalculatorTest {
                                                                ),
                                                                DUE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -466,8 +466,8 @@ class DueDateOriginRefCalculatorTest {
             ),
             DUE_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        ).getValue().getValue();
+            new HashMap<>(),
+                new ArrayList<>()).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
         String expectedDueDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -532,8 +532,8 @@ class DueDateOriginRefCalculatorTest {
             ),
             DUE_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        );
+            new HashMap<>(),
+                new ArrayList<>());
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

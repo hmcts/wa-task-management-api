@@ -44,12 +44,13 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(
-        String dateTypeName,
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
+            String dateTypeName,
+            List<ConfigurationDmnEvaluationResponse> configResponses,
+            boolean isReconfigureRequest,
+            Map<String, Object> taskAttributes,
+            List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return getOriginRefDate(
-            configResponses,
+            calculatedConfigurations,
             getProperty(configResponses, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigureRequest),
             taskAttributes,
             isReconfigureRequest

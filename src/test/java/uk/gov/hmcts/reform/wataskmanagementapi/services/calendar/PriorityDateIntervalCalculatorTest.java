@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -154,8 +155,8 @@ class PriorityDateIntervalCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
 
@@ -214,8 +215,8 @@ class PriorityDateIntervalCalculatorTest {
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
-            ).getValue().getValue();
+                new HashMap<>(),
+                    new ArrayList<>()).getValue().getValue();
 
         assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
     }
@@ -272,8 +273,8 @@ class PriorityDateIntervalCalculatorTest {
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
-            ).getValue().getValue();
+                new HashMap<>(),
+                    new ArrayList<>()).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
     }
@@ -333,8 +334,8 @@ class PriorityDateIntervalCalculatorTest {
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
-            ).getValue().getValue();
+                new HashMap<>(),
+                    new ArrayList<>()).getValue().getValue();
 
         assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
     }
@@ -387,8 +388,8 @@ class PriorityDateIntervalCalculatorTest {
             ),
             PRIORITY_DATE_TYPE,
             false,
-            new HashMap<>()
-        ).getValue().getValue();
+            new HashMap<>(),
+                new ArrayList<>()).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(4)
@@ -449,8 +450,8 @@ class PriorityDateIntervalCalculatorTest {
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
-            ).getValue().getValue();
+                new HashMap<>(),
+                    new ArrayList<>()).getValue().getValue();
 
         assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
     }
@@ -506,8 +507,8 @@ class PriorityDateIntervalCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE,
                                                                scenario.configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
     }
@@ -532,8 +533,8 @@ class PriorityDateIntervalCalculatorTest {
                 List.of(priorityDateOrigin),
                 PRIORITY_DATE_TYPE,
                 configurable,
-                new HashMap<>()
-            ).getValue().getValue());
+                new HashMap<>(),
+                    new ArrayList<>()).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
 
@@ -564,8 +565,8 @@ class PriorityDateIntervalCalculatorTest {
             List.of(priorityDateOrigin, priorityDateTime),
             PRIORITY_DATE_TYPE,
             false,
-            new HashMap<>()
-        ).getValue().getValue());
+            new HashMap<>(),
+                new ArrayList<>()).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 
 @SpringBootTest
@@ -1052,21 +1053,24 @@ public class NextHearingDateTypeConfiguratorTest {
     public void shouldNotDefaultWhenOriginRefAttributesPresentButAreEmpty(boolean configurable) {
         ConfigurationDmnEvaluationResponse nextHearingDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateOriginRef"))
-            .value(CamundaValue.stringValue("dueDate"))
+            .value(CamundaValue.stringValue("nextHearingDuration"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
+            .value(CamundaValue.stringValue("nextHearingDuration,nextHearingDate,dueDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(calculatedDates, nextHearingDateOriginRef), false, configurable, taskAttributes);
-
-        assertThat(configurationDmnEvaluationResponses)
-            .filteredOn(r -> r.getName().getValue().equals("nextHearingDate"))
-            .isEmpty();
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(
+                List.of(calculatedDates, nextHearingDateOriginRef),
+                false,
+                configurable,
+                taskAttributes
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Calculates dates orders are incorrect based on.");
     }
 
     /// multiple

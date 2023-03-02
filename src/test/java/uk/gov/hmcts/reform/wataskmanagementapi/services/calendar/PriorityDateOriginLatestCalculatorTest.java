@@ -147,7 +147,8 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                    dueDate
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(0)
@@ -188,7 +189,8 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                    nextHearingDate
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         Assertions.assertThat(resultDate).isEqualTo(latestDateTime + "T18:00");
@@ -233,7 +235,8 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                    priorityDateIntervalDays
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(5)
@@ -296,7 +299,8 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                    priorityDateSkipNonWorkingDays
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(7)
@@ -359,7 +363,8 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                    priorityDateSkipNonWorkingDays
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -423,7 +428,8 @@ class PriorityDateOriginLatestCalculatorTest {
                 priorityDateIntervalDays
             ),
             PRIORITY_DATE_TYPE, isReconfigureRequest,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -492,7 +498,8 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                    priorityDateSkipNonWorkingDays
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(1)

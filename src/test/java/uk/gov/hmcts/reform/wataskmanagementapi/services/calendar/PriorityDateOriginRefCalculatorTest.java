@@ -180,8 +180,8 @@ class PriorityDateOriginRefCalculatorTest {
                 readPriorityDateOriginFields(priorityDateOriginRef, nextHearingDate),
                 PRIORITY_DATE_TYPE,
                 configurable,
-                new HashMap<>()
-            );
+                new HashMap<>(),
+                    new ArrayList<>());
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -222,8 +222,8 @@ class PriorityDateOriginRefCalculatorTest {
             ),
             PRIORITY_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        );
+            new HashMap<>(),
+                new ArrayList<>());
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
         assertThat(resultDate).isEqualTo(latestDateTime + time);
@@ -277,8 +277,8 @@ class PriorityDateOriginRefCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -346,8 +346,8 @@ class PriorityDateOriginRefCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -408,8 +408,8 @@ class PriorityDateOriginRefCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
-                                                           ).getValue().getValue());
+                                                               new HashMap<>(),
+                                                                   new ArrayList<>()).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -479,8 +479,8 @@ class PriorityDateOriginRefCalculatorTest {
             ),
             PRIORITY_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        ).getValue().getValue();
+            new HashMap<>(),
+                new ArrayList<>()).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -545,8 +545,8 @@ class PriorityDateOriginRefCalculatorTest {
             ),
             PRIORITY_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        );
+            new HashMap<>(),
+                new ArrayList<>());
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

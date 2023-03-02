@@ -193,7 +193,8 @@ class IntermediateDateOriginEarliestCalculatorTest {
                 readDueDateOriginFields(configurable, nextHearingDurationOriginEarliest, nextHearingDate),
                 INTERMEDIATE_DATE_TYPE,
                 configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -238,7 +239,8 @@ class IntermediateDateOriginEarliestCalculatorTest {
             ),
             INTERMEDIATE_DATE_TYPE,
             configurable,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -288,7 +290,8 @@ class IntermediateDateOriginEarliestCalculatorTest {
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(1)
@@ -354,7 +357,8 @@ class IntermediateDateOriginEarliestCalculatorTest {
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5)
@@ -420,7 +424,8 @@ class IntermediateDateOriginEarliestCalculatorTest {
                                                                ),
                                                                INTERMEDIATE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -487,7 +492,8 @@ class IntermediateDateOriginEarliestCalculatorTest {
             ),
             INTERMEDIATE_DATE_TYPE,
             configurable,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -556,7 +562,8 @@ class IntermediateDateOriginEarliestCalculatorTest {
             ),
             INTERMEDIATE_DATE_TYPE,
             configurable,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 

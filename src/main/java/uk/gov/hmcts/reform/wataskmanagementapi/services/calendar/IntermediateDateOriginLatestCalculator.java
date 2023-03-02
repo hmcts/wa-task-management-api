@@ -38,12 +38,13 @@ public class IntermediateDateOriginLatestCalculator extends IntermediateDateInte
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(
-        String dateTypeName,
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
+            String dateTypeName,
+            List<ConfigurationDmnEvaluationResponse> configResponses,
+            boolean isReconfigureRequest,
+            Map<String, Object> taskAttributes,
+            List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return getOriginLatestDate(
-            configResponses,
+            calculatedConfigurations,
             getProperty(configResponses, dateTypeName + ORIGIN_LATEST_SUFFIX, isReconfigureRequest),
             taskAttributes,
             isReconfigureRequest

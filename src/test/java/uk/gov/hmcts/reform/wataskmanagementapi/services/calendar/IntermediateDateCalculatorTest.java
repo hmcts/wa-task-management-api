@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -126,8 +127,8 @@ class IntermediateDateCalculatorTest {
             evaluationResponses,
             INTERMEDIATE_DATE_TYPE,
             configurable,
-            new HashMap<>()
-        ).getValue().getValue();
+            new HashMap<>(),
+                new ArrayList<>()).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
 
@@ -156,7 +157,7 @@ class IntermediateDateCalculatorTest {
             = List.of(nextHearingDuration, nextHearingDurationTime);
 
         String dateValue = intermediateDateCalculator
-            .calculateDate(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable, new HashMap<>())
+            .calculateDate(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable, new HashMap<>(), new ArrayList<>())
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -185,7 +186,7 @@ class IntermediateDateCalculatorTest {
             = List.of(nextHearingDuration, nextHearingDurationTime);
 
         String dateValue = intermediateDateCalculator
-            .calculateDate(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable, new HashMap<>())
+            .calculateDate(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable, new HashMap<>(), new ArrayList<>())
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -215,7 +216,7 @@ class IntermediateDateCalculatorTest {
             = List.of(nextHearingDuration, nextHearingDuration2);
 
         String dateValue = intermediateDateCalculator
-            .calculateDate(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable, new HashMap<>())
+            .calculateDate(evaluationResponses, INTERMEDIATE_DATE_TYPE, configurable, new HashMap<>(), new ArrayList<>())
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + time);
     }

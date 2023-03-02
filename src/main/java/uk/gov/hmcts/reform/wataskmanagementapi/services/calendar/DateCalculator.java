@@ -77,7 +77,8 @@ public interface DateCalculator {
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateType,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes);
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations);
 
     default ConfigurationDmnEvaluationResponse getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
@@ -181,35 +182,37 @@ public interface DateCalculator {
     }
 
     private static Stream<LocalDateTime> getReferenceDateValues(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations,
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
         List<DateTypeObject> referenceDates) {
         return referenceDates.stream()
             .map(DateTypeObject::dateTypeName)
-            .map(t -> getMatchingConfigResponseDate(configResponses, taskAttributes, isReconfigureRequest, t))
+            .map(t -> getMatchingConfigResponseDate(calculatedConfigurations, taskAttributes, isReconfigureRequest, t))
             .filter(Objects::nonNull);
     }
 
     private static LocalDateTime getMatchingConfigResponseDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations,
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
         String dateTypeName) {
-        return configResponses.stream()
+        return calculatedConfigurations.stream()
+            .filter(Objects::nonNull)
             .filter(c -> c.getName().getValue().equals(dateTypeName))
             .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER))
             .findFirst()
-            .orElse(defaultWithTaskAttributes(taskAttributes, isReconfigureRequest, dateTypeName));
+            .orElseGet(() -> defaultWithTaskAttributes(taskAttributes, isReconfigureRequest, dateTypeName));
     }
 
     private static LocalDateTime defaultWithTaskAttributes(
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
         String dateTypeName) {
-        return isReconfigureRequest
-            ? getTaskAttributeDate(taskAttributes, dateTypeName)
-            : null;
+        if (isReconfigureRequest && List.of("dueDate", "priorityDate", "nextHearingDate").contains(dateTypeName)) {
+            return getTaskAttributeDate(taskAttributes, dateTypeName);
+        }
+        throw new RuntimeException("Calculates dates orders are incorrect based on.");
     }
 
     private static LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes,

@@ -148,7 +148,8 @@ class NextHearingDateOriginLatestCalculatorTest {
                                                                    dueDate
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(0)
@@ -189,7 +190,8 @@ class NextHearingDateOriginLatestCalculatorTest {
                                                                    priorityDate
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         Assertions.assertThat(resultDate).isEqualTo(latestDateTime + "T18:00");
@@ -234,7 +236,8 @@ class NextHearingDateOriginLatestCalculatorTest {
                                                                    nextHearingDateIntervalDays
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(3)
@@ -297,7 +300,8 @@ class NextHearingDateOriginLatestCalculatorTest {
                                                                    nextHearingDateSkipNonWorkingDays
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(7)
@@ -360,7 +364,8 @@ class NextHearingDateOriginLatestCalculatorTest {
                                                                    nextHearingDateSkipNonWorkingDays
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -425,7 +430,8 @@ class NextHearingDateOriginLatestCalculatorTest {
                 nextHearingDateIntervalDays
             ),
             NEXT_HEARING_DATE_TYPE, isReconfigureRequest,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -495,7 +501,8 @@ class NextHearingDateOriginLatestCalculatorTest {
                                                                    nextHearingDateSkipNonWorkingDays
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE, isReconfigureRequest,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(1)

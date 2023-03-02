@@ -184,7 +184,8 @@ class PriorityDateOriginEarliestCalculatorTest {
                 readPriorityDateOriginFields(configurable, priorityDateOriginEarliest, nextHearingDate),
                 PRIORITY_DATE_TYPE,
                 configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -229,7 +230,8 @@ class PriorityDateOriginEarliestCalculatorTest {
             ),
             PRIORITY_DATE_TYPE,
             configurable,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -279,7 +281,8 @@ class PriorityDateOriginEarliestCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(1)
@@ -345,7 +348,8 @@ class PriorityDateOriginEarliestCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(5)
@@ -411,7 +415,8 @@ class PriorityDateOriginEarliestCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -478,7 +483,8 @@ class PriorityDateOriginEarliestCalculatorTest {
             ),
             PRIORITY_DATE_TYPE,
             configurable,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -547,7 +553,8 @@ class PriorityDateOriginEarliestCalculatorTest {
             ),
             PRIORITY_DATE_TYPE,
             configurable,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 

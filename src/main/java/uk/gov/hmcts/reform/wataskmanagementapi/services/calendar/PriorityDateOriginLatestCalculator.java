@@ -35,11 +35,12 @@ public class PriorityDateOriginLatestCalculator extends PriorityDateIntervalCalc
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
-        boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
+            List<ConfigurationDmnEvaluationResponse> configResponses,
+            boolean isReconfigureRequest,
+            Map<String, Object> taskAttributes,
+            List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return getOriginLatestDate(
-            configResponses,
+            calculatedConfigurations,
             getProperty(configResponses, PRIORITY_DATE_ORIGIN_LATEST, isReconfigureRequest),
             taskAttributes,
             isReconfigureRequest
