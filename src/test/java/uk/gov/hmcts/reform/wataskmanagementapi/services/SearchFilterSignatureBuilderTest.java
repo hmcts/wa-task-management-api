@@ -86,7 +86,7 @@ public class SearchFilterSignatureBuilderTest {
             .jurisdictions(List.of("WA", "IA"))
             .roleCategories(List.of(RoleCategory.ADMIN, RoleCategory.CTSC))
             .workTypes(List.of("evidence", "priority"))
-            .region(List.of("1", "2"))
+            .regions(List.of("1", "2"))
             .build();
         Set<String> signature = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
 
@@ -109,7 +109,7 @@ public class SearchFilterSignatureBuilderTest {
             .jurisdictions(List.of("WA", "IA"))
             .roleCategories(List.of(RoleCategory.ADMIN, RoleCategory.CTSC))
             .workTypes(List.of("evidence", "priority"))
-            .region(List.of("1", "2"))
+            .regions(List.of("1", "2"))
             .locations(List.of("765324", "765325"))
             .build();
         Set<String> signature = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
