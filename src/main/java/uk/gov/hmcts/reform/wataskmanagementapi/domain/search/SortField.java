@@ -7,35 +7,39 @@ import lombok.Getter;
 @Getter
 public enum SortField {
 
-    DUE_DATE_CAMEL_CASE("dueDate", "dueDate", "dueDateTime"),
-    DUE_DATE_SNAKE_CASE("due_date", "dueDate", "dueDateTime"),
+    DUE_DATE_CAMEL_CASE("dueDate", "due_date_time", "dueDateTime"),
+    DUE_DATE_SNAKE_CASE("due_date", "due_date_time", "dueDateTime"),
 
-    TASK_TITLE_CAMEL_CASE("taskTitle", "title", "title"),
-    TASK_TITLE_SNAKE_CASE("task_title", "title", "title"),
+    TASK_TITLE_CAMEL_CASE("taskTitle", "task_title", "title"),
+    TASK_TITLE_SNAKE_CASE("task_title", "task_title", "title"),
 
-    LOCATION_NAME_CAMEL_CASE("locationName", "locationName", "locationName"),
-    LOCATION_NAME_SNAKE_CASE("location_name", "locationName", "locationName"),
+    LOCATION_NAME_CAMEL_CASE("locationName", "location_name", "locationName"),
+    LOCATION_NAME_SNAKE_CASE("location_name", "location_name", "locationName"),
 
-    CASE_CATEGORY_CAMEL_CASE("caseCategory", "appealType", "caseCategory"),
-    CASE_CATEGORY_SNAKE_CASE("case_category", "appealType", "caseCategory"),
+    CASE_CATEGORY_CAMEL_CASE("caseCategory", "case_category", "caseCategory"),
+    CASE_CATEGORY_SNAKE_CASE("case_category", "case_category", "caseCategory"),
 
-    CASE_ID("caseId", "caseId", "caseId"),
-    CASE_ID_SNAKE_CASE("case_id", "caseId", "caseId"),
+    CASE_ID("caseId", "case_id", "caseId"),
+    CASE_ID_SNAKE_CASE("case_id", "case_id", "caseId"),
 
-    CASE_NAME_CAMEL_CASE("caseName", "caseName", "caseName"),
-    CASE_NAME_SNAKE_CASE("case_name", "caseName", "caseName"),
+    CASE_NAME_CAMEL_CASE("caseName", "case_name", "caseName"),
+    CASE_NAME_SNAKE_CASE("case_name", "case_name", "caseName"),
 
-    NEXT_HEARING_DATE_CAMEL_CASE("nextHearingDate", "nextHearingDate", "nextHearingDate"),
-    NEXT_HEARING_DATE_SNAKE_CASE("next_hearing_date", "nextHearingDate", "nextHearingDate");
+    NEXT_HEARING_DATE_CAMEL_CASE("nextHearingDate", "next_hearing_date", "nextHearingDate"),
+    NEXT_HEARING_DATE_SNAKE_CASE("next_hearing_date", "next_hearing_date", "nextHearingDate"),
+
+    MAJOR_PRIORITY("majorPriority", "major_priority", "majorPriority"),
+    PRIORITY_DATE("priorityDate", "priority_date", "priorityDate"),
+    MINOR_PRIORITY("minorPriority", "minor_priority", "minorPriority");
 
     @JsonValue
     private final String id;
-    private final String camundaVariableName;
+    private final String dbColumnName;
     private final String cftVariableName;
 
-    SortField(String id, String camundaVariableName, String cftVariableName) {
+    SortField(String id, String dbColumnName, String cftVariableName) {
         this.id = id;
-        this.camundaVariableName = camundaVariableName;
+        this.dbColumnName = dbColumnName;
         this.cftVariableName = cftVariableName;
     }
 
