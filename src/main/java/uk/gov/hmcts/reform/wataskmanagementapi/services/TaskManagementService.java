@@ -792,7 +792,7 @@ public class TaskManagementService {
                 throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
             }
         } catch (LockTimeoutException ex) {
-            log.error("Failed to update indexed field of taskId:{} to {}. Error:{}", taskId, indexed, ex.getMessage());
+            log.error("LockTimeoutException occurred in updating indexed field of taskId:{} to {}", taskId, indexed);
         }
     }
 

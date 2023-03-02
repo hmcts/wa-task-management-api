@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
@@ -17,6 +20,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -82,7 +86,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
+import javax.persistence.LockTimeoutException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -403,6 +409,29 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .hasNoCause()
                 .hasMessage("Task Not Found Error: The task could not be found.");
             verify(cftTaskDatabaseService, times(0)).saveTask(any());
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        void should_complete_when_lock_time_out(boolean index) {
+            Logger logger = (Logger) LoggerFactory.getLogger(TaskManagementService.class);
+            ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+            listAppender.start();
+
+            logger.addAppender(listAppender);
+
+            when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId))
+                .thenThrow(new LockTimeoutException());
+            verify(cftTaskDatabaseService, times(0)).saveTask(any());
+
+            taskManagementService.updateTaskIndex(taskId, index);
+
+            List<String> logsList = List.copyOf(listAppender.list)
+                .stream()
+                .map(ILoggingEvent::getFormattedMessage)
+                .collect(Collectors.toList());
+            assertTrue(logsList.contains("LockTimeoutException occurred in updating indexed field of taskId:"
+                                         + taskId + " to " + index));
         }
     }
 
