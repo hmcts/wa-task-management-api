@@ -14,9 +14,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.RoleSignatureBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.SearchFilterSignatureBuilder;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -95,14 +98,14 @@ public class CFTTaskDatabaseService {
     public GetTasksResponse<Task> searchForTasks(int firstResult,
                                                  int maxResults,
                                                  SearchRequest searchRequest,
-                                                 AccessControlResponse accessControlResponse,
-                                                 boolean granularPermissionResponseFeature) {
+                                                 AccessControlResponse accessControlResponse) {
 
-        List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
+        List<RoleAssignment> roleAssignments = new ArrayList<>(accessControlResponse.getRoleAssignments());
         Set<String> filterSignature = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
         Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
         List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
 
+        log.debug("Task search for filter signatures {} and role signatures {}", filterSignature, roleSignature);
         List<String> taskIds = tasksRepository.searchTasksIds(firstResult, maxResults, filterSignature, roleSignature,
             excludeCaseIds, searchRequest);
 
@@ -120,14 +123,13 @@ public class CFTTaskDatabaseService {
                 cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
                     taskResource,
                     roleAssignments,
-                    granularPermissionResponseFeature
+                    true
                 )
             )
             .collect(Collectors.toList());
 
         return new GetTasksResponse<>(tasks, count);
     }
-
 
 
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
