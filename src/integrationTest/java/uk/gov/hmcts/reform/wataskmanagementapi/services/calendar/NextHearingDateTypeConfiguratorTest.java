@@ -1073,9 +1073,6 @@ public class NextHearingDateTypeConfiguratorTest {
             .hasMessage("Calculates dates orders are incorrect based on.");
     }
 
-    /// multiple
-
-
     @Test
     public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginIsConfigurable() {
         String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

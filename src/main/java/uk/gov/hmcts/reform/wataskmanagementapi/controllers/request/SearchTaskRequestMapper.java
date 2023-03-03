@@ -43,8 +43,8 @@ public final class SearchTaskRequestMapper {
     public static SearchRequest map(SearchTaskRequest clientRequest) {
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(clientRequest);
 
-        boolean availableTasksOnly = isAvailableTasksOnly(clientRequest);
         RequestContext requestContext = clientRequest.getRequestContext();
+        boolean availableTasksOnly = requestContext != null && requestContext.equals(RequestContext.AVAILABLE_TASKS);
 
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (availableTasksOnly) {
@@ -101,12 +101,6 @@ public final class SearchTaskRequestMapper {
         }
     }
 
-    private static boolean isAvailableTasksOnly(SearchTaskRequest searchTaskRequest) {
-
-        RequestContext context = searchTaskRequest.getRequestContext();
-
-        return context != null && context.equals(RequestContext.AVAILABLE_TASKS);
-    }
 
     private static List<CFTTaskState> getCftTaskStates(SearchParameterList stateParam) {
         return getValueOrEmpty(stateParam).stream()

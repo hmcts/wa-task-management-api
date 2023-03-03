@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import java.util.List;
 
 @Getter
-@Setter
 @Builder
 @EqualsAndHashCode
 public class SearchRequest {

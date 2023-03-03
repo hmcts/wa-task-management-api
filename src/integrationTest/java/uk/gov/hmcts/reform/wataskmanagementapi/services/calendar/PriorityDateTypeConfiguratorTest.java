@@ -1041,7 +1041,6 @@ public class PriorityDateTypeConfiguratorTest {
             .isInstanceOf(RuntimeException.class)
             .hasMessage("Calculates dates orders are incorrect based on.");
     }
-    /// multiple
 
     @Test
     public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginIsConfigurable() {

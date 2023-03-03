@@ -26,8 +26,7 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         String dateTypeName = dateTypeObject.dateTypeName();
-        ConfigurationDmnEvaluationResponse origin = getProperty(
-            configResponses,
+        ConfigurationDmnEvaluationResponse origin = getProperty(configResponses,
             dateTypeName + ORIGIN_SUFFIX,
             isReconfigureRequest
         );
