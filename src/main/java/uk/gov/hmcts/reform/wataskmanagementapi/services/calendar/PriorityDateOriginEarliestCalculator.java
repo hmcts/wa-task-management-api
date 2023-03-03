@@ -21,15 +21,14 @@ public class PriorityDateOriginEarliestCalculator extends PriorityDateIntervalCa
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         return PRIORITY_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN, isReconfigureRequest))
+            && Optional.ofNullable(getProperty(configResponses, PRIORITY_DATE_ORIGIN, isReconfigureRequest))
             .isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest))
-            .isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, PRIORITY_DATE.getType())
+            && Optional.ofNullable(getProperty(configResponses, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
             .isPresent();
     }
 
