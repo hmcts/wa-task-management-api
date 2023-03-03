@@ -6,6 +6,7 @@ public enum TaskOperationType {
 
     private final String value;
 
+    //Should this operation requires a re-indexing of tasks and task_role signature search_index
     private final boolean indexed;
 
     TaskOperationType(String value, boolean indexed) {

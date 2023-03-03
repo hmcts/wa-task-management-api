@@ -430,7 +430,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .stream()
                 .map(ILoggingEvent::getFormattedMessage)
                 .collect(Collectors.toList());
-            assertTrue(logsList.contains("LockTimeoutException occurred in updating indexed field of taskId:"
+            assertTrue(logsList.contains("PersistenceException occurred in updating indexed field of taskId:"
                                          + taskId + " to " + index));
         }
     }

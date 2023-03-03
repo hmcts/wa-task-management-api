@@ -57,8 +57,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
-import javax.persistence.LockTimeoutException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -791,8 +791,8 @@ public class TaskManagementService {
             } else {
                 throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
             }
-        } catch (LockTimeoutException ex) {
-            log.error("LockTimeoutException occurred in updating indexed field of taskId:{} to {}", taskId, indexed);
+        } catch (PersistenceException ex) {
+            log.error("PersistenceException occurred in updating indexed field of taskId:{} to {}", taskId, indexed);
         }
     }
 
