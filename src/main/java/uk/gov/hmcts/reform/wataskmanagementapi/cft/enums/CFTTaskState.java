@@ -1,6 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.enums;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 
@@ -38,8 +43,11 @@ public enum CFTTaskState {
         return value;
     }
 
-    public String getAbbreviation() {
-        return abbreviation;
+    public static Set<String> getAbbreviations(List<CFTTaskState> states) {
+        return Stream.ofNullable(states)
+            .flatMap(Collection::stream)
+            .map(s -> s.abbreviation)
+            .collect(Collectors.toSet());
     }
 
 }

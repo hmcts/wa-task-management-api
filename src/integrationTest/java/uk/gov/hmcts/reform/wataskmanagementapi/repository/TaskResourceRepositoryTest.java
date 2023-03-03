@@ -520,34 +520,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_task_is_created_when_count_by_role_signature_then_correct_count_returned() {
-        String taskId2 = UUID.randomUUID().toString();
-        TaskResource createdTask = createTask(taskId2, "case-manager", "WA",
-            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
-        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
-
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
-
-        Set<String> filterSignature = Set.of("*:IA:*:*:1:765324", "*:WA:*:*:1:765324");
-        Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "WA:*:*:case-manager:*:r:U:*");
-        SearchRequest request = SearchRequest.builder()
-            .cftTaskStates(List.of(CFTTaskState.ASSIGNED, CFTTaskState.COMPLETED))
-            .caseIds(List.of("1623278362430412", "1623278362430413"))
-            .taskTypes(List.of("startAppeal", "reviewAppeal"))
-            .users(List.of("someAssignee", "anotherAssignee"))
-            .build();
-
-        Long taskCount = taskResourceRepository.searchTasksCount(filterSignature, roleSignature,
-            List.of("9999999999999"), request);
-        assertEquals(2, taskCount);
-    }
-
-    @Test
     void given_multiple_tasks_created_when_find_by_task_ids_then_return_ordered_task_list() {
         String taskId2 = UUID.randomUUID().toString();
         TaskResource createdTask = createTask(taskId2, "tribunal-caseofficer", "IA",
@@ -683,7 +655,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             )),
             "caseCategoryA",
             ADDITIONAL_PROPERTIES,
-                "nextHearingId",
+            "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );

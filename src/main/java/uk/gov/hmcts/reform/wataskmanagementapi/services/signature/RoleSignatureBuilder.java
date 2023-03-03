@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.services;
+package uk.gov.hmcts.reform.wataskmanagementapi.services.signature;
 
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
