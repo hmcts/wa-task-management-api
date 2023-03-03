@@ -25,17 +25,14 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
         return PRIORITY_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN,
-                                               isReconfigureRequest
-        )).isPresent()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE.getType(),
-                                               isReconfigureRequest
-        )).isEmpty();
+            && Optional.ofNullable(getProperty(configResponses, PRIORITY_DATE_ORIGIN, isReconfigureRequest))
+            .isPresent()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, PRIORITY_DATE.getType());
     }
 
     @Override

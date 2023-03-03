@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -781,6 +782,19 @@ public class TaskManagementService {
 
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public TaskResource updateTaskIndex(String taskId) {
+        Optional<TaskResource> findTaskResponse = cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
+        if (findTaskResponse.isPresent()) {
+            TaskResource taskResource = findTaskResponse.get();
+            taskResource.setIndexed(true);
+
+            return cftTaskDatabaseService.saveTask(taskResource);
+        } else {
+            throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
         }
     }
 

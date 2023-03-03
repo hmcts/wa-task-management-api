@@ -21,19 +21,15 @@ public class NextHearingDateOriginRefCalculator extends NextHearingDateIntervalC
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         return NEXT_HEARING_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN,
-                                               isReconfigureRequest
-        )).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(),
-                                               isReconfigureRequest
-        )).isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN_REF,
-                                               isReconfigureRequest
-        )).isPresent();
+            && Optional.ofNullable(getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
+            .isEmpty()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, NEXT_HEARING_DATE.getType())
+            && Optional.ofNullable(getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest))
+            .isPresent();
     }
 
     @Override
