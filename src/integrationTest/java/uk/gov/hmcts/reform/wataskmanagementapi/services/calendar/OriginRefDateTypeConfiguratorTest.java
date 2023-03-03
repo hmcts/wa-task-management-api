@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -19,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollectionTest.CALENDAR_URI;
 
@@ -32,6 +32,8 @@ public class OriginRefDateTypeConfiguratorTest {
     public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 3, 26, 18, 0, 0);
 
     public static final String PRIORITY_DATE_VALUE = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern(
+        "yyyy-MM-dd")) + "T16:00";
+    public static final String DUE_DATE_VALUE = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern(
         "yyyy-MM-dd")) + "T16:00";
     public static final String NEXT_HEARING_DATE_VALUE = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         + "T16:00";
@@ -80,7 +82,7 @@ public class OriginRefDateTypeConfiguratorTest {
             taskAttributes
         );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses)
+        assertThat(configurationDmnEvaluationResponses)
             .hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
@@ -136,7 +138,7 @@ public class OriginRefDateTypeConfiguratorTest {
             taskAttributes
         );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses)
+        assertThat(configurationDmnEvaluationResponses)
             .hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
@@ -188,7 +190,7 @@ public class OriginRefDateTypeConfiguratorTest {
             taskAttributes
         );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses)
+        assertThat(configurationDmnEvaluationResponses)
             .hasSize(2)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
@@ -353,7 +355,7 @@ public class OriginRefDateTypeConfiguratorTest {
                 taskAttributes
             );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
+        assertThat(configurationDmnEvaluationResponses).hasSize(2)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
@@ -428,7 +430,7 @@ public class OriginRefDateTypeConfiguratorTest {
                 taskAttributes
             );
 
-        Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
+        assertThat(configurationDmnEvaluationResponses).hasSize(2)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
@@ -987,5 +989,113 @@ public class OriginRefDateTypeConfiguratorTest {
                                                         + "T18:00"))
                     .build()
             ));
+    }
+
+    @Test
+    public void should_not_calculate_date_when_multiple_origin_date_types_for_due_date_exist() {
+        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginRef"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOrigin"))
+            .value(CamundaValue.stringValue(DUE_DATE_VALUE))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOriginRef, dueDateOrigin);
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(evaluationResponses,
+                            false,
+                            false,
+                            taskAttributes
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
+    }
+
+
+    @Test
+    public void should_not_calculate_date_when_multiple_origin_date_types_for_priority_date_exist() {
+        ConfigurationDmnEvaluationResponse priorityDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginRef"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(PRIORITY_DATE_VALUE))
+            .build();
+
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses
+            = List.of(priorityDateOriginRef, priorityDateOrigin);
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(evaluationResponses,
+                            false,
+                            false,
+                            taskAttributes
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
+    }
+
+    @Test
+    public void should_not_calculate_date_when_multiple_origin_date_types_for_next_hearing_date_exist() {
+        ConfigurationDmnEvaluationResponse nextHearingDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDateOriginRef"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDateOrigin"))
+            .value(CamundaValue.stringValue(NEXT_HEARING_DATE_VALUE))
+            .build();
+
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
+            nextHearingDateOriginRef, nextHearingDateOrigin);
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(evaluationResponses,
+                            false,
+                            false,
+                            taskAttributes
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
+    }
+
+
+    @Test
+    public void should_not_calculate_date_when_multiple_origin_date_types_for_intermediate_date_exist() {
+        ConfigurationDmnEvaluationResponse nextHearingDurationOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationOriginRef"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDurationOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationOrigin"))
+            .value(CamundaValue.stringValue(DUE_DATE_VALUE))
+            .build();
+
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("calculatedDates"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
+            nextHearingDurationOriginRef, nextHearingDurationOrigin, calculatedDates);
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(evaluationResponses,
+                            false,
+                            false,
+                            taskAttributes
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
     }
 }

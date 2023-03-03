@@ -31,6 +31,21 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
             PRIORITY_DATE_ORIGIN,
             isReconfigureRequest
         );
+        ConfigurationDmnEvaluationResponse prioritDateOriginRef = getProperty(
+            priorityDateProperties,
+            PRIORITY_DATE_ORIGIN_REF,
+            isReconfigureRequest
+        );
+        ConfigurationDmnEvaluationResponse prioritDateOriginLatest = getProperty(
+            priorityDateProperties,
+            PRIORITY_DATE_ORIGIN_LATEST,
+            isReconfigureRequest
+        );
+        ConfigurationDmnEvaluationResponse prioritDateOriginEarliest = getProperty(
+            priorityDateProperties,
+            PRIORITY_DATE_ORIGIN_EARLIEST,
+            isReconfigureRequest
+        );
         ConfigurationDmnEvaluationResponse priorityDate = getProperty(
             priorityDateProperties,
             PRIORITY_DATE.getType(),
@@ -39,6 +54,9 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
         return PRIORITY_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(priorityDate).isEmpty()
             && Optional.ofNullable(prioritDateOrigin).isEmpty()
+            && Optional.ofNullable(prioritDateOriginRef).isEmpty()
+            && Optional.ofNullable(prioritDateOriginLatest).isEmpty()
+            && Optional.ofNullable(prioritDateOriginEarliest).isEmpty()
             && Optional.ofNullable(priorityDateTime).isPresent();
     }
 

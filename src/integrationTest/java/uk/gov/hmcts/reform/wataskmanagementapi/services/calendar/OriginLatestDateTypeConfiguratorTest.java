@@ -987,5 +987,108 @@ public class OriginLatestDateTypeConfiguratorTest {
                     .build()
             ));
     }
+
+    @Test
+    public void should_not_calculate_date_when_multiple_origin_date_types_for_due_date_exist() {
+        ConfigurationDmnEvaluationResponse dueDateOriginLatest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginLatest"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOrigin"))
+            .value(CamundaValue.stringValue(DUE_DATE_VALUE))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOriginLatest, dueDateOrigin);
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(evaluationResponses,
+                            false,
+                            false,
+                            taskAttributes
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
+    }
+
+
+    @Test
+    public void should_not_calculate_date_when_multiple_origin_date_types_for_priority_date_exist() {
+        ConfigurationDmnEvaluationResponse priorityDateOriginLatest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginLatest"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(PRIORITY_DATE_VALUE))
+            .build();
+
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses
+            = List.of(priorityDateOriginLatest, priorityDateOrigin);
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(evaluationResponses,
+                            false,
+                            false,
+                            taskAttributes
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
+    }
+
+    @Test
+    public void should_not_calculate_date_when_multiple_origin_date_types_for_next_hearing_date_exist() {
+        ConfigurationDmnEvaluationResponse nextHearingDateOriginLatest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDateOriginLatest"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDateOrigin"))
+            .value(CamundaValue.stringValue(NEXT_HEARING_DATE_VALUE))
+            .build();
+
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
+            nextHearingDateOriginLatest, nextHearingDateOrigin);
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(evaluationResponses,
+                            false,
+                            false,
+                            taskAttributes
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
+    }
+
+
+    @Test
+    public void should_not_calculate_date_when_multiple_origin_date_types_for_intermediate_date_exist() {
+        ConfigurationDmnEvaluationResponse nextHearingDurationOriginLatest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationOriginLatest"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration"))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDurationOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationOrigin"))
+            .value(CamundaValue.stringValue(DUE_DATE_VALUE))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
+            nextHearingDurationOriginLatest, nextHearingDurationOrigin);
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(evaluationResponses,
+                            false,
+                            false,
+                            taskAttributes
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
+    }
 }
 

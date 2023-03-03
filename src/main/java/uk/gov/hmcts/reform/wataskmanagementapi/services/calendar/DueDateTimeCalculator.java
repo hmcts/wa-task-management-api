@@ -26,6 +26,11 @@ public class DueDateTimeCalculator implements DateCalculator {
         return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_REF, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest))
+            .isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME, isReconfigureRequest)).isPresent();
     }
 

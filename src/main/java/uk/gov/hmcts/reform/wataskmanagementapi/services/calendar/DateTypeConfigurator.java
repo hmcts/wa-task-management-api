@@ -157,9 +157,13 @@ public class DateTypeConfigurator {
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
-        return dateCalculators.stream()
+        List<DateCalculator> calculators = dateCalculators.stream()
             .filter(dateCalculator -> dateCalculator.supports(configResponses, dateTypeObject, isReconfigureRequest))
-            .findFirst();
+            .toList();
+        if (calculators.size() > 1) {
+            throw new RuntimeException("Origin dates have multiple occurrence, Date type can't be calculated.");
+        }
+        return calculators.stream().findFirst();
     }
 
     private void filterOutOldValueAndAddDateType(
