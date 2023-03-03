@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
@@ -157,13 +158,26 @@ public class DateTypeConfigurator {
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
-        List<DateCalculator> calculators = dateCalculators.stream()
+
+        validateConflictsInDateTypes(configResponses, dateTypeObject.dateTypeName);
+
+        return dateCalculators.stream()
             .filter(dateCalculator -> dateCalculator.supports(configResponses, dateTypeObject, isReconfigureRequest))
+            .findFirst();
+    }
+
+    private void validateConflictsInDateTypes(List<ConfigurationDmnEvaluationResponse> dateProperties,
+                                              String dateTypeName) {
+
+        var multipleDateTypes = dateProperties.stream()
+            .filter(e -> e.getName().getValue().contains(dateTypeName + "Origin"))
+            .map(e -> e.getName().getValue())
+            .distinct()
             .toList();
-        if (calculators.size() > 1) {
+
+        if (multipleDateTypes.size() > 1) {
             throw new RuntimeException("Origin dates have multiple occurrence, Date type can't be calculated.");
         }
-        return calculators.stream().findFirst();
     }
 
     private void filterOutOldValueAndAddDateType(

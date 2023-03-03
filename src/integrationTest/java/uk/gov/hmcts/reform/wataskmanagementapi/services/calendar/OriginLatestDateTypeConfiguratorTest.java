@@ -1078,8 +1078,13 @@ public class OriginLatestDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue(DUE_DATE_VALUE))
             .build();
 
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("calculatedDates"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
+            .build();
+
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
-            nextHearingDurationOriginLatest, nextHearingDurationOrigin);
+            nextHearingDurationOriginLatest, nextHearingDurationOrigin, calculatedDates);
 
         assertThatThrownBy(() -> dateTypeConfigurator
             .configureDates(evaluationResponses,
