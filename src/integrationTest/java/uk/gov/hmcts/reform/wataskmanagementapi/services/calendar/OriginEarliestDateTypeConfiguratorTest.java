@@ -801,7 +801,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
     }
 
     @Test
-    public void shouldNotRecalculateDateWhenPriorityDateIsConfigurableButOriginEarliestIsUnConfigurable() {
+    public void shouldRecalculateDateWhenPriorityDateIsConfigurableButOriginEarliestIsUnConfigurable() {
         String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
@@ -829,7 +829,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
     }
 
     @Test
-    public void shouldNotRecalculateDateWhenNextHearingDateIsConfigurableButOriginEarliestIsUnConfigurable() {
+    public void shouldRecalculateDateWhenNextHearingDateIsConfigurableButOriginEarliestIsUnConfigurable() {
         String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()

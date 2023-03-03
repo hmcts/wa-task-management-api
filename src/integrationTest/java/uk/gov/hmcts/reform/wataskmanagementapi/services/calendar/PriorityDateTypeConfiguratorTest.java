@@ -1056,10 +1056,9 @@ public class PriorityDateTypeConfiguratorTest {
                     .build()
             ));
     }
-    /// multiple
 
     @Test
-    public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginIsConfigurable() {
+    public void shouldNotRecalculateDateWhenPriorityDateIsUnconfigurableButOriginIsConfigurable() {
         String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String priorityDateOriginValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -1091,14 +1090,14 @@ public class PriorityDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true);
+            .configureDates(List.of(priorityDate, priorityDateOriginEarliest), false, true);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
