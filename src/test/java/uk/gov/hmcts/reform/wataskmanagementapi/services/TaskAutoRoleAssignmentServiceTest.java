@@ -1356,8 +1356,7 @@ class TaskAutoRoleAssignmentServiceTest {
             .userId("someUserId")
             .build();
 
-        RoleAssignment roleAssignmentNoAuthorizations = getBaseRoleAssignment();
-        roleAssignmentNoAuthorizations.setAuthorisations(emptyList());
+        RoleAssignment roleAssignmentNoAuthorizations = getRoleAssignmentWithEmptyAuthorisation();
 
         CheckAssigneeScenario noRoleAssignmentAuthorizationsScenario = CheckAssigneeScenario.builder()
             .roleAssignments(singletonList(roleAssignmentNoAuthorizations))
@@ -1410,6 +1409,19 @@ class TaskAutoRoleAssignmentServiceTest {
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .authorisations(singletonList("IA"))
+            .build();
+    }
+
+    private static RoleAssignment getRoleAssignmentWithEmptyAuthorisation() {
+        return RoleAssignment.builder()
+            .id("someId")
+            .actorIdType(ActorIdType.IDAM)
+            .actorId("someUserId")
+            .roleName("tribunal-caseworker")
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .roleType(RoleType.ORGANISATION)
+            .classification(Classification.PUBLIC)
+            .authorisations(emptyList())
             .build();
     }
 

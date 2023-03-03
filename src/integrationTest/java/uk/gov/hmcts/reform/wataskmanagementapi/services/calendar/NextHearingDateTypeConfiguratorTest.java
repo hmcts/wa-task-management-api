@@ -1069,9 +1069,6 @@ public class NextHearingDateTypeConfiguratorTest {
             .isEmpty();
     }
 
-    /// multiple
-
-
     @Test
     public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginIsConfigurable() {
         String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

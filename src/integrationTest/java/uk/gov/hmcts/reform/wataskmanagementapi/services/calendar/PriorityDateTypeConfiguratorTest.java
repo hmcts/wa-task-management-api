@@ -1059,7 +1059,6 @@ public class PriorityDateTypeConfiguratorTest {
                     .build()
             ));
     }
-    /// multiple
 
     @Test
     public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginIsConfigurable() {

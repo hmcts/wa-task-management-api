@@ -494,6 +494,36 @@ class TaskManagementServiceTest extends CamundaHelpers {
     }
 
     @Nested
+    @DisplayName("updateIndex()")
+    class UpdateIndex {
+
+        @Test
+        void should_succeed() {
+            TaskResource taskResource = new TaskResource(
+                taskId, "taskName", "taskType", CFTTaskState.ASSIGNED
+            );
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(any())).thenReturn(taskResource);
+
+            taskManagementService.updateTaskIndex(taskId);
+            assertEquals(true, taskResource.getIndexed());
+        }
+
+        @Test
+        void should_complete_for_null_task() {
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> taskManagementService.updateTaskIndex(taskId))
+                .isInstanceOf(TaskNotFoundException.class)
+                .hasNoCause()
+                .hasMessage("Task Not Found Error: The task could not be found.");
+            verify(cftTaskDatabaseService, times(0)).saveTask(any());
+        }
+    }
+
+    @Nested
     @DisplayName("claimTask()")
     class Release2EndpointsClaimTask {
 

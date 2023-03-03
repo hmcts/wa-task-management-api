@@ -854,7 +854,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
     }
 
     @Test
-    public void shouldNotRecalculateDateWhenPriorityDateIsConfigurableButOriginEarliestIsUnConfigurable() {
+    public void shouldRecalculateDateWhenPriorityDateIsConfigurableButOriginEarliestIsUnConfigurable() {
         String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
