@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -995,13 +996,8 @@ public class PriorityDateTypeConfiguratorTest {
 
     @Test
     public void shouldProvideDefaultForPriorityDateAsOfDueDateWhenNoneOfPriorityAttributesArePresent() {
-        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
-            .canReconfigure(CamundaValue.booleanValue(false))
-            .build();
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(calculatedDates), false, false, taskAttributes);
+            .configureDates(List.of(), false, false, taskAttributes);
 
         String expectedDueDate = DEFAULT_ZONED_DATE_TIME.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -1026,20 +1022,14 @@ public class PriorityDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue("dueDate"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
-        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
-            .canReconfigure(CamundaValue.booleanValue(false))
-            .build();
 
-        assertThatThrownBy(() -> dateTypeConfigurator.configureDates(
-            List.of(calculatedDates, nextHearingDateOriginRef),
+        assertThatThrownBy(() -> dateTypeConfigurator.configureDates(List.of(nextHearingDateOriginRef),
             false,
             false,
             taskAttributes
         ))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessage("Calculates dates orders are incorrect based on.");
+            .isInstanceOf(InvalidDateTypeConfigurationException.class)
+            .hasMessage("Re configuration of task is not setup properly in dmn.");
     }
 
     @Test

@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -83,8 +84,13 @@ public class OriginEarliestDateTypeConfiguratorTest {
         );
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(3)
+            .hasSize(4)
             .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("calculatedDates"))
+                    .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
+                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue("2022-10-13T16:00"))
@@ -139,8 +145,13 @@ public class OriginEarliestDateTypeConfiguratorTest {
         );
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(3)
+            .hasSize(4)
             .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("calculatedDates"))
+                    .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
+                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue("2022-10-13T16:00"))
@@ -172,15 +183,8 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        var calculatedDates = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueDateOriginFields(
-            configurable,dueDate, priorityDateOriginEarliest, calculatedDates);
+            configurable,dueDate, priorityDateOriginEarliest);
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
             = dateTypeConfigurator.configureDates(
@@ -949,8 +953,12 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 taskAttributes
             );
 
-        assertThat(configResponses).hasSize(2)
+        assertThat(configResponses).hasSize(3)
             .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("calculatedDates"))
+                    .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
+                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(nextHearingDateValue + "T18:00"))
@@ -1007,8 +1015,12 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 taskAttributes
             );
 
-        assertThat(configResponses).hasSize(2)
+        assertThat(configResponses).hasSize(3)
             .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("calculatedDates"))
+                    .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
+                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(nextHearingDateValue + "T18:00"))
@@ -1042,7 +1054,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                             false,
                             taskAttributes
             ))
-            .isInstanceOf(RuntimeException.class)
+            .isInstanceOf(InvalidDateTypeConfigurationException.class)
             .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
     }
 
@@ -1069,7 +1081,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                             false,
                             taskAttributes
             ))
-            .isInstanceOf(RuntimeException.class)
+            .isInstanceOf(InvalidDateTypeConfigurationException.class)
             .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
     }
 
@@ -1095,7 +1107,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                             false,
                             taskAttributes
             ))
-            .isInstanceOf(RuntimeException.class)
+            .isInstanceOf(InvalidDateTypeConfigurationException.class)
             .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
     }
 
@@ -1126,7 +1138,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                             false,
                             taskAttributes
             ))
-            .isInstanceOf(RuntimeException.class)
+            .isInstanceOf(InvalidDateTypeConfigurationException.class)
             .hasMessage("Origin dates have multiple occurrence, Date type can't be calculated.");
     }
 }

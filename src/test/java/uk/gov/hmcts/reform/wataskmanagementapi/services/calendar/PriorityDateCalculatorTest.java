@@ -26,11 +26,12 @@ class PriorityDateCalculatorTest {
         PRIORITY_DATE,
         PRIORITY_DATE.getType()
     );
-
+    public List<ConfigurationDmnEvaluationResponse> calculatedConfigurations;
     private PriorityDateCalculator priorityDateCalculator;
 
     @BeforeEach
     public void before() {
+        calculatedConfigurations = new ArrayList<>();
         priorityDateCalculator = new PriorityDateCalculator();
     }
 
@@ -123,7 +124,8 @@ class PriorityDateCalculatorTest {
             PRIORITY_DATE_TYPE,
             configurable,
             new HashMap<>(),
-                new ArrayList<>()).getValue().getValue();
+            calculatedConfigurations
+        ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
 
@@ -152,7 +154,8 @@ class PriorityDateCalculatorTest {
 
         String dateValue = priorityDateCalculator.calculateDate(evaluationResponses, PRIORITY_DATE_TYPE, configurable,
                                                                 new HashMap<>(),
-                        new ArrayList<>())
+                                                                new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -181,7 +184,8 @@ class PriorityDateCalculatorTest {
 
         String dateValue = priorityDateCalculator.calculateDate(evaluationResponses, PRIORITY_DATE_TYPE, configurable,
                                                                 new HashMap<>(),
-                        new ArrayList<>())
+                                                                new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -211,7 +215,8 @@ class PriorityDateCalculatorTest {
 
         String dateValue = priorityDateCalculator.calculateDate(evaluationResponses, PRIORITY_DATE_TYPE, configurable,
                                                                 new HashMap<>(),
-                        new ArrayList<>())
+                                                                new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + time);
     }

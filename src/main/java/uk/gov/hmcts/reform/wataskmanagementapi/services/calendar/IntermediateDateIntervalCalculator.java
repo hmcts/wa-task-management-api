@@ -67,7 +67,8 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         String dateTypeName,
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         boolean reconfigure,
-        Map<String, Object> taskAttributes, List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dateTypeName + ORIGIN_SUFFIX))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())

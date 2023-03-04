@@ -8,23 +8,28 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.IntermediateDateCalculatorTest.INTERMEDIATE_DATE_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.NextHearingDateCalculatorTest.NEXT_HEARING_DATE_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 public class DateTypeConfiguratorOrderTest {
+    public static final ArrayList<ConfigurationDmnEvaluationResponse> calculatedConfigs = new ArrayList<>();
+    private final Map<String, Object> taskAttributes = new HashMap<>();
     ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
         .name(CamundaValue.stringValue("dueDate"))
         .value(CamundaValue.stringValue("2023-01-10T16:00"))
@@ -37,32 +42,42 @@ public class DateTypeConfiguratorOrderTest {
         .name(CamundaValue.stringValue("nextHearingDate"))
         .value(CamundaValue.stringValue("2023-01-10T16:00"))
         .build();
-
-    private final Map<String, Object> taskAttributes = new HashMap<>();
-
     @Mock
     private DateCalculator dueDateCalculator;
     @Mock
     private DateCalculator priorityDateCalculator;
     @Mock
     private DateCalculator nextHearingDateCalculator;
+    @Mock
+    private DateCalculator intermediateDateCalculator;
     private DateTypeConfigurator dateTypeConfigurator;
 
     @BeforeEach
     public void setUp() {
-        when(dueDateCalculator.supports(anyList(), eq(DUE_DATE_TYPE), eq(false))).thenReturn(true);
-        when(dueDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+        lenient().when(dueDateCalculator.supports(anyList(), eq(DUE_DATE_TYPE), eq(false))).thenReturn(true);
+        lenient().when(dueDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
             .thenReturn(false);
-        when(dueDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false))).thenReturn(false);
-        when(priorityDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false)))
+        lenient().when(dueDateCalculator.supports(anyList(), eq(INTERMEDIATE_DATE_TYPE), eq(false)))
+            .thenReturn(false);
+        lenient().when(dueDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false))).thenReturn(false);
+        lenient().when(priorityDateCalculator.supports(anyList(), eq(PRIORITY_DATE_TYPE), eq(false)))
             .thenReturn(true);
-        when(priorityDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+        lenient().when(priorityDateCalculator.supports(anyList(), eq(INTERMEDIATE_DATE_TYPE), eq(false)))
             .thenReturn(false);
-        when(nextHearingDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+        lenient().when(priorityDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+            .thenReturn(false);
+        lenient().when(nextHearingDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
+            .thenReturn(true);
+        lenient().when(nextHearingDateCalculator.supports(anyList(), eq(INTERMEDIATE_DATE_TYPE), eq(false)))
+            .thenReturn(false);
+        lenient().when(intermediateDateCalculator.supports(anyList(), eq(INTERMEDIATE_DATE_TYPE), eq(false)))
             .thenReturn(true);
 
-        dateTypeConfigurator = new DateTypeConfigurator(List.of(dueDateCalculator, priorityDateCalculator,
-                                                                nextHearingDateCalculator
+        dateTypeConfigurator = new DateTypeConfigurator(List.of(
+            dueDateCalculator,
+            priorityDateCalculator,
+            nextHearingDateCalculator,
+            intermediateDateCalculator
         ));
     }
 
@@ -78,18 +93,21 @@ public class DateTypeConfiguratorOrderTest {
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
         inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false),
-                                                                eq(taskAttributes),
-                new ArrayList<>());
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false), eq(taskAttributes), new ArrayList<>());
-        inOrder.verify(priorityDateCalculator)
-            .calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false), eq(taskAttributes), new ArrayList<>());
+                                                                eq(taskAttributes), eq(calculatedConfigs)
+        );
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false),
+                                                        eq(taskAttributes), eq(calculatedConfigs)
+        );
+        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false),
+                                                             eq(taskAttributes), eq(calculatedConfigs)
+        );
     }
 
     @Test
     public void should_use_date_calculation_order_when_calculated_date_exist() {
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("dueDate,priorityDate,nextHearingDate"))
+            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
@@ -102,44 +120,85 @@ public class DateTypeConfiguratorOrderTest {
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false),
+                                                                eq(taskAttributes), eq(calculatedConfigs)
+        );
         inOrder.verify(dueDateCalculator)
-            .calculateDate(any(), eq(DUE_DATE_TYPE), eq(false), eq(taskAttributes), new ArrayList<>());
+            .calculateDate(any(), eq(DUE_DATE_TYPE), eq(false), eq(taskAttributes), eq(calculatedConfigs));
         inOrder.verify(priorityDateCalculator)
-            .calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false), eq(taskAttributes), new ArrayList<>());
-        inOrder.verify(nextHearingDateCalculator)
-            .calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false), eq(taskAttributes), new ArrayList<>());
+            .calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false), eq(taskAttributes), eq(calculatedConfigs));
     }
 
     @Test
     public void should_use_last_date_calculation_order_when_multiple_calculated_date_exist() {
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("dueDate,priorityDate,nextHearingDate"))
+            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
             .build();
 
         ConfigurationDmnEvaluationResponse calculatedDates2 = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("nextHearingDate,priorityDate,dueDate"))
+            .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
             .build();
 
-        ConfigurationDmnEvaluationResponse calculatedDates3 = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("priorityDate,dueDate,nextHearingDate"))
-            .build();
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(calculatedDates, calculatedDates2,
-                                                                               calculatedDates3, dueDate,
-                                                                               priorityDate, nextHearingDate
+                                                                               dueDate, priorityDate, nextHearingDate
         );
         dateTypeConfigurator.configureDates(evaluationResponses, false, false, taskAttributes);
 
-        InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
+        InOrder inOrder = inOrder(
+            nextHearingDateCalculator,
+            intermediateDateCalculator,
+            dueDateCalculator,
+            priorityDateCalculator
+        );
 
-        inOrder.verify(priorityDateCalculator)
-            .calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false), eq(taskAttributes), new ArrayList<>());
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false),
+                                                                eq(taskAttributes), eq(calculatedConfigs)
+        );
+        inOrder.verify(intermediateDateCalculator).calculateDate(any(), eq(INTERMEDIATE_DATE_TYPE), eq(false),
+                                                                 eq(taskAttributes), eq(calculatedConfigs)
+        );
         inOrder.verify(dueDateCalculator)
-            .calculateDate(any(), eq(DUE_DATE_TYPE), eq(false), eq(taskAttributes), new ArrayList<>());
-        inOrder.verify(nextHearingDateCalculator)
-            .calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false), eq(taskAttributes), new ArrayList<>());
+            .calculateDate(any(), eq(DUE_DATE_TYPE), eq(false), eq(taskAttributes), eq(calculatedConfigs));
+        inOrder.verify(priorityDateCalculator)
+            .calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false), eq(taskAttributes), eq(calculatedConfigs));
+    }
+
+    @Test
+    public void should_error_when_calculated_dates_are_in_mandatory_dates_order() {
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("calculatedDates"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate,dueDate"))
+            .build();
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(
+                List.of(calculatedDates),
+                false,
+                false,
+                taskAttributes
+            ))
+            .isInstanceOf(InvalidDateTypeConfigurationException.class)
+            .hasMessage("Calculates dates are not in correct order.");
+    }
+
+    @Test
+    public void should_error_when_calculated_dates_are_misses_some_mandatory_date() {
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("calculatedDates"))
+            .value(CamundaValue.stringValue("nextHearingDate,dueDate"))
+            .build();
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(
+                List.of(calculatedDates),
+                false,
+                false,
+                taskAttributes
+            ))
+            .isInstanceOf(InvalidDateTypeConfigurationException.class)
+            .hasMessage("Calculates dates misses mandatory date types.");
     }
 }

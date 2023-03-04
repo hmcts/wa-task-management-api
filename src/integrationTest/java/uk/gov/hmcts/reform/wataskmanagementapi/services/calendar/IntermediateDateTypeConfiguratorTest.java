@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INTERVAL_DAYS_SUFFIX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.MUST_BE_WORKING_DAY_SUFFIX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.NON_WORKING_CALENDAR_SUFFIX;
@@ -94,8 +93,13 @@ public class IntermediateDateTypeConfiguratorTest {
             = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(4)
+            .hasSize(5)
             .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("calculatedDates"))
+                    .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
+                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue("2022-10-13T16:00"))
@@ -162,8 +166,13 @@ public class IntermediateDateTypeConfiguratorTest {
             = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(4)
+            .hasSize(5)
             .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("calculatedDates"))
+                    .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
+                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue("2022-10-13T16:00"))
@@ -192,9 +201,11 @@ public class IntermediateDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
+        String calculatedDatesValue = "nextHearingDate,nextHearingDuration,dueDate,"
+            + "priorityIntermediateDate,priorityDate";
         var calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(stringValue("calculatedDates"))
-            .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityIntermediateDate,priorityDate"))
+            .value(stringValue(calculatedDatesValue))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
@@ -232,8 +243,13 @@ public class IntermediateDateTypeConfiguratorTest {
             = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(5)
+            .hasSize(6)
             .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("calculatedDates"))
+                    .value(stringValue(calculatedDatesValue))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
+                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue("2022-10-13T16:00"))
@@ -589,7 +605,7 @@ public class IntermediateDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Calculates dates orders are incorrect based on.");
+            .hasMessage("Re configuration of task is not setup properly in dmn.");
     }
 
     @ParameterizedTest
@@ -635,7 +651,7 @@ public class IntermediateDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Calculates dates orders are incorrect based on.");
+            .hasMessage("Re configuration of task is not setup properly in dmn.");
     }
 
     @Test
@@ -658,7 +674,7 @@ public class IntermediateDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Calculates dates orders are incorrect based on.");
+            .hasMessage("Re configuration of task is not setup properly in dmn.");
     }
 
     @Test

@@ -38,7 +38,9 @@ public class DueDateTimeCalculator implements DateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest, Map<String, Object> taskAttributes, List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return calculatedDate(dateTypeObject, getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest));
     }
 

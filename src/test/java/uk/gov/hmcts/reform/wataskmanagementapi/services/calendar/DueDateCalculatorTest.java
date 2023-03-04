@@ -122,7 +122,8 @@ class DueDateCalculatorTest {
             DUE_DATE_TYPE,
             configurable,
             new HashMap<>(),
-                new ArrayList<>()).getValue().getValue();
+            new ArrayList<>()
+        ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
 
@@ -151,7 +152,8 @@ class DueDateCalculatorTest {
 
         String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
                                                            new HashMap<>(),
-                        new ArrayList<>())
+                                                           new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -180,7 +182,8 @@ class DueDateCalculatorTest {
 
         String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
                                                            new HashMap<>(),
-                        new ArrayList<>())
+                                                           new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -210,7 +213,8 @@ class DueDateCalculatorTest {
 
         String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
                                                            new HashMap<>(),
-                        new ArrayList<>())
+                                                           new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + time);
     }

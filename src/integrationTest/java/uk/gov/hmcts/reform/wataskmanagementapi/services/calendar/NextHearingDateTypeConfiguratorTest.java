@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -1069,8 +1070,8 @@ public class NextHearingDateTypeConfiguratorTest {
                 configurable,
                 taskAttributes
             ))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessage("Calculates dates orders are incorrect based on.");
+            .isInstanceOf(InvalidDateTypeConfigurationException.class)
+            .hasMessage("Re configuration of task is not setup properly in dmn.");
     }
 
     @Test

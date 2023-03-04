@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,9 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.CALCULATED_DATES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
@@ -24,16 +25,15 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class DateTypeConfigurator {
 
-    public static final String CALCULATED_DATES = "calculatedDates";
     public static final List<DateTypeObject> DEFAULT_DATE_TYPES = Arrays.stream(DateType.values())
-        .filter(d -> d != DateType.CALCULATED_DATES)
+        .filter(d -> d != CALCULATED_DATES)
         .sorted(Comparator.comparing(DateType::getOrder))
         .map(d -> new DateTypeObject(d, d.getType()))
         .toList();
 
     public static final List<DateTypeObject> MANDATORY_DATE_TYPES = Arrays.stream(DateType.values())
-        .filter(d -> d != DateType.CALCULATED_DATES)
-        .filter(d -> d != DateType.INTERMEDIATE_DATE)
+        .filter(d -> d != CALCULATED_DATES)
+        .filter(d -> d != INTERMEDIATE_DATE)
         .sorted(Comparator.comparing(DateType::getOrder))
         .map(d -> new DateTypeObject(d, d.getType()))
         .toList();
@@ -63,7 +63,7 @@ public class DateTypeConfigurator {
                     .collect(Collectors.toList());
 
                 if (dateProperties.isEmpty() && initiationDueDateFound) {
-                    log.info("initiationDueDateFound for configureDueDate");
+                    log.info("DMN configuration doesn't contains any date types configuration");
                     return;
                 }
 
@@ -80,7 +80,7 @@ public class DateTypeConfigurator {
                 filterOutOldValueAndAddDateType(configurationResponses, dateTypeObject, dateTypeResponse);
             });
 
-        return calculatedResponses.get();
+        return configurationResponses.get();
     }
 
     private static ConfigurationDmnEvaluationResponse getDefaultValue(
@@ -109,7 +109,7 @@ public class DateTypeConfigurator {
     private List<DateTypeObject> readCalculationOrder(List<ConfigurationDmnEvaluationResponse> configResponses) {
 
         Optional<List<DateTypeObject>> dateTypes = configResponses.stream()
-            .filter(r1 -> r1.getName().getValue().equals(CALCULATED_DATES))
+            .filter(r1 -> r1.getName().getValue().equals(CALCULATED_DATES.getType()))
             .reduce((a, b) -> b)
             .map(r -> Arrays.stream(r.getValue().getValue().split(","))
                 .map(s -> new DateTypeObject(DateType.from(s), s))
@@ -120,11 +120,11 @@ public class DateTypeConfigurator {
                 .filter(d -> INTERMEDIATE_DATE != d.dateType)
                 .toList();
             if (!new HashSet<>(filtered).containsAll(MANDATORY_DATE_TYPES)) {
-                throw new RuntimeException("Calculates dates misses mandatory date types.");
+                throw new InvalidDateTypeConfigurationException("Calculates dates misses mandatory date types.");
             }
 
             if (!filtered.equals(MANDATORY_DATE_TYPES)) {
-                throw new RuntimeException("Calculates dates are not in correct order.");
+                throw new InvalidDateTypeConfigurationException("Calculates dates are not in correct order.");
             }
 
             return dateTypes.get();
@@ -175,8 +175,10 @@ public class DateTypeConfigurator {
             .distinct()
             .toList();
 
-        if (multipleDateTypes.size() > 1) {
-            throw new RuntimeException("Origin dates have multiple occurrence, Date type can't be calculated.");
+        boolean hasMultipleOriginTypesForADate = multipleDateTypes.size() > 1;
+        if (hasMultipleOriginTypesForADate) {
+            String message = "Origin dates have multiple occurrence, Date type can't be calculated.";
+            throw new InvalidDateTypeConfigurationException(message);
         }
     }
 

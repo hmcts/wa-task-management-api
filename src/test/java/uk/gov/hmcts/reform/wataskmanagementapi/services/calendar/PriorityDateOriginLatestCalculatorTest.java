@@ -28,14 +28,14 @@ class PriorityDateOriginLatestCalculatorTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
-
+    public List<ConfigurationDmnEvaluationResponse> calculatedConfigurations;
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;
-
     private PriorityDateOriginLatestCalculator priorityDateOriginLatestCalculator;
 
     @BeforeEach
     public void before() {
+        calculatedConfigurations = new ArrayList<>();
         priorityDateOriginLatestCalculator = new PriorityDateOriginLatestCalculator(
             new WorkingDayIndicator(publicHolidaysCollection));
 
@@ -129,7 +129,7 @@ class PriorityDateOriginLatestCalculatorTest {
 
         ConfigurationDmnEvaluationResponse priorityDateDateLatestOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateOriginLatest"))
-            .value(CamundaValue.stringValue("dueDate,nextHearingDate"))
+            .value(CamundaValue.stringValue("dueDate"))
             .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
             .build();
 
@@ -138,7 +138,7 @@ class PriorityDateOriginLatestCalculatorTest {
             .value(CamundaValue.stringValue(localDateTime + "T20:00"))
             .build();
 
-
+        calculatedConfigurations.add(dueDate);
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
@@ -148,7 +148,7 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
                                                                new HashMap<>(),
-                                                               new ArrayList<>()
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(0)
@@ -179,7 +179,8 @@ class PriorityDateOriginLatestCalculatorTest {
             .value(CamundaValue.stringValue(latestDateTime + "T20:00"))
             .build();
 
-
+        calculatedConfigurations.add(dueDate);
+        calculatedConfigurations.add(nextHearingDate);
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
@@ -190,7 +191,7 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
                                                                new HashMap<>(),
-                                                               new ArrayList<>()
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         Assertions.assertThat(resultDate).isEqualTo(latestDateTime + "T18:00");
@@ -224,7 +225,8 @@ class PriorityDateOriginLatestCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
             .build();
 
-
+        calculatedConfigurations.add(dueDate);
+        calculatedConfigurations.add(nextHearingDate);
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
@@ -236,7 +238,7 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
                                                                new HashMap<>(),
-                                                               new ArrayList<>()
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(5)
@@ -286,7 +288,8 @@ class PriorityDateOriginLatestCalculatorTest {
             .value(CamundaValue.stringValue("true"))
             .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
             .build();
-
+        calculatedConfigurations.add(dueDate);
+        calculatedConfigurations.add(nextHearingDate);
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
@@ -300,7 +303,7 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
                                                                new HashMap<>(),
-                                                               new ArrayList<>()
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(7)
@@ -350,7 +353,8 @@ class PriorityDateOriginLatestCalculatorTest {
             .value(CamundaValue.stringValue("false"))
             .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
             .build();
-
+        calculatedConfigurations.add(dueDate);
+        calculatedConfigurations.add(nextHearingDate);
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
@@ -364,7 +368,7 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
                                                                new HashMap<>(),
-                                                               new ArrayList<>()
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -415,7 +419,8 @@ class PriorityDateOriginLatestCalculatorTest {
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
             .build();
-
+        calculatedConfigurations.add(dueDate);
+        calculatedConfigurations.add(nextHearingDate);
         String dateValue = priorityDateOriginLatestCalculator.calculateDate(
             readPriorityDateOriginFields(
                 isReconfigureRequest,
@@ -429,7 +434,7 @@ class PriorityDateOriginLatestCalculatorTest {
             ),
             PRIORITY_DATE_TYPE, isReconfigureRequest,
             new HashMap<>(),
-            new ArrayList<>()
+            calculatedConfigurations
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -484,7 +489,8 @@ class PriorityDateOriginLatestCalculatorTest {
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS))
             .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
             .build();
-
+        calculatedConfigurations.add(dueDate);
+        calculatedConfigurations.add(nextHearingDate);
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readPriorityDateOriginFields(
@@ -499,7 +505,7 @@ class PriorityDateOriginLatestCalculatorTest {
                                                                ),
                                                                PRIORITY_DATE_TYPE, isReconfigureRequest,
                                                                new HashMap<>(),
-                                                               new ArrayList<>()
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(1)

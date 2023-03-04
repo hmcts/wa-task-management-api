@@ -1073,7 +1073,7 @@ public class DueDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Calculates dates orders are incorrect based on.");
+            .hasMessage("Re configuration of task is not setup properly in dmn.");
     }
 
     @Test
@@ -1432,6 +1432,40 @@ public class DueDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Calculates dates orders are incorrect based on.");
+            .hasMessage("Re configuration of task is not setup properly in dmn.");
+    }
+
+    @Test
+    public void shouldErrorWhenReferenceDateIsNotYetCalculated() {
+        String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String nextHearingDateValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDate"))
+            .value(CamundaValue.stringValue(nextHearingDateValue + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
+            .value(CamundaValue.stringValue(priorityDateValue + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginRef"))
+            .value(CamundaValue.stringValue("hearingDateIntervalDate"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(
+                List.of(nextHearingDate, priorityDate, dueDateOriginRef),
+                false,
+                false,
+                taskAttributes
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Re configuration of task is not setup properly in dmn.");
     }
 }

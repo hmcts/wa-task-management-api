@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import org.apache.logging.log4j.util.Strings;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDate;
@@ -212,7 +213,7 @@ public interface DateCalculator {
         if (isReconfigureRequest && List.of("dueDate", "priorityDate", "nextHearingDate").contains(dateTypeName)) {
             return getTaskAttributeDate(taskAttributes, dateTypeName);
         }
-        throw new RuntimeException("Calculates dates orders are incorrect based on.");
+        throw new InvalidDateTypeConfigurationException("Re configuration of task is not setup properly in dmn.");
     }
 
     private static LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes,

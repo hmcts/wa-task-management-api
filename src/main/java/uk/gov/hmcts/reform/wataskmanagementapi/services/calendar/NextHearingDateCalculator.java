@@ -31,7 +31,9 @@ public class NextHearingDateCalculator extends DueDateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateType,
-        boolean isReconfigureRequest, Map<String, Object> taskAttributes, List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return calculatedDate(
             dateType,
             getProperty(configResponses, NEXT_HEARING_DATE.getType(), isReconfigureRequest),
