@@ -22,6 +22,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalc
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DATE_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_ZONED_DATE_TIME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
@@ -1073,7 +1074,7 @@ public class DueDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Re configuration of task is not setup properly in dmn.");
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 
     @Test
@@ -1432,7 +1433,7 @@ public class DueDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Re configuration of task is not setup properly in dmn.");
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 
     @Test
@@ -1466,6 +1467,6 @@ public class DueDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Re configuration of task is not setup properly in dmn.");
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 }

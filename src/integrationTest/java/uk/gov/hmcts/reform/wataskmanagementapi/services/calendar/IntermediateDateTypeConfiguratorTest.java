@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INTERVAL_DAYS_SUFFIX;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.MUST_BE_WORKING_DAY_SUFFIX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.NON_WORKING_CALENDAR_SUFFIX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.NON_WORKING_DAYS_OF_WEEK_SUFFIX;
@@ -605,7 +606,7 @@ public class IntermediateDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Re configuration of task is not setup properly in dmn.");
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 
     @ParameterizedTest
@@ -651,7 +652,7 @@ public class IntermediateDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Re configuration of task is not setup properly in dmn.");
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 
     @Test
@@ -674,7 +675,7 @@ public class IntermediateDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Re configuration of task is not setup properly in dmn.");
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 
     @Test

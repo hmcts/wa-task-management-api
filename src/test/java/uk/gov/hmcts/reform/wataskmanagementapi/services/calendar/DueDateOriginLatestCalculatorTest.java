@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
@@ -187,8 +188,8 @@ class DueDateOriginLatestCalculatorTest {
                 new HashMap<>(),
                 calculatedConfigurations
             ))
-            .isInstanceOf(InvalidDateTypeConfigurationException.class)
-            .hasMessage("Re configuration of task is not setup properly in dmn.");
+            .isInstanceOf(DateCalculationException.class)
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 
     @ParameterizedTest

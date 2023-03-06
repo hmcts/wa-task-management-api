@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +21,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
@@ -1070,8 +1071,8 @@ public class NextHearingDateTypeConfiguratorTest {
                 configurable,
                 taskAttributes
             ))
-            .isInstanceOf(InvalidDateTypeConfigurationException.class)
-            .hasMessage("Re configuration of task is not setup properly in dmn.");
+            .isInstanceOf(DateCalculationException.class)
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 
     @Test

@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +21,8 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.MANDATORY_DATES_NOT_IN_REQUIRED_ORDER_IN_CALCULATED_DATES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.MANDATORY_DATES_NOT_PROVIDED_IN_CALCULATED_DATES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.IntermediateDateCalculatorTest.INTERMEDIATE_DATE_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.NextHearingDateCalculatorTest.NEXT_HEARING_DATE_TYPE;
@@ -180,8 +182,8 @@ public class DateTypeConfiguratorOrderTest {
                 false,
                 taskAttributes
             ))
-            .isInstanceOf(InvalidDateTypeConfigurationException.class)
-            .hasMessage("Calculates dates are not in correct order.");
+            .isInstanceOf(DateCalculationException.class)
+            .hasMessage(MANDATORY_DATES_NOT_IN_REQUIRED_ORDER_IN_CALCULATED_DATES);
     }
 
     @Test
@@ -198,7 +200,7 @@ public class DateTypeConfiguratorOrderTest {
                 false,
                 taskAttributes
             ))
-            .isInstanceOf(InvalidDateTypeConfigurationException.class)
-            .hasMessage("Calculates dates misses mandatory date types.");
+            .isInstanceOf(DateCalculationException.class)
+            .hasMessage(MANDATORY_DATES_NOT_PROVIDED_IN_CALCULATED_DATES);
     }
 }

@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +37,14 @@ public class DateTypeConfigurator {
         .sorted(Comparator.comparing(DateType::getOrder))
         .map(d -> new DateTypeObject(d, d.getType()))
         .toList();
+    public static final String MANDATORY_DATES_NOT_PROVIDED_IN_CALCULATED_DATES
+        = "Mandatory dates are not provided in calculatedDates field."
+        + " Must provide (nextHearingDate,dueDate,priorityDate)";
+    public static final String MANDATORY_DATES_NOT_IN_REQUIRED_ORDER_IN_CALCULATED_DATES
+        = "Mandatory dates are not in required order in calculatedDates field."
+        + " Must be (nextHearingDate,dueDate,priorityDate)";
+    public static final String AMBIGUOUS_ORIGIN_DATES_PROVIDED
+        = "Origin dates have multiple occurrence, Date type can't be calculated.";
     private final List<DateCalculator> dateCalculators;
 
     public DateTypeConfigurator(List<DateCalculator> dateCalculators) {
@@ -120,11 +128,11 @@ public class DateTypeConfigurator {
                 .filter(d -> INTERMEDIATE_DATE != d.dateType)
                 .toList();
             if (!new HashSet<>(filtered).containsAll(MANDATORY_DATE_TYPES)) {
-                throw new InvalidDateTypeConfigurationException("Calculates dates misses mandatory date types.");
+                throw new DateCalculationException(MANDATORY_DATES_NOT_PROVIDED_IN_CALCULATED_DATES);
             }
 
             if (!filtered.equals(MANDATORY_DATE_TYPES)) {
-                throw new InvalidDateTypeConfigurationException("Calculates dates are not in correct order.");
+                throw new DateCalculationException(MANDATORY_DATES_NOT_IN_REQUIRED_ORDER_IN_CALCULATED_DATES);
             }
 
             return dateTypes.get();
@@ -177,8 +185,7 @@ public class DateTypeConfigurator {
 
         boolean hasMultipleOriginTypesForADate = multipleDateTypes.size() > 1;
         if (hasMultipleOriginTypesForADate) {
-            String message = "Origin dates have multiple occurrence, Date type can't be calculated.";
-            throw new InvalidDateTypeConfigurationException(message);
+            throw new DateCalculationException(AMBIGUOUS_ORIGIN_DATES_PROVIDED);
         }
     }
 

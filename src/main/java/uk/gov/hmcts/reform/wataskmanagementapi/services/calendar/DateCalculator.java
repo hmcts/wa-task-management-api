@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import org.apache.logging.log4j.util.Strings;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InvalidDateTypeConfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDate;
@@ -69,6 +69,7 @@ public interface DateCalculator {
     LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
         .withHour(16).withMinute(0).withSecond(0);
     LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
+    String INVALID_DATE_REFERENCE_FIELD = "Invalid Date reference field {}. Referred field is not yet available.";
 
     boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
                      DateTypeObject dateTypeObject,
@@ -213,7 +214,7 @@ public interface DateCalculator {
         if (isReconfigureRequest && List.of("dueDate", "priorityDate", "nextHearingDate").contains(dateTypeName)) {
             return getTaskAttributeDate(taskAttributes, dateTypeName);
         }
-        throw new InvalidDateTypeConfigurationException("Re configuration of task is not setup properly in dmn.");
+        throw new DateCalculationException(INVALID_DATE_REFERENCE_FIELD);
     }
 
     private static LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes,
