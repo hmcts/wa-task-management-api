@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfigu
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -178,15 +177,13 @@ public class CftQueryService {
                                                              boolean isGranularPermissionEnabled) {
         if (isGranularPermissionEnabled) {
             //When granular permission feature flag is enabled, request is expected only in new format
-            RequestContext context = searchRequest.getRequestContext();
-            if (context == null) {
-                return PermissionRequirementBuilder.builder().buildSingleType(READ);
-            } else if (context.equals(RequestContext.AVAILABLE_TASKS)) {
+            if (searchRequest.isAvailableTasksOnly()) {
                 return PermissionRequirementBuilder.builder().buildSingleRequirementWithAnd(OWN, CLAIM);
-            } else if (context.equals(RequestContext.ALL_WORK)) {
+            } else if (searchRequest.isAllWork()) {
                 return PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
+            } else {
+                return PermissionRequirementBuilder.builder().buildSingleType(READ);
             }
-            return PermissionRequirementBuilder.builder().buildSingleType(READ);
         } else {
             if (searchRequest.isAvailableTasksOnly()) {
                 return PermissionRequirementBuilder.builder().buildSingleRequirementWithAnd(OWN, READ);
