@@ -35,15 +35,12 @@ public class NextHearingDateOriginRefCalculator extends NextHearingDateIntervalC
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(
-            List<ConfigurationDmnEvaluationResponse> configResponses,
-            boolean isReconfigureRequest,
-            Map<String, Object> taskAttributes,
-            List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
-        return getOriginRefDate(
-            calculatedConfigurations,
-            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest),
-            taskAttributes,
-            isReconfigureRequest
-        );
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var configProperty = getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_REF, isReconfigureRequest);
+        log.info("Input {}: {}", NEXT_HEARING_DATE_ORIGIN_REF, configProperty);
+        return getOriginRefDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }

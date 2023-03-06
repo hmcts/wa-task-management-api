@@ -40,11 +40,8 @@ public class DueDateOriginLatestCalculator extends DueDateIntervalCalculator {
         boolean isReconfigureRequest,
         Map<String, Object> taskAttributes,
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
-        return getOriginLatestDate(
-            calculatedConfigurations,
-            getProperty(configResponses, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest),
-            taskAttributes,
-            isReconfigureRequest
-        );
+        var configProperty = getProperty(configResponses, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest);
+        log.info("Input {}: {}", DUE_DATE_ORIGIN_LATEST, configProperty);
+        return getOriginLatestDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }

@@ -123,8 +123,10 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
             .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_ORIGIN))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
-            .map(ConfigurationDmnEvaluationResponse::getValue)
-            .map(CamundaValue::getValue)
+            .map(v -> {
+                log.info("Input {}: {}", PRIORITY_DATE_ORIGIN, v);
+                return v.getValue().getValue();
+            })
             .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
     }
 }

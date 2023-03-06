@@ -110,8 +110,10 @@ public class DueDateIntervalCalculator implements DateCalculator {
             .filter(r -> r.getName().getValue().equals(DUE_DATE_ORIGIN))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
-            .map(ConfigurationDmnEvaluationResponse::getValue)
-            .map(CamundaValue::getValue)
+            .map(v -> {
+                log.info("Input {}: {}", DUE_DATE_ORIGIN, v);
+                return v.getValue().getValue();
+            })
             .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
     }
 

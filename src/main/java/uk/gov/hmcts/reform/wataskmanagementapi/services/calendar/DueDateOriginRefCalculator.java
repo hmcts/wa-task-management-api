@@ -37,11 +37,8 @@ public class DueDateOriginRefCalculator extends DueDateIntervalCalculator {
         boolean isReconfigureRequest,
         Map<String, Object> taskAttributes,
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
-        return getOriginRefDate(
-            calculatedConfigurations,
-            getProperty(configResponses, DUE_DATE_ORIGIN_REF, isReconfigureRequest),
-            taskAttributes,
-            isReconfigureRequest
-        );
+        var configProperty = getProperty(configResponses, DUE_DATE_ORIGIN_REF, isReconfigureRequest);
+        log.info("Input {}: {}", DUE_DATE_ORIGIN_REF, configProperty);
+        return getOriginRefDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }

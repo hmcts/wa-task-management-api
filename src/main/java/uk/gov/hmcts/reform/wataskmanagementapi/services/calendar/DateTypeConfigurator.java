@@ -58,6 +58,10 @@ public class DateTypeConfigurator {
         Map<String, Object> taskAttributes) {
 
         List<DateTypeObject> calculationOrder = readCalculationOrder(dmnConfigurationResponses);
+        log.info(
+            "Date Calculation order is {}",
+            calculationOrder.stream().map(c -> c.dateTypeName).collect(Collectors.joining(","))
+        );
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> calculatedResponses
             = new AtomicReference<>(new ArrayList<>());
 
@@ -83,7 +87,7 @@ public class DateTypeConfigurator {
                     taskAttributes,
                     configurationResponses.get()
                 );
-                log.info("{} based in configuration is as {}", dateTypeObject.dateTypeName, dateTypeResponse);
+                log.info("Calculated value of {} is as {}", dateTypeObject.dateTypeName, dateTypeResponse);
                 Optional.ofNullable(dateTypeResponse).ifPresent(r -> calculatedResponses.get().add(r));
                 filterOutOldValueAndAddDateType(configurationResponses, dateTypeObject, dateTypeResponse);
             });

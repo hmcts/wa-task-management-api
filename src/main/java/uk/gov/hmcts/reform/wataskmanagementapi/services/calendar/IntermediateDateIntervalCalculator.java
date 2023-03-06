@@ -73,8 +73,10 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
             .filter(r -> r.getName().getValue().equals(dateTypeName + ORIGIN_SUFFIX))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
-            .map(ConfigurationDmnEvaluationResponse::getValue)
-            .map(CamundaValue::getValue)
+            .map(v -> {
+                log.info("Input {}: {}", dateTypeName + ORIGIN_SUFFIX, v);
+                return v.getValue().getValue();
+            })
             .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
     }
 

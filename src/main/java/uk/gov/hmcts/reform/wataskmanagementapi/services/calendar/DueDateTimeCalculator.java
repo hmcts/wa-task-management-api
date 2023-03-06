@@ -41,7 +41,9 @@ public class DueDateTimeCalculator implements DateCalculator {
         boolean isReconfigureRequest,
         Map<String, Object> taskAttributes,
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
-        return calculatedDate(dateTypeObject, getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest));
+        var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest);
+        log.info("Input {}: {}", DUE_DATE_TIME, dueDateTimeResponse);
+        return calculatedDate(dateTypeObject, dueDateTimeResponse);
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(

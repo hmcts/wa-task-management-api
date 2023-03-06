@@ -34,10 +34,9 @@ public class IntermediateDateCalculator extends DueDateCalculator {
         Map<String, Object> taskAttributes,
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         String dateTypeName = dateTypeObject.dateTypeName();
-        return calculatedDate(
-            dateTypeObject,
-            getProperty(configResponses, dateTypeName, isReconfigureRequest),
-            getProperty(configResponses, dateTypeName + TIME_SUFFIX, isReconfigureRequest)
-        );
+        var intermediateDate = getProperty(configResponses, dateTypeName, isReconfigureRequest);
+        log.info("Input {}: {}", dateTypeName, intermediateDate);
+        var intermediateDateTime = getProperty(configResponses, dateTypeName + TIME_SUFFIX, isReconfigureRequest);
+        return calculatedDate(dateTypeObject, intermediateDate, intermediateDateTime);
     }
 }

@@ -34,6 +34,7 @@ public class PriorityDateCalculator extends DueDateCalculator {
         Map<String, Object> taskAttributes,
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         var priorityDateResponse = getProperty(priorityDateProperties, PRIORITY_DATE.getType(), isReconfigureRequest);
+        log.info("Input {}: {}", PRIORITY_DATE.getType(), priorityDateResponse);
         var priorityDateTimeResponse = getProperty(priorityDateProperties, PRIORITY_DATE_TIME, isReconfigureRequest);
         return calculatedDate(dateType, priorityDateResponse, priorityDateTimeResponse);
     }

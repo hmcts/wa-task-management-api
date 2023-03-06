@@ -39,15 +39,12 @@ public class NextHearingDateOriginEarliestCalculator extends NextHearingDateInte
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(
-            List<ConfigurationDmnEvaluationResponse> configResponses,
-            boolean isReconfigureRequest,
-            Map<String, Object> taskAttributes,
-            List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
-        return getOriginEarliestDate(
-            calculatedConfigurations,
-            getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest),
-            taskAttributes,
-            isReconfigureRequest
-        );
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var configProperty = getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
+        log.info("Input {}: {}", NEXT_HEARING_DATE_ORIGIN_EARLIEST, configProperty);
+        return getOriginEarliestDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }
