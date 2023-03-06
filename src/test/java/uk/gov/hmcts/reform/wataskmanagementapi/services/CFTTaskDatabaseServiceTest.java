@@ -221,8 +221,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
-            accessControlResponse,
-            false);
+            accessControlResponse);
         assertEquals(0, response.getTotalRecords());
         assertTrue(response.getTasks().isEmpty());
     }
@@ -261,12 +260,11 @@ class CFTTaskDatabaseServiceTest {
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
             anyList(),
-            eq(false)
+            eq(true)
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
-            accessControlResponse,
-            false);
+            accessControlResponse);
         assertEquals(1, response.getTotalRecords());
         assertEquals(1, response.getTasks().size());
         assertEquals(task, response.getTasks().get(0));
@@ -307,12 +305,11 @@ class CFTTaskDatabaseServiceTest {
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
             anyList(),
-            eq(false)
+            eq(true)
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
-            accessControlResponse,
-            false);
+            accessControlResponse);
         assertEquals(1, response.getTotalRecords());
         assertEquals(1, response.getTasks().size());
         assertEquals(task, response.getTasks().get(0));
@@ -353,12 +350,11 @@ class CFTTaskDatabaseServiceTest {
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
             anyList(),
-            eq(false)
+            eq(true)
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
-            accessControlResponse,
-            false);
+            accessControlResponse);
         assertEquals(1, response.getTotalRecords());
         assertEquals(1, response.getTasks().size());
         assertEquals(task, response.getTasks().get(0));

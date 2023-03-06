@@ -18,11 +18,11 @@ public class IntermediateDateCalculator extends DueDateCalculator {
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest) {
+        boolean isReconfigure) {
 
+        String dateTypeName = dateTypeObject.dateTypeName();
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeObject.dateTypeName(), isReconfigureRequest))
-            .isPresent();
+            && Optional.ofNullable(getProperty(dueDateProperties, dateTypeName, isReconfigure)).isPresent();
     }
 
     @Override

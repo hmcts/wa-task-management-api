@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Setter;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -21,7 +20,6 @@ import java.util.Optional;
 @Builder
 @EqualsAndHashCode
 @ToString
-@Setter
 public class RoleAssignment {
 
     private String id;
