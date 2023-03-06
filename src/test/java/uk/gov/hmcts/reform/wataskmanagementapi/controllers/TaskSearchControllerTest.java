@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -29,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Collections.emptyList;
@@ -40,7 +42,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.TASK_TYPE;
@@ -325,6 +330,63 @@ class TaskSearchControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().getTotalRecords());
+    }
+
+    @Test
+    void should_search_by_search_index_when_gin_index_feature_flag_is_true() {
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
+
+        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
+            mockedUserInfo.getUid(),
+            mockedUserInfo.getEmail())).thenReturn(true);
+
+        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
+        when(cftTaskDatabaseService.searchForTasks(anyInt(), anyInt(), any(), any()))
+            .thenReturn(tasksResponse);
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, 0, 1,
+            new SearchTaskRequest(
+                singletonList(new SearchParameterList(
+                        TASK_TYPE,
+                        SearchOperator.IN,
+                        singletonList("processApplication")
+                    )
+                )
+            )
+        );
+
+        verify(cftQueryService, never()).searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean(), anyBoolean());
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, Objects.requireNonNull(response.getBody()).getTotalRecords());
+    }
+
+    @Test
+    void should_not_search_by_search_index_when_gin_index_feature_flag_is_false() {
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
+
+        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
+            mockedUserInfo.getUid(),
+            mockedUserInfo.getEmail())).thenReturn(false);
+
+        taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, 0, 1,
+            new SearchTaskRequest(
+                singletonList(new SearchParameterList(
+                        TASK_TYPE,
+                        SearchOperator.IN,
+                        singletonList("processApplication")
+                    )
+                )
+            )
+        );
+
+        verify(cftTaskDatabaseService, never()).searchForTasks(anyInt(), anyInt(), any(), any());
     }
 
 }

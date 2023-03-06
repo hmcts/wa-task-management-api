@@ -21,18 +21,17 @@ public class NextHearingDateOriginEarliestCalculator extends NextHearingDateInte
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         ConfigurationDmnEvaluationResponse nextHearingDateOriginEarliest = getProperty(
-            dueDateProperties,
+            configResponses,
             NEXT_HEARING_DATE_ORIGIN_EARLIEST,
             isReconfigureRequest
         );
         return NEXT_HEARING_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
-            .isEmpty()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigureRequest))
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, NEXT_HEARING_DATE.getType())
+            && Optional.ofNullable(getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
             .isEmpty()
             && Optional.ofNullable(nextHearingDateOriginEarliest).isPresent();
     }

@@ -74,13 +74,33 @@ public class SearchTaskRequestMapperTest {
     void shouldMapAvailableTaskOnly() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.AVAILABLE_TASKS,
-            List.of(new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("ia")))
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA", "WA"))
+            )
         );
 
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         assertTrue(searchRequest.isAvailableTasksOnly());
         assertThat(searchRequest.getCftTaskStates(), hasItem(CFTTaskState.UNASSIGNED));
 
+        searchTaskRequest = new SearchTaskRequest(
+            RequestContext.ALL_WORK,
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA", "WA"))
+            )
+        );
+
+        searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        assertFalse(searchRequest.isAvailableTasksOnly());
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA", "WA"))
+            )
+        );
+
+        searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        assertFalse(searchRequest.isAvailableTasksOnly());
     }
 
     @Test
@@ -104,7 +124,6 @@ public class SearchTaskRequestMapperTest {
         assertThat(searchRequest.getJurisdictions(), hasItems("IA", "WA"));
         assertThat(searchRequest.getCftTaskStates(), hasItems(CFTTaskState.UNASSIGNED));
         assertThat(searchRequest.getCaseIds(), hasItems("1623278362431003", "1623278362432003"));
-        assertTrue(searchRequest.isAvailableTasksOnly());
     }
 
     @Test
