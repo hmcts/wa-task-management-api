@@ -31,13 +31,6 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     @Override
     Optional<TaskResource> findById(@NonNull String id);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "5000")})
-    @Transactional
-    @NonNull
-    @Query("select t from tasks t where t.taskId = :id")
-    Optional<TaskResource> findByIdAndWaitForLock(@NonNull String id);
-
     Optional<TaskResource> getByTaskId(String id);
 
     List<TaskResource> getByCaseId(String caseId);

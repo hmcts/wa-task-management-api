@@ -58,7 +58,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -778,21 +777,15 @@ public class TaskManagementService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateTaskIndex(String taskId, boolean indexed) {
-        try {
-            Optional<TaskResource> findTaskResponse = cftTaskDatabaseService
-                .findByIdAndWaitAndObtainPessimisticWriteLock(taskId);
+    public TaskResource updateTaskIndex(String taskId) {
+        Optional<TaskResource> findTaskResponse = cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
+        if (findTaskResponse.isPresent()) {
+            TaskResource taskResource = findTaskResponse.get();
+            taskResource.setIndexed(true);
 
-            if (findTaskResponse.isPresent()) {
-                TaskResource taskResource = findTaskResponse.get();
-                taskResource.setIndexed(indexed);
-
-                cftTaskDatabaseService.saveTask(taskResource);
-            } else {
-                throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
-            }
-        } catch (PersistenceException ex) {
-            log.error("PersistenceException occurred in updating indexed field of taskId:{} to {}", taskId, indexed);
+            return cftTaskDatabaseService.saveTask(taskResource);
+        } else {
+            throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
         }
     }
 
@@ -896,18 +889,11 @@ public class TaskManagementService {
     }
 
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
-        List<TaskResource> successfulTaskResources = taskOperationServices.stream()
+        return taskOperationServices.stream()
             .flatMap(taskOperationService -> taskOperationService
                 .performOperation(taskOperationRequest).stream())
             .filter(Objects::nonNull)
             .toList();
-
-        if (successfulTaskResources != null) {
-            successfulTaskResources.forEach(t ->
-                updateTaskIndex(t.getTaskId(), taskOperationRequest.getOperation().getType().isIndexed()));
-        }
-
-        return successfulTaskResources;
     }
 
     /**

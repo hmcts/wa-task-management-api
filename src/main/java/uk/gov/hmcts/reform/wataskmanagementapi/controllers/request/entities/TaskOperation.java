@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 
 @Schema(
     name = "TaskOperation",
@@ -18,7 +18,7 @@ public class TaskOperation {
 
     @Schema(required = true)
     @JsonProperty("name")
-    private TaskOperationType type;
+    private TaskOperationName name;
 
     @JsonProperty("run_id")
     private String runId;
@@ -28,8 +28,8 @@ public class TaskOperation {
     @JsonProperty("retry_window_hours")
     private long retryWindowHours;
 
-    public TaskOperationType getType() {
-        return type;
+    public TaskOperationName getName() {
+        return name;
     }
 
     public String getRunId() {

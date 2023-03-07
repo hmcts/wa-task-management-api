@@ -8,18 +8,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -29,42 +26,31 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.nullValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 
 public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     private TestAuthenticationCredentials assignerCredentials;
     private TestAuthenticationCredentials assigneeCredentials;
-    private TestAuthenticationCredentials searchCredentials;
     private String taskId;
 
     @Before
     public void setUp() {
         assignerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         assigneeCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        searchCredentials = authorizationProvider.getNewTribunalCaseworker("wa-gin-index-");
     }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(assignerCredentials.getHeaders());
         common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
-        common.clearAllRoleAssignments(searchCredentials.getHeaders());
 
         authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(searchCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -80,13 +66,12 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         initiateTask(taskVariables);
 
         common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
-        common.setupWAOrganisationalRoleAssignment(searchCredentials.getHeaders(), "tribunal-caseworker");
 
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
             assigneeCredentials.getHeaders()
         );
 
@@ -111,26 +96,10 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .body("task.reconfigure_request_time", notNullValue())
             .body("task.last_reconfiguration_time", nullValue());
 
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
-            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId()))
-        ));
-
-        result = restApiActions.post(
-            "/task?first_result=0&max_results=10",
-            searchTaskRequest,
-            searchCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0)); //Default max results
-
-
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequestWithRetryWindowHours(
-                TaskOperationType.EXECUTE_RECONFIGURE,
+                TaskOperationName.EXECUTE_RECONFIGURE,
                 OffsetDateTime.now().minus(Duration.ofDays(1))
             ),
             assigneeCredentials.getHeaders()
@@ -157,18 +126,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .body("task.reconfigure_request_time", nullValue())
             .body("task.last_reconfiguration_time", notNullValue());
 
-        result = restApiActions.post(
-            "/task?first_result=0&max_results=10",
-            searchTaskRequest,
-            searchCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
-            .body("tasks.id", everyItem(notNullValue()))
-            .body("tasks.id", hasItem(is(taskId)));
-
         common.cleanUpTask(taskId);
     }
 
@@ -191,7 +148,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
             assigneeCredentials.getHeaders()
         );
 
@@ -219,7 +176,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequestWithRetryWindowHours(
-                TaskOperationType.EXECUTE_RECONFIGURE,
+                TaskOperationName.EXECUTE_RECONFIGURE,
                 OffsetDateTime.now().minus(Duration.ofDays(1))
             ),
             assigneeCredentials.getHeaders()
@@ -253,19 +210,19 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         common.cleanUpTask(taskId);
     }
 
-    private TaskOperationRequest taskOperationRequest(TaskOperationType operationName, String caseId) {
+    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
         TaskOperation operation = TaskOperation.builder()
-            .type(operationName)
+            .name(operationName)
             .runId(UUID.randomUUID().toString())
             .maxTimeLimit(2)
             .build();
         return new TaskOperationRequest(operation, taskFilters(caseId));
     }
 
-    private TaskOperationRequest taskOperationRequestWithRetryWindowHours(TaskOperationType operationName,
+    private TaskOperationRequest taskOperationRequestWithRetryWindowHours(TaskOperationName operationName,
                                                                           OffsetDateTime reconfigureRequestTime) {
         TaskOperation operation = TaskOperation.builder()
-            .type(operationName)
+            .name(operationName)
             .runId(UUID.randomUUID().toString())
             .maxTimeLimit(2)
             .retryWindowHours(120)
