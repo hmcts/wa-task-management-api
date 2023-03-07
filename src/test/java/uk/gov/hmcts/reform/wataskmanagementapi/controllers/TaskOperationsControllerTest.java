@@ -29,7 +29,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class TaskReconfigurationControllerTest {
+class TaskOperationsControllerTest {
 
     private static final String SYSTEM_USER_IDAM_ID = "SYSTEM_USER_IDAM_ID";
     private static final String SERVICE_AUTHORIZATION_TOKEN = "SERVICE_AUTHORIZATION_TOKEN";
@@ -42,11 +42,11 @@ class TaskReconfigurationControllerTest {
     @Mock
     private UserInfo userInfo;
 
-    private TaskReconfigurationController taskReconfigurationController;
+    private TaskOperationsController taskOperationsController;
 
     @BeforeEach
     void setUp() {
-        taskReconfigurationController = new TaskReconfigurationController(
+        taskOperationsController = new TaskOperationsController(
             taskManagementService,
             clientAccessControlService
         );
@@ -61,13 +61,13 @@ class TaskReconfigurationControllerTest {
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
-        ResponseEntity response = taskReconfigurationController.performOperation(
+        ResponseEntity response = taskOperationsController.performOperation(
             SERVICE_AUTHORIZATION_TOKEN,
             taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE)
         );
 
         assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
@@ -76,7 +76,7 @@ class TaskReconfigurationControllerTest {
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(false);
 
-        assertThatThrownBy(() -> taskReconfigurationController.performOperation(
+        assertThatThrownBy(() -> taskOperationsController.performOperation(
             SERVICE_AUTHORIZATION_TOKEN,
             taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE)
         ))

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
@@ -27,14 +28,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals"})
-public class TaskReconfigurationController extends BaseController {
+public class TaskOperationsController extends BaseController {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;
 
     @Autowired
-    public TaskReconfigurationController(TaskManagementService taskManagementService,
-                                         ClientAccessControlService clientAccessControlService) {
+    public TaskOperationsController(TaskManagementService taskManagementService,
+                                    ClientAccessControlService clientAccessControlService) {
         super();
         this.taskManagementService = taskManagementService;
         this.clientAccessControlService = clientAccessControlService;
@@ -42,7 +43,7 @@ public class TaskReconfigurationController extends BaseController {
 
     @Operation(description = "performs specified operation like marking tasks to reconfigure and execute reconfigure.")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task operation has been completed"),
+        @ApiResponse(responseCode = "200", description = "Task operation has been completed"),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
@@ -52,24 +53,27 @@ public class TaskReconfigurationController extends BaseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/operation")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public ResponseEntity<Void> performOperation(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
-                                                 @RequestBody TaskOperationRequest taskOperationRequest) {
+    public ResponseEntity<TaskOperationResponse> performOperation(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+        @RequestBody TaskOperationRequest taskOperationRequest) {
+
         log.info("task operation request received '{}'", taskOperationRequest);
+
         boolean hasExclusiveAccessRequest =
             clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
 
-        if (hasExclusiveAccessRequest) {
-            taskManagementService.performOperation(
-                taskOperationRequest
-            );
-        } else {
+        if (!hasExclusiveAccessRequest) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
 
+        TaskOperationResponse response = taskManagementService.performOperation(
+            taskOperationRequest
+        );
+
         return ResponseEntity
-            .noContent()
+            .ok()
             .cacheControl(CacheControl.noCache())
-            .build();
+            .body(response);
     }
 
 }

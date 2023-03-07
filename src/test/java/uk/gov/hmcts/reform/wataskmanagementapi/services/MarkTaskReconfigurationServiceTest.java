@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -32,6 +33,7 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static utils.TaskOperationResponseExtractor.extractTaskResource;
 
 @ExtendWith(MockitoExtension.class)
 class MarkTaskReconfigurationServiceTest {
@@ -80,7 +82,11 @@ class MarkTaskReconfigurationServiceTest {
             .thenReturn(taskResources.get(1));
 
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-        List<TaskResource> taskResourcesMarked = markTaskReconfigurationService.markTasksToReconfigure(taskFilters);
+
+        TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
+            .markTasksToReconfigure(taskFilters);
+
+        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
 
         taskResourcesMarked.forEach(taskResource -> {
             assertNotNull(taskResource.getReconfigureRequestTime());
@@ -89,7 +95,6 @@ class MarkTaskReconfigurationServiceTest {
             assertEquals(IDAM_SYSTEM_USER, taskResource.getLastUpdatedUser());
             assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResource.getLastUpdatedAction());
         });
-
     }
 
     @Test
@@ -100,7 +105,10 @@ class MarkTaskReconfigurationServiceTest {
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(taskResources);
 
-        List<TaskResource> taskResourcesMarked = markTaskReconfigurationService.markTasksToReconfigure(taskFilters);
+        TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
+            .markTasksToReconfigure(taskFilters);
+
+        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
 
         taskResourcesMarked.forEach(taskResource -> assertNull(taskResource.getReconfigureRequestTime()));
 
@@ -113,7 +121,10 @@ class MarkTaskReconfigurationServiceTest {
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(List.of());
 
-        List<TaskResource> taskResourcesMarked = markTaskReconfigurationService.markTasksToReconfigure(taskFilters);
+        TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
+            .markTasksToReconfigure(taskFilters);
+
+        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
 
         assertEquals(0, taskResourcesMarked.size());
     }
@@ -122,15 +133,16 @@ class MarkTaskReconfigurationServiceTest {
     void should_not_mark_tasks_to_reconfigure_if_task_resource_cannot_be_reconfigurable() {
         List<TaskFilter<?>> taskFilters = createTaskFilters();
         when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
-            any())).thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(
-                    CamundaValue.stringValue("caseName"),
-                    CamundaValue.stringValue("Value"),
-                    CamundaValue.booleanValue(false)
-                )
-        ));
+            any())).thenReturn(List.of(new ConfigurationDmnEvaluationResponse(
+            CamundaValue.stringValue("caseName"),
+            CamundaValue.stringValue("Value"),
+            CamundaValue.booleanValue(false)
+        )));
 
-        List<TaskResource> taskResourcesMarked = markTaskReconfigurationService.markTasksToReconfigure(taskFilters);
+        TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
+            .markTasksToReconfigure(taskFilters);
+
+        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
 
         assertEquals(0, taskResourcesMarked.size());
     }
@@ -139,15 +151,15 @@ class MarkTaskReconfigurationServiceTest {
     void should_not_mark_tasks_to_reconfigure_if_task_resource_cannot_be_reconfigurable_when_null() {
         List<TaskFilter<?>> taskFilters = createTaskFilters();
         when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
-            any())).thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(
-                    CamundaValue.stringValue("caseName"),
-                    CamundaValue.stringValue("Value"),
-                    null
-                )
-        ));
+            any())).thenReturn(List.of(new ConfigurationDmnEvaluationResponse(
+            CamundaValue.stringValue("caseName"),
+            CamundaValue.stringValue("Value"),
+            null
+        )));
+        TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
+            .markTasksToReconfigure(taskFilters);
 
-        List<TaskResource> taskResourcesMarked = markTaskReconfigurationService.markTasksToReconfigure(taskFilters);
+        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
 
         assertEquals(0, taskResourcesMarked.size());
     }

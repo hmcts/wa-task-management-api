@@ -8,12 +8,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
+public class CFTSensitiveTaskEventLogsDatabaseServiceUnitTest {
 
     @Mock
     private SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
@@ -41,4 +46,21 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
 
         assertNotNull(actualSensitiveTaskEventLog);
     }
+
+    @Test
+    void should_delete_sensitive_task_event_log() {
+
+        LocalDateTime timeStamp = LocalDateTime.now();
+
+        when(sensitiveTaskEventLogsRepository.cleanUpSensitiveLogs(timeStamp))
+            .thenReturn(1);
+
+        int deletedRows = cftSensitiveTaskEventLogsDatabaseService.cleanUpSensitiveLogs(timeStamp);
+
+        assertEquals(1, deletedRows);
+
+        verify(sensitiveTaskEventLogsRepository, times(1))
+            .cleanUpSensitiveLogs(timeStamp);
+    }
+
 }

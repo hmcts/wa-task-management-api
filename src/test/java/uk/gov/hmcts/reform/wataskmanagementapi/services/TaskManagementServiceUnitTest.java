@@ -38,6 +38,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.CleanupSensitiveLogsTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
@@ -45,6 +46,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
@@ -148,10 +150,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.ROLE_ASSIGNMENT_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.setTaskActionAttributes;
+import static utils.TaskOperationResponseExtractor.extractTaskResource;
 
 @ExtendWith(MockitoExtension.class)
 @Slf4j
-class TaskManagementServiceTest extends CamundaHelpers {
+class TaskManagementServiceUnitTest extends CamundaHelpers {
 
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
@@ -165,7 +168,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
-    private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
+    CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @Spy
     CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
     @Mock
@@ -185,6 +188,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     RoleAssignmentVerificationService roleAssignmentVerification;
     MarkTaskReconfigurationService markTaskReconfigurationService;
     ExecuteTaskReconfigurationService executeTaskReconfigurationService;
+    CleanUpSensitiveLogsService cleanUpSensitiveLogsService;
     TaskManagementService taskManagementService;
     String taskId;
     String caseId;
@@ -218,61 +222,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Mock
     private UserInfo userInfo;
 
-    @Test
-    void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
-        TaskOperationRequest taskOperationRequest = taskOperationRequest();
-
-        List<TaskResource> taskResources = taskResources(null);
-        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-            anyList(), anyList())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
-            .thenReturn(Optional.of(taskResources.get(0)))
-            .thenReturn(Optional.of(taskResources.get(1)));
-        when(cftTaskDatabaseService.saveTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
-
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-        List<TaskResource> taskResourcesMarked = taskManagementService
-            .performOperation(taskOperationRequest);
-
-        taskResourcesMarked.forEach(taskResource -> {
-            assertNotNull(taskResource.getReconfigureRequestTime());
-            assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
-            assertNotNull(taskResource.getLastUpdatedTimestamp());
-            assertEquals(IDAM_SYSTEM_USER, taskResource.getLastUpdatedUser());
-            assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResource.getLastUpdatedAction());
-        });
-    }
-
-    @Test
-    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_not_active() {
-        TaskOperationRequest taskOperationRequest = taskOperationRequest();
-
-        List<TaskResource> taskResources = cancelledTaskResources();
-        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-            anyList(), anyList())).thenReturn(taskResources);
-
-        List<TaskResource> taskResourcesMarked = taskManagementService
-            .performOperation(taskOperationRequest);
-
-        taskResourcesMarked.forEach(taskResource -> assertNull(taskResource.getReconfigureRequestTime()));
-
-    }
-
-    @Test
-    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
-        TaskOperationRequest taskOperationRequest = taskOperationRequest();
-
-        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-            anyList(), anyList())).thenReturn(List.of());
-
-        List<TaskResource> taskResourcesMarked = taskManagementService
-            .performOperation(taskOperationRequest);
-
-        assertEquals(0, taskResourcesMarked.size());
-    }
-
     @BeforeEach
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
@@ -292,6 +241,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
             taskAutoAssignmentService
         );
 
+        cleanUpSensitiveLogsService = new CleanUpSensitiveLogsService(
+            cftSensitiveTaskEventLogsDatabaseService
+        );
+
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
@@ -300,7 +253,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            List.of(markTaskReconfigurationService, executeTaskReconfigurationService),
+            List.of(markTaskReconfigurationService, executeTaskReconfigurationService, cleanUpSensitiveLogsService),
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService);
@@ -350,6 +303,77 @@ class TaskManagementServiceTest extends CamundaHelpers {
         lenient().when(userInfo.getUid()).thenReturn("IDAM_SYSTEM_USER");
     }
 
+    @Test
+    void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
+        TaskOperationRequest taskOperationRequest = taskOperationRequest();
+
+        List<TaskResource> taskResources = taskResources(null);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+            .thenReturn(Optional.of(taskResources.get(0)))
+            .thenReturn(Optional.of(taskResources.get(1)));
+        when(cftTaskDatabaseService.saveTask(any()))
+            .thenReturn(taskResources.get(0))
+            .thenReturn(taskResources.get(1));
+
+        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
+        TaskOperationResponse taskOperationResponse = taskManagementService
+            .performOperation(taskOperationRequest);
+
+        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
+
+        taskResourcesMarked.forEach(taskResource1 -> {
+            assertNotNull(taskResource1.getReconfigureRequestTime());
+            assertTrue(taskResource1.getReconfigureRequestTime().isAfter(todayTestDatetime));
+            assertNotNull(taskResource1.getLastUpdatedTimestamp());
+            assertEquals(IDAM_SYSTEM_USER, taskResource1.getLastUpdatedUser());
+            assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResource1.getLastUpdatedAction());
+        });
+    }
+
+    @Test
+    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_not_active() {
+        TaskOperationRequest taskOperationRequest = taskOperationRequest();
+
+        List<TaskResource> taskResources = cancelledTaskResources();
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
+
+        TaskOperationResponse taskOperationResponse = taskManagementService
+            .performOperation(taskOperationRequest);
+
+        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
+        taskResourcesMarked.forEach(taskResource -> assertNull(taskResource.getReconfigureRequestTime()));
+    }
+
+    @Test
+    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
+        TaskOperationRequest taskOperationRequest = taskOperationRequest();
+
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(List.of());
+
+        TaskOperationResponse taskOperationResponse = taskManagementService
+            .performOperation(taskOperationRequest);
+
+        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
+
+        assertEquals(0, taskResourcesMarked.size());
+    }
+
+    @Test
+    void should_clean_sensitive_logs() {
+        TaskOperationRequest taskOperationRequest = cleanUpTaskOperationRequest();
+
+        TaskOperationResponse taskOperationResponse = taskManagementService
+            .performOperation(taskOperationRequest);
+
+        int deletedRows = (int) taskOperationResponse.getResponseMap().get("deletedRows");
+
+        assertEquals(0, deletedRows);
+    }
+    
     private List<TaskResource> taskResources(OffsetDateTime reconfigureTime) {
         TaskResource taskResource1 = new TaskResource(
             "1234",
@@ -400,9 +424,31 @@ class TaskManagementServiceTest extends CamundaHelpers {
         return new TaskOperationRequest(operation, taskFilters());
     }
 
+    private TaskOperationRequest cleanUpTaskOperationRequest() {
+        TaskOperation operation = TaskOperation.builder()
+            .name(TaskOperationName.CLEANUP_SENSITIVE_LOG_ENTRIES)
+            .runId("run_id1")
+            .build();
+        return new TaskOperationRequest(operation, cleanUpTaskFilters());
+    }
+
+    private TaskOperationRequest invalidTaskOperationRequest() {
+        TaskOperation operation = TaskOperation.builder()
+            .name(TaskOperationName.CLEANUP_SENSITIVE_LOG_ENTRIES)
+            .runId("run_id1")
+            .build();
+        return new TaskOperationRequest(operation, cleanUpTaskFilters());
+    }
+
     private List<TaskFilter<?>> taskFilters() {
         TaskFilter<List<String>> filter = new MarkTaskToReconfigureTaskFilter(
             "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
+        return List.of(filter);
+    }
+
+    private List<TaskFilter<?>> cleanUpTaskFilters() {
+        TaskFilter<OffsetDateTime> filter = new CleanupSensitiveLogsTaskFilter(
+            "clean_up_start_date", OffsetDateTime.now(), TaskFilterOperator.BEFORE);
         return List.of(filter);
     }
 

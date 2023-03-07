@@ -115,7 +115,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId0")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId0");
@@ -139,7 +139,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId2")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId2");
@@ -153,7 +153,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId2")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> latestTaskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId2");
@@ -180,7 +180,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId3")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId3");
@@ -204,7 +204,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId4")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId4");
@@ -240,7 +240,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId5")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> latestTaskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId5");
@@ -418,7 +418,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId9")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId9");
@@ -461,7 +461,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId10")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId10");

@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
 import java.time.Duration;
@@ -31,9 +32,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static utils.TaskOperationResponseExtractor.extractTaskResource;
 
 @ExtendWith(MockitoExtension.class)
-class ExecuteTaskReconfigurationServiceTest {
+class ExecuteTaskReconfigurationServiceUnitTest {
 
     @Mock
     ConfigureTaskService configureTaskService;
@@ -75,8 +77,10 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService
+        TaskOperationResponse taskOperationResponse = executeTaskReconfigurationService
             .performOperation(request);
+
+        List<TaskResource> taskResourcesReconfigured = extractTaskResource(taskOperationResponse);
 
         verify(configureTaskService, times(2)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(2)).reAutoAssignCFTTask(any());
@@ -107,8 +111,10 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService
+        TaskOperationResponse taskOperationResponse = executeTaskReconfigurationService
             .performOperation(request);
+
+        List<TaskResource> taskResourcesReconfigured = extractTaskResource(taskOperationResponse);
 
         verify(configureTaskService, times(0)).configureCFTTask(any(), any());
         verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
@@ -144,9 +150,9 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService
+        TaskOperationResponse taskOperationResponse = executeTaskReconfigurationService
             .performOperation(request);
-
+        List<TaskResource> taskResourcesReconfigured = extractTaskResource(taskOperationResponse);
         verify(configureTaskService, times(1)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
 
@@ -236,8 +242,10 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService
+        TaskOperationResponse taskOperationResponse = executeTaskReconfigurationService
             .performOperation(request);
+
+        List<TaskResource> taskResourcesReconfigured = extractTaskResource(taskOperationResponse);
         assertEquals(0, taskResourcesReconfigured.size());
     }
 
@@ -260,8 +268,10 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        List<TaskResource> taskResourcesReconfigured = executeTaskReconfigurationService
+        TaskOperationResponse taskOperationResponse = executeTaskReconfigurationService
             .performOperation(request);
+
+        List<TaskResource> taskResourcesReconfigured = extractTaskResource(taskOperationResponse);
 
         verify(configureTaskService, times(0)).configureCFTTask(any(), any());
         verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
@@ -272,5 +282,6 @@ class ExecuteTaskReconfigurationServiceTest {
         });
 
     }
+
 }
 

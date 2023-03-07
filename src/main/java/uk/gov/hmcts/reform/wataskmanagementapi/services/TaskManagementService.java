@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
@@ -51,7 +52,6 @@ import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -900,12 +900,12 @@ public class TaskManagementService {
             .toList();
     }
 
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
+    public TaskOperationResponse performOperation(TaskOperationRequest taskOperationRequest) {
+
         return taskOperationServices.stream()
-            .flatMap(taskOperationService -> taskOperationService
-                .performOperation(taskOperationRequest).stream())
-            .filter(Objects::nonNull)
-            .toList();
+            .map(taskOperationServices -> taskOperationServices.performOperation(taskOperationRequest))
+            .filter(response -> response.getResponseMap() != null)
+            .findFirst().get();
     }
 
     /**

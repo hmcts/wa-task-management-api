@@ -54,14 +54,14 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    public void should_return_a_204_after_tasks_are_marked_and_executed_for_reconfigure() {
+    public void should_return_a_200_after_tasks_are_marked_and_executed_for_reconfigure() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
         );
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         initiateTask(taskVariables);
 
@@ -76,7 +76,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         taskId = taskVariables.getTaskId();
 
@@ -106,7 +106,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         taskId = taskVariables.getTaskId();
 
@@ -153,7 +153,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         taskId = taskVariables.getTaskId();
 
@@ -183,7 +183,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         taskId = taskVariables.getTaskId();
 

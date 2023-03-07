@@ -8,7 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
@@ -16,9 +16,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfiguration
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName.MARK_TO_RECONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.MARK_FOR_RECONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_MARK_TASKS_TO_RECONFIGURE_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.setTaskActionAttributes;
@@ -40,7 +42,7 @@ public class MarkTaskReconfigurationService implements TaskOperationService {
         this.idamTokenGenerator = idamTokenGenerator;
     }
 
-    protected List<TaskResource> markTasksToReconfigure(List<TaskFilter<?>> taskFilters) {
+    protected TaskOperationResponse markTasksToReconfigure(List<TaskFilter<?>> taskFilters) {
         List<String> caseIds = taskFilters.stream()
             .filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
             .flatMap(filter -> ((MarkTaskToReconfigureTaskFilter) filter).getValues().stream())
@@ -70,16 +72,16 @@ public class MarkTaskReconfigurationService implements TaskOperationService {
             throw new TaskReconfigurationException(TASK_RECONFIGURATION_MARK_TASKS_TO_RECONFIGURE_FAILED, caseIds);
         }
 
-        return successfulTaskResources;
+        return new TaskOperationResponse(Map.of("successfulTaskResources", successfulTaskResources));
     }
 
     @Override
     @Transactional(noRollbackFor = TaskReconfigurationException.class)
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
-        if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.MARK_TO_RECONFIGURE)) {
+    public TaskOperationResponse performOperation(TaskOperationRequest taskOperationRequest) {
+        if (MARK_TO_RECONFIGURE.equals(taskOperationRequest.getOperation().getName())) {
             return markTasksToReconfigure(taskOperationRequest.getTaskFilter());
         }
-        return List.of();
+        return new TaskOperationResponse();
     }
 
     private boolean isReconfigurable(String caseId) {

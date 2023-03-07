@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -63,5 +64,9 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
 
             }
         });
+    }
+
+    public int cleanUpSensitiveLogs(LocalDateTime timeStamp) {
+        return sensitiveTaskEventLogsRepository.cleanUpSensitiveLogs(timeStamp);
     }
 }

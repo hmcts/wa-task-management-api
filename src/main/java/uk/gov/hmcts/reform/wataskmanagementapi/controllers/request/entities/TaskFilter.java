@@ -10,8 +10,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = MarkTaskToReconfigureTaskFilter.class, name = "MarkTaskToReconfigureTaskFilter"),
-    @JsonSubTypes.Type(value = ExecuteReconfigureTaskFilter.class, name = "ExecuteReconfigureTaskFilter") }
-)
+    @JsonSubTypes.Type(value = ExecuteReconfigureTaskFilter.class, name = "ExecuteReconfigureTaskFilter"),
+    @JsonSubTypes.Type(value = CleanupSensitiveLogsTaskFilter.class, name = "CleanupSensitiveLogsTaskFilter")
+})
 public interface TaskFilter<T> {
 
     String getKey();

@@ -7,17 +7,19 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskExecuteReconfigurationException;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName.EXECUTE_RECONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED;
 
 @Slf4j
@@ -39,14 +41,15 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
 
     @Override
     @Transactional(noRollbackFor = TaskExecuteReconfigurationException.class)
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
-        if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.EXECUTE_RECONFIGURE)) {
+    public TaskOperationResponse performOperation(TaskOperationRequest taskOperationRequest) {
+
+        if (EXECUTE_RECONFIGURE.equals(taskOperationRequest.getOperation().getName())) {
             return executeTasksToReconfigure(taskOperationRequest);
         }
-        return List.of();
+        return new TaskOperationResponse();
     }
 
-    private List<TaskResource> executeTasksToReconfigure(TaskOperationRequest request) {
+    private TaskOperationResponse executeTasksToReconfigure(TaskOperationRequest request) {
         log.debug("execute tasks toReconfigure request: {}", request);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(request.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
@@ -75,7 +78,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
             configurationFailLog(failedTaskIds, request.getOperation().getRetryWindowHours());
         }
 
-        return successfulTaskResources;
+        return new TaskOperationResponse(Map.of("successfulTaskResources", successfulTaskResources));
     }
 
     private void configurationFailLog(List<String> failedTaskIds, long retryWindowHours) {
