@@ -16,7 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Exec
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.time.OffsetDateTime;
@@ -54,7 +54,7 @@ public class ExecuteTaskReconfigurationServiceTest {
 
         TaskOperationRequest taskOperationRequest = new TaskOperationRequest(
             TaskOperation.builder()
-                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
                 .maxTimeLimit(2)
                 .retryWindowHours(1)
                 .runId("")

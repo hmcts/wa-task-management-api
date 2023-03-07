@@ -27,7 +27,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.persistence.LockTimeoutException;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -78,6 +80,28 @@ class CFTTaskDatabaseServiceTest {
         assertNotNull(actualTaskResource);
         assertTrue(actualTaskResource.isPresent());
         assertEquals(someTaskResource, actualTaskResource.get());
+    }
+
+    @Test
+    void should_find_by_id_and_wait_and_obtain_pessimistic_write_lock() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByIdAndWaitForLock(taskId)).thenReturn(Optional.of(someTaskResource));
+
+        final Optional<TaskResource> actualTaskResource =
+            cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId);
+
+        assertNotNull(actualTaskResource);
+        assertTrue(actualTaskResource.isPresent());
+        assertEquals(someTaskResource, actualTaskResource.get());
+    }
+
+    @Test
+    void should_find_by_id_and_wait_and_obtain_pessimistic_write_lock_throw_exception() {
+        when(taskResourceRepository.findByIdAndWaitForLock(taskId)).thenThrow(new LockTimeoutException());
+
+        assertThatThrownBy(() -> cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId))
+            .isInstanceOf(LockTimeoutException.class);
     }
 
     @Test
