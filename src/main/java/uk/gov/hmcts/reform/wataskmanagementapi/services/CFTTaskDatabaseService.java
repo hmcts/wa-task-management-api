@@ -39,14 +39,14 @@ public class CFTTaskDatabaseService {
     private final TaskResourceRepository tasksRepository;
     private final CFTTaskMapper cftTaskMapper;
 
-    public CFTTaskDatabaseService(TaskResourceRepository taskResourceRepository,
+    public CFTTaskDatabaseService(TaskResourceRepository tasksRepository,
                                   CFTTaskMapper cftTaskMapper) {
-        this.taskResourceRepository = taskResourceRepository;
+        this.tasksRepository = tasksRepository;
         this.cftTaskMapper = cftTaskMapper;
     }
 
     public Optional<TaskResource> findByIdAndObtainPessimisticWriteLock(String taskId) {
-        return taskResourceRepository.findById(taskId);
+        return tasksRepository.findById(taskId);
     }
 
     public Optional<TaskResource> findByIdAndWaitAndObtainPessimisticWriteLock(String taskId) {
@@ -54,21 +54,21 @@ public class CFTTaskDatabaseService {
     }
 
     public Optional<TaskResource> findByIdOnly(String taskId) {
-        return taskResourceRepository.getByTaskId(taskId);
+        return tasksRepository.getByTaskId(taskId);
     }
 
     public List<TaskResource> findByCaseIdOnly(String caseId) {
-        return taskResourceRepository.getByCaseId(caseId);
+        return tasksRepository.getByCaseId(caseId);
     }
 
     public List<TaskResource> getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
         List<String> caseIds, List<CFTTaskState> states) {
-        return taskResourceRepository.findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(caseIds, states);
+        return tasksRepository.findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(caseIds, states);
     }
 
     public List<TaskResource> getActiveTasksAndReconfigureRequestTimeGreaterThan(
         List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime) {
-        return taskResourceRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
+        return tasksRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
             states, reconfigureRequestTime);
     }
 
@@ -82,16 +82,16 @@ public class CFTTaskDatabaseService {
         if (task.getPriorityDate() == null) {
             task.setPriorityDate(task.getDueDateTime());
         }
-        return taskResourceRepository.save(task);
+        return tasksRepository.save(task);
     }
 
     public void insertAndLock(String taskId, OffsetDateTime dueDate) throws SQLException {
         OffsetDateTime created = OffsetDateTime.now();
-        taskResourceRepository.insertAndLock(taskId, dueDate, created, dueDate);
+        tasksRepository.insertAndLock(taskId, dueDate, created, dueDate);
     }
 
     public Optional<TaskResource> findTaskBySpecification(Specification<TaskResource> specification) {
-        return taskResourceRepository.findOne(specification);
+        return tasksRepository.findOne(specification);
     }
 
     public Optional<String> findCaseId(String taskId) {
