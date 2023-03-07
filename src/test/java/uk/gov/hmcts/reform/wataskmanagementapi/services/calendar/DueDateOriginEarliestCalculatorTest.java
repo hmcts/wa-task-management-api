@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -185,7 +186,8 @@ class DueDateOriginEarliestCalculatorTest {
             .calculateDate(
                 readDueDateOriginFields(configurable, dueDateOriginEarliest, nextHearingDate),
                 DUE_DATE_TYPE,
-                configurable
+                configurable,
+                new HashMap<>()
             );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -229,7 +231,8 @@ class DueDateOriginEarliestCalculatorTest {
                 priorityDate
             ),
             DUE_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -278,7 +281,8 @@ class DueDateOriginEarliestCalculatorTest {
                                                                    dueDateIntervalDays
                                                                ),
                                                                DUE_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(1)
@@ -343,7 +347,8 @@ class DueDateOriginEarliestCalculatorTest {
                                                                    dueDateSkipNonWorkingDays
                                                                ),
                                                                DUE_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5)
@@ -408,7 +413,8 @@ class DueDateOriginEarliestCalculatorTest {
                                                                    dueDateSkipNonWorkingDays
                                                                ),
                                                                DUE_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -474,7 +480,8 @@ class DueDateOriginEarliestCalculatorTest {
                 dueDateIntervalDays
             ),
             DUE_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -542,7 +549,8 @@ class DueDateOriginEarliestCalculatorTest {
                 dueDateSkipNonWorkingDays
             ),
             DUE_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 

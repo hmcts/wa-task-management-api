@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -53,7 +54,8 @@ public class DateTypeConfigurator {
     public List<ConfigurationDmnEvaluationResponse> configureDates(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean initiationDueDateFound,
-        boolean isReconfigureRequest) {
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
 
         List<DateTypeObject> calculationOrder = readCalculationOrder(configResponses);
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> responses
@@ -74,7 +76,8 @@ public class DateTypeConfigurator {
                     isReconfigureRequest,
                     dateTypeObject,
                     dateProperties,
-                    responses
+                    responses,
+                    taskAttributes
                 );
                 log.info("{} based in configuration is as {}", dateTypeObject.dateTypeName, dateTypeResponse);
                 filterOutOldValueAndAddDateType(responses, dateTypeObject, dateTypeResponse);
@@ -91,6 +94,7 @@ public class DateTypeConfigurator {
         DateType[] defaultOrder = DateType.values();
         Arrays.sort(defaultOrder, Comparator.comparing(DateType::getOrder));
         List<DateTypeObject> defaultDateTypeObjects = Arrays.stream(defaultOrder)
+            .filter(d -> d != DateType.CALCULATED_DATES)
             .map(d -> new DateTypeObject(d, d.getType()))
             .toList();
 
@@ -103,11 +107,13 @@ public class DateTypeConfigurator {
         boolean isReconfigureRequest,
         DateTypeObject dateTypeObject,
         List<ConfigurationDmnEvaluationResponse> dateProperties,
-        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses) {
+        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses,
+        Map<String, Object> taskAttributes) {
         Optional<DateCalculator> dateCalculator
             = getDateCalculator(dateProperties, dateTypeObject, isReconfigureRequest);
         if (dateCalculator.isPresent()) {
-            return dateCalculator.get().calculateDate(configResponses.get(), dateTypeObject, isReconfigureRequest);
+            return dateCalculator.get()
+                .calculateDate(configResponses.get(), dateTypeObject, isReconfigureRequest, taskAttributes);
         } else {
             return isReconfigureRequest ? null : getDefaultValue(dateTypeObject.dateType, configResponses);
         }

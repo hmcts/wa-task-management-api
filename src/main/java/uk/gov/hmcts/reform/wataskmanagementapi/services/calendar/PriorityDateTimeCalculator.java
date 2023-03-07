@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
@@ -44,7 +45,9 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateTypeObject dateType, boolean isReconfigureRequest) {
+        DateTypeObject dateType,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
         return calculatedDate(dateType, getProperty(priorityDateProperties, PRIORITY_DATE_TIME, isReconfigureRequest));
     }
 }

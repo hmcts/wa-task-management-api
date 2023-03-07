@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -184,7 +185,8 @@ class NextHearingDateOriginRefCalculatorTest {
             .calculateDate(
                 readNextHearingDateOriginFields(nextHearingDateOriginRef, nextHearingDate),
                 NEXT_HEARING_DATE_TYPE,
-                configurable
+                configurable,
+                new HashMap<>()
             );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -225,7 +227,8 @@ class NextHearingDateOriginRefCalculatorTest {
                 priorityDate
             ),
             NEXT_HEARING_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -279,7 +282,8 @@ class NextHearingDateOriginRefCalculatorTest {
                                                                    nextHearingDateIntervalDays
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -347,7 +351,8 @@ class NextHearingDateOriginRefCalculatorTest {
                                                                    nextHearingDateSkipNonWorkingDays
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -408,7 +413,8 @@ class NextHearingDateOriginRefCalculatorTest {
                                                                    nextHearingDateSkipNonWorkingDays
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -478,7 +484,8 @@ class NextHearingDateOriginRefCalculatorTest {
                 nextHearingDateIntervalDays
             ),
             NEXT_HEARING_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -543,7 +550,8 @@ class NextHearingDateOriginRefCalculatorTest {
                 nextHearingDateSkipNonWorkingDays
             ),
             NEXT_HEARING_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 

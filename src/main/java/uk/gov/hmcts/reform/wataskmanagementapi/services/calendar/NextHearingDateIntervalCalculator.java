@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
@@ -25,25 +26,25 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> nextHearingDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
         return NEXT_HEARING_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(nextHearingDateProperties, NEXT_HEARING_DATE_ORIGIN,
-                                               isReconfigureRequest
-        )).isPresent()
-            && Optional.ofNullable(getProperty(nextHearingDateProperties, NEXT_HEARING_DATE.getType(),
-                                               isReconfigureRequest
-        )).isEmpty();
+            && Optional.ofNullable(getProperty(configResponses, NEXT_HEARING_DATE_ORIGIN, isReconfigureRequest))
+            .isPresent()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, NEXT_HEARING_DATE.getType());
+
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateType, boolean isReconfigureRequest) {
+        DateTypeObject dateType,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
 
-        Optional<LocalDateTime> referenceDate = getReferenceDate(configResponses, isReconfigureRequest);
+        var referenceDate = getReferenceDate(configResponses, isReconfigureRequest, taskAttributes);
         return referenceDate.map(localDateTime -> calculateDate(
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
@@ -116,7 +117,9 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, boolean reconfigure) {
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean reconfigure,
+        Map<String, Object> taskAttributes) {
         return configResponses.stream()
             .filter(r -> r.getName().getValue().equals(NEXT_HEARING_DATE_ORIGIN))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())

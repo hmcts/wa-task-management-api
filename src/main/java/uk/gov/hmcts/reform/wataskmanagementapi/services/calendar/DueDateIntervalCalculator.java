@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
@@ -29,24 +30,25 @@ public class DueDateIntervalCalculator implements DateCalculator {
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
         return DUE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isPresent()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty();
+            && Optional.ofNullable(getProperty(configResponses, DUE_DATE_ORIGIN, isReconfigureRequest)).isPresent()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, DUE_DATE.getType());
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateType,
-        boolean isReconfigureRequest) {
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
         return calculateDate(
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
-            getReferenceDate(configResponses, isReconfigureRequest).orElse(DEFAULT_ZONED_DATE_TIME)
+            getReferenceDate(configResponses, isReconfigureRequest, taskAttributes).orElse(DEFAULT_ZONED_DATE_TIME)
         );
     }
 
@@ -99,7 +101,9 @@ public class DueDateIntervalCalculator implements DateCalculator {
     }
 
     protected Optional<LocalDateTime> getReferenceDate(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties, boolean reconfigure) {
+        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        boolean reconfigure,
+        Map<String, Object> taskAttributes) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(DUE_DATE_ORIGIN))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
