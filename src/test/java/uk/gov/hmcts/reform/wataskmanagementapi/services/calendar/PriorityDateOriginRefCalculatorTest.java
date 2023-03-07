@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -178,7 +179,8 @@ class PriorityDateOriginRefCalculatorTest {
             .calculateDate(
                 readPriorityDateOriginFields(priorityDateOriginRef, nextHearingDate),
                 PRIORITY_DATE_TYPE,
-                configurable
+                configurable,
+                new HashMap<>()
             );
 
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
@@ -219,7 +221,8 @@ class PriorityDateOriginRefCalculatorTest {
                 priorityDate
             ),
             PRIORITY_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 
@@ -273,7 +276,8 @@ class PriorityDateOriginRefCalculatorTest {
                                                                    priorityDateIntervalDays
                                                                ),
                                                                PRIORITY_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -341,7 +345,8 @@ class PriorityDateOriginRefCalculatorTest {
                                                                    priorityDateSkipNonWorkingDays
                                                                ),
                                                                PRIORITY_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -402,7 +407,8 @@ class PriorityDateOriginRefCalculatorTest {
                                                                    priorityDateSkipNonWorkingDays
                                                                ),
                                                                PRIORITY_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -472,7 +478,8 @@ class PriorityDateOriginRefCalculatorTest {
                 priorityDateIntervalDays
             ),
             PRIORITY_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -537,7 +544,8 @@ class PriorityDateOriginRefCalculatorTest {
                 priorityDateSkipNonWorkingDays
             ),
             PRIORITY_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>()
         );
         LocalDateTime resultDate = LocalDateTime.parse(configurationDmnEvaluationResponse.getValue().getValue());
 

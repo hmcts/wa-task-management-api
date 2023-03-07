@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
@@ -30,7 +31,7 @@ public class NextHearingDateCalculator extends DueDateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateType,
-        boolean isReconfigureRequest) {
+        boolean isReconfigureRequest, Map<String, Object> taskAttributes) {
         return calculatedDate(
             dateType,
             getProperty(configResponses, NEXT_HEARING_DATE.getType(), isReconfigureRequest),
