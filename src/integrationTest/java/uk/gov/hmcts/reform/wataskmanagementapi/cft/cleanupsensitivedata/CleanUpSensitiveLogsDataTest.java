@@ -12,12 +12,16 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.SensitiveTaskEventLogsRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
 
 @ActiveProfiles("integration")
 @DataJpaTest
@@ -60,6 +64,18 @@ public class CleanUpSensitiveLogsDataTest {
 
         long remainingCount = sensitiveTaskEventLogsRepository.count();
         Assertions.assertThat(remainingCount).isEqualTo(1);
+    }
+
+    @Test
+    void remaining_records_expiry_time_should_after_current_time() {
+
+        LocalDateTime jobStartTime = LocalDateTime.now();
+        cftSensitiveTaskEventLogsDatabaseService.cleanUpSensitiveLogs(jobStartTime);
+
+        List<SensitiveTaskEventLog> sensitiveTaskEventLogList = (List<SensitiveTaskEventLog>) sensitiveTaskEventLogsRepository.findAll();
+        Assertions.assertThat(sensitiveTaskEventLogList).isNotEmpty();
+        Assertions.assertThat(sensitiveTaskEventLogList.get(0).getExpiryTime()).isAfter(OffsetDateTime.of(jobStartTime, ZoneOffset.UTC));
+
     }
 
 }
