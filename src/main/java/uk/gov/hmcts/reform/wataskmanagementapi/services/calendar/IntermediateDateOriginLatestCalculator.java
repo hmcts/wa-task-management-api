@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
@@ -36,12 +37,16 @@ public class IntermediateDateOriginLatestCalculator extends IntermediateDateInte
     }
 
     @Override
-    protected Optional<LocalDateTime> getReferenceDate(String dateTypeName,
-                                                       List<ConfigurationDmnEvaluationResponse> configResponses,
-                                                       boolean isReconfigureRequest) {
+    protected Optional<LocalDateTime> getReferenceDate(
+        String dateTypeName,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
         return getOriginLatestDate(
             configResponses,
-            getProperty(configResponses, dateTypeName + ORIGIN_LATEST_SUFFIX, isReconfigureRequest)
+            getProperty(configResponses, dateTypeName + ORIGIN_LATEST_SUFFIX, isReconfigureRequest),
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }

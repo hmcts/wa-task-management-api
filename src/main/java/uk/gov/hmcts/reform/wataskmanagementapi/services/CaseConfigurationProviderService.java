@@ -81,7 +81,8 @@ public class CaseConfigurationProviderService {
 
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
             = updateTaskConfigurationDmnResultsForAdditionalProperties(
-                taskConfigurationDmnResults, initiationDueDateFound, isReconfigureRequest
+                taskConfigurationDmnResults, initiationDueDateFound, isReconfigureRequest,
+                taskAttributes
         );
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
@@ -139,7 +140,9 @@ public class CaseConfigurationProviderService {
 
     private List<ConfigurationDmnEvaluationResponse> updateTaskConfigurationDmnResultsForAdditionalProperties(
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
-        boolean initiationDueDateFound, boolean isReconfigureRequest) {
+        boolean initiationDueDateFound,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
 
         Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
             .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
@@ -156,7 +159,11 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return dateTypeConfigurator.configureDates(configResponses, initiationDueDateFound, isReconfigureRequest);
+        return dateTypeConfigurator.configureDates(configResponses,
+                                                   initiationDueDateFound,
+                                                   isReconfigureRequest,
+                                                   taskAttributes
+        );
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(
@@ -183,7 +190,7 @@ public class CaseConfigurationProviderService {
 
         List<String> commonCategories = caseAccessCategories.stream()
             .filter(caseFromCategoriesFromCase::contains)
-            .collect(Collectors.toList());
+            .toList();
         return !commonCategories.isEmpty();
     }
 

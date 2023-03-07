@@ -12,7 +12,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
@@ -43,6 +45,7 @@ public class IntermediateDateTypeConfiguratorTest {
         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
     public static final String NEXT_HEARING_DATE_VALUE = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         + "T16:00";
+    private final Map<String, Object> taskAttributes = new HashMap<>();
 
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
@@ -87,7 +90,7 @@ public class IntermediateDateTypeConfiguratorTest {
         );
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
-            = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable);
+            = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
             .hasSize(5)
@@ -160,7 +163,7 @@ public class IntermediateDateTypeConfiguratorTest {
         );
 
         var configurationDmnEvaluationResponses
-            = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable);
+            = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
             .hasSize(5)
@@ -235,7 +238,7 @@ public class IntermediateDateTypeConfiguratorTest {
         );
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
-            = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable);
+            = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
             .hasSize(6)
@@ -459,8 +462,8 @@ public class IntermediateDateTypeConfiguratorTest {
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOriginRef, dueDateTime,
                         nextHearingDate
                 ),
-                false, configurable
-            );
+                false, configurable,
+                    taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
@@ -542,8 +545,8 @@ public class IntermediateDateTypeConfiguratorTest {
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOriginRef, dueDateTime,
                         nextHearingDate
                 ),
-                false, false
-            );
+                false, false,
+                    taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
@@ -600,8 +603,8 @@ public class IntermediateDateTypeConfiguratorTest {
                 List.of(dueDateOriginEarliest, priorityDateOriginEarliest, calculatedDates, nextHearingDate,
                         nextHearingDuration, nextHearingDate
                 ),
-                false, configurable
-            );
+                false, configurable,
+                    taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(4)
             .isEqualTo(List.of(
@@ -662,8 +665,8 @@ public class IntermediateDateTypeConfiguratorTest {
                 List.of(dueDateOriginEarliest, priorityDateOriginEarliest, calculatedDates, nextHearingDate,
                         nextHearingDurationTime, nextHearingDate
                 ),
-                false, configurable
-            );
+                false, configurable,
+                    taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).hasSize(4)
             .isEqualTo(List.of(
@@ -699,7 +702,7 @@ public class IntermediateDateTypeConfiguratorTest {
             .value(stringValue("nextHearingDate"))
             .build();
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(calculatedDates, nextHearingDurationOriginRef), false, false);
+            .configureDates(List.of(calculatedDates, nextHearingDurationOriginRef), false, false, taskAttributes);
 
         String calculateDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
         assertThat(configurationDmnEvaluationResponses).hasSize(3)
@@ -737,30 +740,30 @@ public class IntermediateDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(dueDate, dueDateOrigin), false, true);
+            .configureDates(List.of(dueDate, dueDateOrigin), false, true, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
 
     @Test
     public void shouldNotRecalculateDateWhenPriorityDateIsUnconfigurableButIntermediateIsConfigurable() {
-        String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String priorityDateDurationValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String dueDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String dueDateDurationValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDate"))
-            .value(CamundaValue.stringValue(priorityDateValue + "T18:00"))
+            .value(CamundaValue.stringValue(dueDateValue + "T18:00"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateDuration = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateDuration"))
-            .value(CamundaValue.stringValue(priorityDateDurationValue + "T20:00"))
+            .value(CamundaValue.stringValue(dueDateDurationValue + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(priorityDate, priorityDateDuration), false, true);
+            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -776,14 +779,14 @@ public class IntermediateDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDateDuration = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateDuration"))
             .value(CamundaValue.stringValue(dueDateDurationValue + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(nextHearingDate, nextHearingDateDuration), false, true);
+            .configureDates(List.of(nextHearingDate, nextHearingDateOrigin), false, true, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }

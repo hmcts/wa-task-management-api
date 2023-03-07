@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
@@ -34,11 +35,15 @@ public class DueDateOriginLatestCalculator extends DueDateIntervalCalculator {
     }
 
     @Override
-    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
-                                                       boolean isReconfigureRequest) {
+    protected Optional<LocalDateTime> getReferenceDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
         return getOriginLatestDate(
             configResponses,
-            getProperty(configResponses, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest)
+            getProperty(configResponses, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest),
+            taskAttributes,
+            isReconfigureRequest
         );
     }
 }
