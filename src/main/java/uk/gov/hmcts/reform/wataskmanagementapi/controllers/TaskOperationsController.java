@@ -46,10 +46,7 @@ public class TaskOperationsController extends BaseController {
     @Operation(description = "performs specified operation like marking tasks to reconfigure and execute reconfigure.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {
-            @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = TaskOperationResponse.class)
-            )}),
+            @Content(mediaType = "application/json", schema = @Schema(implementation = TaskOperationResponse.class))}),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
