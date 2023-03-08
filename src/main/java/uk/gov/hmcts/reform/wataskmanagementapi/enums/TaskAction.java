@@ -22,7 +22,8 @@ public enum TaskAction {
     AUTO_CANCEL("AutoCancel"),
     TERMINATE("Terminate"),
     MARK_FOR_RECONFIGURE("MarkForReconfigure"),
-    ADD_WARNING("AddWarning");
+    ADD_WARNING("AddWarning"),
+    TERMINATE_EXCEPTION("TerminateException");
 
     private final String value;
 
