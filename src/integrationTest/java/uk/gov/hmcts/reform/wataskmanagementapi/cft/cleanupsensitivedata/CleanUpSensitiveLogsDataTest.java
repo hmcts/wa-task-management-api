@@ -72,9 +72,13 @@ public class CleanUpSensitiveLogsDataTest {
         LocalDateTime jobStartTime = LocalDateTime.now();
         cftSensitiveTaskEventLogsDatabaseService.cleanUpSensitiveLogs(jobStartTime);
 
-        List<SensitiveTaskEventLog> sensitiveTaskEventLogList = (List<SensitiveTaskEventLog>) sensitiveTaskEventLogsRepository.findAll();
+        List<SensitiveTaskEventLog> sensitiveTaskEventLogList =
+            (List<SensitiveTaskEventLog>) sensitiveTaskEventLogsRepository.findAll();
+
         Assertions.assertThat(sensitiveTaskEventLogList).isNotEmpty();
-        Assertions.assertThat(sensitiveTaskEventLogList.get(0).getExpiryTime()).isAfter(OffsetDateTime.of(jobStartTime, ZoneOffset.UTC));
+
+        Assertions.assertThat(sensitiveTaskEventLogList.get(0).getExpiryTime())
+            .isAfter(OffsetDateTime.of(jobStartTime, ZoneOffset.UTC));
 
     }
 
