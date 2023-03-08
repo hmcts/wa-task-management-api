@@ -38,7 +38,8 @@ public class DatasourceConfiguration {
     ) {
         return builder
             .dataSource(dataSource)
-            .packages("uk.gov.hmcts.reform.wataskmanagementapi.entity")
+            .packages("uk.gov.hmcts.reform.wataskmanagementapi.entity",
+                      "uk.gov.hmcts.reform.wataskmanagementapi.repository")
             .persistenceUnit("cft_task_db")
             .build();
     }
