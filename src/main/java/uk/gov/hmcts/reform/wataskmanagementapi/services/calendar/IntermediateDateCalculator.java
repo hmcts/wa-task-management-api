@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
@@ -29,8 +30,8 @@ public class IntermediateDateCalculator extends DueDateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest
-    ) {
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
         String dateTypeName = dateTypeObject.dateTypeName();
         return calculatedDate(
             dateTypeObject,
