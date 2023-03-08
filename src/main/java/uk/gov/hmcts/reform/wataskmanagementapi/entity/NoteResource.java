@@ -30,8 +30,8 @@ public class NoteResource implements Serializable {
 
     @JsonCreator
     public NoteResource(@JsonProperty("code") String code,
-                        @JsonProperty("noteType") String noteType,
-                        @JsonProperty("userId") String userId,
+                        @JsonProperty("note_type") String noteType,
+                        @JsonProperty("user_id") String userId,
                         @JsonProperty("content") String content) {
         this.code = code;
         this.noteType = noteType;

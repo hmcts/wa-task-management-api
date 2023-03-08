@@ -141,16 +141,18 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
     @NotNull
     private String addNotes() {
-        return "{\"notes\": "
-               + "["
-               + "{"
-               + "\"code\": \"TA02\","
-               + "\"note_type\": \"WARNING\","
-               + "\"user_id\": \"some-user\","
-               + "\"content\": \"Description2\""
-               + "}"
-               + "]"
-               + "}";
+        return """
+            {
+              "notes": [
+                {
+                  "code": "TA02",
+                  "note_type": "WARNING",
+                  "user_id": "some-user",
+                  "content": "Description2"
+                }
+              ]
+            }
+            """;
     }
 
 }

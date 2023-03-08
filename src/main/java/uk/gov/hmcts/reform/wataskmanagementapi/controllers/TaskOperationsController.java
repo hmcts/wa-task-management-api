@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +45,11 @@ public class TaskOperationsController extends BaseController {
 
     @Operation(description = "performs specified operation like marking tasks to reconfigure and execute reconfigure.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Task operation has been completed"),
+        @ApiResponse(responseCode = "200", description = OK, content = {
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = TaskOperationResponse.class)
+            )}),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
