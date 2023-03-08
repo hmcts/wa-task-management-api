@@ -50,6 +50,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomCo
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -905,7 +906,8 @@ public class TaskManagementService {
         return taskOperationServices.stream()
             .map(taskOperationServices -> taskOperationServices.performOperation(taskOperationRequest))
             .filter(response -> response.getResponseMap() != null)
-            .findFirst().get();
+            .findFirst()
+            .orElseGet(() -> new TaskOperationResponse(new HashMap<>()));
     }
 
     /**
