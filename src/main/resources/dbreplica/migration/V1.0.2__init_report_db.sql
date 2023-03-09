@@ -157,6 +157,13 @@ create table cft_task_db.reportable_task
   updated_by              TEXT,
   updated                 TIMESTAMP,
   update_action           TEXT,
+  created_date            DATE NOT NULL,
+  final_state_label       TEXT,
+  wait_time_days          INTEGER,
+  handling_time_days      INTEGER,
+  processing_time_days    INTEGER,
+  is_within_sla           TEXT,
+  due_date_to_completed_diff_days    INTEGER,
   PRIMARY KEY ( "task_id" )
 );
 

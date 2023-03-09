@@ -18,7 +18,7 @@ begin
    case_id, case_type_id, case_category, case_name,
    jurisdiction, region, location, business_context,
    termination_reason, created, updated_by, updated,
-   update_action)
+   update_action, created_date)
   values
     (l_task.task_id, l_task.task_name, l_task.task_type, l_task.due_date_time,
      l_task.state, l_task.task_system, l_task.security_classification,
@@ -28,7 +28,7 @@ begin
      l_task.case_id, l_task.case_type_id, l_task.case_category, l_task.case_name,
      l_task.jurisdiction, l_task.region, l_task.location, l_task.business_context,
      l_task.termination_reason, l_task.created, l_task.last_updated_user, l_task.last_updated_timestamp,
-     l_task.last_updated_action)
+     l_task.last_updated_action, l_task.created::DATE)
     ON CONFLICT (task_id)
       DO
   update
@@ -57,7 +57,6 @@ begin
     location = l_task.location,
     business_context = l_task.business_context,
     termination_reason = l_task.termination_reason,
-    created = l_task.created,
     updated_by = l_task.last_updated_user,
     updated = l_task.last_updated_timestamp,
     update_action = l_task.last_updated_action
