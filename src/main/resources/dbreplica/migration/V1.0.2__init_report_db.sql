@@ -164,6 +164,13 @@ create table cft_task_db.reportable_task
   processing_time_days    INTEGER,
   is_within_sla           TEXT,
   due_date_to_completed_diff_days    INTEGER,
+  completed_date          DATE,
+  completed_date_time     TIMESTAMP,
+  first_assigned_date     DATE,
+  first_assigned_date_time     TIMESTAMP,
+  number_of_reassignments      INTEGER DEFAULT 0 NOT NULL,
+  due_date                 DATE,
+  last_updated_date        DATE,
   PRIMARY KEY ( "task_id" )
 );
 
