@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.SearchFilterSignatureBuilder;
 
 import java.util.List;
 import java.util.Set;
@@ -86,7 +87,7 @@ public class SearchFilterSignatureBuilderTest {
             .jurisdictions(List.of("WA", "IA"))
             .roleCategories(List.of(RoleCategory.ADMIN, RoleCategory.CTSC))
             .workTypes(List.of("evidence", "priority"))
-            .region(List.of("1", "2"))
+            .regions(List.of("1", "2"))
             .build();
         Set<String> signature = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
 
@@ -109,7 +110,7 @@ public class SearchFilterSignatureBuilderTest {
             .jurisdictions(List.of("WA", "IA"))
             .roleCategories(List.of(RoleCategory.ADMIN, RoleCategory.CTSC))
             .workTypes(List.of("evidence", "priority"))
-            .region(List.of("1", "2"))
+            .regions(List.of("1", "2"))
             .locations(List.of("765324", "765325"))
             .build();
         Set<String> signature = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);

@@ -78,6 +78,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected static final String WA_CASE_TYPE = "WaCaseType";
     protected static final String EMAIL_PREFIX_R3_5 = "wa-granular-permission-";
     protected static final String EMAIL_PREFIX_R2 = "wa-ft-test-r2-";
+    protected static final String EMAIL_PREFIX_GIN_INDEX = "wa-gin-index-";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
         "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
@@ -133,6 +134,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected TestAuthenticationCredentials currentCaseworkerCredentials;
     protected TestAuthenticationCredentials unassignUser;
     protected TestAuthenticationCredentials otherUser;
+    protected TestAuthenticationCredentials ginIndexCaseworkerCredentials;
     protected String idamSystemUser;
 
     @Before

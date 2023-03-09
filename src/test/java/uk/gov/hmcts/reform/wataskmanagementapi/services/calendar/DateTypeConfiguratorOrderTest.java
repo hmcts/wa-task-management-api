@@ -9,7 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -34,6 +36,9 @@ public class DateTypeConfiguratorOrderTest {
         .name(CamundaValue.stringValue("nextHearingDate"))
         .value(CamundaValue.stringValue("2023-01-10T16:00"))
         .build();
+
+    private final Map<String, Object> taskAttributes = new HashMap<>();
+
     @Mock
     private DateCalculator dueDateCalculator;
     @Mock
@@ -67,13 +72,16 @@ public class DateTypeConfiguratorOrderTest {
             priorityDate,
             nextHearingDate
         );
-        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+        dateTypeConfigurator.configureDates(evaluationResponses, false, false, taskAttributes);
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
+        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false),
+                                                                eq(taskAttributes)
+        );
+        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false), eq(taskAttributes));
+        inOrder.verify(priorityDateCalculator)
+            .calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false), eq(taskAttributes));
     }
 
     @Test
@@ -89,13 +97,16 @@ public class DateTypeConfiguratorOrderTest {
             priorityDate,
             nextHearingDate
         );
-        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+        dateTypeConfigurator.configureDates(evaluationResponses, false, false, taskAttributes);
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
+        inOrder.verify(dueDateCalculator)
+            .calculateDate(any(), eq(DUE_DATE_TYPE), eq(false), eq(taskAttributes));
+        inOrder.verify(priorityDateCalculator)
+            .calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false), eq(taskAttributes));
+        inOrder.verify(nextHearingDateCalculator)
+            .calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false), eq(taskAttributes));
     }
 
     @Test
@@ -119,12 +130,15 @@ public class DateTypeConfiguratorOrderTest {
                                                                                calculatedDates3, dueDate,
                                                                                priorityDate, nextHearingDate
         );
-        dateTypeConfigurator.configureDates(evaluationResponses, false, false);
+        dateTypeConfigurator.configureDates(evaluationResponses, false, false, taskAttributes);
 
         InOrder inOrder = inOrder(dueDateCalculator, priorityDateCalculator, nextHearingDateCalculator);
 
-        inOrder.verify(priorityDateCalculator).calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false));
-        inOrder.verify(dueDateCalculator).calculateDate(any(), eq(DUE_DATE_TYPE), eq(false));
-        inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false));
+        inOrder.verify(priorityDateCalculator)
+            .calculateDate(any(), eq(PRIORITY_DATE_TYPE), eq(false), eq(taskAttributes));
+        inOrder.verify(dueDateCalculator)
+            .calculateDate(any(), eq(DUE_DATE_TYPE), eq(false), eq(taskAttributes));
+        inOrder.verify(nextHearingDateCalculator)
+            .calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false), eq(taskAttributes));
     }
 }

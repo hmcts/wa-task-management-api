@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
@@ -20,17 +21,17 @@ public class DueDateCalculator implements DateCalculator {
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest) {
+        boolean isReconfigure) {
 
         return DUE_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest))
-            .isPresent();
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigure)).isPresent();
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateType, boolean isReconfigureRequest) {
+        DateTypeObject dateType, boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
         var dueDateResponse = getProperty(configResponses, DUE_DATE.getType(), isReconfigureRequest);
         var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest);
         return calculatedDate(dateType, dueDateResponse, dueDateTimeResponse);

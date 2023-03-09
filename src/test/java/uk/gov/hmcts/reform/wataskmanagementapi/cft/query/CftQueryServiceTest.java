@@ -694,7 +694,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertEquals("hearing_work", taskResourceList.getTasks().get(0).getWorkTypeId());
             assertEquals("Hearing work", taskResourceList.getTasks().get(0).getWorkTypeLabel());
         }
-
     }
 
     @Nested

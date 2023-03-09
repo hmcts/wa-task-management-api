@@ -6,31 +6,33 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.RoleSignatureBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.SearchFilterSignatureBuilder;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.PRIORITY_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder.ASCENDANT;
 
 @Slf4j
 @Service
 public class CFTTaskDatabaseService {
+
+
     private final TaskResourceRepository tasksRepository;
     private final CFTTaskMapper cftTaskMapper;
 
@@ -93,34 +95,35 @@ public class CFTTaskDatabaseService {
         return Optional.empty();
     }
 
-    public GetTasksResponse<Task> searchForTasks(SearchRequest searchRequest,
-                                                 AccessControlResponse accessControlResponse,
-                                                 boolean granularPermissionResponseFeature) {
+    public GetTasksResponse<Task> searchForTasks(int firstResult,
+                                                 int maxResults,
+                                                 SearchRequest searchRequest,
+                                                 AccessControlResponse accessControlResponse) {
 
-        Set<String> filters = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
+        List<RoleAssignment> roleAssignments = new ArrayList<>(accessControlResponse.getRoleAssignments());
+        Set<String> filterSignature = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
+        Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
+        List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
 
-        String[] filterSignature = filters.toArray(new String[0]);
-
-        List<String> taskIds = tasksRepository.searchTasksIds(filterSignature);
+        log.debug("Task search for filter signatures {} and role signatures {}", filterSignature, roleSignature);
+        List<String> taskIds = tasksRepository.searchTasksIds(firstResult, maxResults, filterSignature, roleSignature,
+            excludeCaseIds, searchRequest);
 
         if (isEmpty(taskIds)) {
             return new GetTasksResponse<>(List.of(), 0);
         }
 
-        Sort sort = getOrders(searchRequest);
+        Long count = tasksRepository.searchTasksCount(filterSignature, roleSignature, excludeCaseIds, searchRequest);
 
-        final List<TaskResource> taskResources
-            = tasksRepository.findAllByTaskIdIn(taskIds, sort);
-
-        Long count = tasksRepository.searchTasksCount(filterSignature);
-        List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
+        Sort sort = TaskSearchSortProvider.getSortOrders(searchRequest);
+        final List<TaskResource> taskResources = tasksRepository.findAllByTaskIdIn(taskIds, sort);
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
                 cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
                     taskResource,
                     roleAssignments,
-                    granularPermissionResponseFeature
+                    true
                 )
             )
             .collect(Collectors.toList());
@@ -128,22 +131,12 @@ public class CFTTaskDatabaseService {
         return new GetTasksResponse<>(tasks, count);
     }
 
-    private Sort getOrders(SearchRequest searchRequest) {
-        List<Sort.Order> orders = Stream.ofNullable(searchRequest.getSortingParameters())
-            .flatMap(Collection::stream)
-            .filter(s -> s.getSortOrder() != null)
-            .map(sortingParameter -> {
-                if (sortingParameter.getSortOrder() == ASCENDANT) {
-                    return Sort.Order.asc(sortingParameter.getSortBy().getCftVariableName());
-                } else {
-                    return Sort.Order.desc(sortingParameter.getSortBy().getCftVariableName());
-                }
-            }).collect(Collectors.toList());
 
-        Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
-            .map(s -> Sort.Order.asc(s.value()))
-            .collect(Collectors.toCollection(() -> orders));
-
-        return Sort.by(orders);
+    private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
+        return roleAssignments.stream()
+            .filter(ra -> ra.getGrantType() == GrantType.EXCLUDED)
+            .map(ra -> ra.getAttributes().get(RoleAttributeDefinition.CASE_ID.value()))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 }
