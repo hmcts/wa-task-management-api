@@ -79,7 +79,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValu
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SuppressWarnings("checkstyle:LineLength")
-class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTest {
+class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     public static final String SYSTEM_USER_1 = "system_user1";

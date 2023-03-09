@@ -1,8 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
 
 import java.util.List;
 
@@ -29,12 +30,12 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class TaskReconfigurationControllerTest {
+class TaskOperationControllerTest {
 
     private static final String SYSTEM_USER_IDAM_ID = "SYSTEM_USER_IDAM_ID";
     private static final String SERVICE_AUTHORIZATION_TOKEN = "SERVICE_AUTHORIZATION_TOKEN";
     @Mock
-    private TaskManagementService taskManagementService;
+    private TaskOperationService taskOperationService;
     @Mock
     private ClientAccessControlService clientAccessControlService;
     @Mock
@@ -42,12 +43,12 @@ class TaskReconfigurationControllerTest {
     @Mock
     private UserInfo userInfo;
 
-    private TaskReconfigurationController taskReconfigurationController;
+    private TaskOperationController taskReconfigurationController;
 
     @BeforeEach
     void setUp() {
-        taskReconfigurationController = new TaskReconfigurationController(
-            taskManagementService,
+        taskReconfigurationController = new TaskOperationController(
+            taskOperationService,
             clientAccessControlService
         );
         lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
@@ -55,30 +56,32 @@ class TaskReconfigurationControllerTest {
         lenient().when(userInfo.getUid()).thenReturn(SYSTEM_USER_IDAM_ID);
     }
 
-    @Test
-    void should_perform_task_operation_mark_reconfigure_with_privileged_access() {
+    @ParameterizedTest
+    @EnumSource(TaskOperationType.class)
+    void should_perform_task_operation_with_privileged_access(TaskOperationType operationType) {
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
         ResponseEntity response = taskReconfigurationController.performOperation(
             SERVICE_AUTHORIZATION_TOKEN,
-            taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE)
+            taskOperationRequest(operationType)
         );
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
-    @Test
-    void should_not_perform_task_operation_mark_reconfigure_when_no_privileged_access() {
+    @ParameterizedTest
+    @EnumSource(TaskOperationType.class)
+    void should_not_perform_task_operation_when_no_privileged_access(TaskOperationType operationType) {
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(false);
 
         assertThatThrownBy(() -> taskReconfigurationController.performOperation(
             SERVICE_AUTHORIZATION_TOKEN,
-            taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE)
+            taskOperationRequest(operationType)
         ))
             .isInstanceOf(GenericForbiddenException.class)
             .hasNoCause()

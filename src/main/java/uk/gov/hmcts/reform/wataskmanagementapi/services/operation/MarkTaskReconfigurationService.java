@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.services;
+package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -12,6 +12,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOpe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttribu
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class MarkTaskReconfigurationService implements TaskOperationService {
+public class MarkTaskReconfigurationService implements TaskOperationPerformService {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CaseConfigurationProviderService caseConfigurationProviderService;
@@ -104,6 +106,7 @@ public class MarkTaskReconfigurationService implements TaskOperationService {
                 if (optionalTaskResource.isPresent()) {
                     TaskResource taskResource = optionalTaskResource.get();
                     taskResource.setReconfigureRequestTime(OffsetDateTime.now());
+                    taskResource.setIndexed(false);
                     updateTaskActionAttributes(taskResource);
                     successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
                 }

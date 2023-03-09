@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.services;
+package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -10,6 +10,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskExecuteReconfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -23,7 +26,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class ExecuteTaskReconfigurationService implements TaskOperationService {
+public class ExecuteTaskReconfigurationService implements TaskOperationPerformService {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final ConfigureTaskService configureTaskService;

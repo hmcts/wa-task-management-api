@@ -42,6 +42,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     List<TaskResource> getByCaseId(String caseId);
 
+    List<TaskResource> findByIndexedFalse();
+
     List<TaskResource> findAllByTaskIdIn(List<String> taskIds, Sort order);
 
     List<TaskResource> findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(

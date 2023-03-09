@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -41,12 +40,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
@@ -188,11 +181,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
     RoleAssignmentVerificationService roleAssignmentVerification;
 
     @Mock
-    MarkTaskReconfigurationService markTaskReconfigurationService;
-    @Mock
-    ExecuteTaskReconfigurationService executeTaskReconfigurationService;
-
-    @Mock
     private EntityManager entityManager;
 
     @Mock(extraInterfaces = Serializable.class)
@@ -241,7 +229,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            List.of(markTaskReconfigurationService, executeTaskReconfigurationService),
             entityManager,
             idamTokenGenerator
         );
@@ -384,9 +371,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @DisplayName("updateIndex()")
     class UpdateIndex {
 
-        @ParameterizedTest
-        @ValueSource(booleans = {true, false})
-        void should_succeed(boolean index) {
+        @Test
+        void should_succeed() {
             TaskResource taskResource = new TaskResource(
                 taskId, "taskName", "taskType", CFTTaskState.ASSIGNED
             );
@@ -394,26 +380,24 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(any())).thenReturn(taskResource);
 
-            taskManagementService.updateTaskIndex(taskId, index);
-            assertEquals(index, taskResource.getIndexed());
+            taskManagementService.updateTaskIndex(taskId);
+            assertEquals(true, taskResource.getIndexed());
         }
 
-        @ParameterizedTest
-        @ValueSource(booleans = {true, false})
-        void should_complete_for_null_task(boolean index) {
+        @Test
+        void should_complete_for_null_task() {
             when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> taskManagementService.updateTaskIndex(taskId, index))
+            assertThatThrownBy(() -> taskManagementService.updateTaskIndex(taskId))
                 .isInstanceOf(TaskNotFoundException.class)
                 .hasNoCause()
                 .hasMessage("Task Not Found Error: The task could not be found.");
             verify(cftTaskDatabaseService, times(0)).saveTask(any());
         }
 
-        @ParameterizedTest
-        @ValueSource(booleans = {true, false})
-        void should_complete_when_lock_time_out(boolean index) {
+        @Test
+        void should_complete_when_lock_time_out() {
             Logger logger = (Logger) LoggerFactory.getLogger(TaskManagementService.class);
             ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
             listAppender.start();
@@ -424,14 +408,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .thenThrow(new LockTimeoutException());
             verify(cftTaskDatabaseService, times(0)).saveTask(any());
 
-            taskManagementService.updateTaskIndex(taskId, index);
+            taskManagementService.updateTaskIndex(taskId);
 
             List<String> logsList = List.copyOf(listAppender.list)
                 .stream()
                 .map(ILoggingEvent::getFormattedMessage)
                 .collect(Collectors.toList());
             assertTrue(logsList.contains("PersistenceException occurred in updating indexed field of taskId:"
-                                         + taskId + " to " + index));
+                                         + taskId));
         }
     }
 
@@ -3570,98 +3554,4 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
         }
     }
-
-    @Nested
-    @DisplayName("performOperation()")
-    class PerformReconfiguration {
-
-        @Test
-        void should_update_task_index_true_when_execute_reconfiguration() {
-            List<TaskResource> tasks = taskResources(false);
-
-            lenient().when(markTaskReconfigurationService.performOperation(
-                argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.MARK_TO_RECONFIGURE))))
-                .thenReturn(tasks);
-
-            lenient().when(executeTaskReconfigurationService.performOperation(
-                argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE))))
-                .thenReturn(tasks);
-
-            tasks.forEach(t -> {
-                when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(t.getTaskId()))
-                    .thenReturn(Optional.of(t));
-                when(cftTaskDatabaseService.saveTask(t)).thenReturn(t);
-            });
-
-            List<TaskResource> updated = taskManagementService.performOperation(
-                taskOperationRequest(TaskOperationType.EXECUTE_RECONFIGURE));
-
-            assertNotNull(updated);
-            verify(cftTaskDatabaseService, times(2)).saveTask(argThat(TaskResource::getIndexed));
-        }
-
-        @Test
-        void should_update_task_index_false_when_mark_reconfiguration() {
-            List<TaskResource> tasks = taskResources(true);
-
-            lenient().when(markTaskReconfigurationService.performOperation(
-                argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.MARK_TO_RECONFIGURE))))
-                .thenReturn(tasks);
-
-            lenient().when(executeTaskReconfigurationService.performOperation(
-                argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE))))
-                .thenReturn(tasks);
-
-            tasks.forEach(t -> {
-                when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(t.getTaskId()))
-                    .thenReturn(Optional.of(t));
-                when(cftTaskDatabaseService.saveTask(t)).thenReturn(t);
-            });
-
-            List<TaskResource> updated = taskManagementService.performOperation(
-                taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE));
-
-            assertNotNull(updated);
-            verify(cftTaskDatabaseService, times(2)).saveTask(argThat(argument -> !argument.getIndexed()));
-        }
-
-        private List<TaskResource> taskResources(boolean index) {
-            TaskResource taskResource1 = new TaskResource(
-                "1234",
-                "someTaskName",
-                "someTaskType",
-                CFTTaskState.UNASSIGNED,
-                "someCaseId"
-            );
-            TaskResource taskResource2 = new TaskResource(
-                "4567",
-                "someTaskName",
-                "someTaskType",
-                CFTTaskState.ASSIGNED,
-                "someCaseId"
-            );
-            taskResource1.setReconfigureRequestTime(OffsetDateTime.now());
-            taskResource1.setIndexed(index);
-            taskResource2.setReconfigureRequestTime(OffsetDateTime.now());
-            taskResource2.setIndexed(index);
-            return List.of(taskResource1, taskResource2);
-        }
-
-        private TaskOperationRequest taskOperationRequest(TaskOperationType type) {
-            TaskOperation operation = TaskOperation.builder()
-                .type(type)
-                .runId("run_id1")
-                .maxTimeLimit(2)
-                .retryWindowHours(120)
-                .build();
-            return new TaskOperationRequest(operation, taskFilters());
-        }
-
-        private List<TaskFilter<?>> taskFilters() {
-            TaskFilter<List<String>> filter = new MarkTaskToReconfigureTaskFilter(
-                "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
-            return List.of(filter);
-        }
-    }
-
 }

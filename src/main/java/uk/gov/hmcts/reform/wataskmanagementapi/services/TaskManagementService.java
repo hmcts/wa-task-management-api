@@ -21,7 +21,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
@@ -51,7 +50,6 @@ import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -115,7 +113,6 @@ public class TaskManagementService {
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final ConfigureTaskService configureTaskService;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
-    private final List<TaskOperationService> taskOperationServices;
     private final RoleAssignmentVerificationService roleAssignmentVerification;
     private final IdamTokenGenerator idamTokenGenerator;
 
@@ -130,7 +127,6 @@ public class TaskManagementService {
                                  ConfigureTaskService configureTaskService,
                                  TaskAutoAssignmentService taskAutoAssignmentService,
                                  RoleAssignmentVerificationService roleAssignmentVerification,
-                                 List<TaskOperationService> taskOperationServices,
                                  EntityManager entityManager,
                                  IdamTokenGenerator idamTokenGenerator) {
         this.camundaService = camundaService;
@@ -139,7 +135,6 @@ public class TaskManagementService {
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
-        this.taskOperationServices = taskOperationServices;
         this.roleAssignmentVerification = roleAssignmentVerification;
         this.entityManager = entityManager;
         this.idamTokenGenerator = idamTokenGenerator;
@@ -778,21 +773,21 @@ public class TaskManagementService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateTaskIndex(String taskId, boolean indexed) {
+    public void updateTaskIndex(String taskId) {
         try {
             Optional<TaskResource> findTaskResponse = cftTaskDatabaseService
                 .findByIdAndWaitAndObtainPessimisticWriteLock(taskId);
 
             if (findTaskResponse.isPresent()) {
                 TaskResource taskResource = findTaskResponse.get();
-                taskResource.setIndexed(indexed);
+                taskResource.setIndexed(true);
 
                 cftTaskDatabaseService.saveTask(taskResource);
             } else {
                 throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
             }
         } catch (PersistenceException ex) {
-            log.error("PersistenceException occurred in updating indexed field of taskId:{} to {}", taskId, indexed);
+            log.error("PersistenceException occurred in updating indexed field of taskId:{}", taskId);
         }
     }
 
@@ -893,21 +888,6 @@ public class TaskManagementService {
             .map(r -> cftTaskMapper.mapToTaskRolePermissions(r, granularPermissionResponseFeature))
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .toList();
-    }
-
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
-        List<TaskResource> successfulTaskResources = taskOperationServices.stream()
-            .flatMap(taskOperationService -> taskOperationService
-                .performOperation(taskOperationRequest).stream())
-            .filter(Objects::nonNull)
-            .toList();
-
-        if (successfulTaskResources != null) {
-            successfulTaskResources.forEach(t ->
-                updateTaskIndex(t.getTaskId(), taskOperationRequest.getOperation().getType().isIndexed()));
-        }
-
-        return successfulTaskResources;
     }
 
     /**

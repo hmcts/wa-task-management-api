@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -27,16 +27,16 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals"})
-public class TaskReconfigurationController extends BaseController {
+public class TaskOperationController extends BaseController {
 
-    private final TaskManagementService taskManagementService;
+    private final TaskOperationService taskOperationService;
     private final ClientAccessControlService clientAccessControlService;
 
     @Autowired
-    public TaskReconfigurationController(TaskManagementService taskManagementService,
-                                         ClientAccessControlService clientAccessControlService) {
+    public TaskOperationController(TaskOperationService taskOperationService,
+                                   ClientAccessControlService clientAccessControlService) {
         super();
-        this.taskManagementService = taskManagementService;
+        this.taskOperationService = taskOperationService;
         this.clientAccessControlService = clientAccessControlService;
     }
 
@@ -59,7 +59,7 @@ public class TaskReconfigurationController extends BaseController {
             clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
 
         if (hasExclusiveAccessRequest) {
-            taskManagementService.performOperation(
+            taskOperationService.performOperation(
                 taskOperationRequest
             );
         } else {

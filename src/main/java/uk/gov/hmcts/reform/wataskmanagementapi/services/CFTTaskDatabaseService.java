@@ -30,6 +30,9 @@ import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 
 @Slf4j
 @Service
+@SuppressWarnings({
+    "PMD.TooManyMethods"
+})
 public class CFTTaskDatabaseService {
 
 
@@ -135,6 +138,9 @@ public class CFTTaskDatabaseService {
         return new GetTasksResponse<>(tasks, count);
     }
 
+    public List<TaskResource> findTaskToUpdateIndex() {
+        return tasksRepository.findByIndexedFalse();
+    }
 
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
         return roleAssignments.stream()

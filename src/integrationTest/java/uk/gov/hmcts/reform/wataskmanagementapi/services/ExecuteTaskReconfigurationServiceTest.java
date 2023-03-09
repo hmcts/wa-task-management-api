@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ExecuteTaskReconfigurationService;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -28,7 +29,6 @@ import java.util.List;
 @Testcontainers
 @Sql("/scripts/wa/reconfigure_task_data.sql")
 public class ExecuteTaskReconfigurationServiceTest {
-    private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
     private ConfigureTaskService configureTaskService;
     @MockBean
@@ -41,7 +41,8 @@ public class ExecuteTaskReconfigurationServiceTest {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository,cftTaskMapper);
+        CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository,
+            cftTaskMapper);
         executeTaskReconfigurationService = new ExecuteTaskReconfigurationService(
             cftTaskDatabaseService,
             configureTaskService,
