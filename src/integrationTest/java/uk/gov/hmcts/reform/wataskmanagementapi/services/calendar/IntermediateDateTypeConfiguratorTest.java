@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -704,7 +703,8 @@ public class IntermediateDateTypeConfiguratorTest {
             .value(stringValue("nextHearingDate"))
             .build();
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(calculatedDates, nextHearingDurationOriginRef), false, false, taskAttributes);
+            .configureDates(List.of(calculatedDates, nextHearingDurationOriginRef),
+                false, false, taskAttributes);
 
         String calculateDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
         assertThat(configurationDmnEvaluationResponses).hasSize(3)
@@ -821,25 +821,29 @@ public class IntermediateDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .canReconfigure(CamundaValue.booleanValue(false))
@@ -910,11 +914,13 @@ public class IntermediateDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("dueDate"))
-                    .value(stringValue(GIVEN_DATE.plusDays(32).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
+                    .value(stringValue(GIVEN_DATE.plusDays(32)
+                                           .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("priorityDate"))
-                    .value(stringValue(GIVEN_DATE.plusDays(32).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
+                    .value(stringValue(GIVEN_DATE.plusDays(32)
+                                           .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
                     .build()
             ));
     }
@@ -941,31 +947,36 @@ public class IntermediateDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateIntervalDays = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateIntervalDays"))
             .value(CamundaValue.stringValue("-5"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .canReconfigure(CamundaValue.booleanValue(true))
@@ -1040,7 +1051,8 @@ public class IntermediateDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("dueDate"))
-                    .value(stringValue(GIVEN_DATE.plusDays(32).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
+                    .value(stringValue(GIVEN_DATE.plusDays(32)
+                                           .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("priorityDate"))
@@ -1052,7 +1064,7 @@ public class IntermediateDateTypeConfiguratorTest {
     @Test
     @DisplayName("Intermediate date is set to be reconfigured but fails")
     public void shouldCalculateIntermediateDateWhenIsSetToBeReconfiguredButFails() {
-         String nextHearingDateValue = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String nextHearingDateValue = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(stringValue("calculatedDates"))
@@ -1071,31 +1083,36 @@ public class IntermediateDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateIntervalDays = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateIntervalDays"))
             .value(CamundaValue.stringValue("-5"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse hearingDatePreDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+        ConfigurationDmnEvaluationResponse hearingDatePreDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse
+            .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .canReconfigure(CamundaValue.booleanValue(true))
@@ -1166,11 +1183,13 @@ public class IntermediateDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("dueDate"))
-                    .value(stringValue(GIVEN_DATE.plusDays(32).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
+                    .value(stringValue(GIVEN_DATE.plusDays(32)
+                                           .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("priorityDate"))
-                    .value(stringValue(GIVEN_DATE.plusDays(32).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
+                    .value(stringValue(GIVEN_DATE.plusDays(32)
+                                           .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
                     .build()
             ));
     }
