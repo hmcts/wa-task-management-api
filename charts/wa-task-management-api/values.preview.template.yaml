@@ -52,4 +52,4 @@ java:
         scripts:
           init.sql: |
             ALTER ROLE javapostgres WITH SUPERUSER;
-            CREATE DATABASE "ccd-shared-database-replica" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE "cft_task_db_replica" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
