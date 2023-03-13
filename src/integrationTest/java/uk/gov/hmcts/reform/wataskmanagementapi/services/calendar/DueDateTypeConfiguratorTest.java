@@ -559,7 +559,14 @@ public class DueDateTypeConfiguratorTest {
         "false,false,Next,6,6,T18:00",
         "false,false,Next,2,2,T18:00",
         "false,false,No,6,6,T18:00",
-        "false,false,Previous,2,2,T18:00"
+        "false,false,Previous,2,2,T18:00",
+        "false,true,Next,-6,-6,T18:00",
+        "false,true,Next,-8,-8,T18:00",
+        "false,true,No,-6,-6,T18:00",
+        "false,false,Next,-6,-6,T18:00",
+        "false,false,Next,-2,-2,T18:00",
+        "false,false,No,-6,-6,T18:00",
+        "false,false,Previous,-2,-2,T18:00"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvidedAndNonWorkingDayNotConsidered(
         String canConfigure,
@@ -647,7 +654,19 @@ public class DueDateTypeConfiguratorTest {
         "false,false,Next,6,6,T18:00",
         "false,false,Next,2,4,T18:00",
         "false,false,no,6,6,T18:00",
-        "false,false,Previous,2,1,T18:00"
+        "false,false,Previous,2,1,T18:00",
+        "false,true,Next,-6,-8,T18:00",
+        "false,true,Next,-2,-2,T18:00",
+        "false,true,Previous,-6,-8,T18:00",
+        "false,true,Previous,-2,-2,T18:00",
+        "false,true,No,-6,-8,T18:00",
+        "false,true,No,-2,-2,T18:00",
+        "false,false,Next,-6,-6,T18:00",
+        "false,false,Next,-2,-2,T18:00",
+        "false,false,Previous,-6,-6,T18:00",
+        "false,false,Previous,-2,-2,T18:00",
+        "false,false,No,-6,-6,T18:00",
+        "false,false,No,-2,-2,T18:00"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvided(
         String canConfigure,
