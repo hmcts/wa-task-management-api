@@ -96,12 +96,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
 
     private LocalDate calculateDateForNonSkipWorkingDays(LocalDate localDate,
                                                          DateTypeIntervalData dateTypeIntervalData) {
-        LocalDate calculatedDate;
-        if (dateTypeIntervalData.getDateTypeIntervalDays() < 0) {
-            calculatedDate = localDate.minusDays(dateTypeIntervalData.getDateTypeIntervalDays());
-        } else {
-            calculatedDate = localDate.plusDays(dateTypeIntervalData.getDateTypeIntervalDays());
-        }
+        LocalDate calculatedDate = localDate.plusDays(dateTypeIntervalData.getDateTypeIntervalDays());
         boolean workingDay = workingDayIndicator.isWorkingDay(
             calculatedDate,
             dateTypeIntervalData.getDateTypeNonWorkingCalendar(),
