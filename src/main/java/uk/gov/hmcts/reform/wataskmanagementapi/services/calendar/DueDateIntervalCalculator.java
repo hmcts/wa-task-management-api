@@ -59,7 +59,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
         if (dateTypeIntervalData.isDateTypeSkipNonWorkingDays()) {
             localDate = calculateDateForSkipNonWorkingDays(localDate, dateTypeIntervalData);
         } else {
-            localDate = calculateDateForNonSkipWorkingDays(localDate, dateTypeIntervalData);
+            localDate = calculateDateForNoSkip(localDate, dateTypeIntervalData);
         }
 
         LocalDateTime dateTime = calculateTime(dateTypeIntervalData.getDateTypeTime(), referenceDate, localDate);
@@ -94,8 +94,8 @@ public class DueDateIntervalCalculator implements DateCalculator {
         return calculatedDate;
     }
 
-    private LocalDate calculateDateForNonSkipWorkingDays(LocalDate localDate,
-                                                         DateTypeIntervalData dateTypeIntervalData) {
+    private LocalDate calculateDateForNoSkip(LocalDate localDate,
+                                             DateTypeIntervalData dateTypeIntervalData) {
         LocalDate calculatedDate = localDate.plusDays(dateTypeIntervalData.getDateTypeIntervalDays());
         boolean workingDay = workingDayIndicator.isWorkingDay(
             calculatedDate,
