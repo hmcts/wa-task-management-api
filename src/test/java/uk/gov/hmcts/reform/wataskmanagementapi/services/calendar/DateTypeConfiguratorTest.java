@@ -17,13 +17,12 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.BDDMockito.given;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 
 @ExtendWith(MockitoExtension.class)
 public class DateTypeConfiguratorTest {
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
+    private final Map<String, Object> taskAttributes = new HashMap<>();
     ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
         .name(CamundaValue.stringValue("dueDate"))
         .value(CamundaValue.stringValue("2023-01-10T16:00"))
@@ -37,10 +36,6 @@ public class DateTypeConfiguratorTest {
         .value(CamundaValue.stringValue("2023-01-15T16:00"))
         .build();
     String defaultDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
-
-    private final Map<String, Object> taskAttributes = new HashMap<>();
-
     private DateTypeConfigurator dateTypeConfigurator;
 
     @Nested
@@ -243,8 +238,6 @@ public class DateTypeConfiguratorTest {
                 new DueDateIntervalCalculator(workingDayIndicator),
                 new DueDateOriginEarliestCalculator(workingDayIndicator)
             ));
-
-            given(workingDayIndicator.isWorkingDay(any(), anyList(), anyList())).willReturn(true);
         }
 
         @Test
@@ -256,7 +249,7 @@ public class DateTypeConfiguratorTest {
 
             ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("calculatedDates"))
-                .value(CamundaValue.stringValue("nextHearingDate,priorityDate,dueDate"))
+                .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
                 .build();
 
             ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
@@ -293,7 +286,7 @@ public class DateTypeConfiguratorTest {
                 .isEqualTo(List.of(
                     ConfigurationDmnEvaluationResponse.builder()
                         .name(CamundaValue.stringValue("calculatedDates"))
-                        .value(CamundaValue.stringValue("nextHearingDate,priorityDate,dueDate"))
+                        .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
                         .build(),
                     ConfigurationDmnEvaluationResponse.builder()
                         .name(CamundaValue.stringValue("nextHearingDate"))

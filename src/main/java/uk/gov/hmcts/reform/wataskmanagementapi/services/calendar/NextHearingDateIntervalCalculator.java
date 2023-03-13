@@ -42,9 +42,12 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateType,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
 
-        var referenceDate = getReferenceDate(configResponses, isReconfigureRequest, taskAttributes);
+        var referenceDate = getReferenceDate(configResponses, isReconfigureRequest,
+                                             taskAttributes, calculatedConfigurations
+        );
         return referenceDate.map(localDateTime -> calculateDate(
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
@@ -119,13 +122,15 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
     protected Optional<LocalDateTime> getReferenceDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean reconfigure,
-        Map<String, Object> taskAttributes) {
+        Map<String, Object> taskAttributes, List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return configResponses.stream()
             .filter(r -> r.getName().getValue().equals(NEXT_HEARING_DATE_ORIGIN))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
-            .map(ConfigurationDmnEvaluationResponse::getValue)
-            .map(CamundaValue::getValue)
+            .map(v -> {
+                log.info("Input {}: {}", NEXT_HEARING_DATE_ORIGIN, v);
+                return v.getValue().getValue();
+            })
             .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
     }
 }
