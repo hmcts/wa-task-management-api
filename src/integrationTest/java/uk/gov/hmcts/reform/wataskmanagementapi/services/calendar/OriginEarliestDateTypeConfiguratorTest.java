@@ -1250,7 +1250,7 @@ public class OriginEarliestDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(
-                        priorityDate.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T18:00")
+                        priorityDate.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T18:00")
                     )
                     .build()
             ));
