@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import org.apache.logging.log4j.util.Strings;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDate;
@@ -68,6 +69,7 @@ public interface DateCalculator {
     LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
         .withHour(16).withMinute(0).withSecond(0);
     LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
+    String INVALID_DATE_REFERENCE_FIELD = "Invalid Date reference field {}. Referred field is not yet available.";
 
     boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
                      DateTypeObject dateTypeObject,
@@ -77,7 +79,8 @@ public interface DateCalculator {
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateType,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes);
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations);
 
     default ConfigurationDmnEvaluationResponse getProperty(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
@@ -181,35 +184,37 @@ public interface DateCalculator {
     }
 
     private static Stream<LocalDateTime> getReferenceDateValues(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations,
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
         List<DateTypeObject> referenceDates) {
         return referenceDates.stream()
             .map(DateTypeObject::dateTypeName)
-            .map(t -> getMatchingConfigResponseDate(configResponses, taskAttributes, isReconfigureRequest, t))
+            .map(t -> getMatchingConfigResponseDate(calculatedConfigurations, taskAttributes, isReconfigureRequest, t))
             .filter(Objects::nonNull);
     }
 
     private static LocalDateTime getMatchingConfigResponseDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations,
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
         String dateTypeName) {
-        return configResponses.stream()
+        return calculatedConfigurations.stream()
+            .filter(Objects::nonNull)
             .filter(c -> c.getName().getValue().equals(dateTypeName))
             .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER))
             .findFirst()
-            .orElse(defaultWithTaskAttributes(taskAttributes, isReconfigureRequest, dateTypeName));
+            .orElseGet(() -> defaultWithTaskAttributes(taskAttributes, isReconfigureRequest, dateTypeName));
     }
 
     private static LocalDateTime defaultWithTaskAttributes(
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
         String dateTypeName) {
-        return isReconfigureRequest
-            ? getTaskAttributeDate(taskAttributes, dateTypeName)
-            : null;
+        if (isReconfigureRequest && List.of("dueDate", "priorityDate", "nextHearingDate").contains(dateTypeName)) {
+            return getTaskAttributeDate(taskAttributes, dateTypeName);
+        }
+        throw new DateCalculationException(INVALID_DATE_REFERENCE_FIELD);
     }
 
     private static LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes,

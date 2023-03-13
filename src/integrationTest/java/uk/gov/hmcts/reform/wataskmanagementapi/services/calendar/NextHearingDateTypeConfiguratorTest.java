@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,7 +19,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
@@ -1052,21 +1055,24 @@ public class NextHearingDateTypeConfiguratorTest {
     public void shouldNotDefaultWhenOriginRefAttributesPresentButAreEmpty(boolean configurable) {
         ConfigurationDmnEvaluationResponse nextHearingDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDateOriginRef"))
-            .value(CamundaValue.stringValue("dueDate"))
+            .value(CamundaValue.stringValue("nextHearingDuration"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
+            .value(CamundaValue.stringValue("nextHearingDuration,nextHearingDate,dueDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(calculatedDates, nextHearingDateOriginRef), false, configurable, taskAttributes);
-
-        assertThat(configurationDmnEvaluationResponses)
-            .filteredOn(r -> r.getName().getValue().equals("nextHearingDate"))
-            .isEmpty();
+        assertThatThrownBy(() -> dateTypeConfigurator
+            .configureDates(
+                List.of(calculatedDates, nextHearingDateOriginRef),
+                false,
+                configurable,
+                taskAttributes
+            ))
+            .isInstanceOf(DateCalculationException.class)
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 
     @Test

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,9 +18,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculatorTest.DUE_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,12 +36,13 @@ class DueDateOriginLatestCalculatorTest {
     private PublicHolidaysCollection publicHolidaysCollection;
 
     private DueDateOriginLatestCalculator dueDateOriginLatestCalculator;
+    private List<ConfigurationDmnEvaluationResponse> calculatedConfigurations;
 
     @BeforeEach
     public void before() {
         dueDateOriginLatestCalculator = new DueDateOriginLatestCalculator(
             new WorkingDayIndicator(publicHolidaysCollection));
-
+        calculatedConfigurations = new ArrayList<>();
         Set<LocalDate> localDates = Set.of(
             LocalDate.of(2022, 1, 3),
             LocalDate.of(2022, 4, 15),
@@ -69,8 +73,8 @@ class DueDateOriginLatestCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate);
 
-        Assertions.assertThat(dueDateOriginLatestCalculator
-                                  .supports(evaluationResponses, DUE_DATE_TYPE, isConfigurable))
+        assertThat(dueDateOriginLatestCalculator
+                       .supports(evaluationResponses, DUE_DATE_TYPE, isConfigurable))
             .isFalse();
     }
 
@@ -88,8 +92,8 @@ class DueDateOriginLatestCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin);
 
-        Assertions.assertThat(dueDateOriginLatestCalculator
-                                  .supports(evaluationResponses, DUE_DATE_TYPE, isConfigurable))
+        assertThat(dueDateOriginLatestCalculator
+                       .supports(evaluationResponses, DUE_DATE_TYPE, isConfigurable))
             .isFalse();
     }
 
@@ -114,13 +118,13 @@ class DueDateOriginLatestCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateOrigin, dueDateTime);
 
-        Assertions.assertThat(dueDateOriginLatestCalculator
-                                  .supports(evaluationResponses, DUE_DATE_TYPE, isConfigurable))
+        assertThat(dueDateOriginLatestCalculator
+                       .supports(evaluationResponses, DUE_DATE_TYPE, isConfigurable))
             .isTrue();
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
+    @ValueSource(booleans = {true})
     void shouldCalculateNotNullWhenOriginDateValueProvided(boolean isConfigurable) {
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -136,7 +140,7 @@ class DueDateOriginLatestCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-
+        calculatedConfigurations.add(nextHearingDate);
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readDueDateOriginFields(
@@ -145,13 +149,47 @@ class DueDateOriginLatestCalculatorTest {
                                                                    nextHearingDate
                                                                ),
                                                                DUE_DATE_TYPE, isConfigurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(0)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
+        assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false})
+    void shouldThrowWhenOriginDateValueProvided(boolean isConfigurable) {
+        String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse dueDateLatestOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginLatest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(isConfigurable))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDate"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(isConfigurable))
+            .build();
+
+        calculatedConfigurations.add(nextHearingDate);
+        assertThatThrownBy(() -> dueDateOriginLatestCalculator
+            .calculateDate(
+                readDueDateOriginFields(
+                    isConfigurable,
+                    dueDateLatestOrigin,
+                    nextHearingDate
+                ),
+                DUE_DATE_TYPE, isConfigurable,
+                new HashMap<>(),
+                calculatedConfigurations
+            ))
+            .isInstanceOf(DateCalculationException.class)
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 
     @ParameterizedTest
@@ -178,7 +216,8 @@ class DueDateOriginLatestCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-
+        calculatedConfigurations.add(nextHearingDate);
+        calculatedConfigurations.add(priorityDate);
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readDueDateOriginFields(
@@ -188,10 +227,11 @@ class DueDateOriginLatestCalculatorTest {
                                                                    priorityDate
                                                                ),
                                                                DUE_DATE_TYPE, isConfigurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
-        Assertions.assertThat(resultDate).isEqualTo(latestDateTime + "T18:00");
+        assertThat(resultDate).isEqualTo(latestDateTime + "T18:00");
     }
 
     @ParameterizedTest
@@ -224,7 +264,8 @@ class DueDateOriginLatestCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
-
+        calculatedConfigurations.add(nextHearingDate);
+        calculatedConfigurations.add(priorityDate);
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readDueDateOriginFields(
@@ -235,13 +276,14 @@ class DueDateOriginLatestCalculatorTest {
                                                                    dueDateIntervalDays
                                                                ),
                                                                DUE_DATE_TYPE, isConfigurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
+        assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
     }
 
     @ParameterizedTest
@@ -286,6 +328,8 @@ class DueDateOriginLatestCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
+        calculatedConfigurations.add(nextHearingDate);
+        calculatedConfigurations.add(priorityDate);
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readDueDateOriginFields(
@@ -298,13 +342,14 @@ class DueDateOriginLatestCalculatorTest {
                                                                    dueDateSkipNonWorkingDays
                                                                ),
                                                                DUE_DATE_TYPE, isConfigurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(7)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
+        assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
     }
 
     @ParameterizedTest
@@ -349,6 +394,8 @@ class DueDateOriginLatestCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
+        calculatedConfigurations.add(nextHearingDate);
+        calculatedConfigurations.add(priorityDate);
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readDueDateOriginFields(
@@ -361,12 +408,13 @@ class DueDateOriginLatestCalculatorTest {
                                                                    dueDateSkipNonWorkingDays
                                                                ),
                                                                DUE_DATE_TYPE, isConfigurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
+        assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
     }
 
     @ParameterizedTest
@@ -412,7 +460,8 @@ class DueDateOriginLatestCalculatorTest {
             .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
-
+        calculatedConfigurations.add(nextHearingDate);
+        calculatedConfigurations.add(priorityDate);
         String dateValue = dueDateOriginLatestCalculator.calculateDate(
             readDueDateOriginFields(
                 isConfigurable,
@@ -425,14 +474,15 @@ class DueDateOriginLatestCalculatorTest {
                 dueDateIntervalDays
             ),
             DUE_DATE_TYPE, isConfigurable,
-            new HashMap<>()
+            new HashMap<>(),
+            calculatedConfigurations
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
         String expectedDueDate = GIVEN_DATE.plusDays(4)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
+        assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
     }
 
     @ParameterizedTest
@@ -481,6 +531,8 @@ class DueDateOriginLatestCalculatorTest {
             .canReconfigure(CamundaValue.booleanValue(isConfigurable))
             .build();
 
+        calculatedConfigurations.add(nextHearingDate);
+        calculatedConfigurations.add(priorityDate);
         LocalDateTime resultDate = LocalDateTime.parse(dueDateOriginLatestCalculator
                                                            .calculateDate(
                                                                readDueDateOriginFields(
@@ -494,13 +546,14 @@ class DueDateOriginLatestCalculatorTest {
                                                                    dueDateSkipNonWorkingDays
                                                                ),
                                                                DUE_DATE_TYPE, isConfigurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               calculatedConfigurations
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(1)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        Assertions.assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
+        assertThat(resultDate).isEqualTo(expectedDueDate + "T18:00");
     }
 
     private List<ConfigurationDmnEvaluationResponse> readDueDateOriginFields(
