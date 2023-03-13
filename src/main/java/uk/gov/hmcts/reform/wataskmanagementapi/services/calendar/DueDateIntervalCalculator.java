@@ -170,7 +170,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
                                             .map(ConfigurationDmnEvaluationResponse::getValue)
                                             .map(CamundaValue::getValue)
                                             .map(Boolean::parseBoolean)
-                                            .orElse(false))
+                                            .orElse(true))
             .dateTypeMustBeWorkingDay(dueDateProperties.stream()
                                           .filter(r -> r.getName().getValue().equals(DUE_DATE_MUST_BE_WORKING_DAYS))
                                           .filter(r -> !reconfigure || r.getCanReconfigure().getValue())

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -1025,6 +1026,274 @@ public class OriginLatestDateTypeConfiguratorTest {
                                                         + "T18:00"))
                     .build()
             ));
+    }
+
+    @Test
+    @DisplayName("Only one OriginLatest present in DMN and has canConfigure set to False")
+    public void shouldNotReCalculateDateWhenOnlyDueDateOriginLatestIsSpecifiedAndNotSetForReconfiguration() {
+        LocalDateTime priorityDate = GIVEN_DATE.minusDays(2);
+        LocalDateTime nextHearingDate = GIVEN_DATE.plusDays(2);
+        taskAttributes.put("priorityDate", priorityDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("dueDate", GIVEN_DATE.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("nextHearingDate", nextHearingDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+
+        ConfigurationDmnEvaluationResponse dueDateOriginLatest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginLatest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(dueDateOriginLatest),
+                            false, true,
+                            taskAttributes
+            );
+
+        assertThat(configurationDmnEvaluationResponses).hasSize(0);
+    }
+
+    @Test
+    @DisplayName("Only OriginLatest set and canConfigure is True and all parameters canReconfigure false")
+    public void shouldCalculateDateWhenOriginDateLatestIsSetForReconfigurationAndOtherParametersNotSpecified() {
+        LocalDateTime priorityDate = GIVEN_DATE.minusDays(2);
+        LocalDateTime nextHearingDate = GIVEN_DATE.plusDays(2);
+        taskAttributes.put("priorityDate", priorityDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("dueDate", GIVEN_DATE.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("nextHearingDate", nextHearingDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+
+        ConfigurationDmnEvaluationResponse dueDateOriginLatest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginLatest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+            .value(CamundaValue.stringValue("0"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue(""))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue("Next"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(
+                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar,
+                        dueDateMustBeWorkingDay, dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays,
+                        dueDateOriginLatest
+                ),
+                false, true,
+                taskAttributes
+            );
+
+        assertThat(configurationDmnEvaluationResponses).hasSize(1)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(
+                        nextHearingDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T18:00")
+                    )
+                    .build()
+            ));
+    }
+
+    @Test
+    @DisplayName("Only OriginLatest set and canConfigure is True and all parameters canReconfigure set true")
+    public void shouldCalculateDateWhenOriginDateLatestIsSetForReconfigurationAndOtherParametersReconfigurable() {
+        LocalDateTime priorityDate = GIVEN_DATE.minusDays(6);
+        LocalDateTime nextHearingDate = GIVEN_DATE.plusDays(6);
+        taskAttributes.put("priorityDate", priorityDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("dueDate", GIVEN_DATE.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("nextHearingDate", nextHearingDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+
+        ConfigurationDmnEvaluationResponse dueDateOriginLatest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginLatest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+            .value(CamundaValue.stringValue("2"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SAT,SUN"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue("Next"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(
+                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar,
+                        dueDateMustBeWorkingDay, dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays,
+                        dueDateOriginLatest
+                ),
+                false, true,
+                taskAttributes
+            );
+
+        assertThat(configurationDmnEvaluationResponses).hasSize(1)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(
+                        nextHearingDate.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T18:00")
+                    )
+                    .build()
+            ));
+    }
+
+    @Test
+    @DisplayName("Only OriginLatest set and canConfigure is True and only some parameters canReconfigure set true")
+    public void shouldCalculateDateWhenOriginDateLatestIsReconfigurableButOnlySomeParametersReconfigurable() {
+        LocalDateTime priorityDate = GIVEN_DATE.minusDays(6);
+        LocalDateTime nextHearingDate = GIVEN_DATE.plusDays(6);
+        taskAttributes.put("priorityDate", priorityDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("dueDate", GIVEN_DATE.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("nextHearingDate", nextHearingDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+
+        ConfigurationDmnEvaluationResponse dueDateOriginLatest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginLatest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+            .value(CamundaValue.stringValue("2"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SAT,SUN"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue("Next"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(
+                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar,
+                        dueDateMustBeWorkingDay, dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays,
+                        dueDateOriginLatest
+                ),
+                false, true,
+                taskAttributes
+            );
+
+        assertThat(configurationDmnEvaluationResponses).hasSize(1)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(
+                        nextHearingDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T18:00")
+                    )
+                    .build()
+            ));
+    }
+
+    @Test
+    @DisplayName("Only OriginLatest set but canConfigure is false and all parameters canReconfigure set true")
+    public void shouldNotCalculateDateWhenOriginDateLatestIsNotReconfigurableButOtherParametersAreReconfigurable() {
+        LocalDateTime priorityDate = GIVEN_DATE.minusDays(6);
+        LocalDateTime nextHearingDate = GIVEN_DATE.plusDays(6);
+        taskAttributes.put("priorityDate", priorityDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("dueDate", GIVEN_DATE.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("nextHearingDate", nextHearingDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+
+        ConfigurationDmnEvaluationResponse dueDateOriginLatest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginLatest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+            .value(CamundaValue.stringValue("2"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SAT,SUN"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue("Next"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(
+                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar,
+                        dueDateMustBeWorkingDay, dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays,
+                        dueDateOriginLatest
+                ),
+                false, true,
+                taskAttributes
+            );
+
+        assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
 
     @Test

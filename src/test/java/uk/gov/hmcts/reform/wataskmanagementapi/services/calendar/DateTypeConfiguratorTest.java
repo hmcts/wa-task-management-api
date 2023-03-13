@@ -17,9 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.BDDMockito.given;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 
 @ExtendWith(MockitoExtension.class)
@@ -241,8 +238,6 @@ public class DateTypeConfiguratorTest {
                 new DueDateIntervalCalculator(workingDayIndicator),
                 new DueDateOriginEarliestCalculator(workingDayIndicator)
             ));
-
-            given(workingDayIndicator.isWorkingDay(any(), anyList(), anyList())).willReturn(true);
         }
 
         @Test
