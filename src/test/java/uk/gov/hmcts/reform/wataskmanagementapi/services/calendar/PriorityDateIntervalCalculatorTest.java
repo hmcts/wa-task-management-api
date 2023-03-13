@@ -81,6 +81,13 @@ class PriorityDateIntervalCalculatorTest {
         );
     }
 
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays() {
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
+    }
+
     @BeforeEach
     public void before() {
         priorityDateIntervalCalculator = new PriorityDateIntervalCalculator(new WorkingDayIndicator(
@@ -334,6 +341,64 @@ class PriorityDateIntervalCalculatorTest {
                 List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
                         priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
                         priorityDateTime
+                ),
+                PRIORITY_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>()
+            ).getValue().getValue();
+        LocalDateTime resultDate = LocalDateTime.parse(priorityDateValue);
+        assertThat(resultDate).isEqualTo(scenario.expectedDate);
+    }
+
+    @ParameterizedTest
+    @MethodSource({"getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays"})
+    void shouldCalculateWhenIntervalIsLessThan0AndGivenHolidays(ConfigurableScenario scenario) {
+        String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
+
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateIntervalDays"))
+            .value(CamundaValue.stringValue("-5"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
+            .value(CamundaValue.stringValue("18:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        String priorityDateValue = priorityDateIntervalCalculator
+            .calculateDate(
+                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
+                    priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                    priorityDateTime
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
