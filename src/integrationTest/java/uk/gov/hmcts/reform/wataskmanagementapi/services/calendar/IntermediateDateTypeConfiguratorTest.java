@@ -925,6 +925,8 @@ public class IntermediateDateTypeConfiguratorTest {
             ));
     }
 
+    //This will fail once we fix intermediate dates reconfigure false issue and negative interval days
+    //assertions need to be corrected
     @Test
     @DisplayName("Intermediate date is not set to be reconfigurable but its parameters are reconfigurable")
     public void shouldCalculateIntermediateDateWhenIsNotSetToBeReconfigurableWhenParametersAreReconfigurable() {
