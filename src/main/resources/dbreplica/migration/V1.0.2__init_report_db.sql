@@ -171,6 +171,10 @@ create table cft_task_db.reportable_task
   number_of_reassignments      INTEGER DEFAULT 0 NOT NULL,
   due_date                 DATE,
   last_updated_date        DATE,
+  wait_time                       INTERVAL,
+  handling_time                   INTERVAL,
+  processing_time                 INTERVAL,
+  due_date_to_completed_diff_time INTERVAL,
   PRIMARY KEY ( "task_id" )
 );
 
