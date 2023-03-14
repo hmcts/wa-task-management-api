@@ -47,12 +47,10 @@ public class IntermediateDateOriginEarliestCalculator extends IntermediateDateIn
         String dateTypeName,
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
-        return getOriginEarliestDate(
-            configResponses,
-            getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigureRequest),
-            taskAttributes,
-            isReconfigureRequest
-        );
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var configProperty = getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigureRequest);
+        log.info("Input {}: {}", dateTypeName + ORIGIN_EARLIEST_SUFFIX, configProperty);
+        return getOriginEarliestDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }

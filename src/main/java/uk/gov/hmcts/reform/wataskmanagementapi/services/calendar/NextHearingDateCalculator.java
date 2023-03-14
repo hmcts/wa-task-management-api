@@ -31,11 +31,12 @@ public class NextHearingDateCalculator extends DueDateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateType,
-        boolean isReconfigureRequest, Map<String, Object> taskAttributes) {
-        return calculatedDate(
-            dateType,
-            getProperty(configResponses, NEXT_HEARING_DATE.getType(), isReconfigureRequest),
-            getProperty(configResponses, NEXT_HEARING_DATE_TIME, isReconfigureRequest)
-        );
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var nextHearingDate = getProperty(configResponses, NEXT_HEARING_DATE.getType(), isReconfigureRequest);
+        log.info("Input {}: {}", NEXT_HEARING_DATE.getType(), nextHearingDate);
+        var nextHearingDateTime = getProperty(configResponses, NEXT_HEARING_DATE_TIME, isReconfigureRequest);
+        return calculatedDate(dateType, nextHearingDate, nextHearingDateTime);
     }
 }

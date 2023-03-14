@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -167,7 +168,8 @@ class NextHearingDateIntervalCalculatorTest {
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
@@ -227,7 +229,8 @@ class NextHearingDateIntervalCalculatorTest {
                 ),
                 NEXT_HEARING_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDateValue)).isEqualTo(scenario.expectedDate);
@@ -343,7 +346,8 @@ class NextHearingDateIntervalCalculatorTest {
                 ),
                 NEXT_HEARING_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -462,7 +466,8 @@ class NextHearingDateIntervalCalculatorTest {
                 ),
                 NEXT_HEARING_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDateValue)).isEqualTo(scenario.expectedDate);
@@ -520,7 +525,8 @@ class NextHearingDateIntervalCalculatorTest {
                 ),
                 NEXT_HEARING_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDateValue)).isEqualTo(scenario.expectedDate);
@@ -577,7 +583,8 @@ class NextHearingDateIntervalCalculatorTest {
                                                                ),
                                                                NEXT_HEARING_DATE_TYPE,
                                                                scenario.configurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -603,7 +610,8 @@ class NextHearingDateIntervalCalculatorTest {
                 List.of(nextHearingDateOrigin),
                 NEXT_HEARING_DATE_TYPE,
                 configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
@@ -635,7 +643,8 @@ class NextHearingDateIntervalCalculatorTest {
             List.of(nextHearingDateOrigin, nextHearingDateTime),
             NEXT_HEARING_DATE_TYPE,
             false,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue());
 
         String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

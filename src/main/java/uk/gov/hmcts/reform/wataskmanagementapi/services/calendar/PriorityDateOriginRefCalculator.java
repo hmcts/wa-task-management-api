@@ -39,12 +39,10 @@ public class PriorityDateOriginRefCalculator extends PriorityDateIntervalCalcula
     protected Optional<LocalDateTime> getReferenceDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
-        return getOriginRefDate(
-            configResponses,
-            getProperty(configResponses, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest),
-            taskAttributes,
-            isReconfigureRequest
-        );
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var configProperty = getProperty(configResponses, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest);
+        log.info("Input {}: {}", PRIORITY_DATE_ORIGIN_REF, configProperty);
+        return getOriginRefDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }
