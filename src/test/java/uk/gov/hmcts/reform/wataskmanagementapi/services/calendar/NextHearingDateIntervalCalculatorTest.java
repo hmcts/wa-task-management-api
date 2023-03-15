@@ -288,7 +288,8 @@ class NextHearingDateIntervalCalculatorTest {
                 ),
                 NEXT_HEARING_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDateValue)).isEqualTo(scenario.expectedDate);
@@ -405,7 +406,8 @@ class NextHearingDateIntervalCalculatorTest {
                 ),
                 NEXT_HEARING_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);

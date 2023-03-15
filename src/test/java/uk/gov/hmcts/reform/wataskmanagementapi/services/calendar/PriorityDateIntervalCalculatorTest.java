@@ -289,7 +289,8 @@ class PriorityDateIntervalCalculatorTest {
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
@@ -406,7 +407,8 @@ class PriorityDateIntervalCalculatorTest {
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);

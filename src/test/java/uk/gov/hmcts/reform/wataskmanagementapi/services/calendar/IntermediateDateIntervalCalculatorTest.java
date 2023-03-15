@@ -332,7 +332,8 @@ class IntermediateDateIntervalCalculatorTest {
                 ),
                 INTERMEDIATE_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(nextHearingDurationValue)).isEqualTo(scenario.expectedDate);
@@ -449,7 +450,8 @@ class IntermediateDateIntervalCalculatorTest {
                 ),
                 INTERMEDIATE_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(nextHearingDurationValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
