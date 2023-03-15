@@ -26,7 +26,8 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         String dateTypeName = dateTypeObject.dateTypeName();
-        ConfigurationDmnEvaluationResponse origin = getProperty(configResponses,
+        ConfigurationDmnEvaluationResponse origin = getProperty(
+            configResponses,
             dateTypeName + ORIGIN_SUFFIX,
             isReconfigureRequest
         );
@@ -46,12 +47,10 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
         String dateTypeName,
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
-        return getOriginRefDate(
-            configResponses,
-            getProperty(configResponses, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigureRequest),
-            taskAttributes,
-            isReconfigureRequest
-        );
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var configProperty = getProperty(configResponses, dateTypeName + ORIGIN_REF_SUFFIX, isReconfigureRequest);
+        log.info("Input {}: {}", dateTypeName + ORIGIN_REF_SUFFIX, configProperty);
+        return getOriginRefDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }

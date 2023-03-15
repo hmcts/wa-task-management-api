@@ -26,6 +26,11 @@ public class DueDateTimeCalculator implements DateCalculator {
         return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_REF, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest))
+            .isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME, isReconfigureRequest)).isPresent();
     }
 
@@ -33,8 +38,12 @@ public class DueDateTimeCalculator implements DateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest, Map<String, Object> taskAttributes) {
-        return calculatedDate(dateTypeObject, getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest));
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest);
+        log.info("Input {}: {}", DUE_DATE_TIME, dueDateTimeResponse);
+        return calculatedDate(dateTypeObject, dueDateTimeResponse);
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(

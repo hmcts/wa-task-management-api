@@ -79,9 +79,11 @@ public class CaseConfigurationProviderService {
 
         boolean initiationDueDateFound = taskAttributes.containsKey(DUE_DATE.value());
 
-        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsAfterUpdate
             = updateTaskConfigurationDmnResultsForAdditionalProperties(
-                taskConfigurationDmnResults, initiationDueDateFound, isReconfigureRequest,
+                taskConfigurationDmnResults,
+                initiationDueDateFound,
+                isReconfigureRequest,
                 taskAttributes
         );
 
@@ -99,7 +101,7 @@ public class CaseConfigurationProviderService {
             .collect(Collectors.toList());
 
         Map<String, Object> caseConfigurationVariables = extractDmnResults(
-            taskConfigurationDmnResultsWithAdditionalProperties,
+            taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
         log.debug("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
@@ -111,7 +113,7 @@ public class CaseConfigurationProviderService {
 
         return new TaskConfigurationResults(
             allCaseConfigurationValues,
-            taskConfigurationDmnResultsWithAdditionalProperties,
+            taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
     }

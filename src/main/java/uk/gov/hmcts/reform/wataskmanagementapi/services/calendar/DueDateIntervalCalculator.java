@@ -44,11 +44,13 @@ public class DueDateIntervalCalculator implements DateCalculator {
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateType,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return calculateDate(
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
-            getReferenceDate(configResponses, isReconfigureRequest, taskAttributes).orElse(DEFAULT_ZONED_DATE_TIME)
+            getReferenceDate(configResponses, isReconfigureRequest, taskAttributes, calculatedConfigurations)
+                .orElse(DEFAULT_ZONED_DATE_TIME)
         );
     }
 
@@ -101,15 +103,17 @@ public class DueDateIntervalCalculator implements DateCalculator {
     }
 
     protected Optional<LocalDateTime> getReferenceDate(
-        List<ConfigurationDmnEvaluationResponse> dueDateProperties,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean reconfigure,
-        Map<String, Object> taskAttributes) {
-        return dueDateProperties.stream()
+        Map<String, Object> taskAttributes, List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        return configResponses.stream()
             .filter(r -> r.getName().getValue().equals(DUE_DATE_ORIGIN))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
-            .map(ConfigurationDmnEvaluationResponse::getValue)
-            .map(CamundaValue::getValue)
+            .map(v -> {
+                log.info("Input {}: {}", DUE_DATE_ORIGIN, v);
+                return v.getValue().getValue();
+            })
             .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
     }
 
@@ -166,7 +170,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
                                             .map(ConfigurationDmnEvaluationResponse::getValue)
                                             .map(CamundaValue::getValue)
                                             .map(Boolean::parseBoolean)
-                                            .orElse(false))
+                                            .orElse(true))
             .dateTypeMustBeWorkingDay(dueDateProperties.stream()
                                           .filter(r -> r.getName().getValue().equals(DUE_DATE_MUST_BE_WORKING_DAYS))
                                           .filter(r -> !reconfigure || r.getCanReconfigure().getValue())

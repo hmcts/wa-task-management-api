@@ -41,12 +41,10 @@ public class IntermediateDateOriginLatestCalculator extends IntermediateDateInte
         String dateTypeName,
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
-        return getOriginLatestDate(
-            configResponses,
-            getProperty(configResponses, dateTypeName + ORIGIN_LATEST_SUFFIX, isReconfigureRequest),
-            taskAttributes,
-            isReconfigureRequest
-        );
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var configProperty = getProperty(configResponses, dateTypeName + ORIGIN_LATEST_SUFFIX, isReconfigureRequest);
+        log.info("Input {}: {}", dateTypeName + ORIGIN_LATEST_SUFFIX, configProperty);
+        return getOriginLatestDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }

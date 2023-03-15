@@ -37,12 +37,10 @@ public class PriorityDateOriginEarliestCalculator extends PriorityDateIntervalCa
     protected Optional<LocalDateTime> getReferenceDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
-        return getOriginEarliestDate(
-            configResponses,
-            getProperty(configResponses, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigureRequest),
-            taskAttributes,
-            isReconfigureRequest
-        );
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var configProperty = getProperty(configResponses, PRIORITY_DATE_ORIGIN_EARLIEST, isReconfigureRequest);
+        log.info("Input {}: {}", PRIORITY_DATE_ORIGIN_EARLIEST, configProperty);
+        return getOriginEarliestDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }
