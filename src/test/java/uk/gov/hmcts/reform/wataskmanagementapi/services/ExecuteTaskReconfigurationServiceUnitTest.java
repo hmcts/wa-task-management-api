@@ -24,15 +24,12 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static utils.TaskOperationResponseExtractor.extractTaskResource;
 
 @ExtendWith(MockitoExtension.class)
 class ExecuteTaskReconfigurationServiceUnitTest {
@@ -67,8 +64,6 @@ class ExecuteTaskReconfigurationServiceUnitTest {
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
 
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
                 .name(TaskOperationName.EXECUTE_RECONFIGURE)
@@ -80,15 +75,12 @@ class ExecuteTaskReconfigurationServiceUnitTest {
         TaskOperationResponse taskOperationResponse = executeTaskReconfigurationService
             .performOperation(request);
 
-        List<TaskResource> taskResourcesReconfigured = extractTaskResource(taskOperationResponse);
+        int taskResourcesReconfigured = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
 
+        assertEquals(2, taskResourcesReconfigured);
         verify(configureTaskService, times(2)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(2)).reAutoAssignCFTTask(any());
-
-        taskResourcesReconfigured.forEach(taskResource -> {
-            assertNull(taskResource.getReconfigureRequestTime());
-            assertTrue(taskResource.getLastReconfigurationTime().isAfter(todayTestDatetime));
-        });
 
     }
 
@@ -114,12 +106,14 @@ class ExecuteTaskReconfigurationServiceUnitTest {
         TaskOperationResponse taskOperationResponse = executeTaskReconfigurationService
             .performOperation(request);
 
-        List<TaskResource> taskResourcesReconfigured = extractTaskResource(taskOperationResponse);
+        int taskResourcesReconfigured = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
+
+        assertEquals(0, taskResourcesReconfigured);
 
         verify(configureTaskService, times(0)).configureCFTTask(any(), any());
         verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
 
-        assertEquals(0, taskResourcesReconfigured.size());
     }
 
     @Test
@@ -152,11 +146,14 @@ class ExecuteTaskReconfigurationServiceUnitTest {
 
         TaskOperationResponse taskOperationResponse = executeTaskReconfigurationService
             .performOperation(request);
-        List<TaskResource> taskResourcesReconfigured = extractTaskResource(taskOperationResponse);
+
+        int taskResourcesReconfigured = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
+
+        assertEquals(1, taskResourcesReconfigured);
         verify(configureTaskService, times(1)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
 
-        assertEquals(1, taskResourcesReconfigured.size());
     }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
@@ -245,8 +242,10 @@ class ExecuteTaskReconfigurationServiceUnitTest {
         TaskOperationResponse taskOperationResponse = executeTaskReconfigurationService
             .performOperation(request);
 
-        List<TaskResource> taskResourcesReconfigured = extractTaskResource(taskOperationResponse);
-        assertEquals(0, taskResourcesReconfigured.size());
+        int taskResourcesReconfigured = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
+
+        assertEquals(0, taskResourcesReconfigured);
     }
 
     @Test
@@ -271,15 +270,13 @@ class ExecuteTaskReconfigurationServiceUnitTest {
         TaskOperationResponse taskOperationResponse = executeTaskReconfigurationService
             .performOperation(request);
 
-        List<TaskResource> taskResourcesReconfigured = extractTaskResource(taskOperationResponse);
+        int taskResourcesReconfigured = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
+
+        assertEquals(0, taskResourcesReconfigured);
 
         verify(configureTaskService, times(0)).configureCFTTask(any(), any());
         verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
-
-        taskResourcesReconfigured.forEach(taskResource -> {
-            assertNull(taskResource.getReconfigureRequestTime());
-            assertTrue(taskResource.getLastReconfigurationTime().isAfter(todayTestDatetime));
-        });
 
     }
 

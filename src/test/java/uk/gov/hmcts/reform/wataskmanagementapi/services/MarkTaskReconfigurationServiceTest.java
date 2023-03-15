@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperatio
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -24,16 +23,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
-import static utils.TaskOperationResponseExtractor.extractTaskResource;
 
 @ExtendWith(MockitoExtension.class)
 class MarkTaskReconfigurationServiceTest {
@@ -86,15 +81,11 @@ class MarkTaskReconfigurationServiceTest {
         TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
             .markTasksToReconfigure(taskFilters);
 
-        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
+        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
 
-        taskResourcesMarked.forEach(taskResource -> {
-            assertNotNull(taskResource.getReconfigureRequestTime());
-            assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
-            assertNotNull(taskResource.getLastUpdatedTimestamp());
-            assertEquals(IDAM_SYSTEM_USER, taskResource.getLastUpdatedUser());
-            assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResource.getLastUpdatedAction());
-        });
+        assertEquals(2, taskResourcesMarked);
+
     }
 
     @Test
@@ -108,9 +99,10 @@ class MarkTaskReconfigurationServiceTest {
         TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
             .markTasksToReconfigure(taskFilters);
 
-        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
+        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
 
-        taskResourcesMarked.forEach(taskResource -> assertNull(taskResource.getReconfigureRequestTime()));
+        assertEquals(0, taskResourcesMarked);
 
     }
 
@@ -124,9 +116,10 @@ class MarkTaskReconfigurationServiceTest {
         TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
             .markTasksToReconfigure(taskFilters);
 
-        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
+        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
 
-        assertEquals(0, taskResourcesMarked.size());
+        assertEquals(0, taskResourcesMarked);
     }
 
     @Test
@@ -142,9 +135,10 @@ class MarkTaskReconfigurationServiceTest {
         TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
             .markTasksToReconfigure(taskFilters);
 
-        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
+        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
 
-        assertEquals(0, taskResourcesMarked.size());
+        assertEquals(0, taskResourcesMarked);
     }
 
     @Test
@@ -159,9 +153,10 @@ class MarkTaskReconfigurationServiceTest {
         TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
             .markTasksToReconfigure(taskFilters);
 
-        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
+        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
 
-        assertEquals(0, taskResourcesMarked.size());
+        assertEquals(0, taskResourcesMarked);
     }
 
     private List<TaskFilter<?>> createTaskFilters() {

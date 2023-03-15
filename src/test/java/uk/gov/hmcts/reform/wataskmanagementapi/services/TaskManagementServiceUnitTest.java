@@ -150,7 +150,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.ROLE_ASSIGNMENT_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.setTaskActionAttributes;
-import static utils.TaskOperationResponseExtractor.extractTaskResource;
 
 @ExtendWith(MockitoExtension.class)
 @Slf4j
@@ -321,15 +320,11 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         TaskOperationResponse taskOperationResponse = taskManagementService
             .performOperation(taskOperationRequest);
 
-        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
+        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
 
-        taskResourcesMarked.forEach(taskResource1 -> {
-            assertNotNull(taskResource1.getReconfigureRequestTime());
-            assertTrue(taskResource1.getReconfigureRequestTime().isAfter(todayTestDatetime));
-            assertNotNull(taskResource1.getLastUpdatedTimestamp());
-            assertEquals(IDAM_SYSTEM_USER, taskResource1.getLastUpdatedUser());
-            assertEquals(TaskAction.MARK_FOR_RECONFIGURE.getValue(), taskResource1.getLastUpdatedAction());
-        });
+        assertEquals(2, taskResourcesMarked);
+
     }
 
     @Test
@@ -343,8 +338,10 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         TaskOperationResponse taskOperationResponse = taskManagementService
             .performOperation(taskOperationRequest);
 
-        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
-        taskResourcesMarked.forEach(taskResource -> assertNull(taskResource.getReconfigureRequestTime()));
+        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
+
+        assertEquals(0, taskResourcesMarked);
     }
 
     @Test
@@ -357,9 +354,10 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         TaskOperationResponse taskOperationResponse = taskManagementService
             .performOperation(taskOperationRequest);
 
-        List<TaskResource> taskResourcesMarked = extractTaskResource(taskOperationResponse);
+        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
 
-        assertEquals(0, taskResourcesMarked.size());
+        assertEquals(0, taskResourcesMarked);
     }
 
     @Test

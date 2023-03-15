@@ -72,7 +72,7 @@ public class MarkTaskReconfigurationService implements TaskOperationService {
             throw new TaskReconfigurationException(TASK_RECONFIGURATION_MARK_TASKS_TO_RECONFIGURE_FAILED, caseIds);
         }
 
-        return new TaskOperationResponse(Map.of("successfulTaskResources", successfulTaskResources));
+        return new TaskOperationResponse(Map.of("successfulTaskResources", successfulTaskResources.size()));
     }
 
     @Override

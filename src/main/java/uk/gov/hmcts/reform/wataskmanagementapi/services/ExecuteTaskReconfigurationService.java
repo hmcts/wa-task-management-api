@@ -78,7 +78,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
             configurationFailLog(failedTaskIds, request.getOperation().getRetryWindowHours());
         }
 
-        return new TaskOperationResponse(Map.of("successfulTaskResources", successfulTaskResources));
+        return new TaskOperationResponse(Map.of("successfulTaskResources", successfulTaskResources.size()));
     }
 
     private void configurationFailLog(List<String> failedTaskIds, long retryWindowHours) {
