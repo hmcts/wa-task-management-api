@@ -47,12 +47,14 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         Optional<LocalDateTime> referenceDate = getReferenceDate(
             dateTypeObject.dateTypeName(),
             configResponses,
             isReconfigureRequest,
-            taskAttributes
+            taskAttributes,
+            calculatedConfigurations
         );
         return referenceDate.map(localDateTime -> calculateDate(
                 dateTypeObject,
@@ -66,13 +68,16 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         String dateTypeName,
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         boolean reconfigure,
-        Map<String, Object> taskAttributes) {
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dateTypeName + ORIGIN_SUFFIX))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
-            .map(ConfigurationDmnEvaluationResponse::getValue)
-            .map(CamundaValue::getValue)
+            .map(v -> {
+                log.info("Input {}: {}", dateTypeName + ORIGIN_SUFFIX, v);
+                return v.getValue().getValue();
+            })
             .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
     }
 

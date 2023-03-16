@@ -26,14 +26,16 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
         DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
         String dateTypeName = dateTypeObject.dateTypeName();
-        ConfigurationDmnEvaluationResponse origin = getProperty(configResponses,
+        ConfigurationDmnEvaluationResponse origin = getProperty(
+            configResponses,
             dateTypeName + ORIGIN_SUFFIX,
             isReconfigureRequest
         );
         ConfigurationDmnEvaluationResponse originRef = getProperty(
             configResponses,
             dateTypeName + ORIGIN_REF_SUFFIX,
-            false //always intermediate date values will be read irrespective of reconfiguration
+            //always intermediate date values will be read hence isReconfigurableRequest value is set to false
+            false
         );
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(origin).isEmpty()
@@ -46,18 +48,15 @@ public class IntermediateDateOriginRefCalculator extends IntermediateDateInterva
         String dateTypeName,
         List<ConfigurationDmnEvaluationResponse> configResponses,
         boolean isReconfigureRequest,
-        Map<String, Object> taskAttributes) {
-        return getOriginRefDate(
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var configProperty = getProperty(
             configResponses,
+            dateTypeName + ORIGIN_REF_SUFFIX,
             //always intermediate date values will be read hence isReconfigurableRequest value is set to false
-            getProperty(
-                configResponses,
-                dateTypeName + ORIGIN_REF_SUFFIX,
-                //always intermediate date values will be read hence isReconfigurableRequest value is set to false
-                false
-            ),
-            taskAttributes,
-            isReconfigureRequest
+            false
         );
+        log.info("Input {}: {}", dateTypeName + ORIGIN_REF_SUFFIX, configProperty);
+        return getOriginRefDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }

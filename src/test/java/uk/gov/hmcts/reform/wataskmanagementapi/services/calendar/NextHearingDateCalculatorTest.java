@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -125,7 +126,8 @@ class NextHearingDateCalculatorTest {
             evaluationResponses,
             NEXT_HEARING_DATE_TYPE,
             configurable,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + time);
     }
@@ -154,7 +156,7 @@ class NextHearingDateCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, nextHearingDateTime);
 
         String dateValue = nextHearingDateCalculator.calculateDate(
-                evaluationResponses, NEXT_HEARING_DATE_TYPE, configurable, new HashMap<>())
+                evaluationResponses, NEXT_HEARING_DATE_TYPE, configurable, new HashMap<>(), new ArrayList<>())
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + time);
     }
@@ -183,7 +185,7 @@ class NextHearingDateCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, nextHearingDateTime);
 
         String dateValue = nextHearingDateCalculator.calculateDate(
-                evaluationResponses, NEXT_HEARING_DATE_TYPE, configurable, new HashMap<>())
+                evaluationResponses, NEXT_HEARING_DATE_TYPE, configurable, new HashMap<>(), new ArrayList<>())
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + time);
     }
@@ -214,7 +216,8 @@ class NextHearingDateCalculatorTest {
 
         String dateValue = nextHearingDateCalculator.calculateDate(
                 evaluationResponses,
-                NEXT_HEARING_DATE_TYPE, configurable, new HashMap<>()
+                NEXT_HEARING_DATE_TYPE, configurable, new HashMap<>(),
+                new ArrayList<>()
             )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate2 + time);
