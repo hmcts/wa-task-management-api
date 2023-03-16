@@ -11,7 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
  * This scheduler checks if logical replication is in place.
  */
 @Component
-@Profile("replica preview")
+@Profile({"replica", "preview"})
 public class LogicalReplicationCreatorScheduler {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LogicalReplicationCreatorScheduler.class);
 
