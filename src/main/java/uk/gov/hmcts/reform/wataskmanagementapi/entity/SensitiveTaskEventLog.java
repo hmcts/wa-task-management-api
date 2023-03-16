@@ -28,8 +28,7 @@ import javax.persistence.Id;
         )
     }
 )
-@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields",
-    "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
+@SuppressWarnings("PMD.ExcessiveParameterList")
 public class SensitiveTaskEventLog implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;

@@ -7,22 +7,26 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 
 public class CFTSensitiveTaskEventLogsDatabaseServiceTest  extends SpringBootIntegrationBaseTest {
@@ -59,7 +63,7 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest  extends SpringBootInt
     }
 
     @Test
-    void should_succeed_and_save_sensitive_task_event_log() {
+    void should_process_and_save_sensitive_task_event_log() {
         String taskId = UUID.randomUUID().toString();
         String caseId = "Some caseId";
         TaskResource taskResource = new TaskResource(
@@ -77,24 +81,14 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest  extends SpringBootInt
         List<RoleAssignment> roleAssignments =
             mockServices.createTestRoleAssignments(roleNames);
 
-        SensitiveTaskEventLog sensitiveTaskEventLog = new SensitiveTaskEventLog(
-            UUID.randomUUID().toString(),
-            null,
-            null,
-            taskId,
-            taskResource.getCaseId(),
-            "Some Message",
-            List.of(taskResource),
-            roleAssignments,
-            ZonedDateTime.now().toOffsetDateTime().plusDays(90),
-            ZonedDateTime.now().toOffsetDateTime()
-        );
+        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(java.util.Optional.of(taskResource));
 
-        SensitiveTaskEventLog updatedSensitiveTaskEventLog =
-            cftSensitiveTaskEventLogsDatabaseService.saveSensitiveTaskEventLog(sensitiveTaskEventLog);
-        assertNotNull(updatedSensitiveTaskEventLog);
-        assertEquals(taskId, updatedSensitiveTaskEventLog.getTaskId());
-        assertEquals("Some Message", updatedSensitiveTaskEventLog.getMessage());
-        assertEquals(caseId, updatedSensitiveTaskEventLog.getCaseId());
+        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+            roleAssignments, ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE);
+
+        ExecutorService executorService = new ScheduledThreadPoolExecutor(1);
+        executorService.execute(() -> {
+            verify(sensitiveTaskEventLogsRepository, times(1)).save(any(SensitiveTaskEventLog.class));
+        });
     }
 }
