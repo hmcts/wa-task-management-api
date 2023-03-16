@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
 
-@Profile({"replica", "preview"})
+@Profile("replica")
 @Configuration
 public class FlywayReplicaMigrationConfiguration {
     @Autowired
