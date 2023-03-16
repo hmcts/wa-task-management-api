@@ -33,7 +33,12 @@ public class IntermediateDateOriginLatestCalculator extends IntermediateDateInte
             && Optional.ofNullable(getProperty(configResponses, dateTypeName + ORIGIN_SUFFIX, isReconfigureRequest))
             .isEmpty()
             && Optional.ofNullable(
-            getProperty(configResponses, dateTypeName + ORIGIN_LATEST_SUFFIX, isReconfigureRequest)).isPresent();
+            getProperty(
+                configResponses,
+                dateTypeName + ORIGIN_LATEST_SUFFIX,
+                //always intermediate date values will be read hence isReconfigurableRequest value is set to false
+                false
+            )).isPresent();
     }
 
     @Override
@@ -44,7 +49,11 @@ public class IntermediateDateOriginLatestCalculator extends IntermediateDateInte
         Map<String, Object> taskAttributes) {
         return getOriginLatestDate(
             configResponses,
-            getProperty(configResponses, dateTypeName + ORIGIN_LATEST_SUFFIX, isReconfigureRequest),
+            getProperty(
+                configResponses,
+                dateTypeName + ORIGIN_LATEST_SUFFIX,
+                //always intermediate date values will be read hence isReconfigurableRequest value is set to false
+                false),
             taskAttributes,
             isReconfigureRequest
         );

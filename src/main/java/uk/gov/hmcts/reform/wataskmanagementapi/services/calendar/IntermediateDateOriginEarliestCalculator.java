@@ -34,7 +34,8 @@ public class IntermediateDateOriginEarliestCalculator extends IntermediateDateIn
         ConfigurationDmnEvaluationResponse intermediateOriginEarliest = getProperty(
             configResponses,
             dateTypeName + ORIGIN_EARLIEST_SUFFIX,
-            isReconfigureRequest
+            //always intermediate date values will be read hence isReconfigurableRequest value is set to false
+            false
         );
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(intermediateOrigin).isEmpty()
@@ -52,7 +53,8 @@ public class IntermediateDateOriginEarliestCalculator extends IntermediateDateIn
             configResponses,
             getProperty(configResponses, dateTypeName + ORIGIN_EARLIEST_SUFFIX, isReconfigureRequest),
             taskAttributes,
-            isReconfigureRequest
+            //always intermediate date values will be read hence isReconfigurableRequest value is set to false
+            false
         );
     }
 }

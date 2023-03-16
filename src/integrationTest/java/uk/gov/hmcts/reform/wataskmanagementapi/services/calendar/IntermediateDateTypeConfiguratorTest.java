@@ -817,7 +817,7 @@ public class IntermediateDateTypeConfiguratorTest {
 
         ConfigurationDmnEvaluationResponse hearingDatePreDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("hearingDatePreDateIntervalDays"))
-            .value(CamundaValue.stringValue("5"))
+            .value(CamundaValue.stringValue("-5"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
 
@@ -902,7 +902,7 @@ public class IntermediateDateTypeConfiguratorTest {
                 ), false, true, taskAttributes
             );
 
-        assertThat(configurationDmnEvaluationResponses).hasSize(4)
+        assertThat(configurationDmnEvaluationResponses).hasSize(5)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("calculatedDates"))
@@ -913,20 +913,21 @@ public class IntermediateDateTypeConfiguratorTest {
                     .value(stringValue(nextHearingDateValue + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("hearingDatePreDate"))
+                    .value(stringValue(nextHearingDateValue + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("dueDate"))
                     .value(stringValue(GIVEN_DATE.plusDays(32)
                                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("priorityDate"))
-                    .value(stringValue(GIVEN_DATE.plusDays(32)
-                                           .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
+                    .value(stringValue(nextHearingDateValue + "T16:00"))
                     .build()
             ));
     }
 
-    //TO-DO This will fail once we fix intermediate dates reconfigure false issue and negative interval days
-    //assertions need to be corrected
     @Test
     @DisplayName("Intermediate date is not set to be reconfigurable but its parameters are reconfigurable")
     public void shouldCalculateIntermediateDateWhenIsNotSetToBeReconfigurableWhenParametersAreReconfigurable() {
@@ -1036,7 +1037,7 @@ public class IntermediateDateTypeConfiguratorTest {
                 ), false, true, taskAttributes
             );
 
-        assertThat(configurationDmnEvaluationResponses).hasSize(4)
+        assertThat(configurationDmnEvaluationResponses).hasSize(5)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("calculatedDates"))
@@ -1047,13 +1048,18 @@ public class IntermediateDateTypeConfiguratorTest {
                     .value(stringValue(nextHearingDateValue + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
+                    .name(stringValue("hearingDatePreDate"))
+                    .value(stringValue(GIVEN_DATE.minusDays(5)
+                                           .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("dueDate"))
                     .value(stringValue(GIVEN_DATE.plusDays(32)
                                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("priorityDate"))
-                    .value(stringValue(GIVEN_DATE.plusDays(32)
+                    .value(stringValue(GIVEN_DATE.minusDays(5)
                                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
                     .build()
             ));

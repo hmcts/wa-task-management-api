@@ -34,7 +34,8 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         ConfigurationDmnEvaluationResponse intermediateOrigin = getProperty(
             configResponses,
             dateTypeName + ORIGIN_SUFFIX,
-            isReconfigureRequest
+            //always intermediate date values will be read hence isReconfigurableRequest value is set to false
+            false
         );
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(intermediateOrigin).isPresent()
