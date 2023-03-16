@@ -11,6 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
@@ -26,8 +27,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 
 /**
@@ -46,6 +46,8 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     TaskHistoryResourceRepository taskHistoryResourceRepository;
 
+    SubscriptionCreator subscriptionCreator;
+
     @Autowired
     TCExtendedContainerDatabaseDriver tcDriver;
 
@@ -61,8 +63,9 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
+        subscriptionCreator = new SubscriptionCreator("repl_user", "repl_password");
         miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
-                                                    "repl_user", "repl_password");
+                                                    subscriptionCreator);
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
 
@@ -92,14 +95,13 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    @Test
-    void given_zero_publications_should_return_false() {
-        TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
-        when(taskResourceRepository.countPublications()).thenReturn(0);
-        miReportingService = new MIReportingService(null, taskResourceRepository,
-                                                    "repl_user", "repl_password");
 
-        assertFalse(miReportingService.isPublicationPresent());
+
+    @Test
+    void given_unknown_task_id_what_happens() {
+        List<TaskHistoryResource> taskHistoryResourceList
+            = miReportingService.findByTaskId("1111111");
+        assertTrue(taskHistoryResourceList.isEmpty());
     }
 
     private TaskResource createAndSaveTask() {
