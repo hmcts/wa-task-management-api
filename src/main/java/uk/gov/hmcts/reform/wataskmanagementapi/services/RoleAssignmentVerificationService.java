@@ -67,17 +67,15 @@ public class RoleAssignmentVerificationService {
             );
 
             if (optionalTaskResource.isEmpty()) {
+                ErrorMessages currentErrorMessage = ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
                 if (customErrorMessage != null) {
-                    cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
-                        roleAssignments,
-                        customErrorMessage);
-                    throw new RoleAssignmentVerificationException(customErrorMessage);
+                    currentErrorMessage = customErrorMessage;
                 }
 
                 cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
                     roleAssignments,
-                    ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
-                throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+                    currentErrorMessage);
+                throw new RoleAssignmentVerificationException(currentErrorMessage);
 
             }
             return optionalTaskResource.get();

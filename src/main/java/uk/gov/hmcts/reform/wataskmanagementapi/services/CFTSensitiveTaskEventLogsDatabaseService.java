@@ -4,10 +4,10 @@ import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -35,7 +35,7 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
     }
 
-    public SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
+    private SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
         return sensitiveTaskEventLogsRepository.save(sensitiveTaskEventLog);
     }
 
