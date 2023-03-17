@@ -23,12 +23,11 @@ public class MIReportingServiceTest {
     MIReportingService miReportingService;
 
     @Test
-    void given_unknown_task_id_what_happens() {
+    void given_unknown_task_id_get_empty_list() {
         TaskHistoryResourceRepository taskHistoryResourceRepository = mock(TaskHistoryResourceRepository.class);
         when(taskHistoryResourceRepository.getByTaskId("1111111")).thenReturn(Collections.emptyList());
         miReportingService = new MIReportingService(taskHistoryResourceRepository, null,
                                                     null);
-
 
         List<TaskHistoryResource> taskHistoryResourceList
             = miReportingService.findByTaskId("1111111");
@@ -123,7 +122,6 @@ public class MIReportingServiceTest {
         miReportingService.logicalReplicationCheck();
 
         verify(taskResourceRepository, times(1)).createReplicationSlot();
-
     }
 
 
