@@ -1004,7 +1004,7 @@ public class IntermediateDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("hearingDatePreDate"))
-                    .value(stringValue(GIVEN_DATE.minusDays(5)
+                    .value(stringValue(GIVEN_DATE.minusDays(6)
                                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
@@ -1014,7 +1014,7 @@ public class IntermediateDateTypeConfiguratorTest {
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("priorityDate"))
-                    .value(stringValue(GIVEN_DATE.minusDays(5)
+                    .value(stringValue(GIVEN_DATE.minusDays(6)
                                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
                     .build()
             ));
@@ -1257,7 +1257,7 @@ public class IntermediateDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+        assertThatThrownBy(() ->  dateTypeConfigurator
             .configureDates(
                 List.of(calculatedDates, nextHearingDate, hearingDatePreDateOriginRef,
                     hearingDatePreDateIntervalDays, hearingDatePreDateNonWorkingCalendar,
@@ -1266,28 +1266,8 @@ public class IntermediateDateTypeConfiguratorTest {
                     dueDateNonWorkingCalendar, dueDateMustBeWorkingDay, dueDateNonWorkingDaysOfWeek,
                     dueDateSkipNonWorkingDays, priorityDateOriginEarliest
                 ), false, true, taskAttributes
-            );
-
-        assertThat(configurationDmnEvaluationResponses).hasSize(4)
-            .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("calculatedDates"))
-                    .value(stringValue("nextHearingDate,nonSpecifiedIntDate,hearingDatePreDate,dueDate,priorityDate"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("nextHearingDate"))
-                    .value(stringValue(nextHearingDateValue + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("dueDate"))
-                    .value(stringValue(GIVEN_DATE.plusDays(32)
-                                           .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("priorityDate"))
-                    .value(stringValue(GIVEN_DATE.plusDays(32)
-                                           .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00"))
-                    .build()
-            ));
+            ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 }
