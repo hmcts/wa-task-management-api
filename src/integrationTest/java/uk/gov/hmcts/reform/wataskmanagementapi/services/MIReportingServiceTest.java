@@ -33,6 +33,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 /**
  * We test logical replication in here.
  */
+//@ActiveProfiles("replica | preview")
 @ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
