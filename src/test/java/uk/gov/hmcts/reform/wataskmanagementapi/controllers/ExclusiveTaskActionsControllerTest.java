@@ -84,7 +84,7 @@ class ExclusiveTaskActionsControllerTest {
             TaskResource task = createDummyTaskResource(taskId);
             when(taskManagementService.initiateTask(taskId, req))
                 .thenReturn(task);
-            doNothing().when(taskManagementService).updateTaskIndex(taskId, true);
+            doNothing().when(taskManagementService).updateTaskIndex(taskId);
             ResponseEntity<TaskResource> response = exclusiveTaskActionsController
                 .initiate(SERVICE_AUTHORIZATION_TOKEN, taskId, req);
 

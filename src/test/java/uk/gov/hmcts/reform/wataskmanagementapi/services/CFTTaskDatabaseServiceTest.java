@@ -383,4 +383,16 @@ class CFTTaskDatabaseServiceTest {
         assertEquals(1, response.getTasks().size());
         assertEquals(task, response.getTasks().get(0));
     }
+
+    @Test
+    void should_find_task_to_update_index_return_list_of_tasks() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByIndexedFalse()).thenReturn(List.of(someTaskResource));
+
+        final List<TaskResource> actualTaskResource = cftTaskDatabaseService.findTaskToUpdateIndex();
+
+        assertNotNull(actualTaskResource);
+        assertEquals(1, actualTaskResource.size());
+    }
 }
