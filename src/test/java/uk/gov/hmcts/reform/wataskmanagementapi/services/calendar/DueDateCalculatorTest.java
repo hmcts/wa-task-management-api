@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -120,7 +121,8 @@ class DueDateCalculatorTest {
             evaluationResponses,
             DUE_DATE_TYPE,
             configurable,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -149,7 +151,8 @@ class DueDateCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
         String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
-                                                           new HashMap<>()
+                                                           new HashMap<>(),
+                                                           new ArrayList<>()
             )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
@@ -178,7 +181,8 @@ class DueDateCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
         String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
-                                                           new HashMap<>()
+                                                           new HashMap<>(),
+                                                           new ArrayList<>()
             )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
@@ -208,7 +212,8 @@ class DueDateCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDate2);
 
         String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
-                                                           new HashMap<>()
+                                                           new HashMap<>(),
+                                                           new ArrayList<>()
             )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + time);

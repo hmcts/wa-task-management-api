@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -153,7 +154,8 @@ class DueDateIntervalCalculatorTest {
                                                                ),
                                                                DUE_DATE_TYPE,
                                                                configurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
@@ -212,7 +214,8 @@ class DueDateIntervalCalculatorTest {
                 ),
                 DUE_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
@@ -269,7 +272,8 @@ class DueDateIntervalCalculatorTest {
                 ),
                 DUE_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dueDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -329,7 +333,8 @@ class DueDateIntervalCalculatorTest {
                 ),
                 DUE_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
@@ -383,7 +388,8 @@ class DueDateIntervalCalculatorTest {
             ),
             DUE_DATE_TYPE,
             false,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -444,7 +450,8 @@ class DueDateIntervalCalculatorTest {
                 ),
                 DUE_DATE_TYPE,
                 scenario.configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
@@ -501,7 +508,8 @@ class DueDateIntervalCalculatorTest {
                                                                ),
                                                                DUE_DATE_TYPE,
                                                                scenario.configurable,
-                                                               new HashMap<>()
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -527,7 +535,8 @@ class DueDateIntervalCalculatorTest {
                 List.of(dueDateOrigin),
                 DUE_DATE_TYPE,
                 configurable,
-                new HashMap<>()
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
@@ -559,7 +568,8 @@ class DueDateIntervalCalculatorTest {
             List.of(dueDateOrigin, dueDateTime),
             DUE_DATE_TYPE,
             false,
-            new HashMap<>()
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

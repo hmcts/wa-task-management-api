@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,8 +18,10 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_ZONED_DATE_TIME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
@@ -994,24 +997,14 @@ public class PriorityDateTypeConfiguratorTest {
 
     @Test
     public void shouldProvideDefaultForPriorityDateAsOfDueDateWhenNoneOfPriorityAttributesArePresent() {
-        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
-            .canReconfigure(CamundaValue.booleanValue(false))
-            .build();
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(calculatedDates), false, false, taskAttributes);
+            .configureDates(List.of(), false, false, taskAttributes);
 
         String expectedDueDate = DEFAULT_ZONED_DATE_TIME.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(3)
+            .hasSize(2)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
-                    .canReconfigure(CamundaValue.booleanValue(false))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
@@ -1030,34 +1023,14 @@ public class PriorityDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue("dueDate"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
-        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("calculatedDates"))
-            .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
-            .canReconfigure(CamundaValue.booleanValue(false))
-            .build();
 
-        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDates(List.of(calculatedDates, nextHearingDateOriginRef), false, false, taskAttributes);
-
-        String expectedDueDate = DEFAULT_ZONED_DATE_TIME.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        assertThat(configurationDmnEvaluationResponses)
-            .hasSize(3)
-            .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
-                    .canReconfigure(CamundaValue.booleanValue(false))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("dueDate"))
-                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .build(),
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("priorityDate"))
-                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .build()
-            ));
+        assertThatThrownBy(() -> dateTypeConfigurator.configureDates(List.of(nextHearingDateOriginRef),
+            false,
+            false,
+            taskAttributes
+        ))
+            .isInstanceOf(DateCalculationException.class)
+            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
     }
 
     @Test
