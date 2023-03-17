@@ -584,6 +584,45 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertEquals("caseCategoryB", tasksResult.get(2).getCaseCategory());
     }
 
+    @Test
+    void given_tasks_exist_with_index_flag_false_when_find_by_index_false_then_tasks_returned() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(false);
+            createdTask.setIndexed(false);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        List<TaskResource> taskResult = taskResourceRepository.findByIndexedFalse();
+        assertNotNull(taskResult);
+        assertEquals(2, taskResult.size());
+        assertThat(List.of(taskId2, taskId)).contains(taskResult.get(0).getTaskId());
+        assertThat(List.of(taskId2, taskId)).contains(taskResult.get(1).getTaskId());
+    }
+
+    @Test
+    void given_tasks_exist_with_index_flag_true_when_find_by_index_false_then_tasks_not_returned() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        List<TaskResource> taskResult = taskResourceRepository.findByIndexedFalse();
+
+        assertNotNull(taskResult);
+        assertEquals(0, taskResult.size());
+    }
+
     private void checkTaskWasSaved(String taskId) {
         assertTrue(taskResourceRepository.getByTaskId(taskId).isPresent());
     }
