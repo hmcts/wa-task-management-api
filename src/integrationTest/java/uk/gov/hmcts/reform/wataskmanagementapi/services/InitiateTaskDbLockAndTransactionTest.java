@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -121,7 +122,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
     @Mock
-    private List<TaskOperationService> taskOperationServices;
+    private List<TaskOperationPerformService> taskOperationPerformServices;
     @Mock
     private IdamTokenGenerator idamTokenGenerator;
 
@@ -140,7 +141,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskOperationServices,
             entityManager,
             idamTokenGenerator
         );
