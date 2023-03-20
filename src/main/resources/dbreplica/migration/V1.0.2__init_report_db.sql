@@ -190,7 +190,7 @@ create table cft_task_db.task_assignments
   location                    TEXT NOT NULL,
   role_category               TEXT NOT NULL,
   task_name                   TEXT NOT NULL,
-  assignment_end_reason       TEXT NOT NULL,
+  assignment_end_reason       TEXT,
   PRIMARY KEY ( "assignment_id" )
 );
 
