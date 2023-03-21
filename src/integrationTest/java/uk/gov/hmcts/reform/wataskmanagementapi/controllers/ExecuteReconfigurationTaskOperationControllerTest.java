@@ -80,7 +80,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 
 @SuppressWarnings("checkstyle:LineLength")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTest {
+class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     public static final String SYSTEM_USER_1 = "system_user1";
