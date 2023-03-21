@@ -242,7 +242,7 @@ public class DateTypeConfiguratorTest {
 
         @Test
         void should_calculate_using_task_resource_attributes() {
-            String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
             String dueDateValue = GIVEN_DATE.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             LocalDateTime taskResourceDueDate = GIVEN_DATE.minusDays(4);
             taskAttributes.put("priorityDate", taskResourceDueDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
@@ -254,7 +254,7 @@ public class DateTypeConfiguratorTest {
 
             ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDate"))
-                .value(CamundaValue.stringValue(nextHearingDateValue + "T18:00"))
+                .value(CamundaValue.stringValue(nextHearingDateValue))
                 .canReconfigure(CamundaValue.booleanValue(true))
                 .build();
 
@@ -290,7 +290,7 @@ public class DateTypeConfiguratorTest {
                         .build(),
                     ConfigurationDmnEvaluationResponse.builder()
                         .name(CamundaValue.stringValue("nextHearingDate"))
-                        .value(CamundaValue.stringValue(nextHearingDateValue + "T18:00"))
+                        .value(CamundaValue.stringValue(nextHearingDateValue))
                         .build(),
                     ConfigurationDmnEvaluationResponse.builder()
                         .name(CamundaValue.stringValue("dueDate"))

@@ -65,7 +65,7 @@ public interface DateCalculator {
     String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     String DEFAULT_DATE_TIME = "16:00";
     DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-    DateTimeFormatter DEFAULT_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    DateTimeFormatter DEFAULT_DATE_TIME_FORMATTER_WITH_SECS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
     DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
         .withHour(16).withMinute(0).withSecond(0);
@@ -118,14 +118,21 @@ public interface DateCalculator {
             return zonedDateTime.toLocalDateTime();
         } catch (DateTimeParseException p) {
             if (dateContainsTime(inputDate)) {
-                try {
-                    return LocalDateTime.parse(inputDate, DEFAULT_DATE_TIME_FORMATTER);
-                } catch (DateTimeParseException dpe) {
-                    return LocalDateTime.parse(inputDate, DATE_TIME_FORMATTER);
-                }
+                Optional<LocalDateTime> calculated = parseDateTime(inputDate, DATE_TIME_FORMATTER);
+                return calculated
+                    .orElseGet(() -> parseDateTime(inputDate, DEFAULT_DATE_TIME_FORMATTER_WITH_SECS)
+                        .orElseThrow(() -> new RuntimeException("Provided date has invalid format: " + inputDate)));
             } else {
                 return LocalDate.parse(inputDate, DATE_FORMATTER).atStartOfDay();
             }
+        }
+    }
+
+    default Optional<LocalDateTime> parseDateTime(String inputDate, DateTimeFormatter formatter) {
+        try {
+            return Optional.of(LocalDateTime.parse(inputDate, formatter));
+        } catch (DateTimeParseException e) {
+            return Optional.empty();
         }
     }
 

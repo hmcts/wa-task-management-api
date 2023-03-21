@@ -161,7 +161,8 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return dateTypeConfigurator.configureDates(configResponses,
+        return dateTypeConfigurator.configureDates(
+            configResponses,
             initiationDueDateFound,
             isReconfigureRequest,
             taskAttributes
@@ -200,10 +201,12 @@ public class CaseConfigurationProviderService {
                                                   List<PermissionsDmnEvaluationResponse> permissionsDmnResults) {
 
         List<ConfigurationDmnEvaluationResponse> configDmnNullValues = taskConfigurationDmnResults.stream()
-            .filter(d -> d.getValue().getValue() == null).collect(Collectors.toList());
+            .filter(d -> d.getValue().getValue() == null).toList();
 
-        configDmnNullValues.forEach(d -> log.error("The field '{}' in the configuration DMN file  has a null value ",
-            d.getName().getValue()));
+        configDmnNullValues.forEach(d -> log.error(
+            "The field '{}' in the configuration DMN file  has a null value ",
+            d.getName().getValue()
+        ));
         // Combine and Collect all dmns results into a single map
         Map<String, Object> caseConfigurationVariables = new ConcurrentHashMap<>();
 
