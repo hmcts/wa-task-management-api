@@ -139,7 +139,7 @@ public class CFTTaskDatabaseService {
     }
 
     public List<TaskResource> findTaskToUpdateIndex() {
-        return tasksRepository.findByIndexedFalse();
+        return tasksRepository.findByIndexedFalseAndStateIn(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
     }
 
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {

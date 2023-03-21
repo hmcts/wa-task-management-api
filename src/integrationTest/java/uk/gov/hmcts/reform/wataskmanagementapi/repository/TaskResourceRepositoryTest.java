@@ -555,7 +555,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     void given_tasks_exist_with_index_flag_false_when_find_by_index_false_then_tasks_returned() {
         String taskId2 = UUID.randomUUID().toString();
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
-            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
 
         transactionHelper.doInNewTransaction(() -> {
             task.setIndexed(false);
@@ -564,7 +564,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             taskResourceRepository.save(createdTask);
         });
 
-        List<TaskResource> taskResult = taskResourceRepository.findByIndexedFalse();
+        List<TaskResource> taskResult = taskResourceRepository
+            .findByIndexedFalseAndStateIn(List.of(CFTTaskState.ASSIGNED));
         assertNotNull(taskResult);
         assertEquals(2, taskResult.size());
         assertThat(List.of(taskId2, taskId)).contains(taskResult.get(0).getTaskId());
@@ -575,7 +576,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     void given_tasks_exist_with_index_flag_true_when_find_by_index_false_then_tasks_not_returned() {
         String taskId2 = UUID.randomUUID().toString();
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
-            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.UNASSIGNED);
 
         transactionHelper.doInNewTransaction(() -> {
             task.setIndexed(true);
@@ -584,7 +585,28 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             taskResourceRepository.save(createdTask);
         });
 
-        List<TaskResource> taskResult = taskResourceRepository.findByIndexedFalse();
+        List<TaskResource> taskResult = taskResourceRepository
+            .findByIndexedFalseAndStateIn(List.of(CFTTaskState.UNASSIGNED));
+
+        assertNotNull(taskResult);
+        assertEquals(0, taskResult.size());
+    }
+
+    @Test
+    void given_tasks_exist_with_index_flag_true_when_find_by_index_true_state_completed_then_tasks_not_returned() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(false);
+            createdTask.setIndexed(false);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        List<TaskResource> taskResult = taskResourceRepository
+            .findByIndexedFalseAndStateIn(List.of(CFTTaskState.UNASSIGNED));
 
         assertNotNull(taskResult);
         assertEquals(0, taskResult.size());
