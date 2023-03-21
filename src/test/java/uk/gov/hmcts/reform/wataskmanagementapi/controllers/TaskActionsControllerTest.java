@@ -18,6 +18,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteCaseTasksAction;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
@@ -30,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFound
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskDeletionService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
@@ -54,6 +57,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,6 +84,9 @@ class TaskActionsControllerTest {
     @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
+    @Mock
+    private TaskDeletionService taskDeletionService;
+
     private TaskActionsController taskActionsController;
     private String taskId;
 
@@ -91,7 +98,8 @@ class TaskActionsControllerTest {
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            launchDarklyFeatureFlagProvider
+            launchDarklyFeatureFlagProvider,
+            taskDeletionService
         );
 
     }
@@ -474,6 +482,46 @@ class TaskActionsControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(response.getBody().getPermissionsList(), taskRolePermissions);
+    }
+
+
+    @Test
+    void should_return_201_response_for_tasks_deletion() {
+        final DeleteTasksRequest deleteTasksRequest =
+                new DeleteTasksRequest(new DeleteCaseTasksAction("1234567890123456"));
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+                .thenReturn(true);
+
+
+        final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
+                SERVICE_AUTHORIZATION_TOKEN);
+
+        assertEquals(responseEntity.getStatusCode(),HttpStatus.CREATED);
+    }
+
+    @Test
+    void should_return_403_response_for_tasks_deletion() {
+        final DeleteTasksRequest deleteTasksRequest =
+                new DeleteTasksRequest(new DeleteCaseTasksAction("1234567890123456"));
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+                .thenReturn(false);
+
+        final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
+                SERVICE_AUTHORIZATION_TOKEN);
+
+        assertEquals(responseEntity.getStatusCode(),HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void should_return_400_response_for_tasks_deletion() {
+        final DeleteTasksRequest deleteTasksRequest = new DeleteTasksRequest(new DeleteCaseTasksAction("123"));
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+                .thenReturn(true);
+
+        final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
+                SERVICE_AUTHORIZATION_TOKEN);
+
+        assertEquals(responseEntity.getStatusCode(), BAD_REQUEST);
     }
 
     private NotesRequest addNotes() {
