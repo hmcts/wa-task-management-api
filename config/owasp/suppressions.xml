@@ -61,4 +61,8 @@
     <notes>Wait for updates on dependencies</notes>
     <cve>CVE-2021-37533</cve>
   </suppress>
+  <suppress until ="2023-04-31">
+    <notes>Upgrade to snakeyaml 2.0 breaks some tests so doing tmp suppression</notes>
+    <cve>CVE-2022-1471</cve>
+  </suppress>
 </suppressions>
