@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 
 import java.time.OffsetDateTime;
+import java.util.Date;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -62,4 +65,29 @@ public class ReportableTaskResource {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime updated;
     private String updateAction;
+
+    private Date created_date;
+
+    public ReportableTaskResource() {
+
+    }
+
+    public ReportableTaskResource(String taskId,
+                        String taskName,
+                        String taskType,
+                        String caseId,
+                        String assignee,
+                        Date created_date,
+                        OffsetDateTime updated,
+                        String updateAction) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+        this.caseId = caseId;
+        this.assignee = assignee;
+        this.created_date = created_date;
+        this.updated = updated;
+        this.updateAction = updateAction;
+    }
+
 }

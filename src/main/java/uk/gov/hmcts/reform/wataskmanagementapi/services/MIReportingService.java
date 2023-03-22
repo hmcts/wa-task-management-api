@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ReportableTaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskAssignmentsResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ReplicationException;
@@ -20,7 +22,6 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Properties;
 import javax.sql.DataSource;
-
 
 @Service
 public class MIReportingService {
@@ -40,16 +41,18 @@ public class MIReportingService {
     private final TaskHistoryResourceRepository taskHistoryRepository;
     private final TaskResourceRepository taskResourceRepository;
     private final ReportableTaskRepository reportableTaskRepository;
-
+    private final TaskAssignmentsRepository taskAssignmentsRepository;
 
     public MIReportingService(TaskHistoryResourceRepository tasksHistoryRepository,
                               TaskResourceRepository taskResourceRepository,
                               ReportableTaskRepository reportableTaskRepository,
+                              TaskAssignmentsRepository taskAssignmentsRepository,
                               @Value("${replication.username}") String user,
                               @Value("${replication.password}") String password) {
         this.taskHistoryRepository = tasksHistoryRepository;
         this.taskResourceRepository = taskResourceRepository;
         this.reportableTaskRepository = reportableTaskRepository;
+        this.taskAssignmentsRepository = taskAssignmentsRepository;
         this.user = user;
         this.password = password;
     }
@@ -60,6 +63,10 @@ public class MIReportingService {
 
     public List<ReportableTaskResource> findByReportingTaskId(String taskId) {
         return reportableTaskRepository.findAllByTaskIdOrderByUpdatedAsc(taskId);
+    }
+
+    public List<TaskAssignmentsResource> findByAssignmentsTaskId(String taskId) {
+        return taskAssignmentsRepository.findAllByTaskIdOrderByAssignmentIdAsc(taskId);
     }
 
     public void logicalReplicationCheck() {
@@ -119,7 +126,7 @@ public class MIReportingService {
 
     private void createSubscription() {
         try (Connection connection = dataSource.getConnection();
-             Connection connection2 = replicaDataSource.getConnection();) {
+             Connection connection2 = replicaDataSource.getConnection()) {
 
             LOGGER.info("Primary datasource URL: " + connection.getMetaData().getURL());
             LOGGER.info("Replica datasource URL: " + connection2.getMetaData().getURL());
@@ -169,7 +176,7 @@ public class MIReportingService {
 
     private void sendToDatabase(String replicaUrl, String sql) {
         try (Connection subscriptionConn = DriverManager.getConnection(replicaUrl);
-             Statement subscriptionStatement = subscriptionConn.createStatement();) {
+             Statement subscriptionStatement = subscriptionConn.createStatement()) {
 
             subscriptionStatement.execute(sql);
 

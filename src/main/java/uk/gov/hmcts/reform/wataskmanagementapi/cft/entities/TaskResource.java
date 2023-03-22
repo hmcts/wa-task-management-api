@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -237,6 +238,33 @@ public class TaskResource implements Serializable {
         this.state = state;
         this.caseId = caseId;
         this.dueDateTime = dueDateTime;
+    }
+
+    public TaskResource(String taskId,
+                        String caseId,
+                        String jurisdiction,
+                        String location,
+                        String roleCategory,
+                        String taskName,
+                        OffsetDateTime dueDateTime,
+                        OffsetDateTime lastUpdatedTimestamp,
+                        OffsetDateTime priorityDate,
+                        OffsetDateTime created,
+                        String assignee,
+                        String lastUpdatedAction
+                        ) {
+        this.taskId = taskId;
+        this.caseId = caseId;
+        this.jurisdiction = jurisdiction;
+        this.location = location;
+        this.roleCategory = roleCategory;
+        this.taskName = taskName;
+        this.dueDateTime = dueDateTime;
+        this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+        this.priorityDate = priorityDate;
+        this.created = created;
+        this.assignee = assignee;
+        this.lastUpdatedAction = lastUpdatedAction;
     }
 
     public TaskResource(String taskId,
