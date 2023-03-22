@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -23,7 +22,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,7 +32,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 
 public class CFTSensitiveTaskEventLogsDatabaseServiceTest  extends SpringBootIntegrationBaseTest {
 
-    @Autowired
+    @MockBean
     SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
 
     @MockBean
@@ -89,6 +90,41 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest  extends SpringBootInt
         ExecutorService executorService = new ScheduledThreadPoolExecutor(1);
         executorService.execute(() -> {
             verify(sensitiveTaskEventLogsRepository, times(1)).save(any(SensitiveTaskEventLog.class));
+        });
+    }
+
+    @Test
+    void should_process_and_log_error_when_db_exception_happens() {
+        String taskId = UUID.randomUUID().toString();
+        String caseId = "Some caseId";
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+        );
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setCaseId(caseId);
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        List<RoleAssignment> roleAssignments =
+            mockServices.createTestRoleAssignments(roleNames);
+
+        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(java.util.Optional.of(taskResource));
+
+        doThrow(new RuntimeException("some unexpected error"))
+            .when(sensitiveTaskEventLogsRepository).save(any(SensitiveTaskEventLog.class));
+
+        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+            roleAssignments, ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE);
+
+        ExecutorService executorService = new ScheduledThreadPoolExecutor(1);
+        executorService.execute(() -> {
+            assertThatThrownBy(() ->
+                cftSensitiveTaskEventLogsDatabaseService.saveSensitiveTaskEventLog(any(SensitiveTaskEventLog.class)))
+                .isInstanceOf(RuntimeException.class);
         });
     }
 }

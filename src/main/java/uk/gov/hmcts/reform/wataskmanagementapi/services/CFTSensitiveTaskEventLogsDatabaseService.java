@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 
+import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +35,8 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
     }
 
-    private SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
+    public SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog)
+        throws SQLException {
         return sensitiveTaskEventLogsRepository.save(sensitiveTaskEventLog);
     }
 
@@ -59,7 +61,15 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
                     ZonedDateTime.now().toOffsetDateTime().plusDays(90),
                     ZonedDateTime.now().toOffsetDateTime()
                 );
-                saveSensitiveTaskEventLog(sensitiveTaskEventLog);
+
+                try {
+                    saveSensitiveTaskEventLog(sensitiveTaskEventLog);
+                } catch (SQLException e) {
+                    log.error("Error failure of saving sensitiveTaskEventLog for task(id={}), "
+                              + "caseId{}, tasks{}, reason of failure{}",
+                        taskId, sensitiveTaskEventLog.getCaseId(),
+                        sensitiveTaskEventLog.getTaskData(), customErrorMessage.getDetail());
+                }
 
             }
         });
