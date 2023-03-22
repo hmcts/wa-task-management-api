@@ -327,7 +327,7 @@ public class TaskActionsController extends BaseController {
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
-    @PostMapping(path = "/delete")
+    @PostMapping(path = "/delete", consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> deleteTasks(
             @RequestBody final DeleteTasksRequest deleteTasksRequest,
             @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken) {
@@ -339,9 +339,9 @@ public class TaskActionsController extends BaseController {
                         new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR));
             }
 
-            verifyCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseId());
+            verifyCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
 
-            taskDeletionService.deleteTasksByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseId());
+            taskDeletionService.deleteTasksByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
 
             return status(HttpStatus.CREATED.value())
                     .cacheControl(CacheControl.noCache())
