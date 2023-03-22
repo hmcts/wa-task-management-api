@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementPr
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskTypesService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
@@ -48,6 +49,9 @@ public class SpringBootContractProviderBaseTest {
 
     @Mock
     protected TaskManagementService taskManagementService;
+
+    @Mock
+    protected TaskOperationService taskOperationService;
 
     @Mock
     protected CftQueryService cftQueryService;
