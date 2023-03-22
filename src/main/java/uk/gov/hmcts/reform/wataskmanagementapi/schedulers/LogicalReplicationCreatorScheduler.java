@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
  */
 @Component
 @Profile("replica | preview")
-//@Profile("replica")
 public class LogicalReplicationCreatorScheduler {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LogicalReplicationCreatorScheduler.class);
 
