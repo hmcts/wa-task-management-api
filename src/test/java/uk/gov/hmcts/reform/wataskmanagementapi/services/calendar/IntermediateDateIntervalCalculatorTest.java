@@ -54,6 +54,19 @@ class IntermediateDateIntervalCalculatorTest {
         );
     }
 
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0() {
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
+            )
+        );
+    }
+
     private static Stream<ConfigurableScenario> getConfigurablesWithoutDueDate() {
         return Stream.of(
             new ConfigurableScenario(
@@ -102,6 +115,19 @@ class IntermediateDateIntervalCalculatorTest {
             new ConfigurableScenario(
                 false,
                 GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
+            )
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays() {
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
             )
         );
     }
@@ -255,6 +281,65 @@ class IntermediateDateIntervalCalculatorTest {
     }
 
     @ParameterizedTest
+    @MethodSource({"getConfigurablesWhenIntervalIsLessThan0"})
+    void shouldCalculateWhenIntervalIsLessThan0(ConfigurableScenario scenario) {
+        String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
+
+        var nextHearingDurationOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationOrigin"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var nextHearingDurationIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationIntervalDays"))
+            .value(CamundaValue.stringValue("-3"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var nextHearingDurationNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationNonWorkingCalendar"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var nextHearingDurationNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue(""))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var nextHearingDurationSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var nextHearingDurationMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationMustBeWorkingDay"))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationTime"))
+            .value(CamundaValue.stringValue("18:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        String nextHearingDurationValue = intermediateDateIntervalCalculator
+            .calculateDate(
+                List.of(nextHearingDurationIntervalDays, nextHearingDurationNonWorkingCalendar,
+                    nextHearingDurationMustBeWorkingDay, nextHearingDurationNonWorkingDaysOfWeek,
+                    nextHearingDurationSkipNonWorkingDays, nextHearingDurationOrigin, nextHearingDurationTime
+                ),
+                INTERMEDIATE_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ).getValue().getValue();
+
+        assertThat(LocalDateTime.parse(nextHearingDurationValue)).isEqualTo(scenario.expectedDate);
+    }
+
+    @ParameterizedTest
     @MethodSource({"getConfigurablesWhenIntervalIsGreaterThan0AndGivenHolidays"})
     void shouldCalculateWhenIntervalIsGreaterThan0AndGivenHolidays(ConfigurableScenario scenario) {
         String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
@@ -303,6 +388,65 @@ class IntermediateDateIntervalCalculatorTest {
                 List.of(nextHearingDurationIntervalDays, nextHearingDurationNonWorkingCalendar,
                         nextHearingDurationMustBeWorkingDay, nextHearingDurationNonWorkingDaysOfWeek,
                         nextHearingDurationSkipNonWorkingDays, nextHearingDurationOrigin, nextHearingDurationTime
+                ),
+                INTERMEDIATE_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ).getValue().getValue();
+        LocalDateTime resultDate = LocalDateTime.parse(nextHearingDurationValue);
+        assertThat(resultDate).isEqualTo(scenario.expectedDate);
+    }
+
+    @ParameterizedTest
+    @MethodSource({"getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays"})
+    void shouldCalculateWhenIntervalIsLessThan0AndGivenHolidays(ConfigurableScenario scenario) {
+        String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
+
+        var nextHearingDurationOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationOrigin"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var nextHearingDurationIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationIntervalDays"))
+            .value(CamundaValue.stringValue("-5"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var nextHearingDurationNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationNonWorkingCalendar"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var nextHearingDurationNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var nextHearingDurationSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var nextHearingDurationMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationMustBeWorkingDay"))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationTime"))
+            .value(CamundaValue.stringValue("18:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        String nextHearingDurationValue = intermediateDateIntervalCalculator
+            .calculateDate(
+                List.of(nextHearingDurationIntervalDays, nextHearingDurationNonWorkingCalendar,
+                    nextHearingDurationMustBeWorkingDay, nextHearingDurationNonWorkingDaysOfWeek,
+                    nextHearingDurationSkipNonWorkingDays, nextHearingDurationOrigin, nextHearingDurationTime
                 ),
                 INTERMEDIATE_DATE_TYPE,
                 scenario.configurable,
