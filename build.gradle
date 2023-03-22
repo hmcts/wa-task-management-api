@@ -301,7 +301,7 @@ ext.libraries = [
   ]
 ]
 
-ext['snakeyaml.version'] = '2.0'
+ext['snakeyaml.version'] = '1.33'
 
 dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
@@ -350,9 +350,6 @@ dependencies {
   implementation group: 'org.postgresql', name: 'postgresql', version: '42.5.1'
   // required to convert postgres to hibernate types
   implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.21.1'
-
-  implementation group: 'org.yaml', name: 'snakeyaml', version: '2.0'
-
 
   //cache
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.0.4'
