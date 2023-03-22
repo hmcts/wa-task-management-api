@@ -65,4 +65,8 @@
     <notes>Upgrade to snakeyaml 2.0 breaks some tests so doing tmp suppression</notes>
     <cve>CVE-2022-1471</cve>
   </suppress>
+  <suppress until ="2023-04-30">
+    <notes>Upgrade to snakeyaml 2.0 breaks some tests so doing tmp suppression</notes>
+    <cve>CVE-2022-1471</cve>
+  </suppress>
 </suppressions>
