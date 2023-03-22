@@ -25,7 +25,7 @@ import static java.util.Collections.singletonList;
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class TaskTypesService {
 
-    private static final String DMN_NAME = "Task Types DMN";
+    private static final String DECISION_KEY_PREFIX = "wa-task-types-";
     private final DmnEvaluationService dmnEvaluationService;
 
     @Autowired
@@ -51,7 +51,7 @@ public class TaskTypesService {
 
         //get task-type-dmn(s) for jurisdiction
         Set<TaskTypesDmnResponse> taskTypesDmnResponse =
-            dmnEvaluationService.retrieveTaskTypesDmn(jurisdiction, DMN_NAME);
+            dmnEvaluationService.retrieveTaskTypesDmn(jurisdiction, DECISION_KEY_PREFIX);
 
         List<TaskTypesDmnEvaluationResponse> taskTypesDmnEvaluationResponses = new ArrayList<>();
 
