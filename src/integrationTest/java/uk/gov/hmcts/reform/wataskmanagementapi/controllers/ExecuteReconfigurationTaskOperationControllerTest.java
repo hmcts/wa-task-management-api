@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -56,7 +55,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -497,8 +495,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 assertEquals("routine_work", task.getWorkTypeResource().getId());
                 assertEquals("JUDICIAL", task.getRoleCategory());
                 assertEquals(
-                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                task.getPriorityDate().toLocalDate()
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
                 );
                 assertEquals(
                     OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
@@ -586,10 +584,10 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 assertEquals("caseCategory", task.getCaseCategory());
                 assertEquals("routine_work", task.getWorkTypeResource().getId());
                 assertEquals("JUDICIAL", task.getRoleCategory());
-            assertEquals(
-                OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
-                task.getPriorityDate().toLocalDate()
-            );
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
                 assertEquals(
                     OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
                     task.getNextHearingDate().toLocalDate()
@@ -934,7 +932,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             dueDateSkipNonWorkingDays, priorityDateOriginEarliest
         );
     }
-
 
 
     private TaskOperationRequest taskOperationRequest(TaskOperationType operationName, List<TaskFilter<?>> taskFilters) {

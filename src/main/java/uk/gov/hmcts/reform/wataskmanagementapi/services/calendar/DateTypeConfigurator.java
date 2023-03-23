@@ -162,7 +162,8 @@ public class DateTypeConfigurator {
                 calculatedConfigurations.get()
             );
         } else {
-            return isReconfigureRequest ? null : getDefaultValueForConfiguration(dateTypeObject.dateType, configurationResponses);
+            return isReconfigureRequest ? null : getDefaultValueForConfiguration(dateTypeObject.dateType,
+                configurationResponses);
         }
     }
 
