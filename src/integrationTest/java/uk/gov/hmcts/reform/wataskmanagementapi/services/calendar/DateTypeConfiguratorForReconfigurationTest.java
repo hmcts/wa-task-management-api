@@ -71,6 +71,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(thirdDueDate + "T10:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -112,6 +113,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(secondDueDate + "T20:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -148,6 +150,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(secondDueDate + "T18:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -185,6 +188,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(defaultDueDate + "T18:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -221,6 +225,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -251,6 +256,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(defaultDueDate + "T16:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -283,6 +289,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(givenDueDate + "T19:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -327,6 +334,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(givenDueDate + "T16:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
 
     }
@@ -356,6 +364,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(givenDueDate + "T20:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
 
     }
@@ -398,6 +407,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(expectedDueDate + "T18:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -428,6 +438,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -460,6 +471,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(expectedDueDate + time))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -548,6 +560,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(expectedDueDate + expectedTime))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 
@@ -639,6 +652,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(expectedDueDate + expectedTime))
+                                    .canReconfigure(CamundaValue.booleanValue(true))
                                    .build()));
     }
 

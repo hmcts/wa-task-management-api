@@ -47,8 +47,8 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
             getReferenceDate(configResponses, isReconfigureRequest, taskAttributes, calculatedConfigurations)
-                .orElse(DEFAULT_ZONED_DATE_TIME)
-        );
+                .orElse(DEFAULT_ZONED_DATE_TIME),
+            isReconfigureRequest);
     }
 
     @Override

@@ -95,7 +95,7 @@ public class DateTypeConfigurator {
         return configurationResponses.get();
     }
 
-    private static ConfigurationDmnEvaluationResponse getDefaultValue(
+    private static ConfigurationDmnEvaluationResponse getDefaultValueForConfiguration(
         DateType dateType,
         List<ConfigurationDmnEvaluationResponse> configResponses) {
 
@@ -162,7 +162,7 @@ public class DateTypeConfigurator {
                 calculatedConfigurations.get()
             );
         } else {
-            return isReconfigureRequest ? null : getDefaultValue(dateTypeObject.dateType, configurationResponses);
+            return isReconfigureRequest ? null : getDefaultValueForConfiguration(dateTypeObject.dateType, configurationResponses);
         }
     }
 
