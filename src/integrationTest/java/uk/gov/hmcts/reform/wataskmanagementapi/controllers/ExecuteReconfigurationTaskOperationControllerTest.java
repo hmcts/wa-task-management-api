@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,7 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Mark
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
@@ -49,6 +50,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -70,15 +72,15 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName.EXECUTE_RECONFIGURE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName.MARK_TO_RECONFIGURE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType.EXECUTE_RECONFIGURE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType.MARK_TO_RECONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SuppressWarnings("checkstyle:LineLength")
-class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTest {
+class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     public static final String SYSTEM_USER_1 = "system_user1";
@@ -140,7 +142,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             "IA",
             "Asylum",
             SecurityClassification.PUBLIC.getSecurityClassification(),
-            emptyMap()
+            Map.of("caseAccessCategory", "categoryA,categoryC")
         );
         lenient().when(ccdDataService.getCaseData(anyString())).thenReturn(caseDetails);
         RoleAssignment roleAssignmentResource = buildRoleAssignment(
@@ -318,7 +320,10 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertEquals("caseCategory", task.getCaseCategory());
                 assertEquals("routine_work", task.getWorkTypeResource().getId());
                 assertEquals("JUDICIAL", task.getRoleCategory());
-                assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
                 assertEquals(
                     OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
                     task.getNextHearingDate().toLocalDate()
@@ -375,7 +380,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             anyString(),
             anyString(),
             anyString())).thenReturn(permissionsResponse());
-
+        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -491,7 +496,10 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertEquals("caseCategory", task.getCaseCategory());
                 assertEquals("routine_work", task.getWorkTypeResource().getId());
                 assertEquals("JUDICIAL", task.getRoleCategory());
-                assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+                assertEquals(
+                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                task.getPriorityDate().toLocalDate()
+                );
                 assertEquals(
                     OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
                     task.getNextHearingDate().toLocalDate()
@@ -551,6 +559,7 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
             anyString(),
             anyString(),
             anyString())).thenReturn(permissionsResponse());
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -577,7 +586,10 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
                 assertEquals("caseCategory", task.getCaseCategory());
                 assertEquals("routine_work", task.getWorkTypeResource().getId());
                 assertEquals("JUDICIAL", task.getRoleCategory());
-                assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+            assertEquals(
+                OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
+                task.getPriorityDate().toLocalDate()
+            );
                 assertEquals(
                     OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
                     task.getNextHearingDate().toLocalDate()
@@ -947,10 +959,11 @@ class ExecuteReconfigureTasksControllerTest extends SpringBootIntegrationBaseTes
     }
 
 
-    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, List<TaskFilter<?>> taskFilters) {
+
+    private TaskOperationRequest taskOperationRequest(TaskOperationType operationName, List<TaskFilter<?>> taskFilters) {
         TaskOperation operation = TaskOperation
             .builder()
-            .name(operationName)
+            .type(operationName)
             .runId(UUID.randomUUID().toString())
             .maxTimeLimit(2)
             .retryWindowHours(120)
