@@ -16,8 +16,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Exec
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ExecuteTaskReconfigurationService;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -28,7 +29,6 @@ import java.util.List;
 @Testcontainers
 @Sql("/scripts/wa/reconfigure_task_data.sql")
 public class ExecuteTaskReconfigurationServiceTest {
-    private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
     private ConfigureTaskService configureTaskService;
     @MockBean
@@ -41,7 +41,8 @@ public class ExecuteTaskReconfigurationServiceTest {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository,cftTaskMapper);
+        CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository,
+            cftTaskMapper);
         executeTaskReconfigurationService = new ExecuteTaskReconfigurationService(
             cftTaskDatabaseService,
             configureTaskService,
@@ -54,7 +55,7 @@ public class ExecuteTaskReconfigurationServiceTest {
 
         TaskOperationRequest taskOperationRequest = new TaskOperationRequest(
             TaskOperation.builder()
-                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
                 .maxTimeLimit(2)
                 .retryWindowHours(1)
                 .runId("")

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.services;
+package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,8 +11,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Exec
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ExecuteTaskReconfigurationService;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -69,7 +73,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
-                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
                 .maxTimeLimit(2)
                 .runId("")
                 .build(), taskFilters
@@ -101,7 +105,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
-                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
                 .runId("")
                 .maxTimeLimit(2)
                 .build(), taskFilters
@@ -138,7 +142,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
-                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
                 .runId("")
                 .maxTimeLimit(2)
                 .build(), taskFilters
@@ -198,7 +202,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
-                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
                 .runId("")
                 .maxTimeLimit(2)
                 .build(), taskFilters
@@ -230,7 +234,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
-                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
                 .runId("")
                 .maxTimeLimit(2)
                 .build(), taskFilters
@@ -254,7 +258,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
-                .name(TaskOperationName.EXECUTE_RECONFIGURE)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
                 .runId("")
                 .maxTimeLimit(2)
                 .build(), taskFilters

@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Mark
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.util.List;
@@ -38,13 +38,9 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(assignerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
-
         common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
+        authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
-
-        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -66,7 +62,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
             assigneeCredentials.getHeaders()
         );
 
@@ -126,7 +122,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         //mark to reconfigure
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
             assigneeCredentials.getHeaders()
         );
 
@@ -153,9 +149,9 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         common.cleanUpTask(taskId);
     }
 
-    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
+    private TaskOperationRequest taskOperationRequest(TaskOperationType operationName, String caseId) {
         TaskOperation operation = TaskOperation.builder()
-            .name(operationName)
+            .type(operationName)
             .runId(UUID.randomUUID().toString())
             .maxTimeLimit(2)
             .retryWindowHours(120)
