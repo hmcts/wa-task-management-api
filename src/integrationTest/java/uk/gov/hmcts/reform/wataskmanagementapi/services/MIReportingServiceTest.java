@@ -28,6 +28,8 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 
 /**
@@ -102,7 +104,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countPublications()).thenReturn(0);
         miReportingService = new MIReportingService(null, taskResourceRepository,
-                                                    "repl_user", "repl_password");
+                                                    null);
 
         assertFalse(miReportingService.isPublicationPresent());
     }
