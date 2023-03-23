@@ -56,7 +56,7 @@ public class ExecuteTaskReconfigurationServiceTest {
         TaskOperationRequest taskOperationRequest = new TaskOperationRequest(
             TaskOperation.builder()
                 .type(TaskOperationType.EXECUTE_RECONFIGURE)
-                .maxTimeLimit(2)
+                .maxTimeLimit(120)
                 .retryWindowHours(1)
                 .runId("")
                 .build(), taskFilters
@@ -72,7 +72,7 @@ public class ExecuteTaskReconfigurationServiceTest {
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
         ExecuteReconfigureTaskFilter filter = new ExecuteReconfigureTaskFilter(
-            "reconfigure_request_time", OffsetDateTime.parse("2022-10-17T10:19:45.345875+01:00"),
+            "reconfigure_request_time", OffsetDateTime.now().minusMinutes(5L),
             TaskFilterOperator.AFTER);
         return List.of(filter);
     }

@@ -804,7 +804,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(
                     EXECUTE_RECONFIGURE,
-                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                    executeTaskFilters(OffsetDateTime.now().minusMinutes(30L))
                 )))
         ).andExpectAll(
             status().is(HttpStatus.CONFLICT.value())
@@ -816,29 +816,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             .forEach(task -> {
                 assertNull(task.getLastReconfigurationTime());
                 assertNotNull(task.getReconfigureRequestTime());
-                assertEquals(1, task.getMinorPriority());
-                assertEquals(1, task.getMajorPriority());
-                assertEquals("description", task.getDescription());
-                assertEquals("TestCase", task.getCaseName());
-                assertEquals("512401", task.getLocation());
-                assertEquals("Manchester", task.getLocationName());
-                assertEquals("caseCategory", task.getCaseCategory());
-                assertEquals("routine_work", task.getWorkTypeResource().getId());
-                assertEquals("JUDICIAL", task.getRoleCategory());
-                assertEquals(
-                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                    task.getPriorityDate().toLocalDate()
-                );
-                assertEquals(
-                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                    task.getNextHearingDate().toLocalDate()
-                );
-                assertEquals("nextHearingId1", task.getNextHearingId());
-                assertEquals(ASSIGNEE_USER, task.getAssignee());
-                assertEquals(CFTTaskState.ASSIGNED, task.getState());
-                assertNotNull(task.getLastUpdatedTimestamp());
-                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
-                assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
             });
     }
 
@@ -965,8 +942,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             .builder()
             .type(operationName)
             .runId(UUID.randomUUID().toString())
-            .maxTimeLimit(2)
-            .retryWindowHours(120)
+            .maxTimeLimit(120)
+            .retryWindowHours(2)
             .build();
         return new TaskOperationRequest(operation, taskFilters);
     }

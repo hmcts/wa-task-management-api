@@ -49,10 +49,10 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     List<TaskResource> findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(
         List<String> caseIds, List<CFTTaskState> states);
 
-    List<TaskResource> findByStateInAndReconfigureRequestTimeGreaterThan(
+    List<TaskResource> findByStateInAndReconfigureRequestTimeGreaterThanEqual(
         List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime);
 
-    List<TaskResource> findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
+    List<TaskResource> findByTaskIdInAndStateInAndReconfigureRequestTimeGreaterThanEqual(
         List<String> taskIds, List<CFTTaskState> states, OffsetDateTime retry);
 
     @Modifying

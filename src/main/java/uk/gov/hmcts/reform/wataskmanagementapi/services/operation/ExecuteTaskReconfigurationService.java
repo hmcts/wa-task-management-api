@@ -85,7 +85,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(retryWindowHours);
 
         List<TaskResource> failedTasksToReport = cftTaskDatabaseService
-            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
+            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsGreaterThanRetry(
                 failedTaskIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retryWindow);
 
         if (!failedTasksToReport.isEmpty()) {
