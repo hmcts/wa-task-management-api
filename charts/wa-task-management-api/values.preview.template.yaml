@@ -17,11 +17,11 @@ java:
         - name: ld-secret
           alias: LAUNCH_DARKLY_SDK_KEY
   environment:
-    CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.platform.hmcts.net/engine-rest"
+    CAMUNDA_URL: "http://camunda-api.{{ .Values.global.environment }}.platform.hmcts.net/engine-rest"
     IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
-    S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.platform.hmcts.net"
+    S2S_URL: "http://rpe-service-auth-provider.{{ .Values.global.environment }}.platform.hmcts.net"
     OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
-    ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.platform.hmcts.net"
+    ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service.{{ .Values.global.environment }}.platform.hmcts.net"
     POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
     POSTGRES_NAME: "{{ .Values.postgresql.auth.database}}"
     POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"

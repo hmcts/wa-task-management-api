@@ -41,9 +41,9 @@
         "id": "1",
         "value": {
           "document": {
-            "document_url": "http://dm-store-aat.service.core-compute-aat.platform.hmcts.net/documents/c78071ff-a011-42c1-99a2-17b0adb9b906",
+            "document_url": "http://dm-store-aat.service.core-compute-aat.internal/documents/c78071ff-a011-42c1-99a2-17b0adb9b906",
             "document_filename": "some-notice-of-decision-letter.pdf",
-            "document_binary_url": "http://dm-store-aat.service.core-compute-aat.platform.hmcts.net/documents/c78071ff-a011-42c1-99a2-17b0adb9b906/binary"
+            "document_binary_url": "http://dm-store-aat.service.core-compute-aat.internal/documents/c78071ff-a011-42c1-99a2-17b0adb9b906/binary"
           },
           "description": "some notice of decision description"
         }
