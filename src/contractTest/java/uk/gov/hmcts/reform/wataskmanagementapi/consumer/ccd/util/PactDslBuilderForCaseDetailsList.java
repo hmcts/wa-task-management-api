@@ -86,9 +86,9 @@ public final class PactDslBuilderForCaseDetailsList {
                         .object("value", v ->
                             v.stringType("description", "some notice of decision description")
                                 .object("document", doc ->
-                                    doc.stringType("document_url", "http://dm-store-aat.service.core-compute-aat.internal/documents/7f63ca9b-c361-49ab-aa8c-8fbdb6bc2936")
+                                    doc.stringType("document_url", "http://dm-store-aat.service.core-compute-aat.platform.hmcts.net/documents/7f63ca9b-c361-49ab-aa8c-8fbdb6bc2936")
                                         .stringType("document_filename", "some-notice-of-decision-letter.pdf")
-                                        .stringType("document_binary_url", "http://dm-store-aat.service.core-compute-aat.internal/documents/7f63ca9b-c361-49ab-aa8c-8fbdb6bc2936"))
+                                        .stringType("document_binary_url", "http://dm-store-aat.service.core-compute-aat.platform.hmcts.net/documents/7f63ca9b-c361-49ab-aa8c-8fbdb6bc2936"))
                         ) // document object
             ) // minArray
             .object("caseManagementLocation", cml -> {

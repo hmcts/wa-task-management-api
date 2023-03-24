@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestPropertySource(properties = {
     "IDAM_URL=https://idam-api.aat.platform.hmcts.net",
     "OPEN_ID_IDAM_URL=https://idam-web-public.aat.platform.hmcts.net",
-    "CCD_URL=http://ccd-data-store-api-aat.service.core-compute-aat.internal"
+    "CCD_URL=http://ccd-data-store-api-aat.service.core-compute-aat.platform.hmcts.net"
 })
 @TestInstance(PER_CLASS)
 public abstract class SpringBootIntegrationBaseTest extends RoleAssignmentHelper {

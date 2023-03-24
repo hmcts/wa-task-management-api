@@ -1,7 +1,7 @@
 java:
   applicationPort: 8087
   image: 'hmctspublic.azurecr.io/wa/task-management-api:latest'
-  ingressHost: wa-task-management-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+  ingressHost: wa-task-management-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.platform.hmcts.net
   aadIdentityName: wa
   autoscaling:
     enabled: true
@@ -29,12 +29,12 @@ java:
         - name: cft-task-POSTGRES-USER
           alias: POSTGRES_USERNAME
   environment:
-    CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
+    CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.platform.hmcts.net/engine-rest"
     IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
-    S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.platform.hmcts.net"
     OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
-    ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
-    CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.platform.hmcts.net"
+    CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.platform.hmcts.net"
     POSTGRES_PORT: 5432
     POSTGRES_HOST: cft-task-postgres-db-{{ .Values.global.environment }}.postgres.database.azure.com
     POSTGRES_NAME: cft_task_db
