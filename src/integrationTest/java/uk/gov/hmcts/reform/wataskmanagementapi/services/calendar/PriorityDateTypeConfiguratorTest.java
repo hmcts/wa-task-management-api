@@ -33,7 +33,7 @@ public class PriorityDateTypeConfiguratorTest {
     public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 3, 26, 18, 0, 0);
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
-    private String isReConfigurationRequest = "false";
+    private final String isReConfigurationRequest = "false";
     private final Map<String, Object> taskAttributes = new HashMap<>();
 
     @ParameterizedTest
@@ -127,7 +127,6 @@ public class PriorityDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -335,12 +334,10 @@ public class PriorityDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
                     .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build()
             ));
     }
@@ -431,7 +428,6 @@ public class PriorityDateTypeConfiguratorTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -476,7 +472,6 @@ public class PriorityDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -514,7 +509,6 @@ public class PriorityDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -553,7 +547,6 @@ public class PriorityDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -645,7 +638,6 @@ public class PriorityDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(canConfigurable))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -735,7 +727,6 @@ public class PriorityDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(canConfigurable))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -798,7 +789,6 @@ public class PriorityDateTypeConfiguratorTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -949,7 +939,6 @@ public class PriorityDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -1014,7 +1003,6 @@ public class PriorityDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -1037,12 +1025,10 @@ public class PriorityDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build()
             ));
     }
