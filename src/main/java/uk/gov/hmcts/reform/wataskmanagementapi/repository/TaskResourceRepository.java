@@ -35,7 +35,6 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     String CREATE_PUBLICATION = "CREATE PUBLICATION task_publication FOR TABLE cft_task_db.tasks "
         + "WITH (publish = 'insert,update,delete');";
 
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
     @Transactional
