@@ -116,11 +116,6 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
         assertTrue(taskHistoryResourceList.isEmpty());
     }
 
-    @Test
-    void given_a_new_worktype_in_original_db_should_appear_in_replica_database() {
-
-    }
-
     private TaskResource createAndSaveTask() {
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
