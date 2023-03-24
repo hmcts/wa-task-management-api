@@ -52,5 +52,5 @@ java:
         user: postgres
         scripts:
           init.sql: |
-            CREATE DATABASE "cft_task_db_replica" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
-            ALTER ROLE javapostgres WITH SUPERUSER;
+            ALTER ROLE wa_user WITH SUPERUSER;
+            CREATE DATABASE "cft_task_db_replica" WITH OWNER = wa_user ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
