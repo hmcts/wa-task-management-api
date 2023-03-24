@@ -473,7 +473,14 @@ public class DateTypeConfiguratorForReconfigurationTest {
         "true,true,false,Next,6,6,T18:00",
         "true,true,false,Next,2,2,T18:00",
         "true,true,false,No,6,6,T18:00",
-        "true,true,false,Previous,2,2,T18:00"
+        "true,true,false,Previous,2,2,T18:00",
+        "true,true,true,Next,-6,-6,T18:00",
+        "true,true,true,Next,-8,-8,T18:00",
+        "true,true,true,No,-6,-6,T18:00",
+        "true,true,false,Next,-6,-6,T18:00",
+        "true,true,false,Next,-2,-2,T18:00",
+        "true,true,false,No,-6,-6,T18:00",
+        "true,true,false,Previous,-2,-2,T18:00"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvidedAndNonWorkingDayNotConsidered(
         String isReConfigurationRequest,
@@ -512,7 +519,6 @@ public class DateTypeConfiguratorForReconfigurationTest {
         ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue(dueDateSkipNonWorkingDaysFlag))
-            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
@@ -538,7 +544,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
                     taskAttributes);
 
         String expectedDueDate = GIVEN_DATE.plusDays(Integer.parseInt(expectedDays))
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
@@ -555,7 +561,19 @@ public class DateTypeConfiguratorForReconfigurationTest {
         "true,true,false,Next,6,6,T18:00",
         "true,true,false,Next,2,4,T18:00",
         "true,true,false,No,6,6,T18:00",
-        "true,true,false,Previous,2,1,T18:00"
+        "true,true,false,Previous,2,1,T18:00",
+        "true,true,true,Next,-6,-8,T18:00",
+        "true,true,true,Next,-2,-2,T18:00",
+        "true,true,true,Previous,-6,-8,T18:00",
+        "true,true,true,Previous,-2,-2,T18:00",
+        "true,true,true,No,-6,-8,T18:00",
+        "true,true,true,No,-2,-2,T18:00",
+        "true,true,false,Next,-6,-6,T18:00",
+        "true,true,false,Next,-2,-2,T18:00",
+        "true,true,false,Previous,-6,-6,T18:00",
+        "true,true,false,Previous,-2,-2,T18:00",
+        "true,true,false,No,-6,-6,T18:00",
+        "true,true,false,No,-2,-2,T18:00"
     })
     public void shouldCalculateDateWhenAllDueDateOriginPropertiesAreProvided(
         String isReConfigurationRequest,
