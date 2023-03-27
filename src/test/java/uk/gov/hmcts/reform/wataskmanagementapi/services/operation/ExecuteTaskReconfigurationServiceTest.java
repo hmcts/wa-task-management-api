@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ExecuteTaskReconfigurationService;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -196,7 +197,7 @@ class ExecuteTaskReconfigurationServiceTest {
             .thenReturn(null);
 
         when(cftTaskDatabaseService
-            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsGreaterThanRetry(anyList(), anyList(), any())
+            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(anyList(), anyList(), any())
         ).thenReturn(taskResources);
 
         TaskOperationRequest request = new TaskOperationRequest(
@@ -228,7 +229,7 @@ class ExecuteTaskReconfigurationServiceTest {
             .thenReturn(null);
 
         when(cftTaskDatabaseService
-            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsGreaterThanRetry(anyList(), anyList(), any())
+            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(anyList(), anyList(), any())
         ).thenReturn(Collections.emptyList());
 
         TaskOperationRequest request = new TaskOperationRequest(

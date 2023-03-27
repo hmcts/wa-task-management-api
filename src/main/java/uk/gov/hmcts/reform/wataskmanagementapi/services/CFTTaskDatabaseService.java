@@ -68,14 +68,13 @@ public class CFTTaskDatabaseService {
 
     public List<TaskResource> getActiveTasksAndReconfigureRequestTimeGreaterThan(
         List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime) {
-        return tasksRepository.findByStateInAndReconfigureRequestTimeGreaterThanEqual(
+        return tasksRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
             states, reconfigureRequestTime);
     }
 
-    public List<TaskResource> getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsGreaterThanRetry(
-        List<String> taskIds, List<CFTTaskState> states,
-        OffsetDateTime retryWindow) {
-        return tasksRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeGreaterThanEqual(
+    public List<TaskResource> getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
+        List<String> taskIds, List<CFTTaskState> states, OffsetDateTime retryWindow) {
+        return tasksRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
             taskIds, states, retryWindow);
     }
 
