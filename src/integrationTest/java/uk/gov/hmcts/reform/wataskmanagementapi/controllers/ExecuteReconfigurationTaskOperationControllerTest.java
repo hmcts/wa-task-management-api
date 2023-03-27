@@ -933,7 +933,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 );
     }
 
-
     private TaskOperationRequest taskOperationRequest(TaskOperationType operationName, List<TaskFilter<?>> taskFilters) {
         TaskOperation operation = TaskOperation
             .builder()
