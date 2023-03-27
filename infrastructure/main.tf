@@ -56,7 +56,7 @@ module "wa_task_management_api_database_flexible" {
   name               = "${var.postgres_db_component_name}-postgres-db-flexible"
   location           = var.location
   business_area      = var.business_area
-  env                = "perftest"
+  env                = var.env
   pgsql_databases = [
     {
       name : var.postgresql_database_name
@@ -85,7 +85,7 @@ module "wa_task_management_api_database_flexible_replica" {
   name               = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
   location           = var.location
   business_area      = var.business_area
-  env                = "perftest"
+  env                = var.env
   pgsql_databases = [
     {
       name : var.postgresql_database_name
