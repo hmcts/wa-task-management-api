@@ -7,7 +7,7 @@ VALUES ('8d6cc5cf-c973-11eb-bdba-0242ac222001', 'SELF', '2022-05-09T20:15:45.345
         '1623278362431001', 'TestCase', 'WaCaseType', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
         false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'LEGAL_OPERATIONS',
         'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'title', 'hearing_work', 'MANUAL', '2022-05-09T20:15:45.345875+01:00',
-        '2022-05-09T20:15:45.345875+01:00', '2022-10-18T10:19:45.345875+01:00', '2022-05-09T20:15:45.345875+01:00');
+        '2022-05-09T20:15:45.345875+01:00', current_timestamp, null);
 
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
                                     "read", own, "execute", manage, cancel,

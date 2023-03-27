@@ -73,13 +73,14 @@ public class NextHearingDateTypeConfiguratorTest {
                 List.of(defaultNextHearingDateOrigin, nextHearingDateOrigin, thirdNextHearingDateOrigin),
                 Boolean.parseBoolean(initiationNextHearingDateFound),
                 Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(thirdNextHearingDate + "T10:00"))
-                                   .build()));
+                .name(CamundaValue.stringValue("nextHearingDate"))
+                .value(CamundaValue.stringValue(thirdNextHearingDate + "T10:00"))
+                .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                .build()));
     }
 
     @ParameterizedTest
@@ -127,13 +128,14 @@ public class NextHearingDateTypeConfiguratorTest {
                 ),
                 false,
                 Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(secondNextHearingDate + expectedTime))
+                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
@@ -174,13 +176,14 @@ public class NextHearingDateTypeConfiguratorTest {
                 List.of(defaultNextHearingDate, nextHearingDate),
                 Boolean.parseBoolean(initiationNextHearingDateFound),
                 Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(secondNextHearingDate + "T18:00"))
-                                   .build()));
+                .name(CamundaValue.stringValue("nextHearingDate"))
+                .value(CamundaValue.stringValue(secondNextHearingDate + "T18:00"))
+                .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                .build()));
     }
 
     @ParameterizedTest
@@ -210,7 +213,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 List.of(defaultNextHearingDateTime, nextHearingDateTime),
                 Boolean.parseBoolean(initiationNextHearingDateFound),
                 Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                taskAttributes);
 
         String defaultNextHearingDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -245,13 +248,14 @@ public class NextHearingDateTypeConfiguratorTest {
                 List.of(defaultNextHearingDate, defaultNextHearingDateTime),
                 Boolean.parseBoolean(initiationNextHearingDateFound),
                 Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(givenNextHearingDate + "T16:00"))
-                                   .build()));
+                .name(CamundaValue.stringValue("nextHearingDate"))
+                .value(CamundaValue.stringValue(givenNextHearingDate + "T16:00"))
+                .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                .build()));
     }
 
     @ParameterizedTest
@@ -274,7 +278,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 List.of(defaultNextHearingDateTime),
                 Boolean.parseBoolean(initiationNextHearingDateFound),
                 Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -301,14 +305,15 @@ public class NextHearingDateTypeConfiguratorTest {
                 List.of(defaultNextHearingDate),
                 Boolean.parseBoolean(initiationNextHearingDateFound),
                 Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                taskAttributes);
 
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(givenNextHearingDate + "T19:00"))
-                                   .build()));
+                .name(CamundaValue.stringValue("nextHearingDate"))
+                .value(CamundaValue.stringValue(givenNextHearingDate + "T19:00"))
+                .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                .build()));
     }
 
     @Test
@@ -387,13 +392,14 @@ public class NextHearingDateTypeConfiguratorTest {
                 List.of(nextHearingDate, nextHearingDateOrigin),
                 Boolean.parseBoolean(initiationNextHearingDateFound),
                 Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("nextHearingDate"))
-                                   .value(CamundaValue.stringValue(givenNextHearingDate + "T16:00"))
-                                   .build()));
+                .name(CamundaValue.stringValue("nextHearingDate"))
+                .value(CamundaValue.stringValue(givenNextHearingDate + "T16:00"))
+                .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                .build()));
 
     }
 
@@ -409,14 +415,15 @@ public class NextHearingDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(List.of(nextHearingDateOrigin), false,
-                            Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(givenNextHearingDate + "T20:00"))
+                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
@@ -455,14 +462,15 @@ public class NextHearingDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(List.of(defaultNextHearingDate, nextHearingDateOrigin, nextHearingDateTime), false,
-                            Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate + "T18:00"))
+                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
@@ -486,8 +494,8 @@ public class NextHearingDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(List.of(defaultNextHearingDateTime), false,
-                            Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
             .isEqualTo(List.of(
@@ -515,14 +523,15 @@ public class NextHearingDateTypeConfiguratorTest {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(List.of(defaultNextHearingDate), false,
-                            Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
@@ -614,7 +623,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 ),
                 false,
                 Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                taskAttributes);
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(Integer.parseInt(expectedDays))
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -624,6 +633,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate + expectedTime))
+                    .canReconfigure(CamundaValue.booleanValue(canConfigurable))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
@@ -712,7 +722,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 ),
                 false,
                 Boolean.parseBoolean(isReConfigurationRequest),
-                    taskAttributes);
+                taskAttributes);
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(Integer.parseInt(expectedDays))
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -722,6 +732,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate + expectedTime))
+                    .canReconfigure(CamundaValue.booleanValue(canConfigurable))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
@@ -772,11 +783,11 @@ public class NextHearingDateTypeConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(
                 List.of(nextHearingDateIntervalDays, nextHearingDateNonWorkingCalendar, nextHearingDateMustBeWorkingDay,
-                        nextHearingDateNonWorkingDaysOfWeek, nextHearingDateSkipNonWorkingDays, nextHearingDateOrigin
+                    nextHearingDateNonWorkingDaysOfWeek, nextHearingDateSkipNonWorkingDays, nextHearingDateOrigin
                 ),
                 false,
                 false,
-                    taskAttributes);
+                taskAttributes);
 
         String expectedNextHearingDate = GIVEN_DATE.plusDays(Integer.parseInt("8"))
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -786,6 +797,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate + "T20:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
@@ -873,7 +885,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 List.of(defaultNextHearingDate),
                 false,
                 true,
-                    taskAttributes);
+                taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -939,7 +951,7 @@ public class NextHearingDateTypeConfiguratorTest {
                     nextHearingDateTime
                 ),
                 false, false,
-                    taskAttributes);
+                taskAttributes);
 
         String expectedNextHearingDate = "2022-10-30T02:30";
 
@@ -948,6 +960,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
@@ -1013,7 +1026,7 @@ public class NextHearingDateTypeConfiguratorTest {
                     nextHearingDateTime
                 ),
                 false, false,
-                    taskAttributes);
+                taskAttributes);
 
         String expectedNextHearingDate = "2023-03-30T01:30";
 
@@ -1022,6 +1035,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(expectedNextHearingDate))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))

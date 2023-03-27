@@ -188,6 +188,7 @@ public class DateTypeConfiguratorTest {
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(dueDate.getValue().getValue()))
+                                   .canReconfigure(CamundaValue.booleanValue(false))
                                    .build(),
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
@@ -213,10 +214,12 @@ public class DateTypeConfiguratorTest {
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(dueDate.getValue().getValue()))
+                                   .canReconfigure(CamundaValue.booleanValue(false))
                                    .build(),
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
                                    .value(CamundaValue.stringValue(priorityDate.getValue().getValue()))
+                                   .canReconfigure(CamundaValue.booleanValue(false))
                                    .build()
                            )
                 );
@@ -291,12 +294,14 @@ public class DateTypeConfiguratorTest {
                     ConfigurationDmnEvaluationResponse.builder()
                         .name(CamundaValue.stringValue("nextHearingDate"))
                         .value(CamundaValue.stringValue(nextHearingDateValue + "T18:00"))
+                        .canReconfigure(CamundaValue.booleanValue(true))
                         .build(),
                     ConfigurationDmnEvaluationResponse.builder()
                         .name(CamundaValue.stringValue("dueDate"))
                         .value(CamundaValue.stringValue(taskResourceDueDate
                                                             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                                             + "T18:00"))
+                        .canReconfigure(CamundaValue.booleanValue(true))
                         .build()
                 ));
         }

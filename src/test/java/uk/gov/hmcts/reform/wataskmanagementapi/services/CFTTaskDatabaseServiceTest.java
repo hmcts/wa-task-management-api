@@ -27,7 +27,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.persistence.LockTimeoutException;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -81,6 +83,28 @@ class CFTTaskDatabaseServiceTest {
     }
 
     @Test
+    void should_find_by_id_and_wait_and_obtain_pessimistic_write_lock() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByIdAndWaitForLock(taskId)).thenReturn(Optional.of(someTaskResource));
+
+        final Optional<TaskResource> actualTaskResource =
+            cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId);
+
+        assertNotNull(actualTaskResource);
+        assertTrue(actualTaskResource.isPresent());
+        assertEquals(someTaskResource, actualTaskResource.get());
+    }
+
+    @Test
+    void should_find_by_id_and_wait_and_obtain_pessimistic_write_lock_throw_exception() {
+        when(taskResourceRepository.findByIdAndWaitForLock(taskId)).thenThrow(new LockTimeoutException());
+
+        assertThatThrownBy(() -> cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId))
+            .isInstanceOf(LockTimeoutException.class);
+    }
+
+    @Test
     void should_find_by_id_only() {
         TaskResource someTaskResource = mock(TaskResource.class);
 
@@ -123,7 +147,7 @@ class CFTTaskDatabaseServiceTest {
     void should_find_by_state_and_reconfigure_request_time_is_not_null() {
         TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime reconfigureRequestTime = OffsetDateTime.now().minusHours(1L);
-        when(taskResourceRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
+        when(taskResourceRepository.findByStateInAndReconfigureRequestTimeGreaterThanEqual(
             List.of(CFTTaskState.ASSIGNED), reconfigureRequestTime)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
@@ -139,11 +163,11 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime retry = OffsetDateTime.now().minusHours(2);
 
-        when(taskResourceRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
+        when(taskResourceRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeGreaterThanEqual(
             List.of("199"), List.of(CFTTaskState.ASSIGNED), retry)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
+            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsGreaterThanRetry(
                 List.of("199"), List.of(CFTTaskState.ASSIGNED), retry);
 
         assertNotNull(actualTaskResource);
@@ -358,5 +382,17 @@ class CFTTaskDatabaseServiceTest {
         assertEquals(1, response.getTotalRecords());
         assertEquals(1, response.getTasks().size());
         assertEquals(task, response.getTasks().get(0));
+    }
+
+    @Test
+    void should_find_task_to_update_index_return_list_of_tasks() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByIndexedFalse()).thenReturn(List.of(someTaskResource));
+
+        final List<TaskResource> actualTaskResource = cftTaskDatabaseService.findTaskToUpdateIndex();
+
+        assertNotNull(actualTaskResource);
+        assertEquals(1, actualTaskResource.size());
     }
 }

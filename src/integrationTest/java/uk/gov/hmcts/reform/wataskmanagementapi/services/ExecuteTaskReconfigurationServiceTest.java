@@ -16,8 +16,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Exec
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ExecuteTaskReconfigurationService;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -28,7 +29,6 @@ import java.util.List;
 @Testcontainers
 @Sql("/scripts/wa/reconfigure_task_data.sql")
 public class ExecuteTaskReconfigurationServiceTest {
-    private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
     private ConfigureTaskService configureTaskService;
     @MockBean
@@ -41,7 +41,8 @@ public class ExecuteTaskReconfigurationServiceTest {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository,cftTaskMapper);
+        CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository,
+            cftTaskMapper);
         executeTaskReconfigurationService = new ExecuteTaskReconfigurationService(
             cftTaskDatabaseService,
             configureTaskService,
@@ -54,8 +55,8 @@ public class ExecuteTaskReconfigurationServiceTest {
 
         TaskOperationRequest taskOperationRequest = new TaskOperationRequest(
             TaskOperation.builder()
-                .name(TaskOperationName.EXECUTE_RECONFIGURE)
-                .maxTimeLimit(2)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
+                .maxTimeLimit(120)
                 .retryWindowHours(1)
                 .runId("")
                 .build(), taskFilters
@@ -71,7 +72,7 @@ public class ExecuteTaskReconfigurationServiceTest {
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
         ExecuteReconfigureTaskFilter filter = new ExecuteReconfigureTaskFilter(
-            "reconfigure_request_time", OffsetDateTime.parse("2022-10-17T10:19:45.345875+01:00"),
+            "reconfigure_request_time", OffsetDateTime.now().minusMinutes(5L),
             TaskFilterOperator.AFTER);
         return List.of(filter);
     }

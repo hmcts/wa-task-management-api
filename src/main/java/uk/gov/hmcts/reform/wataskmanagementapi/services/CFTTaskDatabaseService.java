@@ -30,6 +30,9 @@ import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 
 @Slf4j
 @Service
+@SuppressWarnings({
+    "PMD.TooManyMethods"
+})
 public class CFTTaskDatabaseService {
 
 
@@ -44,6 +47,10 @@ public class CFTTaskDatabaseService {
 
     public Optional<TaskResource> findByIdAndObtainPessimisticWriteLock(String taskId) {
         return tasksRepository.findById(taskId);
+    }
+
+    public Optional<TaskResource> findByIdAndWaitAndObtainPessimisticWriteLock(String taskId) {
+        return tasksRepository.findByIdAndWaitForLock(taskId);
     }
 
     public Optional<TaskResource> findByIdOnly(String taskId) {
@@ -61,13 +68,14 @@ public class CFTTaskDatabaseService {
 
     public List<TaskResource> getActiveTasksAndReconfigureRequestTimeGreaterThan(
         List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime) {
-        return tasksRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
+        return tasksRepository.findByStateInAndReconfigureRequestTimeGreaterThanEqual(
             states, reconfigureRequestTime);
     }
 
-    public List<TaskResource> getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
-        List<String> taskIds, List<CFTTaskState> states, OffsetDateTime retryWindow) {
-        return tasksRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
+    public List<TaskResource> getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsGreaterThanRetry(
+        List<String> taskIds, List<CFTTaskState> states,
+        OffsetDateTime retryWindow) {
+        return tasksRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeGreaterThanEqual(
             taskIds, states, retryWindow);
     }
 
@@ -131,6 +139,9 @@ public class CFTTaskDatabaseService {
         return new GetTasksResponse<>(tasks, count);
     }
 
+    public List<TaskResource> findTaskToUpdateIndex() {
+        return tasksRepository.findByIndexedFalse();
+    }
 
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
         return roleAssignments.stream()
