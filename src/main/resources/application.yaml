@@ -65,6 +65,9 @@ idam:
     username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
     password: ${WA_SYSTEM_PASSWORD:password}
 
+springdoc:
+  writer-with-order-by-keys: true
+
 spring:
   config:
     import: "optional:configtree:/mnt/secrets/wa/"
