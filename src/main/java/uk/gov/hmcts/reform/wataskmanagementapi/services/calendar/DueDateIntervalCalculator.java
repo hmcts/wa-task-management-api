@@ -50,18 +50,19 @@ public class DueDateIntervalCalculator implements DateCalculator {
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
             getReferenceDate(configResponses, isReconfigureRequest, taskAttributes, calculatedConfigurations)
-                .orElse(DEFAULT_ZONED_DATE_TIME)
-        );
+                .orElse(DEFAULT_ZONED_DATE_TIME),
+            isReconfigureRequest);
     }
 
     protected ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateTypeObject, DateTypeIntervalData dateTypeIntervalData, LocalDateTime referenceDate) {
+        DateTypeObject dateTypeObject, DateTypeIntervalData dateTypeIntervalData, LocalDateTime referenceDate,
+        boolean isReconfigureRequest) {
 
         LocalDate localDate = referenceDate.toLocalDate();
         if (dateTypeIntervalData.isDateTypeSkipNonWorkingDays()) {
             localDate = calculateDateForSkipNonWorkingDays(localDate, dateTypeIntervalData);
         } else {
-            localDate = calculateDateForNonSkipWorkingDays(localDate, dateTypeIntervalData);
+            localDate = calculateDateForNoSkip(localDate, dateTypeIntervalData);
         }
 
         LocalDateTime dateTime = calculateTime(dateTypeIntervalData.getDateTypeTime(), referenceDate, localDate);
@@ -70,6 +71,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
             .builder()
             .name(CamundaValue.stringValue(dateTypeObject.dateTypeName()))
             .value(CamundaValue.stringValue(dateTypeObject.dateType().getDateTimeFormatter().format(dateTime)))
+            .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
             .build();
     }
 
@@ -96,14 +98,9 @@ public class DueDateIntervalCalculator implements DateCalculator {
         return calculatedDate;
     }
 
-    private LocalDate calculateDateForNonSkipWorkingDays(LocalDate localDate,
-                                                         DateTypeIntervalData dateTypeIntervalData) {
-        LocalDate calculatedDate;
-        if (dateTypeIntervalData.getDateTypeIntervalDays() < 0) {
-            calculatedDate = localDate.minusDays(dateTypeIntervalData.getDateTypeIntervalDays());
-        } else {
-            calculatedDate = localDate.plusDays(dateTypeIntervalData.getDateTypeIntervalDays());
-        }
+    private LocalDate calculateDateForNoSkip(LocalDate localDate,
+                                             DateTypeIntervalData dateTypeIntervalData) {
+        LocalDate calculatedDate = localDate.plusDays(dateTypeIntervalData.getDateTypeIntervalDays());
         boolean workingDay = workingDayIndicator.isWorkingDay(
             calculatedDate,
             dateTypeIntervalData.getDateTypeNonWorkingCalendar(),

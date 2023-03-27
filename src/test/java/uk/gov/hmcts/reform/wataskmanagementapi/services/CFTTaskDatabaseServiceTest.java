@@ -147,7 +147,7 @@ class CFTTaskDatabaseServiceTest {
     void should_find_by_state_and_reconfigure_request_time_is_not_null() {
         TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime reconfigureRequestTime = OffsetDateTime.now().minusHours(1L);
-        when(taskResourceRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
+        when(taskResourceRepository.findByStateInAndReconfigureRequestTimeGreaterThanEqual(
             List.of(CFTTaskState.ASSIGNED), reconfigureRequestTime)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
@@ -163,11 +163,11 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime retry = OffsetDateTime.now().minusHours(2);
 
-        when(taskResourceRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
+        when(taskResourceRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeGreaterThanEqual(
             List.of("199"), List.of(CFTTaskState.ASSIGNED), retry)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
+            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsGreaterThanRetry(
                 List.of("199"), List.of(CFTTaskState.ASSIGNED), retry);
 
         assertNotNull(actualTaskResource);

@@ -34,7 +34,8 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         ConfigurationDmnEvaluationResponse intermediateOrigin = getProperty(
             configResponses,
             dateTypeName + ORIGIN_SUFFIX,
-            isReconfigureRequest
+            //always intermediate date values will be read hence isReconfigurableRequest value is set to false
+            false
         );
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(intermediateOrigin).isPresent()
@@ -58,8 +59,8 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         return referenceDate.map(localDateTime -> calculateDate(
                 dateTypeObject,
                 readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, isReconfigureRequest),
-                localDateTime
-            ))
+                localDateTime,
+                isReconfigureRequest))
             .orElse(null);
     }
 
@@ -71,7 +72,6 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dateTypeName + ORIGIN_SUFFIX))
-            .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
             .map(v -> {
                 log.info("Input {}: {}", dateTypeName + ORIGIN_SUFFIX, v);
