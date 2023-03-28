@@ -37,6 +37,6 @@ public class NextHearingDateCalculator extends DueDateCalculator {
         var nextHearingDate = getProperty(configResponses, NEXT_HEARING_DATE.getType(), isReconfigureRequest);
         log.info("Input {}: {}", NEXT_HEARING_DATE.getType(), nextHearingDate);
         var nextHearingDateTime = getProperty(configResponses, NEXT_HEARING_DATE_TIME, isReconfigureRequest);
-        return calculatedDate(dateType, nextHearingDate, nextHearingDateTime);
+        return calculatedDate(dateType, nextHearingDate, nextHearingDateTime, isReconfigureRequest);
     }
 }

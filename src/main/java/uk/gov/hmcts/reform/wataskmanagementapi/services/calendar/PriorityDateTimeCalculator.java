@@ -68,6 +68,6 @@ public class PriorityDateTimeCalculator extends DueDateTimeCalculator {
         Map<String, Object> taskAttributes, List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         var priorityDateTime = getProperty(priorityDateProperties, PRIORITY_DATE_TIME, isReconfigureRequest);
         log.info("Input {}: {}", PRIORITY_DATE_TIME, priorityDateTime);
-        return calculatedDate(dateType, priorityDateTime);
+        return calculatedDate(dateType, priorityDateTime, isReconfigureRequest);
     }
 }
