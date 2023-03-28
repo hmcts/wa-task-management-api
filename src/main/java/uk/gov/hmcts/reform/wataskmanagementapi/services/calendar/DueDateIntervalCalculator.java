@@ -134,7 +134,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
                 log.info("Input {}: {}", DUE_DATE_ORIGIN, v);
                 return v.getValue().getValue();
             })
-            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
+            .map(this::parseDateTime);
     }
 
     private LocalDateTime calculateTime(
