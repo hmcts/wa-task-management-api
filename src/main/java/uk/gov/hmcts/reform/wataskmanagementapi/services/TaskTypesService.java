@@ -61,7 +61,7 @@ public class TaskTypesService {
             )
         );
 
-        List<TaskTypeResponse> taskTypeResponses = extractValues(taskTypesDmnEvaluationResponses);
+        Set<TaskTypeResponse> taskTypeResponses = extractValues(taskTypesDmnEvaluationResponses);
 
         if (!taskTypeResponses.isEmpty()) {
             getTaskTypesResponse = new GetTaskTypesResponse(taskTypeResponses);
@@ -70,7 +70,7 @@ public class TaskTypesService {
         return getTaskTypesResponse;
     }
 
-    private List<TaskTypeResponse> extractValues(List<TaskTypesDmnEvaluationResponse> evaluationResponses) {
+    private Set<TaskTypeResponse> extractValues(List<TaskTypesDmnEvaluationResponse> evaluationResponses) {
 
         Set<TaskType> taskTypeResponses = new LinkedHashSet<>();
 
@@ -85,7 +85,7 @@ public class TaskTypesService {
             }
         );
 
-        return taskTypeResponses.stream().map(TaskTypeResponse::new).collect(Collectors.toList());
+        return taskTypeResponses.stream().map(TaskTypeResponse::new).collect(Collectors.toSet());
 
     }
 

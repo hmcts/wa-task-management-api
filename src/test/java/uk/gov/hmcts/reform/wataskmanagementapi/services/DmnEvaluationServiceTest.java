@@ -56,7 +56,7 @@ class DmnEvaluationServiceTest {
     private static final String BEARER_SERVICE_TOKEN = "Bearer service token";
     private static final String TASK_TYPE_ID = "taskType";
     private static final String TASK_ATTRIBUTES = "{ \"taskTypeId\": " + TASK_TYPE_ID + "}";
-    private static final String DMN_KEY_LIKE = "wa-task-types-";
+    private static final String DMN_KEY_PREFIX = "wa-task-types-";
 
     @Mock
     private CamundaServiceApi camundaServiceApi;
@@ -226,13 +226,13 @@ class DmnEvaluationServiceTest {
             .getTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
                 "wa",
-                DMN_KEY_LIKE + "wa%",
+                DMN_KEY_PREFIX + "wa%",
                 true
             );
 
         Set<TaskTypesDmnResponse> response = dmnEvaluationService.retrieveTaskTypesDmn(
             "wa",
-            DMN_KEY_LIKE
+                DMN_KEY_PREFIX
         );
 
         assertThat(response.size(), is(1));
@@ -258,7 +258,7 @@ class DmnEvaluationServiceTest {
             .getTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
                 jurisdiction,
-                DMN_KEY_LIKE + jurisdiction + "%",
+                DMN_KEY_PREFIX + jurisdiction + "%",
                 true
             );
 
@@ -271,7 +271,7 @@ class DmnEvaluationServiceTest {
             .thenReturn(camundaExceptionMessage);
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .retrieveTaskTypesDmn(jurisdiction, DMN_KEY_LIKE)
+            .retrieveTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX)
         )
             .isInstanceOf(FeignException.BadRequest.class)
             .hasMessage("Downstream Dependency Error");
@@ -301,12 +301,12 @@ class DmnEvaluationServiceTest {
             .getTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
                 jurisdiction,
-                DMN_KEY_LIKE + jurisdiction + "%",
+                DMN_KEY_PREFIX + jurisdiction + "%",
                 true
             );
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .retrieveTaskTypesDmn(jurisdiction, DMN_KEY_LIKE)
+            .retrieveTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX)
         )
             .isInstanceOf(FeignException.ServiceUnavailable.class)
             .hasMessage("Service unavailable");
@@ -339,14 +339,14 @@ class DmnEvaluationServiceTest {
             .when(camundaServiceApi)
             .evaluateTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
-                DMN_KEY_LIKE,
+                    DMN_KEY_PREFIX,
                 "wa",
                 dmnRequest
             );
 
         List<TaskTypesDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskTypesDmn(
             "wa",
-            DMN_KEY_LIKE
+                DMN_KEY_PREFIX
         );
 
         assertThat(response.size(), is(2));
@@ -361,7 +361,7 @@ class DmnEvaluationServiceTest {
         verify(camundaServiceApi, times(1))
             .evaluateTaskTypesDmnTable(
                 eq(BEARER_SERVICE_TOKEN),
-                eq(DMN_KEY_LIKE),
+                eq(DMN_KEY_PREFIX),
                 eq("wa"),
                 eq(dmnRequest)
             );
@@ -377,7 +377,7 @@ class DmnEvaluationServiceTest {
             .when(camundaServiceApi)
             .evaluateTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
-                DMN_KEY_LIKE,
+                    DMN_KEY_PREFIX,
                 jurisdiction,
                 dmnRequest
             );
@@ -387,7 +387,7 @@ class DmnEvaluationServiceTest {
             .readValue(exception.contentUTF8(), CamundaExceptionMessage.class);
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .evaluateTaskTypesDmn(jurisdiction, DMN_KEY_LIKE)
+            .evaluateTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX)
         )
             .isInstanceOf(FeignException.BadRequest.class)
             .hasMessage("Downstream Dependency Error");
@@ -412,13 +412,13 @@ class DmnEvaluationServiceTest {
             .when(camundaServiceApi)
             .evaluateTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
-                DMN_KEY_LIKE,
+                    DMN_KEY_PREFIX,
                 jurisdiction,
                 dmnRequest
             );
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .evaluateTaskTypesDmn(jurisdiction, DMN_KEY_LIKE)
+            .evaluateTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX)
         )
             .isInstanceOf(FeignException.class)
             .hasMessage("Service unavailable");

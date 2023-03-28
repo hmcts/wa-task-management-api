@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -83,8 +84,10 @@ class TaskTypesServiceTest {
         assertNotNull(response);
         assertNotNull(response.getTaskTypeResponses());
         assertEquals(1, response.getTaskTypeResponses().size());
-        assertEquals("processApplication", response.getTaskTypeResponses().get(0).getTaskType().getTaskTypeId());
-        assertEquals("Process Application", response.getTaskTypeResponses().get(0).getTaskType().getTaskTypeName());
+        assertEquals("processApplication", response.getTaskTypeResponses()
+                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId());
+        assertEquals("Process Application", response.getTaskTypeResponses()
+                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName());
 
     }
 
@@ -167,19 +170,23 @@ class TaskTypesServiceTest {
         assertEquals(2, response.getTaskTypeResponses().size());
         assertEquals(
                 "processApplication",
-                response.getTaskTypeResponses().get(0).getTaskType().getTaskTypeId()
+                response.getTaskTypeResponses()
+                        .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId()
         );
         assertEquals(
                 "Process Application",
-                response.getTaskTypeResponses().get(0).getTaskType().getTaskTypeName()
+                response.getTaskTypeResponses()
+                        .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName()
         );
         assertEquals(
                 "reviewAppealSkeletonArgument",
-                response.getTaskTypeResponses().get(1).getTaskType().getTaskTypeId()
+                response.getTaskTypeResponses()
+                        .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeId()
         );
         assertEquals(
                 "Review Appeal Skeleton Argument",
-                response.getTaskTypeResponses().get(1).getTaskType().getTaskTypeName()
+                response.getTaskTypeResponses()
+                        .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeName()
         );
     }
 

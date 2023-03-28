@@ -133,26 +133,31 @@ public class DmnEvaluationService {
         }
     }
 
-    private Set<TaskTypesDmnResponse> performRetrieveTaskTypesDmn(String jurisdiction, String dmnKeyLikeField) {
+    private Set<TaskTypesDmnResponse> performRetrieveTaskTypesDmn(String jurisdiction, String dmnDecisionKey) {
         try {
             List<TaskTypesDmnResponse> taskTypesDmnResponseList = camundaServiceApi.getTaskTypesDmnTable(
                 serviceAuthTokenGenerator.generate(),
                 jurisdiction.toLowerCase(Locale.ROOT),
-                dmnKeyLikeField,
+                dmnDecisionKey,
                 true
             );
-
+            taskTypesDmnResponseList.forEach(taskTypesDmnResponse ->
+                    log.debug("Retrieved task type dmns tenant Id: {}, key: {} and resource : {}",
+                            taskTypesDmnResponse.getTenantId(),
+                            taskTypesDmnResponse.getKey(),
+                            taskTypesDmnResponse.getResource()
+                    ));
             return new HashSet<>(taskTypesDmnResponseList);
         } catch (FeignException.ServiceUnavailable | FeignException.GatewayTimeout ex) {
             log.error("An error occurred when getting task-type dmn due to service unavailable. "
                       + "Could not get {} from camunda for {}. Exception: {}",
-                    dmnKeyLikeField, jurisdiction, ex.getMessage());
+                    dmnDecisionKey, jurisdiction, ex.getMessage());
 
             throw ex;
         } catch (FeignException ex) {
             log.error("An error occurred when getting task-type dmn. "
                             + "Could not get {} from camunda for {}. Exception: {}",
-                    dmnKeyLikeField, jurisdiction, ex.getMessage()
+                    dmnDecisionKey, jurisdiction, ex.getMessage()
             );
 
             Optional<CamundaExceptionMessage> camundaException = readCamundaException(ex);
