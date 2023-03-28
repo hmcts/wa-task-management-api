@@ -395,4 +395,16 @@ class CFTTaskDatabaseServiceTest {
         assertNotNull(actualTaskResource);
         assertEquals(1, actualTaskResource.size());
     }
+
+
+    @Test
+    void should_delete_tasks_by_task_ids() {
+        final List<String> taskIds = List.of("123", "456");
+        lenient().doNothing().when(taskResourceRepository).deleteAllById(taskIds);
+
+        cftTaskDatabaseService.deleteTasks(taskIds);
+
+        verify(taskResourceRepository, times(1))
+                .deleteAllById(taskIds);
+    }
 }
