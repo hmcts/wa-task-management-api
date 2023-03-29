@@ -50,12 +50,13 @@ public class DueDateIntervalCalculator implements DateCalculator {
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
             getReferenceDate(configResponses, isReconfigureRequest, taskAttributes, calculatedConfigurations)
-                .orElse(DEFAULT_ZONED_DATE_TIME)
-        );
+                .orElse(DEFAULT_ZONED_DATE_TIME),
+            isReconfigureRequest);
     }
 
     protected ConfigurationDmnEvaluationResponse calculateDate(
-        DateTypeObject dateTypeObject, DateTypeIntervalData dateTypeIntervalData, LocalDateTime referenceDate) {
+        DateTypeObject dateTypeObject, DateTypeIntervalData dateTypeIntervalData, LocalDateTime referenceDate,
+        boolean isReconfigureRequest) {
 
         LocalDate localDate = referenceDate.toLocalDate();
         if (dateTypeIntervalData.isDateTypeSkipNonWorkingDays()) {
@@ -70,6 +71,7 @@ public class DueDateIntervalCalculator implements DateCalculator {
             .builder()
             .name(CamundaValue.stringValue(dateTypeObject.dateTypeName()))
             .value(CamundaValue.stringValue(dateTypeObject.dateType().getDateTimeFormatter().format(dateTime)))
+            .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
             .build();
     }
 
