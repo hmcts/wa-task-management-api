@@ -1,10 +1,18 @@
 {
-  "enabledManagers": ["helm-requirements","gradle-wrapper","terraform","terraform-version"],
+  "enabledManagers": ["helm-requirements","gradle-wrapper","terraform","terraform-version", "regex"],
   "helm-requirements":
   {
     "fileMatch": ["\\Chart.yaml$"],
     "aliases": {
       "hmctspublic": "https://hmctspublic.azurecr.io/helm/v1/repo/"
     }
-  }
+  },
+  "regexManagers": [
+    {
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": [
+        "datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sARG .*?_VERSION=(?<currentValue>.*)\\s"
+      ]
+    }
+  ]
 }
