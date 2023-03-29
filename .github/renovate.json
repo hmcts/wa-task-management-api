@@ -1,11 +1,10 @@
 {
-  "enabledManagers": ["helm-requirements","gradle-wrapper","terraform","terraform-version", "regex"],
-  "helm-requirements":
-  {
-    "fileMatch": ["\\Chart.yaml$"],
-    "aliases": {
-      "hmctspublic": "https://hmctspublic.azurecr.io/helm/v1/repo/"
-    }
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "schedule": "after 7am and before 11am every weekday",
+  "extends": ["config:base"],
+  "labels": ["dependencies"],
+  "helmv3": {
+    "bumpVersion": "patch"
   },
   "regexManagers": [
     {
@@ -14,5 +13,8 @@
         "datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sARG .*?_VERSION=(?<currentValue>.*)\\s"
       ]
     }
-  ]
+  ],
+  "platformAutomerge": true,
+  "automerge": true,
+  "automergeType": "pr"
 }
