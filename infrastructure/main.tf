@@ -1,5 +1,4 @@
 provider "azurerm" {
-  version = "~> 3.0"
   features {}
   skip_provider_registration = true
   alias                      = "postgres_network"
