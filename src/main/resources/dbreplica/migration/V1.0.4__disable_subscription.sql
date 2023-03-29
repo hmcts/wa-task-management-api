@@ -1,2 +1,0 @@
--- ALTER SUBSCRIPTION task_subscription DISABLE;
--- ALTER SUBSCRIPTION task_subscription SET (slot_name=NONE);
