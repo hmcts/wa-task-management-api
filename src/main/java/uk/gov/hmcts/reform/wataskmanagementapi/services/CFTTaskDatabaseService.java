@@ -112,7 +112,7 @@ public class CFTTaskDatabaseService {
         Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
         List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
 
-        log.debug("Task search for filter signatures {} and role signatures {}", filterSignature, roleSignature);
+        log.info("Task search for filter signatures {} and role signatures {}", filterSignature, roleSignature);
         List<String> taskIds = tasksRepository.searchTasksIds(firstResult, maxResults, filterSignature, roleSignature,
             excludeCaseIds, searchRequest);
 
@@ -139,7 +139,7 @@ public class CFTTaskDatabaseService {
     }
 
     public List<TaskResource> findTaskToUpdateIndex() {
-        return tasksRepository.findByIndexedFalse();
+        return tasksRepository.findByIndexedFalseAndStateIn(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
     }
 
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
