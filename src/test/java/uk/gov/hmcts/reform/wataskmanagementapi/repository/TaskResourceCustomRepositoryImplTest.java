@@ -59,7 +59,7 @@ public class TaskResourceCustomRepositoryImplTest {
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
-                       + "AND cast(state as text) IN ('ASSIGNED','UNASSIGNED') "
+                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
@@ -81,7 +81,7 @@ public class TaskResourceCustomRepositoryImplTest {
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
-                       + "AND cast(state as text) IN ('ASSIGNED','UNASSIGNED') "
+                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY case_id ASC, case_name ASC, "
                           + "major_priority ASC, priority_date ASC, minor_priority ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
@@ -101,7 +101,7 @@ public class TaskResourceCustomRepositoryImplTest {
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
-                       + "AND cast(state as text) IN ('ASSIGNED','UNASSIGNED') ";
+                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
         inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
@@ -120,7 +120,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
                        + "AND assignee IS NULL "
-                       + "AND cast(state as text) IN ('ASSIGNED','UNASSIGNED') "
+                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
@@ -143,7 +143,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
                        + "AND assignee IS NULL "
-                       + "AND cast(state as text) IN ('ASSIGNED','UNASSIGNED') ";
+                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
         inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
@@ -164,7 +164,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
                        + "AND assignee = :assignee "
-                       + "AND cast(state as text) = :state "
+                       + "AND state IN ('COMPLETED') "
                        + "AND case_id = :caseId "
                        + "AND task_type = :taskType "
                        + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
@@ -174,7 +174,6 @@ public class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
         inOrder.verify(query).setParameter("roleSignature", new String[]{"IA:*:*:tribunal-caseofficer:*:r:U:*"});
         inOrder.verify(query).setParameter("assignee", "user");
-        inOrder.verify(query).setParameter("state", "COMPLETED");
         inOrder.verify(query).setParameter("caseId", "caseId");
         inOrder.verify(query).setParameter("taskType", "TaskType");
         inOrder.verify(query).setParameter("firstResult", 1);
@@ -196,7 +195,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
                        + "AND assignee = :assignee "
-                       + "AND cast(state as text) = :state "
+                       + "AND state IN ('COMPLETED') "
                        + "AND case_id = :caseId "
                        + "AND task_type = :taskType ";
         verify(entityManager).createNativeQuery(queryStr);
@@ -204,7 +203,6 @@ public class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
         inOrder.verify(query).setParameter("roleSignature", new String[]{"IA:*:*:tribunal-caseofficer:*:r:U:*"});
         inOrder.verify(query).setParameter("assignee", "user");
-        inOrder.verify(query).setParameter("state", "COMPLETED");
         inOrder.verify(query).setParameter("caseId", "caseId");
         inOrder.verify(query).setParameter("taskType", "TaskType");
     }
@@ -223,7 +221,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
                        + "AND assignee IN (:assignee) "
-                       + "AND cast(state as text) IN (:state) "
+                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
                        + "AND task_type IN (:taskType) "
                        + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
@@ -233,7 +231,6 @@ public class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
         inOrder.verify(query).setParameter("roleSignature", new String[]{"IA:*:*:tribunal-caseofficer:*:r:U:*"});
         inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("state", List.of("COMPLETED", "CONFIGURED"));
         inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
         inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
         inOrder.verify(query).setParameter("firstResult", 1);
@@ -255,7 +252,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
                        + "AND assignee IN (:assignee) "
-                       + "AND cast(state as text) IN (:state) "
+                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
                        + "AND task_type IN (:taskType) ";
         verify(entityManager).createNativeQuery(queryStr);
@@ -263,7 +260,6 @@ public class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
         inOrder.verify(query).setParameter("roleSignature", new String[]{"IA:*:*:tribunal-caseofficer:*:r:U:*"});
         inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("state", List.of("COMPLETED", "CONFIGURED"));
         inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
         inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
     }
@@ -282,7 +278,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
                        + "AND assignee IN (:assignee) "
-                       + "AND cast(state as text) IN (:state) "
+                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
                        + "AND case_id <> :excludedCaseId "
                        + "AND task_type IN (:taskType) "
@@ -293,7 +289,6 @@ public class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
         inOrder.verify(query).setParameter("roleSignature", new String[]{"IA:*:*:tribunal-caseofficer:*:r:U:*"});
         inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("state", List.of("COMPLETED", "CONFIGURED"));
         inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
         inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
         inOrder.verify(query).setParameter("excludedCaseId", "caseId");
@@ -316,7 +311,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
                        + "AND assignee IN (:assignee) "
-                       + "AND cast(state as text) IN (:state) "
+                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
                        + "AND case_id <> :excludedCaseId "
                        + "AND task_type IN (:taskType) ";
@@ -325,7 +320,6 @@ public class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
         inOrder.verify(query).setParameter("roleSignature", new String[]{"IA:*:*:tribunal-caseofficer:*:r:U:*"});
         inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("state", List.of("COMPLETED", "CONFIGURED"));
         inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
         inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
         inOrder.verify(query).setParameter("excludedCaseId", "caseId");
@@ -345,7 +339,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
                        + "AND assignee IN (:assignee) "
-                       + "AND cast(state as text) IN (:state) "
+                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
                        + "AND case_id NOT IN (:excludedCaseId) "
                        + "AND task_type IN (:taskType) "
@@ -356,7 +350,6 @@ public class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
         inOrder.verify(query).setParameter("roleSignature", new String[]{"IA:*:*:tribunal-caseofficer:*:r:U:*"});
         inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("state", List.of("COMPLETED", "CONFIGURED"));
         inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
         inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
         inOrder.verify(query).setParameter("excludedCaseId", List.of("caseId", "caseId2"));
@@ -379,7 +372,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
                        + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
                        + "AND assignee IN (:assignee) "
-                       + "AND cast(state as text) IN (:state) "
+                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
                        + "AND case_id NOT IN (:excludedCaseId) "
                        + "AND task_type IN (:taskType) ";
@@ -388,7 +381,6 @@ public class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
         inOrder.verify(query).setParameter("roleSignature", new String[]{"IA:*:*:tribunal-caseofficer:*:r:U:*"});
         inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("state", List.of("COMPLETED", "CONFIGURED"));
         inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
         inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
         inOrder.verify(query).setParameter("excludedCaseId", List.of("caseId", "caseId2"));
