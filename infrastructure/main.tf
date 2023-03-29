@@ -1,7 +1,12 @@
 provider "azurerm" {
-  version = "~> 3.0"
   features {}
+}
 
+provider "azurerm" {
+  features {}
+  skip_provider_registration = true
+  alias                      = "postgres_network"
+  subscription_id            = var.aks_subscription_id
 }
 
 data "azurerm_key_vault" "wa_key_vault" {
@@ -50,7 +55,11 @@ module "wa_task_management_api_database" {
 
 //New Azure Flexible database
 module "wa_task_management_api_database_flexible" {
-  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  providers = {
+    azurerm.postgres_network = azurerm.postgres_network
+  }
+
+  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=thomast1906-patch-1"
   product            = var.product
   component          = var.component
   name               = "${var.postgres_db_component_name}-postgres-db-flexible"
@@ -69,7 +78,6 @@ module "wa_task_management_api_database_flexible" {
     }
   ]
 
-
   pgsql_version      = 14
   common_tags        = local.common_tags
 
@@ -79,7 +87,11 @@ module "wa_task_management_api_database_flexible" {
 
 //New Azure Flexible database replica
 module "wa_task_management_api_database_flexible_replica" {
-  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  providers = {
+    azurerm.postgres_network = azurerm.postgres_network
+  }
+
+  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=thomast1906-patch-1"
   product            = var.product
   component          = var.component
   name               = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
