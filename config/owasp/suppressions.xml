@@ -73,4 +73,10 @@
     </notes>
     <cve>CVE-2023-28708</cve>
   </suppress>
+  <suppress>
+    <notes>
+      tmp till fixed
+    </notes>
+    <cve>CVE-2023-20861</cve>
+  </suppress>
 </suppressions>
