@@ -282,7 +282,7 @@ def versions = [
   reformLogging : '5.1.9',
   springDoc     : '1.6.12',
   serenity      : '3.1.20',
-  gradlePitest  : '1.9.0',
+  gradlePitest  : '1.9.11',
   pitest        : '1.9.5',
   sonarPitest   : '0.5',
   pactVersion   : '4.3.4',
