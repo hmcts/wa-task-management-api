@@ -36,7 +36,7 @@ java:
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     POSTGRES_PORT: 5432
-    POSTGRES_HOST: cft-task-postgres-db-flexible-perftest.postgres.database.azure.com
+    POSTGRES_HOST: cft-task-postgres-db-flexible-{{ .Values.global.environment }}.postgres.database.azure.com
     POSTGRES_NAME: cft_task_db
     POSTGRES_CONNECTION_OPTIONS: "?sslmode=require"
     ALLOWED_JURISDICTIONS: wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW,EMPLOYMENT
