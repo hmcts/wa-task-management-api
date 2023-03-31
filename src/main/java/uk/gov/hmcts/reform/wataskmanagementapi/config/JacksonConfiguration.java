@@ -62,7 +62,9 @@ public class JacksonConfiguration {
     @Primary
     public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
         Jackson2ObjectMapperBuilder builder = jackson2ObjectMapperBuilder();
-        return new MappingJackson2HttpMessageConverter(builder.build());
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(builder.build());
+        converter.setObjectMapper(builder.createXmlMapper(false).build());
+        return converter;
     }
 
     @Bean
