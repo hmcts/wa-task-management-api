@@ -140,3 +140,27 @@ resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   value        = module.wa_task_management_api_database.postgresql_database
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
+//flexible server
+resource "azurerm_key_vault_secret" "POSTGRES-USER-FLEXIBLE" {
+  name         = "${var.postgres_db_component_name}-POSTGRES-USER-FLEXIBLE"
+  value        = module.wa_task_management_api_database_flexible.username
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES-PASS-FLEXIBLE" {
+  name         = "${var.postgres_db_component_name}-POSTGRES-PASS-FLEXIBLE"
+  value        = module.wa_task_management_api_database_flexible.password
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+//replica
+resource "azurerm_key_vault_secret" "POSTGRES-USER-FLEXIBLE-REPLICA" {
+  name         = "${var.postgres_db_component_name}-POSTGRES-USER-FLEXIBLE-REPLICA"
+  value        = module.wa_task_management_api_database_flexible_replica.username
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES-PASS-FLEXIBLE-REPLICA" {
+  name         = "${var.postgres_db_component_name}-POSTGRES-PASS-FLEXIBLE-REPLICA"
+  value        = module.wa_task_management_api_database_flexible_replica.password
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
