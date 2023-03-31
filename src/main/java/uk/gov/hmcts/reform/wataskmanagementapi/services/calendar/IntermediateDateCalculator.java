@@ -37,6 +37,6 @@ public class IntermediateDateCalculator extends DueDateCalculator {
         var intermediateDate = getProperty(configResponses, dateTypeName, isReconfigureRequest);
         log.info("Input {}: {}", dateTypeName, intermediateDate);
         var intermediateDateTime = getProperty(configResponses, dateTypeName + TIME_SUFFIX, isReconfigureRequest);
-        return calculatedDate(dateTypeObject, intermediateDate, intermediateDateTime);
+        return calculatedDate(dateTypeObject, intermediateDate, intermediateDateTime, isReconfigureRequest);
     }
 }

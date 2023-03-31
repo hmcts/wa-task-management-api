@@ -36,6 +36,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -213,6 +214,28 @@ class CaseConfigurationProviderServiceTest {
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
 
+    }
+
+    @Test
+    void should_throw_an_exception_and_log_when_dmn_has_null_values() {
+        String someCaseId = "someCaseId";
+        String taskAttributesString = "{\"taskType\":\"taskType\"}";
+        Map<String, Object> taskAttributes = Map.of("taskType", "taskType");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate date = LocalDate.now().plusDays(2);
+        String defaultDate = date.format(formatter) + "T16:00";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", taskAttributesString))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue(null))
+            ));
+
+        assertThatThrownBy(() -> caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false))
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -753,7 +776,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(localDateTime + "T18:00")
+                    stringValue(localDateTime + "T18:00"),
+                    booleanValue(false)
                 ));
     }
 
@@ -808,7 +832,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(localDateTime + "T18:00")
+                    stringValue(localDateTime + "T18:00"),
+                    booleanValue(true)
                 ));
     }
 
@@ -885,7 +910,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(expectedDate + "T18:00")
+                    stringValue(expectedDate + "T18:00"),
+                    booleanValue(false)
                 ));
     }
 
@@ -949,7 +975,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(expectedDate + "T18:00")
+                    stringValue(expectedDate + "T18:00"),
+                    booleanValue(true)
                 ));
     }
 
@@ -1006,7 +1033,6 @@ class CaseConfigurationProviderServiceTest {
             .getCaseRelatedConfiguration(someCaseId, Map.of(), true);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
-        String expectedDate = GIVEN_DATE.plusDays(8).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isEmpty();
     }
 
