@@ -25,8 +25,6 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    private TelemetryContext telemetryContext;
-
 
     public CFTSensitiveTaskEventLogsDatabaseService(SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository,
                                                     CFTTaskDatabaseService cftTaskDatabaseService) {
@@ -41,27 +39,27 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
     public void processSensitiveTaskEventLog(String taskId,
                                              List<RoleAssignment> roleAssignments,
                                              ErrorMessages customErrorMessage) {
-        telemetryContext = new TelemetryContext();
-        executorService.execute(() -> {
-            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
-            if (taskResource.isPresent()) {
-                taskResource.get().getTaskRoleResources();
+        TelemetryContext telemetryContext = new TelemetryContext();
+        Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+        if (taskResource.isPresent()) {
+            log.info("TaskRoles for taskId {} is {}", taskId, taskResource.get().getTaskRoleResources());
+            SensitiveTaskEventLog sensitiveTaskEventLog = new SensitiveTaskEventLog(
+                UUID.randomUUID().toString(),
+                telemetryContext.getOperation().getId(),
+                "",
+                taskId,
+                taskResource.get().getCaseId(),
+                customErrorMessage.getDetail(),
+                List.of(taskResource.get()),
+                roleAssignments,
+                ZonedDateTime.now().toOffsetDateTime().plusDays(90),
+                ZonedDateTime.now().toOffsetDateTime()
+            );
 
-                SensitiveTaskEventLog sensitiveTaskEventLog = new SensitiveTaskEventLog(
-                    UUID.randomUUID().toString(),
-                    telemetryContext.getOperation().getId(),
-                    "",
-                    taskId,
-                    taskResource.get().getCaseId(),
-                    customErrorMessage.getDetail(),
-                    List.of(taskResource.get()),
-                    roleAssignments,
-                    ZonedDateTime.now().toOffsetDateTime().plusDays(90),
-                    ZonedDateTime.now().toOffsetDateTime()
-                );
+            executorService.execute(() -> {
                 saveSensitiveTaskEventLog(sensitiveTaskEventLog);
+            });
+        }
 
-            }
-        });
     }
 }
