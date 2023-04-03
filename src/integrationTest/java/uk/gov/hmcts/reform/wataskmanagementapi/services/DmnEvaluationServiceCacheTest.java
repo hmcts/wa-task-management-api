@@ -67,24 +67,26 @@ public class DmnEvaluationServiceCacheTest {
 
         @Test
         void should_call_camunda_api_once_when_retrieving_task_type_dmn() {
-            String dmnName = "Task Types DMN";
+            String dmnKey = "wa-task-types-";
 
 
-            IntStream.range(0, 4).forEach(x -> dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnName));
-            IntStream.range(0, 5).forEach(x -> dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName));
+            IntStream.range(0, 4).forEach(x -> dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnKey));
+            IntStream.range(0, 5).forEach(x -> dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnKey));
 
             verify(camundaServiceApi, times(1))
                 .getTaskTypesDmnTable(
                     SERVICE_AUTHORIZATION_TOKEN,
                     "wa",
-                    dmnName
+                    dmnKey + "wa%",
+                    true
                 );
 
             verify(camundaServiceApi, times(1))
                 .getTaskTypesDmnTable(
                     SERVICE_AUTHORIZATION_TOKEN,
                     "ia",
-                    dmnName
+                     dmnKey + "ia%",
+                    true
                 );
 
         }

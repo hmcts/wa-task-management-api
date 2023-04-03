@@ -27,6 +27,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -190,7 +191,8 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTaskTypesDmnTable(
             anyString(),
             anyString(),
-            anyString()
+            anyString(),
+            anyBoolean()
         )).thenThrow(FeignException.FeignServerException.class);
 
         mockMvc.perform(
@@ -223,7 +225,8 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTaskTypesDmnTable(
             anyString(),
             anyString(),
-            anyString()
+            anyString(),
+            anyBoolean()
         )).thenThrow(FeignException.ServiceUnavailable.class);
 
         mockMvc.perform(

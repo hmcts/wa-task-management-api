@@ -16,7 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypes
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskTypeResponse;
 
-import java.util.List;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -67,7 +67,7 @@ public class TaskTypeProviderTest extends SpringBootContractProviderBaseTest {
 
         TaskTypeResponse taskTypeResponse = new TaskTypeResponse(taskType);
 
-        return new GetTaskTypesResponse(List.of(taskTypeResponse));
+        return new GetTaskTypesResponse(Set.of(taskTypeResponse));
     }
 
 }
