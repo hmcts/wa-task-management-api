@@ -43,17 +43,18 @@ public class DueDateTimeCalculator implements DateCalculator {
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest);
         log.info("Input {}: {}", DUE_DATE_TIME, dueDateTimeResponse);
-        return calculatedDate(dateTypeObject, dueDateTimeResponse);
+        return calculatedDate(dateTypeObject, dueDateTimeResponse, isReconfigureRequest);
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(
         DateTypeObject dateTypeObject,
-        ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
+        ConfigurationDmnEvaluationResponse dueDateTimeResponse, boolean isReconfigureRequest) {
         LocalDateTime dateTime = addTimeToDate(dueDateTimeResponse, DEFAULT_DATE);
         return ConfigurationDmnEvaluationResponse
             .builder()
             .name(CamundaValue.stringValue(dateTypeObject.dateTypeName()))
             .value(CamundaValue.stringValue(dateTypeObject.dateType().getDateTimeFormatter().format(dateTime)))
+            .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
             .build();
     }
 }

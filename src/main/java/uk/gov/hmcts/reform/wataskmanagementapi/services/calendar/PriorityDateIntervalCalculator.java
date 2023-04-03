@@ -47,8 +47,8 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
             getReferenceDate(configResponses, isReconfigureRequest, taskAttributes, calculatedConfigurations)
-                .orElse(DEFAULT_ZONED_DATE_TIME)
-        );
+                .orElse(DEFAULT_ZONED_DATE_TIME),
+            isReconfigureRequest);
     }
 
     @Override
@@ -127,6 +127,6 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
                 log.info("Input {}: {}", PRIORITY_DATE_ORIGIN, v);
                 return v.getValue().getValue();
             })
-            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
+            .map(this::parseDateTime);
     }
 }

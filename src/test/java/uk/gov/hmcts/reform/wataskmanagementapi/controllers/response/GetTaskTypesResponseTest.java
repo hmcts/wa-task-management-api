@@ -7,7 +7,8 @@ import pl.pojo.tester.api.assertion.Method;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskTypeResponse;
 
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
@@ -22,7 +23,7 @@ class GetTaskTypesResponseTest {
 
         TaskTypeResponse taskTypeResponse = new TaskTypeResponse(taskType);
 
-        List<TaskTypeResponse> taskTypeResponses = List.of(taskTypeResponse);
+        Set<TaskTypeResponse> taskTypeResponses = Set.of(taskTypeResponse);
 
         final GetTaskTypesResponse getTaskTypesResponse = new GetTaskTypesResponse(taskTypeResponses);
 
@@ -32,13 +33,16 @@ class GetTaskTypesResponseTest {
         assertThat(getTaskTypesResponse.getTaskTypeResponses())
             .isEqualTo(taskTypeResponses);
 
-        assertThat(getTaskTypesResponse.getTaskTypeResponses().get(0).getTaskType())
+        assertThat(getTaskTypesResponse.getTaskTypeResponses()
+                .stream().collect(Collectors.toList()).get(0).getTaskType())
             .isEqualTo(taskType);
 
-        assertThat(getTaskTypesResponse.getTaskTypeResponses().get(0).getTaskType().getTaskTypeId())
+        assertThat(getTaskTypesResponse.getTaskTypeResponses()
+                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId())
             .isEqualTo("taskTypeId");
 
-        assertThat(getTaskTypesResponse.getTaskTypeResponses().get(0).getTaskType().getTaskTypeName())
+        assertThat(getTaskTypesResponse.getTaskTypeResponses()
+                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName())
             .isEqualTo("taskTypeName");
 
     }

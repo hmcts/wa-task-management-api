@@ -12,7 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -51,7 +51,7 @@ public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
 
         List<Map<String, Map<String, String>>> expectedTaskTypes = getExpectedTaskTypes();
 
-        assertEquals(expectedTaskTypes, actualTaskTypes);
+        expectedTaskTypes.forEach(expectedTaskType -> assertTrue(actualTaskTypes.contains(expectedTaskType)));
 
     }
 

@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
@@ -43,6 +42,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithStandardGrantType;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithoutAttributes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_NAME;
@@ -134,10 +135,10 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
 
         when(taskResourceRepository.findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(
-            List.of("1234"), List.of(CFTTaskState.ASSIGNED))).thenReturn(List.of(someTaskResource));
+            List.of("1234"), List.of(ASSIGNED))).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(List.of("1234"), List.of(CFTTaskState.ASSIGNED));
+            .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(List.of("1234"), List.of(ASSIGNED));
 
         assertNotNull(actualTaskResource);
         assertEquals(someTaskResource, actualTaskResource.get(0));
@@ -148,10 +149,10 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime reconfigureRequestTime = OffsetDateTime.now().minusHours(1L);
         when(taskResourceRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
-            List.of(CFTTaskState.ASSIGNED), reconfigureRequestTime)).thenReturn(List.of(someTaskResource));
+            List.of(ASSIGNED), reconfigureRequestTime)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeGreaterThan(List.of(CFTTaskState.ASSIGNED),
+            .getActiveTasksAndReconfigureRequestTimeGreaterThan(List.of(ASSIGNED),
                 reconfigureRequestTime);
 
         assertNotNull(actualTaskResource);
@@ -164,11 +165,11 @@ class CFTTaskDatabaseServiceTest {
         OffsetDateTime retry = OffsetDateTime.now().minusHours(2);
 
         when(taskResourceRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
-            List.of("199"), List.of(CFTTaskState.ASSIGNED), retry)).thenReturn(List.of(someTaskResource));
+            List.of("199"), List.of(ASSIGNED), retry)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
             .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
-                List.of("199"), List.of(CFTTaskState.ASSIGNED), retry);
+                List.of("199"), List.of(ASSIGNED), retry);
 
         assertNotNull(actualTaskResource);
         assertEquals(someTaskResource, actualTaskResource.get(0));
@@ -388,7 +389,8 @@ class CFTTaskDatabaseServiceTest {
     void should_find_task_to_update_index_return_list_of_tasks() {
         TaskResource someTaskResource = mock(TaskResource.class);
 
-        when(taskResourceRepository.findByIndexedFalse()).thenReturn(List.of(someTaskResource));
+        when(taskResourceRepository.findByIndexedFalseAndStateIn(List.of(ASSIGNED, UNASSIGNED)))
+            .thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService.findTaskToUpdateIndex();
 
