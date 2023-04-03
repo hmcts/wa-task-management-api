@@ -171,22 +171,22 @@ class TaskTypesServiceTest {
         assertEquals(
                 "processApplication",
                 response.getTaskTypeResponses()
-                        .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId()
+                    .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeId()
         );
         assertEquals(
                 "Process Application",
-                response.getTaskTypeResponses()
-                        .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName()
+            response.getTaskTypeResponses()
+                .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeName()
         );
         assertEquals(
                 "reviewAppealSkeletonArgument",
-                response.getTaskTypeResponses()
-                        .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeId()
+            response.getTaskTypeResponses()
+                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId()
         );
         assertEquals(
                 "Review Appeal Skeleton Argument",
-                response.getTaskTypeResponses()
-                        .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeName()
+            response.getTaskTypeResponses()
+                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName()
         );
     }
 
