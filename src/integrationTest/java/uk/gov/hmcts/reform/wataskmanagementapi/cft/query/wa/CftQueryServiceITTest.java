@@ -100,14 +100,15 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(7)
-            .expectedTotalRecords(7)
+            .expectedAmountOfTasksInResponse(8)
+            .expectedTotalRecords(8)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000035", "1623278362400035",
                     "8d6cc5cf-c973-11eb-aaaa-000000000036", "1623278362400036",
                     "8d6cc5cf-c973-11eb-aaaa-000000000044", "1623278362400044",
                     "8d6cc5cf-c973-11eb-aaaa-000000000045", "1623278362400045",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000046", "1623278362400046",
                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
                     "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
@@ -121,7 +122,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(10)
-            .expectedTotalRecords(10)
+            .expectedTotalRecords(11)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000009", "1623278362400009",
@@ -129,11 +130,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                     "8d6cc5cf-c973-11eb-aaaa-000000000036", "1623278362400036",
                     "8d6cc5cf-c973-11eb-aaaa-000000000044", "1623278362400044",
                     "8d6cc5cf-c973-11eb-aaaa-000000000045", "1623278362400045",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000046", "1623278362400046",
                     "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
                     "8d6cc5cf-c973-11eb-aaaa-000000000041", "1623278362400041",
                     "8d6cc5cf-c973-11eb-aaaa-000000000007", "1623278362400007",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008"
                 )
             ).build();
 
@@ -144,7 +145,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(10)
-            .expectedTotalRecords(13)
+            .expectedTotalRecords(14)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000011", "1623278362400011",
@@ -155,8 +156,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                     "8d6cc5cf-c973-11eb-aaaa-000000000036", "1623278362400036",
                     "8d6cc5cf-c973-11eb-aaaa-000000000044", "1623278362400044",
                     "8d6cc5cf-c973-11eb-aaaa-000000000045", "1623278362400045",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000041", "1623278362400041"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000046", "1623278362400046",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010"
                 )
             ).build();
 
@@ -1582,8 +1583,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(20)
             .roleAssignments(pagination(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(9)
-            .expectedTotalRecords(9)
+            .expectedAmountOfTasksInResponse(10)
+            .expectedTotalRecords(10)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
@@ -1594,7 +1595,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                     "8d6cc5cf-c973-11eb-aaaa-000000000036", "1623278362400036",
                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040",
                     "8d6cc5cf-c973-11eb-aaaa-000000000044", "1623278362400044",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000045", "1623278362400045"
+                    "8d6cc5cf-c973-11eb-aaaa-000000000045", "1623278362400045",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000046", "1623278362400046"
                 )
             ).build();
 
@@ -1886,7 +1888,27 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .userInfo(userInfo)
             .build();
 
-        return Stream.of(allTasks, multipleWorkType, emptyWorkType);
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(WORK_TYPE, IN, List.of("post_hearing"))
+            )
+        );
+
+        final TaskQueryScenario postHearingWorkType = TaskQueryScenario.builder()
+            .scenarioName("Search by post_hearing work type")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(1)
+            .expectedTotalRecords(1)
+            .userInfo(userInfo)
+            .expectedTaskDetails(newArrayList(
+                    "8d6cc5cf-c973-11eb-aaaa-000000000046", "1623278362400046"
+                )
+            ).build();
+
+        return Stream.of(allTasks, multipleWorkType, emptyWorkType, postHearingWorkType);
     }
 
     private static Stream<TaskQueryScenario> searchByTaskTypeScenario() {

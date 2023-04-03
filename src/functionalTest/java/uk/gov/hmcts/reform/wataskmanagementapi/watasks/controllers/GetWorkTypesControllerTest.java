@@ -109,7 +109,9 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
             Map.of("id", "error_management", "label", "Error management"),
             Map.of("id", "review_case", "label", "Review Case"),
             Map.of("id", "evidence", "label", "Evidence"),
-            Map.of("id", "follow_up", "label", "Follow Up")
+            Map.of("id", "follow_up", "label", "Follow Up"),
+            Map.of("id", "pre_hearing", "label", "Pre-Hearing"),
+            Map.of("id", "post_hearing", "label", "Post-Hearing")
         );
         Assertions.assertEquals(expectedWorkTypes, workTypes);
 
