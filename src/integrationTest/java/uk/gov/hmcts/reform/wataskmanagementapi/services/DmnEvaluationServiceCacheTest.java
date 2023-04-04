@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DmnRequest;
 
 import java.util.concurrent.TimeUnit;
@@ -34,9 +33,6 @@ public class DmnEvaluationServiceCacheTest {
 
     @MockBean
     private CamundaServiceApi camundaServiceApi;
-
-    @MockBean
-    private CamundaObjectMapper camundaObjectMapper;
 
     @Autowired
     private DmnEvaluationService dmnEvaluationService;
@@ -101,15 +97,16 @@ public class DmnEvaluationServiceCacheTest {
         @Test
         void should_call_camunda_api_once_when_evaluating_task_type_dmn() {
 
-            String dmnKey = "wa-task-types-wa-wacasetype";
+            String dmnKey1 = "wa-task-types-wa-wacasetype1";
+            String dmnKey2 = "wa-task-types-wa-wacasetype2";
 
-            IntStream.range(0, 4).forEach(x -> dmnEvaluationService.evaluateTaskTypesDmn("wa", dmnKey));
-            IntStream.range(0, 5).forEach(x -> dmnEvaluationService.evaluateTaskTypesDmn("ia", dmnKey));
+            IntStream.range(0, 4).forEach(x -> dmnEvaluationService.evaluateTaskTypesDmn("wa", dmnKey1));
+            IntStream.range(0, 5).forEach(x -> dmnEvaluationService.evaluateTaskTypesDmn("wa", dmnKey2));
 
             verify(camundaServiceApi, times(1))
                 .evaluateTaskTypesDmnTable(
                     SERVICE_AUTHORIZATION_TOKEN,
-                    dmnKey,
+                    dmnKey1,
                     "wa",
                     new DmnRequest<>()
                 );
@@ -117,8 +114,8 @@ public class DmnEvaluationServiceCacheTest {
             verify(camundaServiceApi, times(1))
                 .evaluateTaskTypesDmnTable(
                     SERVICE_AUTHORIZATION_TOKEN,
-                    dmnKey,
-                    "ia",
+                    dmnKey2,
+                    "wa",
                     new DmnRequest<>()
                 );
 

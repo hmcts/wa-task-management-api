@@ -80,7 +80,7 @@ public class DmnEvaluationService {
         return response;
     }
 
-    @Cacheable(key = "#jurisdiction", value = "task_types", sync = true, cacheManager = "taskTypeCacheManager")
+    @Cacheable(key = "#decisionTableKey", value = "task_types", sync = true, cacheManager = "taskTypeCacheManager")
     public List<TaskTypesDmnEvaluationResponse> evaluateTaskTypesDmn(String jurisdiction, String decisionTableKey) {
         List<TaskTypesDmnEvaluationResponse> response =
             performEvaluateTaskTypesDmnAction(decisionTableKey, jurisdiction);
