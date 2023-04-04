@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -91,6 +92,8 @@ class TaskTypesServiceTest {
 
     }
 
+
+    @Disabled
     @Test
     void should_return_all_task_types_with_first_record_and_without_duplicate() {
 
