@@ -45,3 +45,4 @@ java:
     TASK_TYPE_CACHE_TIMEOUT_TIMEUNIT: MINUTES
     CALENDAR_CACHE_TIMEOUT_DURATION: 24
     CALENDAR_CACHE_TIMEOUT_TIMEUNIT: HOURS
+    POSTGRES_HOST: cft-task-postgres-db-flexible-aat.postgres.database.azure.com
