@@ -198,6 +198,6 @@ resource "azurerm_key_vault_secret" "POSTGRES_PORT-FLEXIBLE-REPLICA" {
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE-FLEXIBLE-REPLICA" {
   name         = "${var.postgres_db_component_name}-POSTGRES-DATABASE-FLEXIBLE-REPLICA"
-  value        = module.wa_task_management_api_database_flexible_replica.postgresql_database
-  key_vault_id = "cft_task_db"
+  value        = "cft_task_db"
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
