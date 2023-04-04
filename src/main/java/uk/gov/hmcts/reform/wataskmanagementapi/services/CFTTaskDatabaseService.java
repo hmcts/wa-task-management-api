@@ -72,10 +72,10 @@ public class CFTTaskDatabaseService {
             states, reconfigureRequestTime);
     }
 
-    public List<TaskResource> getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
-        List<String> taskIds, List<CFTTaskState> states, OffsetDateTime retryWindow) {
-        return tasksRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
-            taskIds, states, retryWindow);
+    public List<TaskResource> getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
+        List<CFTTaskState> states, OffsetDateTime retryWindow) {
+        return tasksRepository.findByStateInAndReconfigureRequestTimeIsLessThan(
+            states, retryWindow);
     }
 
     public TaskResource saveTask(TaskResource task) {

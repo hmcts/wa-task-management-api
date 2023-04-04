@@ -55,7 +55,7 @@ public class ExecuteTaskReconfigurationServiceTest {
 
         TaskOperationRequest taskOperationRequest = new TaskOperationRequest(
             TaskOperation.builder()
-                .type(TaskOperationType.EXECUTE_RECONFIGURE)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE_FAILURES)
                 .maxTimeLimit(2)
                 .retryWindowHours(1)
                 .runId("")

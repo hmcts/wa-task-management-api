@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -44,20 +45,22 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
     @Transactional(noRollbackFor = TaskExecuteReconfigurationException.class)
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE)) {
-            return executeTasksToReconfigure(taskOperationRequest);
+            executeTasksToReconfigure(taskOperationRequest);
+        } else if (taskOperationRequest.getOperation().getType()
+            .equals(TaskOperationType.EXECUTE_RECONFIGURE_FAILURES)) {
+            executeReconfigurationFailLog(taskOperationRequest.getOperation().getRetryWindowHours());
         }
         return List.of();
     }
 
-    private List<TaskResource> executeTasksToReconfigure(TaskOperationRequest request) {
-        log.debug("execute tasks toReconfigure request: {}", request);
-        OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(request.getTaskFilter());
+    @Async
+    void executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
+        log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
+        OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
-
         List<TaskResource> taskResources = cftTaskDatabaseService
             .getActiveTasksAndReconfigureRequestTimeGreaterThan(
                 List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), reconfigureDateTime);
-
         List<TaskResource> successfulTaskResources = new ArrayList<>();
 
         List<String> taskIds = taskResources.stream()
@@ -66,27 +69,22 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
 
         List<String> failedTaskIds = executeReconfiguration(taskIds,
             successfulTaskResources,
-            request.getOperation().getMaxTimeLimit());
+            taskOperationRequest.getOperation().getMaxTimeLimit());
 
         if (!failedTaskIds.isEmpty()) {
-            failedTaskIds = executeReconfiguration(failedTaskIds,
+            executeReconfiguration(failedTaskIds,
                 successfulTaskResources,
-                request.getOperation().getMaxTimeLimit());
+                taskOperationRequest.getOperation().getMaxTimeLimit());
         }
-
-        if (!failedTaskIds.isEmpty()) {
-            configurationFailLog(failedTaskIds, request.getOperation().getRetryWindowHours());
-        }
-
-        return successfulTaskResources;
     }
 
-    private void configurationFailLog(List<String> failedTaskIds, long retryWindowHours) {
+    @Async
+    void executeReconfigurationFailLog(long retryWindowHours) {
         OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(retryWindowHours);
 
         List<TaskResource> failedTasksToReport = cftTaskDatabaseService
-            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
-                failedTaskIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retryWindow);
+            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
+                List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retryWindow);
 
         if (!failedTasksToReport.isEmpty()) {
             throw new TaskExecuteReconfigurationException(TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED,
