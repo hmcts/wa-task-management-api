@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskTypesService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -83,7 +84,7 @@ class TaskTypesControllerTest {
 
         TaskType taskType = new TaskType("taskTypeId1", "Task type name");
         TaskTypeResponse taskTypeResponse = new TaskTypeResponse(taskType);
-        List<TaskTypeResponse> taskTypeResponses = List.of(taskTypeResponse);
+        Set<TaskTypeResponse> taskTypeResponses = Set.of(taskTypeResponse);
         GetTaskTypesResponse getTaskTypesResponse = new GetTaskTypesResponse(taskTypeResponses);
         when(taskTypesService.getTaskTypes(accessControlResponse, "wa"))
             .thenReturn(getTaskTypesResponse);

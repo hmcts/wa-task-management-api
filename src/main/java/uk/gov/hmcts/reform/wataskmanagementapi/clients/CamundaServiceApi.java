@@ -179,7 +179,8 @@ public interface CamundaServiceApi {
     List<TaskTypesDmnResponse> getTaskTypesDmnTable(
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
         @RequestParam("tenantIdIn") String jurisdiction,
-        @RequestParam("name") String dmnName
+        @RequestParam("keyLike") String dmnKey,
+        @RequestParam("latestVersion") boolean latestVersion
     );
 
     @GetMapping(
