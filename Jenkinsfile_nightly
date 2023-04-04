@@ -31,8 +31,8 @@ def secrets = [
 
     secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
 
-    secret('cft-task-POSTGRES-PASS-FLEXIBLE', 'POSTGRES_PASSWORD'),
-    secret('cft-task-POSTGRES-USER-FLEXIBLE', 'POSTGRES_USERNAME'),
+    secret('cft-task-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
+    secret('cft-task-POSTGRES-USER', 'POSTGRES_USERNAME'),
 
     secret('launch-darkly-test-env-token', 'LAUNCH_DARKLY_ACCESS_TOKEN'),
 
