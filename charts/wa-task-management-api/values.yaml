@@ -28,8 +28,6 @@ java:
           alias: POSTGRES_PASSWORD
         - name: cft-task-POSTGRES-USER-FLEXIBLE
           alias: POSTGRES_USERNAME
-        - name: cft-task-POSTGRES-HOST-FLEXIBLE
-          alias: POSTGRES_HOST
         - name: cft-task-POSTGRES-PORT-FLEXIBLE
           alias: POSTGRES_PORT
         - name: cft-task-POSTGRES-DATABASE-FLEXIBLE
