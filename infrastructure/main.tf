@@ -75,6 +75,10 @@ module "wa_task_management_api_database_flexible" {
     {
       name  = "wal_level"
       value = "logical"
+    },
+    {
+      name  = "azure.extensions"
+      value = "btree_gin"
     }
   ]
 
