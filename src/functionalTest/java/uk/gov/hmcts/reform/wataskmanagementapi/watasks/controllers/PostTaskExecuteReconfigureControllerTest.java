@@ -4,7 +4,6 @@ import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.DisplayName;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -33,7 +32,6 @@ import java.util.UUID;
 import static java.lang.Thread.sleep;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
@@ -175,7 +173,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
 
     @Test
-    public void should_return_500_after_task_marked_but_not_executed_and_failure_process_finds_unprocessed() throws InterruptedException {
+    public void should_return_500_after_task_marked_but_not_executed_and_failure_process_finds_unprocessed()
+        throws InterruptedException {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
@@ -325,14 +324,16 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .body("task.reconfigure_request_time", nullValue())
             .body("task.last_reconfiguration_time", notNullValue())
             .body("task.due_date", notNullValue())
-            .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25, 20, 00, 0, 0)
+            .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25,
+                    20, 00, 0, 0)
                                                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
 
         common.cleanUpTask(taskId);
     }
 
-    private TaskOperationRequest taskOperationRequestForMarkToReconfigure(TaskOperationType operationName, String caseId) {
+    private TaskOperationRequest taskOperationRequestForMarkToReconfigure(TaskOperationType operationName,
+                                                                          String caseId) {
         TaskOperation operation = TaskOperation.builder()
             .type(operationName)
             .runId(UUID.randomUUID().toString())
