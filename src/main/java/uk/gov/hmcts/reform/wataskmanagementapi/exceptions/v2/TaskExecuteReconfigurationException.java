@@ -8,9 +8,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.zalando.problem.Status.CONFLICT;
 import static org.zalando.problem.Status.INTERNAL_SERVER_ERROR;
-import static org.zalando.problem.Status.UNPROCESSABLE_ENTITY;
 
 @SuppressWarnings("java:S110")
 public class TaskExecuteReconfigurationException extends AbstractThrowableProblem {
