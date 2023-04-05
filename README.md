@@ -137,6 +137,13 @@ and then using it to publish your tests:
 ./gradlew pactPublish
 ```
 
+### Database replication
+To trigger the replication code you will have to run the code with the following env var
+
+```
+export SPRING_PROFILES_ACTIVE=replica
+```
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
