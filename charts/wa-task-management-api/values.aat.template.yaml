@@ -6,3 +6,4 @@ java:
   devcpuRequests: '1000m'
   devmemoryLimits: '3Gi'
   devcpuLimits: '2500m'
+
