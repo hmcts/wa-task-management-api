@@ -103,7 +103,7 @@ public class CalendarCacheManagerTest {
 
     @DisplayName("(Access calendars successfully if cached information is not available)")
     @Test
-    public void shouldCallHolidayServiceIfCashExpires() {
+    public void shouldCallHolidayServiceIfCacheExpires() {
         TestConfiguration.fakeTicker.advance(25, TimeUnit.HOURS);
 
         String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
