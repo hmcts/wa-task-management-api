@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -32,30 +31,35 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     private static final String CLAIM_ENDPOINT = "task/{task-id}/claim";
     private static final String ASSIGN_ENDPOINT = "task/{task-id}/assign";
 
-    private TestAuthenticationCredentials caseworkerCredentials;
-    private TestAuthenticationCredentials caseworkerForReadCredentials;
-    private TestAuthenticationCredentials granularPermissionCaseworkerCredentials;
     private String assigneeId;
     private String taskId;
 
     @Before
     public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
-        caseworkerForReadCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
-        granularPermissionCaseworkerCredentials = authorizationProvider
-            .getNewTribunalCaseworker("wa-granular-permission-");
-        assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
+        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        caseworkerForReadCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        otherUser = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R2);
+
+        assigneeId = getAssigneeId(waCaseworkerCredentials.getHeaders());
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-        common.clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
-        common.clearAllRoleAssignments(granularPermissionCaseworkerCredentials.getHeaders());
+        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
 
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+        common.clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerForReadCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(granularPermissionCaseworkerCredentials.getAccount().getUsername());
+
+        common.clearAllRoleAssignments(otherUser.getHeaders());
+        authorizationProvider.deleteAccount(otherUser.getAccount().getUsername());
+
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+
+        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -64,14 +68,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         initiateTask(taskVariables);
 
         Response result = restApiActions.post(
             CLAIM_ENDPOINT,
             taskId,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -80,14 +84,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", waCaseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -99,12 +103,12 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -128,17 +132,15 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            waCaseworkerCredentials.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
         //S2S service name is wa_task_management_api
-        TestAuthenticationCredentials otherUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         common.setupWAOrganisationalRoleAssignment(otherUser.getHeaders());
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
@@ -149,7 +151,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             otherUser.getHeaders()
         );
 
-        UserInfo userInfo = idamService.getUserInfo(caseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
+        UserInfo userInfo = idamService.getUserInfo(waCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
@@ -165,7 +167,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             )));
 
         common.cleanUpTask(taskId);
-        common.clearAllRoleAssignments(otherUser.getHeaders());
 
     }
 
@@ -174,17 +175,15 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            waCaseworkerCredentials.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
         //S2S service name is wa_task_management_api
-        TestAuthenticationCredentials otherUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         common.setupWAOrganisationalRoleAssignment(otherUser.getHeaders());
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
@@ -195,7 +194,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             otherUser.getHeaders()
         );
 
-        UserInfo userInfo = idamService.getUserInfo(caseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
+        UserInfo userInfo = idamService.getUserInfo(waCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
@@ -211,7 +210,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             )));
 
         common.cleanUpTask(taskId);
-        common.clearAllRoleAssignments(otherUser.getHeaders());
 
     }
 
@@ -220,24 +218,24 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            waCaseworkerCredentials.getHeaders(),
             HttpStatus.NO_CONTENT
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", waCaseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -249,7 +247,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         initiateTask(taskVariables);
 
@@ -258,14 +256,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", waCaseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -278,24 +276,24 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
-        common.setupSpecificTribunalCaseWorker(taskVariables.getCaseId(), caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupSpecificTribunalCaseWorker(taskVariables.getCaseId(), waCaseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            waCaseworkerCredentials.getHeaders(),
             HttpStatus.NO_CONTENT
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", waCaseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -309,17 +307,17 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         common.setupCFTOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
         //Create temporary role-assignment to assign task
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            waCaseworkerCredentials.getHeaders(),
             HttpStatus.FORBIDDEN
         );
 
         //Delete role-assignment and re-create
         common.setupWAOrganisationalRoleAssignmentWithCustomAttributes(
-            caseworkerCredentials.getHeaders(),
+            waCaseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "WA",
@@ -331,7 +329,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -346,18 +344,20 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_204_when_completing_a_task_by_id_granular_permission() {
+    public void should_return_a_403_when_user_does_not_have_permission() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
-        String taskId = taskVariables.getTaskId();
-
-        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         initiateTask(taskVariables);
+
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "case-manager");
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "case-manager");
+
+        String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.post(
             CLAIM_ENDPOINT,
             taskId,
-            granularPermissionCaseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -365,52 +365,17 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskId,
-            granularPermissionCaseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", granularPermissionCaseworkerCredentials.getHeaders());
-
-        common.cleanUpTask(taskId);
-    }
-
-    @Test
-    public void should_return_a_403_when_user_does_not_have_granular_permission() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
-
-        initiateTask(taskVariables);
-
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "case-manager");
-        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders(), "case-manager");
-
-        String taskId = taskVariables.getTaskId();
-
-        Response result = restApiActions.post(
-            CLAIM_ENDPOINT,
             taskId,
             caseworkerCredentials.getHeaders()
         );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            granularPermissionCaseworkerCredentials.getHeaders()
-        );
-
-        UserInfo userInfo = idamService.getUserInfo(caseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
+        UserInfo userInfo = idamService.getUserInfo(waCaseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(String.format(
@@ -423,13 +388,13 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     private void assignTask(TestVariables taskVariables) {
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupCFTOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
 
         Response result = restApiActions.post(
             ASSIGN_ENDPOINT,
             taskVariables.getTaskId(),
             new AssignTaskRequest(assigneeId),
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -437,10 +402,10 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedInDatabase(
-            taskVariables.getTaskId(), "assigned", caseworkerCredentials.getHeaders()
+            taskVariables.getTaskId(), "assigned", waCaseworkerCredentials.getHeaders()
         );
         assertions.taskFieldWasUpdatedInDatabase(
-            taskVariables.getTaskId(), "assignee", assigneeId, caseworkerCredentials.getHeaders()
+            taskVariables.getTaskId(), "assignee", assigneeId, waCaseworkerCredentials.getHeaders()
         );
 
     }
@@ -452,20 +417,20 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables2 = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
         initiateTask(taskVariables2);
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupCFTOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
 
         String taskId1 = taskVariables1.getTaskId();
         Response result1 = restApiActions.post(
             CLAIM_ENDPOINT,
             taskId1,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         String taskId2 = taskVariables2.getTaskId();
         Response result2 = restApiActions.post(
             CLAIM_ENDPOINT,
             taskId2,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result1.then().assertThat()
@@ -474,19 +439,19 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result2.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-        common.setupOnlyCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables1.getCaseId(),
-                                                 WA_JURISDICTION, WA_CASE_TYPE);
+        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        common.setupOnlyCaseManagerForSpecificAccess(waCaseworkerCredentials.getHeaders(), taskVariables1.getCaseId(),
+            WA_JURISDICTION, WA_CASE_TYPE);
 
         result1 = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId1,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
         result2 = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId2,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result1.then().assertThat()
@@ -494,10 +459,10 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result2.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value());
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         assertions.taskVariableWasUpdated(taskVariables1.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedInDatabase(taskId1, "completed", caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId1, "completed", waCaseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId1);
         common.cleanUpTask(taskId2);
