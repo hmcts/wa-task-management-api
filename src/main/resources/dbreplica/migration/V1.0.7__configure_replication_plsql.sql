@@ -18,7 +18,7 @@ begin
    case_id, case_type_id, case_category, case_name,
    jurisdiction, region, location, business_context,
    termination_reason, created, updated_by, updated,
-   update_action, created_date)
+   update_action, created_date, due_date, last_updated_date)
   values
     (l_task.task_id, l_task.task_name, l_task.task_type, l_task.due_date_time,
      l_task.state, l_task.task_system, l_task.security_classification,
@@ -28,7 +28,8 @@ begin
      l_task.case_id, l_task.case_type_id, l_task.case_category, l_task.case_name,
      l_task.jurisdiction, l_task.region, l_task.location, l_task.business_context,
      l_task.termination_reason, l_task.created, l_task.last_updated_user, l_task.last_updated_timestamp,
-     l_task.last_updated_action, l_task.created::DATE)
+     l_task.last_updated_action, l_task.created::date, l_task.due_date_time::date,
+     l_task.last_updated_timestamp::date)
     ON CONFLICT (task_id)
       DO
   update
@@ -59,7 +60,19 @@ begin
     termination_reason = l_task.termination_reason,
     updated_by = l_task.last_updated_user,
     updated = l_task.last_updated_timestamp,
-    update_action = l_task.last_updated_action
+    update_action = l_task.last_updated_action,
+    due_date = l_task.due_date_time::date,
+    last_updated_date = l_task.last_updated_timestamp::date,
+    completed_date = case when (l_task.last_updated_action='Complete') and (reportable_task.completed_date is null) then l_task.last_updated_timestamp::date end,
+    completed_date_time = case when (l_task.last_updated_action='Complete') and (reportable_task.completed_date is null) then l_task.last_updated_timestamp end,
+    final_state_label =
+        case
+          when (l_task.last_updated_action='Complete') and (reportable_task.final_state_label is null) then 'COMPLETE'
+          when (l_task.last_updated_action='Cancel') and (reportable_task.final_state_label is null) then 'USER_CANCELLED'
+          when (l_task.last_updated_action='AutoCancel') and (reportable_task.final_state_label is null) then 'AUTO_CANCELLED'
+        end,
+    first_assigned_date = case when (reportable_task.first_assigned_date is null) and (l_task.assignee is not null) then l_task.last_updated_timestamp::date end,
+    first_assigned_date_time = case when (reportable_task.first_assigned_date_time is null) and (l_task.assignee is not null) then l_task.last_updated_timestamp  end
   where reportable_task.task_id = l_task.task_id;
 
   insert into cft_task_db.task_history
