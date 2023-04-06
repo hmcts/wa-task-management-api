@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
@@ -44,27 +43,24 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-    private TestAuthenticationCredentials assignerCredentials;
-    private TestAuthenticationCredentials assigneeCredentials;
-    private TestAuthenticationCredentials searchCredentials;
     private String taskId;
 
     @Before
     public void setUp() {
-        assignerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        assigneeCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        searchCredentials = authorizationProvider.getNewTribunalCaseworker("wa-gin-index-");
+        assignerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        assigneeCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        ginIndexCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
     }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(assignerCredentials.getHeaders());
         common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
-        common.clearAllRoleAssignments(searchCredentials.getHeaders());
+        common.clearAllRoleAssignments(ginIndexCaseworkerCredentials.getHeaders());
 
         authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(searchCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(ginIndexCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -80,7 +76,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         initiateTask(taskVariables);
 
         common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
-        common.setupWAOrganisationalRoleAssignment(searchCredentials.getHeaders(), "tribunal-caseworker");
+        common.setupWAOrganisationalRoleAssignment(ginIndexCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
 
@@ -119,7 +115,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result = restApiActions.post(
             "/task?first_result=0&max_results=10",
             searchTaskRequest,
-            searchCredentials.getHeaders()
+            ginIndexCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -160,7 +156,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result = restApiActions.post(
             "/task?first_result=0&max_results=10",
             searchTaskRequest,
-            searchCredentials.getHeaders()
+            ginIndexCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
