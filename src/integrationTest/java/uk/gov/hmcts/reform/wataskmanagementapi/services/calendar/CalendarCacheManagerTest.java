@@ -91,6 +91,7 @@ public class CalendarCacheManagerTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T20:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
@@ -152,6 +153,7 @@ public class CalendarCacheManagerTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(expectedDueDate + "T20:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
