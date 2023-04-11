@@ -214,7 +214,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
-
+        Thread.sleep(5000);
         taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResources.forEach(task -> {
             assertNotNull(task.getLastReconfigurationTime());
@@ -301,7 +301,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
-
+        Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
         taskResourcesAfter
@@ -390,7 +390,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
-
+        Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
@@ -479,7 +479,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
-
+        Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
@@ -569,6 +569,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        Thread.sleep(5000);
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
@@ -666,6 +668,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.NO_CONTENT.value())
         );
 
+        Thread.sleep(5000);
+
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
@@ -733,6 +737,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        Thread.sleep(5000);
 
         taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
