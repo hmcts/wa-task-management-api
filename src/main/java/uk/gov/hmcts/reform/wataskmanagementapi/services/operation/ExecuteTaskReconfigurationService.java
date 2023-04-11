@@ -53,7 +53,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         return List.of();
     }
 
-    @Async("threadPoolTaskExecutor")
+    @Async
     public void executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
         log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
@@ -78,7 +78,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         }
     }
 
-    @Async("threadPoolTaskExecutor")
+    @Async
     public void executeReconfigurationFailLog(long retryWindowHours) {
         OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(retryWindowHours);
 
