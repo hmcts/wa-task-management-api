@@ -62,7 +62,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    public void should_return_a_204_after_tasks_are_marked_and_executed_for_reconfigure_no_failures_to_report() throws Exception {
+    public void should_return_a_204_after_tasks_are_marked_and_executed_for_reconfigure_no_failures_to_report()
+        throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
@@ -169,7 +170,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
 
     @Test
-    public void should_return_204_after_task_marked_but_not_executed_and_failure_process_finds_unprocessed_logs_message()
+    public void should_return_204_after_task_marked_but_not_executed_and_failure_process_finds_unprocessed_log_message()
         throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication",
