@@ -53,8 +53,8 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         return List.of();
     }
 
-    @Async("taskManagementApiAsyncExecutor")
-    void executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
+    @Async("threadPoolTaskExecutor")
+    public void executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
         log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
@@ -78,8 +78,8 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         }
     }
 
-    @Async("taskManagementApiAsyncExecutor")
-    void executeReconfigurationFailLog(long retryWindowHours) {
+    @Async("threadPoolTaskExecutor")
+    public void executeReconfigurationFailLog(long retryWindowHours) {
         OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(retryWindowHours);
 
         List<TaskResource> failedTasksToReport = cftTaskDatabaseService
