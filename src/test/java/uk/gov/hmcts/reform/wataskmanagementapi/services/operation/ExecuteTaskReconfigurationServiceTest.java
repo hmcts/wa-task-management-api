@@ -166,7 +166,7 @@ class ExecuteTaskReconfigurationServiceTest {
         when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
             anyList(), any())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(0).getTaskId()))
-            .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.empty());;
+            .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.empty());
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(1).getTaskId()))
             .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.of(taskResources.get(1)));
 
@@ -203,7 +203,7 @@ class ExecuteTaskReconfigurationServiceTest {
         when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
             anyList(), any())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(0).getTaskId()))
-            .thenThrow(new OptimisticLockException("locked"));;
+            .thenThrow(new OptimisticLockException("locked"));
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(1).getTaskId()))
             .thenThrow(new OptimisticLockException("locked"));
 
