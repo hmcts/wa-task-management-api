@@ -182,7 +182,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         initiateTask(taskVariables);
 
         common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
-        common.setupWAOrganisationalRoleAssignment(searchCredentials.getHeaders(), "tribunal-caseworker");
 
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
 
