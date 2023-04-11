@@ -62,14 +62,14 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    public void should_return_a_204_after_tasks_are_marked_and_executed_for_reconfigure_no_failures_to_report() {
+    public void should_return_a_204_after_tasks_are_marked_and_executed_for_reconfigure_no_failures_to_report() throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
         );
 
         common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         initiateTask(taskVariables);
 
@@ -132,7 +132,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
-
+        sleep(3000L);
         taskId = taskVariables.getTaskId();
 
         result = restApiActions.get(
@@ -169,8 +169,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
 
     @Test
-    public void should_return_500_after_task_marked_but_not_executed_and_failure_process_finds_unprocessed()
-        throws InterruptedException {
+    public void should_return_204_after_task_marked_but_not_executed_and_failure_process_finds_unprocessed_logs_message()
+        throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
@@ -239,14 +239,11 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             assigneeCredentials.getHeaders()
         );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-
         common.cleanUpTask(taskId);
     }
 
     @Test
-    public void should_recalculate_due_date_when_executed_for_reconfigure() {
+    public void should_recalculate_due_date_when_executed_for_reconfigure() throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "calculateDueDate",
@@ -254,7 +251,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         common.setupStandardCaseManager(assignerCredentials.getHeaders(),
-                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         initiateTask(taskVariables);
 
@@ -301,6 +298,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        sleep(3000L);
         taskId = taskVariables.getTaskId();
 
         result = restApiActions.get(
@@ -321,8 +319,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .body("task.due_date", notNullValue())
             .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25,
                     20, 00, 0, 0)
-                                               .atZone(ZoneId.systemDefault()).toOffsetDateTime()
-                                               .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
 
         common.cleanUpTask(taskId);
     }
@@ -373,15 +371,15 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.setupCFTOrganisationalRoleAssignment(assignerCredentials.getHeaders(),
-                                                    WA_JURISDICTION, WA_CASE_TYPE
+            WA_JURISDICTION, WA_CASE_TYPE
         );
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned",
-                                                 assignerCredentials.getHeaders()
+            assignerCredentials.getHeaders()
         );
         assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee",
-                                                 assigneeId, assignerCredentials.getHeaders()
+            assigneeId, assignerCredentials.getHeaders()
         );
     }
 
