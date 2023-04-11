@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -24,6 +25,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 @ExtendWith(MockitoExtension.class)
 public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
 
+    @Autowired
+    ExecutorService sensitiveTaskEventLogsExecutorService;
+
     @Mock
     private SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
 
@@ -38,7 +42,9 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
     @BeforeEach
     void setUp() {
         cftSensitiveTaskEventLogsDatabaseService =
-            new CFTSensitiveTaskEventLogsDatabaseService(sensitiveTaskEventLogsRepository, cftTaskDatabaseService);
+            new CFTSensitiveTaskEventLogsDatabaseService(sensitiveTaskEventLogsRepository,
+                cftTaskDatabaseService,
+                sensitiveTaskEventLogsExecutorService);
     }
 
     @Test

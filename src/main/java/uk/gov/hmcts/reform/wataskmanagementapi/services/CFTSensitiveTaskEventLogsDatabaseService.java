@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PreDestroy;
 
 @Slf4j
 @Service
@@ -23,13 +24,15 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
     private final SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
 
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final ExecutorService sensitiveTaskEventLogsExecutorService;
 
 
     public CFTSensitiveTaskEventLogsDatabaseService(SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository,
-                                                    CFTTaskDatabaseService cftTaskDatabaseService) {
+                                                    CFTTaskDatabaseService cftTaskDatabaseService,
+                                                    ExecutorService sensitiveTaskEventLogsExecutorService) {
         this.sensitiveTaskEventLogsRepository = sensitiveTaskEventLogsRepository;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
+        this.sensitiveTaskEventLogsExecutorService = sensitiveTaskEventLogsExecutorService;
     }
 
     private SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
@@ -56,10 +59,33 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
                 ZonedDateTime.now().toOffsetDateTime()
             );
 
-            executorService.execute(() -> {
+            sensitiveTaskEventLogsExecutorService.execute(() -> {
                 saveSensitiveTaskEventLog(sensitiveTaskEventLog);
             });
+
         }
 
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        log.info("Shutting down sensitiveTaskEventLogs executor");
+        sensitiveTaskEventLogsExecutorService.shutdown();
+        try {
+            // Wait a while for existing job to complete
+            if (!sensitiveTaskEventLogsExecutorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                sensitiveTaskEventLogsExecutorService.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for existing job being cancelled
+                if (!sensitiveTaskEventLogsExecutorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                    log.error("Pool did not terminate");
+                }
+            }
+        } catch (InterruptedException ie) {
+            // (Re-)Cancel if current thread also interrupted
+            sensitiveTaskEventLogsExecutorService.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+        }
+        log.info("Shut down sensitiveTaskEventLogs events executor");
     }
 }

@@ -34,6 +34,9 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends SpringBootInte
     @Autowired
     SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
 
+    @Autowired
+    ExecutorService sensitiveTaskEventLogsExecutorService;
+
     @MockBean
     private IdamWebApi idamWebApi;
     @MockBean
@@ -52,7 +55,9 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends SpringBootInte
     @BeforeEach
     void setUp() {
         cftSensitiveTaskEventLogsDatabaseService =
-            new CFTSensitiveTaskEventLogsDatabaseService(sensitiveTaskEventLogsRepository, cftTaskDatabaseService);
+            new CFTSensitiveTaskEventLogsDatabaseService(sensitiveTaskEventLogsRepository,
+                cftTaskDatabaseService,
+                sensitiveTaskEventLogsExecutorService);
 
         mockServices = new ServiceMocks(
             idamWebApi,
