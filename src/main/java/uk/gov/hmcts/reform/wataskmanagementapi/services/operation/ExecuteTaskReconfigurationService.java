@@ -43,6 +43,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
 
     @Override
     @Transactional(noRollbackFor = TaskExecuteReconfigurationException.class)
+    @Async
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE)) {
             executeTasksToReconfigure(taskOperationRequest);
@@ -53,8 +54,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         return List.of();
     }
 
-    @Async
-    public void executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
+    private void executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
         log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
@@ -78,8 +78,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         }
     }
 
-    @Async
-    public void executeReconfigurationFailLog(long retryWindowHours) {
+    private void executeReconfigurationFailLog(long retryWindowHours) {
         OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(retryWindowHours);
 
         List<TaskResource> failedTasksToReport = cftTaskDatabaseService
