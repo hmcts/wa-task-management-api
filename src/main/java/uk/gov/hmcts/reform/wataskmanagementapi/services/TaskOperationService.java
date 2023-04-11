@@ -24,9 +24,9 @@ public class TaskOperationService {
 
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         List<TaskResource> successfulTaskResources = taskOperationPerformServices.stream()
-            .flatMap(taskOperationService -> taskOperationService
-                .performOperation(taskOperationRequest).stream())
+            .map(taskOperationService -> taskOperationService.performOperation(taskOperationRequest))
             .filter(Objects::nonNull)
+            .flatMap(resources -> resources.stream())
             .toList();
 
         if (EXECUTE_RECONFIGURE.equals(taskOperationRequest.getOperation().getType())
