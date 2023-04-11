@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import javax.persistence.OptimisticLockException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,6 +34,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -151,6 +153,74 @@ class ExecuteTaskReconfigurationServiceTest {
 
         verify(configureTaskService, times(1)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
+    }
+
+    @Test
+    void should_retry_and_succeed_reconfigure_if_task_is_locked() {
+
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
+        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
+        taskResources.get(0).setReconfigureRequestTime(OffsetDateTime.now());
+        taskResources.get(1).setReconfigureRequestTime(OffsetDateTime.now());
+
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(0).getTaskId()))
+            .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.empty());;
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(1).getTaskId()))
+            .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.of(taskResources.get(1)));
+
+        when(configureTaskService.reconfigureCFTTask(any()))
+            .thenReturn(taskResources.get(1));
+        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
+            .thenReturn(taskResources.get(1));
+        when(cftTaskDatabaseService.saveTask(any()))
+            .thenReturn(taskResources.get(1));
+
+        TaskOperationRequest request = new TaskOperationRequest(
+            TaskOperation.builder()
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
+                .runId("")
+                .retryWindowHours(1L)
+                .maxTimeLimit(30)
+                .build(), taskFilters
+        );
+
+        executeTaskReconfigurationService.performOperation(request);
+
+        verify(configureTaskService, times(1)).reconfigureCFTTask(any());
+        verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
+    }
+
+    @Test
+    void should_retry_and_fail_reconfigure_if_task_is_locked() {
+
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
+        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
+        taskResources.get(0).setReconfigureRequestTime(OffsetDateTime.now());
+        taskResources.get(1).setReconfigureRequestTime(OffsetDateTime.now());
+
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(0).getTaskId()))
+            .thenThrow(new OptimisticLockException("locked"));;
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(1).getTaskId()))
+            .thenThrow(new OptimisticLockException("locked"));
+
+        TaskOperationRequest request = new TaskOperationRequest(
+            TaskOperation.builder()
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
+                .runId("")
+                .retryWindowHours(1L)
+                .maxTimeLimit(30)
+                .build(), taskFilters
+        );
+
+        executeTaskReconfigurationService.performOperation(request);
+
+        verify(cftTaskDatabaseService, times(8)).findByIdAndObtainPessimisticWriteLock(any());
+        verifyNoInteractions(configureTaskService);
+        verifyNoInteractions(taskAutoAssignmentService);
     }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
