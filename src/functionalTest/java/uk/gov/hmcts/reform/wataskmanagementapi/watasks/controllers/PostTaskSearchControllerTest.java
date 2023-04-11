@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
@@ -21,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -46,25 +44,17 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task";
 
-    private TestAuthenticationCredentials caseworkerCredentials;
-    private TestAuthenticationCredentials granularPermissionCaseworkerCredentials;
-    private TestAuthenticationCredentials ginIndexCaseworkerCredentials;
-
     @Before
     public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        ginIndexCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-gin-index-");
-        granularPermissionCaseworkerCredentials = authorizationProvider
-            .getNewTribunalCaseworker("wa-granular-permission-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        ginIndexCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
     }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-        common.clearAllRoleAssignments(granularPermissionCaseworkerCredentials.getHeaders());
         common.clearAllRoleAssignments(ginIndexCaseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(granularPermissionCaseworkerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(ginIndexCaseworkerCredentials.getAccount().getUsername());
     }
 
@@ -82,8 +72,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.ALL_WORK,
@@ -127,7 +117,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.warnings", everyItem(equalTo(false)))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
             .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own"))))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "Manage", "CompleteOwn", "CancelOwn", "Claim"))))
             .body("tasks.description", everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                          + "trigger/decideAnApplication)")))
             .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
@@ -164,13 +154,15 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        common.setupHearingPanelJudgeForStandardAccess(granularPermissionCaseworkerCredentials.getHeaders(),
+        common.setupHearingPanelJudgeForStandardAccess(caseworkerCredentials.getHeaders(),
             "WA",
             "WaCaseType"
         );
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        ;
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
+        ;
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.ALL_WORK,
@@ -184,7 +176,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            granularPermissionCaseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -213,7 +205,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.warnings", everyItem(equalTo(false)))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
             .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Manage"))))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Manage", "Complete", "Assign", "Unassign"))))
             .body("tasks.description", everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                          + "trigger/decideAnApplication)")))
             .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
@@ -237,7 +229,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results_and_additional_properties_and_granular_permission() {
 
-        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId,
@@ -260,8 +252,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
+        ;
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.ALL_WORK,
@@ -275,16 +267,16 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            granularPermissionCaseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
-            .body("tasks.name", everyItem(equalTo("process application")))
+            .body("tasks.name", everyItem(equalTo("A Task")))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
-            .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"))));
+            .body("tasks.work_type_id", everyItem(equalTo("access_requests")))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "Manage", "Claim"))));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
@@ -315,8 +307,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.ALL_WORK,
@@ -359,8 +351,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.ALL_WORK,
@@ -403,8 +395,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, caseworkerCredentials.getHeaders());
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
@@ -458,7 +450,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
-
     @Test
     public void should_return_200_with_tasks_sorted_on_next_hearing_date_asc() {
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
@@ -472,10 +463,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            RequestContext.AVAILABLE_TASKS,
             asList(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
@@ -526,8 +518,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             "WaCaseType"
         );
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        ;
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
+        ;
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.ALL_WORK,
@@ -570,7 +564,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.warnings", everyItem(equalTo(false)))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
             .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Manage"))))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Manage", "Complete", "Assign", "Unassign"))))
             .body("tasks.description", everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                          + "trigger/decideAnApplication)")))
             .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
@@ -594,7 +588,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results_with_additional_properties_using_search_index() {
 
-        common.setupWAOrganisationalRoleAssignment(granularPermissionCaseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId,
@@ -617,8 +611,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        ;
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
+        ;
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.ALL_WORK,
@@ -632,16 +628,16 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            granularPermissionCaseworkerCredentials.getHeaders()
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
-            .body("tasks.name", everyItem(equalTo("process application")))
+            .body("tasks.name", everyItem(equalTo("A Task")))
             .body("tasks.case_management_category", everyItem(equalTo("Protection")))
-            .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
-            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "CompleteOwn", "CancelOwn", "Claim"))));
+            .body("tasks.work_type_id", everyItem(equalTo("access_requests")))
+            .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "Manage", "Claim"))));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
@@ -660,8 +656,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.AVAILABLE_TASKS,
@@ -704,8 +700,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, ginIndexCaseworkerCredentials.getHeaders());
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        ;
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
+        ;
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
@@ -773,8 +771,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
-        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        ;
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
+        ;
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.AVAILABLE_TASKS,
