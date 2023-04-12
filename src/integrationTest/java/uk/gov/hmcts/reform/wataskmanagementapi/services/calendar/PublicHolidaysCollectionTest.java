@@ -34,6 +34,9 @@ class PublicHolidaysCollectionTest {
     @Autowired
     private PublicHolidaysCollection publicHolidaysCollection;
 
+    @Autowired
+    private PublicHolidayService publicHolidayService;
+
     @Test
     public void should_not_return_empty_bank_holidays() {
         Set<LocalDate> response = publicHolidaysCollection.getPublicHolidays(List.of(CALENDAR_URI));
@@ -42,9 +45,9 @@ class PublicHolidaysCollectionTest {
 
     @Test
     public void should_call_external_api_only_once() {
-        BankHolidays resultFromApi = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
-        BankHolidays resultFromCache = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
-        BankHolidays resultFromCacheAgain = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
+        BankHolidays resultFromApi = publicHolidayService.getPublicHolidays(CALENDAR_URI);
+        BankHolidays resultFromCache = publicHolidayService.getPublicHolidays(CALENDAR_URI);
+        BankHolidays resultFromCacheAgain = publicHolidayService.getPublicHolidays(CALENDAR_URI);
 
         assertThat(resultFromApi).isSameAs(resultFromCache).isSameAs(resultFromCacheAgain);
     }
@@ -56,7 +59,10 @@ class PublicHolidaysCollectionTest {
         assertThat(oneCalendarResult.contains(LocalDate.of(2022, 12, 26))).isTrue();
         assertThat(oneCalendarResult.contains(LocalDate.of(2022, 12, 27))).isTrue();
 
-        List<String> twoUris = List.of(CALENDAR_URI, "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json");
+        List<String> twoUris = List.of(
+            CALENDAR_URI,
+            "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json"
+        );
         Set<LocalDate> twoCalendarResult = publicHolidaysCollection.getPublicHolidays(twoUris);
         assertThat(twoCalendarResult.contains(LocalDate.of(2022, 12, 26))).isFalse();
         assertThat(twoCalendarResult.contains(LocalDate.of(2022, 12, 27))).isTrue();
@@ -87,17 +93,17 @@ class PublicHolidaysCollectionTest {
 
     @Test
     public void should_change_after_cache_expiry_external_api() {
-        BankHolidays resultFromApi = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
+        BankHolidays resultFromApi = publicHolidayService.getPublicHolidays(CALENDAR_URI);
 
         PublicHolidaysCollectionTest.TestConfiguration.fakeTicker.advance(10, TimeUnit.HOURS);
 
-        BankHolidays resultFromCache = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
+        BankHolidays resultFromCache = publicHolidayService.getPublicHolidays(CALENDAR_URI);
 
         assertThat(resultFromApi).isSameAs(resultFromCache);
 
         PublicHolidaysCollectionTest.TestConfiguration.fakeTicker.advance(25, TimeUnit.HOURS);
 
-        BankHolidays resultFromRenewedCache = publicHolidaysCollection.getPublicHolidays(CALENDAR_URI);
+        BankHolidays resultFromRenewedCache = publicHolidayService.getPublicHolidays(CALENDAR_URI);
 
         assertThat(resultFromApi).isSameAs(resultFromCache).isNotSameAs(resultFromRenewedCache);
     }
