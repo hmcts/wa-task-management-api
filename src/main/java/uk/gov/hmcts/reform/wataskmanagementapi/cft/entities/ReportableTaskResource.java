@@ -3,12 +3,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Date;
-import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -18,7 +18,8 @@ import javax.persistence.Id;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "reportableTask")
-@SuppressWarnings({"PMD.TooManyFields"})
+@NoArgsConstructor
+@SuppressWarnings({"PMD.TooManyFields", "PMD.LinguisticNaming"})
 public class ReportableTaskResource {
     public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 
@@ -66,18 +67,31 @@ public class ReportableTaskResource {
     private OffsetDateTime updated;
     private String updateAction;
 
-    private Date created_date;
-
-    public ReportableTaskResource() {
-
-    }
+    private Date createdDate;
+    private String finalStateLabel;
+    private Integer waitTimeDays;
+    private Integer handlingTimeDays;
+    private Integer processingTimeDays;
+    private String isWithinSla;
+    private Integer dueDateToCompletedDiffDays;
+    private Date completedDate;
+    private OffsetDateTime completedDateTime;
+    private Date firstAssignedDate;
+    private OffsetDateTime firstAssignedDateTime;
+    private Integer numberOfReassignments;
+    private Date dueDate;
+    private Date lastUpdatedDate;
+    private Duration waitTime;
+    private Duration handlingTime;
+    private Duration processingTime;
+    private Duration dueDateToCompletedDiffTime;
 
     public ReportableTaskResource(String taskId,
                         String taskName,
                         String taskType,
                         String caseId,
                         String assignee,
-                        Date created_date,
+                        Date createdDate,
                         OffsetDateTime updated,
                         String updateAction) {
         this.taskId = taskId;
@@ -85,7 +99,7 @@ public class ReportableTaskResource {
         this.taskType = taskType;
         this.caseId = caseId;
         this.assignee = assignee;
-        this.created_date = created_date;
+        this.createdDate = createdDate;
         this.updated = updated;
         this.updateAction = updateAction;
     }

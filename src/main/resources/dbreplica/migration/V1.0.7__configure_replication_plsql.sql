@@ -9,6 +9,28 @@ declare
   l_update_id bigint;
 begin
 
+  insert into cft_task_db.task_history
+  (task_id, task_name, task_type, due_date_time,
+   state, task_system, security_classification,
+   title, major_priority, minor_priority, assignee,
+   auto_assigned, execution_type_code, work_type,
+   role_category, has_warnings, assignment_expiry,
+   case_id, case_type_id, case_category, case_name,
+   jurisdiction, region, location, business_context,
+   termination_reason, created, updated_by, updated,
+   update_action)
+  values
+    (l_task.task_id, l_task.task_name, l_task.task_type, l_task.due_date_time,
+     l_task.state, l_task.task_system, l_task.security_classification,
+     l_task.title, l_task.major_priority, l_task.minor_priority, l_task.assignee,
+     l_task.auto_assigned, l_task.execution_type_code, l_task.work_type,
+     l_task.role_category, l_task.has_warnings, l_task.assignment_expiry,
+     l_task.case_id, l_task.case_type_id, l_task.case_category, l_task.case_name,
+     l_task.jurisdiction, l_task.region, l_task.location, l_task.business_context,
+     l_task.termination_reason, l_task.created, l_task.last_updated_user, l_task.last_updated_timestamp,
+     l_task.last_updated_action)
+    returning update_id into l_update_id;
+
   insert into cft_task_db.reportable_task
   (task_id, task_name, task_type, due_date_time,
    state, task_system, security_classification,
@@ -67,35 +89,20 @@ begin
     completed_date_time = case when (l_task.last_updated_action='Complete') and (reportable_task.completed_date is null) then l_task.last_updated_timestamp end,
     final_state_label =
         case
-          when (l_task.last_updated_action='Complete') and (reportable_task.final_state_label is null) then 'COMPLETE'
+          when (l_task.last_updated_action='Complete') and (reportable_task.final_state_label is null) then 'COMPLETED'
           when (l_task.last_updated_action='Cancel') and (reportable_task.final_state_label is null) then 'USER_CANCELLED'
           when (l_task.last_updated_action='AutoCancel') and (reportable_task.final_state_label is null) then 'AUTO_CANCELLED'
         end,
-    first_assigned_date = case when (reportable_task.first_assigned_date is null) and (l_task.assignee is not null) then l_task.last_updated_timestamp::date end,
-    first_assigned_date_time = case when (reportable_task.first_assigned_date_time is null) and (l_task.assignee is not null) then l_task.last_updated_timestamp  end
+    first_assigned_date =  case when (reportable_task.first_assigned_date is null) and (l_task.assignee is not null) then l_task.last_updated_timestamp::date else reportable_task.first_assigned_date end,
+    first_assigned_date_time = case when (reportable_task.first_assigned_date_time is null) and (l_task.assignee is not null) then l_task.last_updated_timestamp else reportable_task.first_assigned_date_time end,
+    wait_time_days = case when (l_task.last_updated_action='Complete') then (l_task.last_updated_timestamp::date - reportable_task.created_date) end,
+    handling_time_days = case when (l_task.last_updated_action='Complete') then (l_task.last_updated_timestamp::date - l_task.last_updated_timestamp::date) end,
+    processing_time_days = case when (l_task.last_updated_action='Complete') then (l_task.last_updated_timestamp::date - l_task.created::date) end,
+    is_within_sla = case when (l_task.last_updated_action='Complete') and (l_task.last_updated_timestamp <= l_task.due_date_time) then 'Yes'
+                          when (l_task.last_updated_action='Complete') and (l_task.last_updated_timestamp > l_task.due_date_time) then 'No' end,
+    number_of_reassignments = (select count(*) -1 from cft_task_db.task_history where task_history.state = 'ASSIGNED' and task_history.task_id =  l_task.task_id),
+    due_date_to_completed_diff_days = case when (l_task.last_updated_action='Complete') then (l_task.last_updated_timestamp::date - l_task.due_date_time::date) end
   where reportable_task.task_id = l_task.task_id;
-
-  insert into cft_task_db.task_history
-    (task_id, task_name, task_type, due_date_time,
-     state, task_system, security_classification,
-     title, major_priority, minor_priority, assignee,
-     auto_assigned, execution_type_code, work_type,
-     role_category, has_warnings, assignment_expiry,
-     case_id, case_type_id, case_category, case_name,
-     jurisdiction, region, location, business_context,
-     termination_reason, created, updated_by, updated,
-     update_action)
-    values
-      (l_task.task_id, l_task.task_name, l_task.task_type, l_task.due_date_time,
-       l_task.state, l_task.task_system, l_task.security_classification,
-       l_task.title, l_task.major_priority, l_task.minor_priority, l_task.assignee,
-       l_task.auto_assigned, l_task.execution_type_code, l_task.work_type,
-       l_task.role_category, l_task.has_warnings, l_task.assignment_expiry,
-       l_task.case_id, l_task.case_type_id, l_task.case_category, l_task.case_name,
-       l_task.jurisdiction, l_task.region, l_task.location, l_task.business_context,
-       l_task.termination_reason, l_task.created, l_task.last_updated_user, l_task.last_updated_timestamp,
-       l_task.last_updated_action)
-      returning update_id into l_update_id;
 
 return l_update_id;
 end $function$

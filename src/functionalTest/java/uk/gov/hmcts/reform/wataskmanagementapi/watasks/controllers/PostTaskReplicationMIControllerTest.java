@@ -159,7 +159,20 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).assignee", notNullValue())
             .body("reportable_task_list.get(0).updated_by", notNullValue())
             .body("reportable_task_list.get(0).updated", notNullValue())
-            .body("reportable_task_list.get(0).update_action", equalTo("Claim"));
+            .body("reportable_task_list.get(0).update_action", equalTo("Claim"))
+            .body("reportable_task_list.get(0).completed_date", equalTo(null))
+            .body("reportable_task_list.get(0).completed_date_time", equalTo(null))
+            .body("reportable_task_list.get(0).created_date", notNullValue())
+            .body("reportable_task_list.get(0).final_state_label", equalTo(null))
+            .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
+            .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
+            .body("reportable_task_list.get(0).wait_time_days", equalTo(null))
+            .body("reportable_task_list.get(0).handling_time_days", equalTo(null))
+            .body("reportable_task_list.get(0).processing_time_days", equalTo(null))
+            .body("reportable_task_list.get(0).is_within_sla", equalTo(null))
+            .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+            .body("reportable_task_list.get(0).due_date", notNullValue())
+            .body("reportable_task_list.get(0).last_updated_date", notNullValue());
 
         Response resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
@@ -330,7 +343,22 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).assignee", notNullValue())
             .body("reportable_task_list.get(0).updated_by", notNullValue())
             .body("reportable_task_list.get(0).updated", notNullValue())
-            .body("reportable_task_list.get(0).update_action", equalTo("Complete"));
+            .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
+            .body("reportable_task_list.get(0).completed_date", notNullValue())
+            .body("reportable_task_list.get(0).completed_date_time", notNullValue())
+            .body("reportable_task_list.get(0).created_date", notNullValue())
+            .body("reportable_task_list.get(0).final_state_label", notNullValue())
+            .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
+            .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
+            .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
+            .body("reportable_task_list.get(0).wait_time_days", notNullValue())
+            .body("reportable_task_list.get(0).handling_time_days", notNullValue())
+            .body("reportable_task_list.get(0).processing_time_days", notNullValue())
+            .body("reportable_task_list.get(0).is_within_sla", equalTo("Yes"))
+            .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+            .body("reportable_task_list.get(0).due_date_to_completed_diff_days", equalTo(-1))
+            .body("reportable_task_list.get(0).due_date", notNullValue())
+            .body("reportable_task_list.get(0).last_updated_date", notNullValue());
 
         resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
