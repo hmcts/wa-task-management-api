@@ -6,16 +6,14 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.Users;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PreDestroy;
 
 @Slf4j
 @Service
@@ -23,6 +21,7 @@ import javax.annotation.PreDestroy;
 public class CFTSensitiveTaskEventLogsDatabaseService {
     private final SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
+
 
     private final ExecutorService sensitiveTaskEventLogsExecutorService;
 
@@ -36,7 +35,12 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
     }
 
     private SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
-        return sensitiveTaskEventLogsRepository.save(sensitiveTaskEventLog);
+        try {
+            return sensitiveTaskEventLogsRepository.save(sensitiveTaskEventLog);
+        } catch (Error e) {
+            log.info("Couldn't save SensitiveTaskEventLog");
+            return sensitiveTaskEventLog;
+        }
     }
 
     public void processSensitiveTaskEventLog(String taskId,
@@ -47,14 +51,13 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
         if (taskResource.isPresent()) {
             log.info("TaskRoles for taskId {} is {}", taskId, taskResource.get().getTaskRoleResources());
             SensitiveTaskEventLog sensitiveTaskEventLog = new SensitiveTaskEventLog(
-                UUID.randomUUID().toString(),
                 telemetryContext.getOperation().getId(),
                 "",
                 taskId,
                 taskResource.get().getCaseId(),
                 customErrorMessage.getDetail(),
                 List.of(taskResource.get()),
-                roleAssignments,
+                new Users(roleAssignments),
                 ZonedDateTime.now().toOffsetDateTime().plusDays(90),
                 ZonedDateTime.now().toOffsetDateTime()
             );
@@ -62,30 +65,7 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
             sensitiveTaskEventLogsExecutorService.execute(() -> {
                 saveSensitiveTaskEventLog(sensitiveTaskEventLog);
             });
-
         }
 
-    }
-
-    @PreDestroy
-    public void cleanup() {
-        log.info("Shutting down sensitiveTaskEventLogs executor");
-        sensitiveTaskEventLogsExecutorService.shutdown();
-        try {
-            // Wait a while for existing job to complete
-            if (!sensitiveTaskEventLogsExecutorService.awaitTermination(60, TimeUnit.SECONDS)) {
-                sensitiveTaskEventLogsExecutorService.shutdownNow(); // Cancel currently executing tasks
-                // Wait a while for existing job being cancelled
-                if (!sensitiveTaskEventLogsExecutorService.awaitTermination(60, TimeUnit.SECONDS)) {
-                    log.error("Pool did not terminate");
-                }
-            }
-        } catch (InterruptedException ie) {
-            // (Re-)Cancel if current thread also interrupted
-            sensitiveTaskEventLogsExecutorService.shutdownNow();
-            // Preserve interrupt status
-            Thread.currentThread().interrupt();
-        }
-        log.info("Shut down sensitiveTaskEventLogs events executor");
     }
 }
