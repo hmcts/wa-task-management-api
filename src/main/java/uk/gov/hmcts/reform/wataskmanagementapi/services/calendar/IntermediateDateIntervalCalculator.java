@@ -59,8 +59,8 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         return referenceDate.map(localDateTime -> calculateDate(
                 dateTypeObject,
                 readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, isReconfigureRequest),
-                localDateTime
-            ))
+                localDateTime,
+                isReconfigureRequest))
             .orElse(null);
     }
 
@@ -77,7 +77,7 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
                 log.info("Input {}: {}", dateTypeName + ORIGIN_SUFFIX, v);
                 return v.getValue().getValue();
             })
-            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
+            .map(this::parseDateTime);
     }
 
     protected DateTypeIntervalData readDateTypeOriginFields(

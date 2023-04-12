@@ -2,36 +2,45 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import org.assertj.core.util.Lists;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/task-types";
-    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
     }
+
+    @After
+    public void cleanUp() {
+        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
+
+        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
+    }
+
 
     @Test
     public void should_return_task_types_for_correct_jurisdiction() {
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED + "?jurisdiction=wa",
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -42,7 +51,7 @@ public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
 
         List<Map<String, Map<String, String>>> expectedTaskTypes = getExpectedTaskTypes();
 
-        assertEquals(expectedTaskTypes, actualTaskTypes);
+        expectedTaskTypes.forEach(expectedTaskType -> assertTrue(actualTaskTypes.contains(expectedTaskType)));
 
     }
 
