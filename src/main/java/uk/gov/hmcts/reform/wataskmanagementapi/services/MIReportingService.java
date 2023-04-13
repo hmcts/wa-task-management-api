@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
@@ -12,6 +13,7 @@ import java.util.List;
 
 
 @Service
+@Profile("replica | preview")
 public class MIReportingService {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MIReportingService.class);
     public static final String MAIN_SLOT_NAME = "main_slot_v1";
