@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.context.annotation.Profile;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 
 import java.util.List;
