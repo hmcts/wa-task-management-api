@@ -52,7 +52,7 @@ public class TaskTypesService {
         //get task-type-dmn(s) for jurisdiction
         Set<TaskTypesDmnResponse> taskTypesDmnResponse =
             dmnEvaluationService.retrieveTaskTypesDmn(jurisdiction, DECISION_KEY_PREFIX);
-
+        log.info("Retrieved {} task types files for a jurisdiction: {}, ", taskTypesDmnResponse.size(), jurisdiction);
         List<TaskTypesDmnEvaluationResponse> taskTypesDmnEvaluationResponses = new ArrayList<>();
 
         //evaluate dmn(s)
@@ -62,6 +62,7 @@ public class TaskTypesService {
         );
 
         Set<TaskTypeResponse> taskTypeResponses = extractValues(taskTypesDmnEvaluationResponses);
+        log.info("Retrieved {} task types for a jurisdiction: {}, ", taskTypeResponses.size(), jurisdiction);
 
         if (!taskTypeResponses.isEmpty()) {
             getTaskTypesResponse = new GetTaskTypesResponse(taskTypeResponses);
