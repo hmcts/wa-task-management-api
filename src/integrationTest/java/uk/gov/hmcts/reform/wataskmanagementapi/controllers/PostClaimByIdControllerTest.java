@@ -308,7 +308,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_403_when_the_user_does_not_have_permission(String jurisdiction, String caseType)
@@ -360,7 +359,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_403_when_the_user_jurisdiction_did_not_match(String jurisdiction, String caseType)
@@ -412,7 +410,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_403_when_the_user_region_did_not_match(String jurisdiction, String caseType)
@@ -466,7 +463,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_403_when_the_user_location_did_not_match(String jurisdiction, String caseType)
@@ -595,7 +591,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_standard(
@@ -659,7 +654,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_standard_and_granular_permission_on(
@@ -732,7 +726,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_not_claim_task_when_grant_type_standard_and_excluded(
@@ -815,7 +808,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_standard_with_location_and_region_filter(
@@ -880,7 +872,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void endpoint_should_be_idempotent_should_return_a_204_when_claiming_a_task_by_id(
@@ -950,7 +941,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_409_if_task_is_already_claimed(
@@ -1033,7 +1023,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_not_claim_a_task_when_permission_not_satisfied_for_granular_permission(
@@ -1105,7 +1094,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_challenged(
@@ -1166,7 +1154,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_challenged_with_granular_permission(
@@ -1236,7 +1223,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_not_claim_task_when_grant_type_challenged_and_excluded(
@@ -1319,7 +1305,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_specific(
@@ -1380,7 +1365,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_specific_with_granular_permission(
@@ -1451,7 +1435,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_specific_and_excluded_(
@@ -1534,7 +1517,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_specific_and_excluded_with_granular_permission(
@@ -1629,7 +1611,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_with_case_role_on_one_task_only(

@@ -136,7 +136,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     void should_return_500_with_application_problem_response_when_assign_call_fails(
@@ -230,7 +229,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     void should_return_500_with_application_problem_response_when_assign_call_fails_due_to_missing_assignee_id(
@@ -389,7 +387,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_403_when_the_assigner_does_not_have_manage_permission(
@@ -445,7 +442,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions(
@@ -502,7 +498,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void assigner_should_assign_a_task_to_assignee_with_grant_type_challenged(
@@ -598,7 +593,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void assigner_should_not_assign_a_task_to_assignee_with_grant_type_challenged_and_excluded(
@@ -714,7 +708,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void assigner_should_assign_a_task_to_assignee_with_grant_type_specific(
@@ -809,7 +802,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void assigner_should_assign_a_task_to_assignee_with_grant_type_specific_and_excluded(
@@ -925,7 +917,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum, true, NO_CONTENT",
         "WA, WaCaseType, true, NO_CONTENT",
         "WA, WaCaseType, false, FORBIDDEN"
     })
@@ -1033,7 +1024,6 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum, true, NO_CONTENT",
         "WA, WaCaseType, true, NO_CONTENT",
         "WA, WaCaseType, false, FORBIDDEN"
     })
