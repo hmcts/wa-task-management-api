@@ -58,7 +58,7 @@ public class TaskTypesController extends BaseController {
         @RequestParam(name = "jurisdiction") String jurisdiction
     ) {
         AccessControlResponse roles = accessControlService.getRoles(authToken);
-        GetTaskTypesResponse response = taskTypesService.getTaskTypes(roles, jurisdiction);
+        GetTaskTypesResponse response = taskTypesService.getTaskTypes(roles, jurisdiction.toLowerCase());
 
         return ResponseEntity
             .ok()
