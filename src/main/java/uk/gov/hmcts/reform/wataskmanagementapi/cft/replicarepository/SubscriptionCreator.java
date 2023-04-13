@@ -5,6 +5,7 @@ import org.postgresql.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ReplicationException;
 
@@ -17,6 +18,7 @@ import javax.sql.DataSource;
 
 @Slf4j
 @Service
+@Profile("replica | preview")
 public class SubscriptionCreator {
 
     @Autowired
