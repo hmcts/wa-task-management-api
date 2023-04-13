@@ -319,6 +319,7 @@ dependencies {
   implementation('org.springframework.retry:spring-retry')
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-webmvc-core', version: versions.springDoc
 
   implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook
   implementation group: 'org.zalando', name: 'problem-spring-web-starter', version: '0.26.2'

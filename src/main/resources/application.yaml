@@ -66,6 +66,9 @@ idam:
     password: ${WA_SYSTEM_PASSWORD:password}
 
 springdoc:
+  swagger-ui:
+    enabled: true
+    operationsSorter: method
   writer-with-order-by-keys: true
 
 spring:

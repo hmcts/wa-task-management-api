@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,7 +37,8 @@ public class TaskTypesController extends BaseController {
         this.taskTypesService = taskTypesService;
     }
 
-    @Operation(description = "Retrieve list of task types with filter by jurisdiction")
+    @Operation(description = "Retrieve list of task types with filter by jurisdiction",
+        security = {@SecurityRequirement(name = "ServiceAuthorization"), @SecurityRequirement(name = "Authorization")})
     @ApiResponses({
         @ApiResponse(
             responseCode = "200", description = OK,
@@ -54,7 +57,7 @@ public class TaskTypesController extends BaseController {
     })
     @GetMapping
     public ResponseEntity<GetTaskTypesResponse> getTaskTypes(
-        @RequestHeader(AUTHORIZATION) String authToken,
+        @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
         @RequestParam(name = "jurisdiction") String jurisdiction
     ) {
         AccessControlResponse roles = accessControlService.getRoles(authToken);
