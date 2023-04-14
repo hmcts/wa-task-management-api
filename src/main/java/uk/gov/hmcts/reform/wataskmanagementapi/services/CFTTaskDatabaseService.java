@@ -116,6 +116,7 @@ public class CFTTaskDatabaseService {
             filterSignature, roleSignature, excludeCaseIds);
         List<String> taskIds = tasksRepository.searchTasksIds(firstResult, maxResults, filterSignature, roleSignature,
             excludeCaseIds, searchRequest);
+        log.info("Number of tasks returned {}", isEmpty(taskIds) ? 0 : taskIds.size());
 
         if (isEmpty(taskIds)) {
             return new GetTasksResponse<>(List.of(), 0);
