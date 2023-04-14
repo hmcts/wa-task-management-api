@@ -55,6 +55,28 @@ public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
 
     }
 
+    @Test
+    public void should_return_task_types_for_correct_uppercase_jurisdiction() {
+
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED + "?jurisdiction=WA",
+            waCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(MediaType.APPLICATION_JSON_VALUE);
+
+        final List<Map<String, Map<String, String>>> actualTaskTypes = result.jsonPath().getList("task_types");
+
+        List<Map<String, Map<String, String>>> expectedTaskTypes = getExpectedTaskTypes();
+
+        expectedTaskTypes.forEach(expectedTaskType -> assertTrue(actualTaskTypes.contains(expectedTaskType)));
+
+    }
+
     private List<Map<String, Map<String, String>>> getExpectedTaskTypes() {
 
         return Lists.list(

@@ -17,6 +17,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskTypesService;
 
+import java.util.Locale;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
@@ -58,7 +60,7 @@ public class TaskTypesController extends BaseController {
         @RequestParam(name = "jurisdiction") String jurisdiction
     ) {
         AccessControlResponse roles = accessControlService.getRoles(authToken);
-        GetTaskTypesResponse response = taskTypesService.getTaskTypes(roles, jurisdiction);
+        GetTaskTypesResponse response = taskTypesService.getTaskTypes(roles, jurisdiction.toLowerCase(Locale.ENGLISH));
 
         return ResponseEntity
             .ok()

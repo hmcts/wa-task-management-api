@@ -24,8 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -85,8 +83,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
@@ -146,7 +142,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
@@ -204,7 +202,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
@@ -270,7 +270,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
@@ -306,7 +308,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_403_when_the_user_does_not_have_permission(String jurisdiction, String caseType)
@@ -358,7 +359,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_403_when_the_user_jurisdiction_did_not_match(String jurisdiction, String caseType)
@@ -410,7 +410,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_403_when_the_user_region_did_not_match(String jurisdiction, String caseType)
@@ -464,7 +463,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_403_when_the_user_location_did_not_match(String jurisdiction, String caseType)
@@ -522,7 +520,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource, "CASEID");
 
@@ -593,7 +593,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_standard(
@@ -622,7 +621,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 
@@ -657,7 +658,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_standard_and_granular_permission_on(
@@ -702,12 +702,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
-
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -730,7 +724,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_not_claim_task_when_grant_type_standard_and_excluded(
@@ -813,7 +806,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_standard_with_location_and_region_filter(
@@ -844,7 +836,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 
@@ -878,7 +872,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void endpoint_should_be_idempotent_should_return_a_204_when_claiming_a_task_by_id(
@@ -907,7 +900,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 
@@ -948,7 +943,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void should_return_a_409_if_task_is_already_claimed(
@@ -977,7 +971,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 
@@ -1031,7 +1027,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_not_claim_a_task_when_permission_not_satisfied_for_granular_permission(
@@ -1077,12 +1072,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
-
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -1103,7 +1092,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_challenged(
@@ -1132,7 +1120,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 
@@ -1164,7 +1154,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_challenged_with_granular_permission(
@@ -1209,12 +1198,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
-
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -1234,7 +1217,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_not_claim_task_when_grant_type_challenged_and_excluded(
@@ -1317,7 +1299,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_specific(
@@ -1346,7 +1327,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleCategory().name()
+            TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 
@@ -1378,7 +1361,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_specific_with_granular_permission(
@@ -1423,13 +1405,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
-
-
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -1449,7 +1424,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_specific_and_excluded_(
@@ -1476,7 +1450,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleCategory().name()
+            TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 
@@ -1485,7 +1461,9 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleName(),
             false, false, false, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleCategory().name()
+            TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource);
 
@@ -1532,7 +1510,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_when_grant_type_specific_and_excluded_with_granular_permission(
@@ -1602,12 +1579,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
-
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -1627,7 +1598,6 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "IA, Asylum",
         "WA, WaCaseType"
     })
     public void user_should_claim_task_with_case_role_on_one_task_only(
@@ -1670,13 +1640,17 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED.getRoleName(),
             true, false, false, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, true,
+            false, false, false, false, false, false
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId1, taskRoleResource1);
         insertDummyTaskInDb(jurisdiction, caseType, taskId2, taskRoleResource2, UUID.randomUUID().toString());
