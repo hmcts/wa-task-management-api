@@ -747,11 +747,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(2)
-            .expectedTotalRecords(2)
+            .expectedAmountOfTasksInResponse(1)
+            .expectedTotalRecords(1)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
                 )
             ).build();
@@ -762,13 +761,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(4)
-            .expectedTotalRecords(4)
+            .expectedAmountOfTasksInResponse(2)
+            .expectedTotalRecords(2)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
                     "8d6cc5cf-c973-11eb-aaaa-000000000041", "1623278362400041",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
                 )
             ).build();
@@ -779,15 +776,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(6)
-            .expectedTotalRecords(6)
+            .expectedAmountOfTasksInResponse(3)
+            .expectedTotalRecords(3)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000012", "1623278362400012",
                     "8d6cc5cf-c973-11eb-aaaa-000000000042", "1623278362400042",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000010", "1623278362400010",
                     "8d6cc5cf-c973-11eb-aaaa-000000000041", "1623278362400041",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000008", "1623278362400008",
                     "8d6cc5cf-c973-11eb-aaaa-000000000040", "1623278362400040"
                 )
             ).build();
@@ -1995,6 +1989,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "searchByJurisdictionAndLocationScenario",
         "grantTypeWithAvailableTasksRequestContextScenarioHappyPath",
         "searchByTaskTypeScenario"
+
     })
     void should_retrieve_tasks(TaskQueryScenario scenario) {
         log.info("Running scenario: {}", scenario.scenarioName);
@@ -2009,9 +2004,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
-            accessControlResponse,
-            false,
-            scenario.granularPermission
+            accessControlResponse
         );
 
         //then
@@ -2044,15 +2037,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
-            accessControlResponse,
-            false,
-            scenario.granularPermission
+            accessControlResponse
         );
         //then
         Assertions.assertThat(allTasks.getTasks().get(0).getPermissions().getValues().contains(
             READ)).isTrue();
         Assertions.assertThat(allTasks.getTasks().get(0).getPermissions().getValues().contains(
-            UNCLAIM_ASSIGN)).isFalse();
+            UNCLAIM_ASSIGN)).isTrue();
 
     }
 
@@ -2072,9 +2063,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
-            accessControlResponse,
-            true,
-            scenario.granularPermission
+            accessControlResponse
         );
 
         //then
@@ -2100,9 +2089,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
-            accessControlResponse,
-            false,
-            scenario.granularPermission
+            accessControlResponse
         );
 
         //then
@@ -2140,9 +2127,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
-            accessControlResponse,
-            false,
-            scenario.granularPermission
+            accessControlResponse
         );
 
         //then
@@ -2173,9 +2158,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 -1,
                 1,
                 searchRequest,
-                accessControlResponse,
-                false,
-                false
+                accessControlResponse
             ))
             .hasNoCause()
             .hasMessage("Offset index must not be less than zero");
@@ -2185,9 +2168,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 0,
                 0,
                 searchRequest,
-                accessControlResponse,
-                false,
-                false
+                accessControlResponse
             ))
             .hasNoCause()
             .hasMessage("Limit must not be less than one");
@@ -2226,9 +2207,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             0,
             10,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
 
 
@@ -2261,9 +2240,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             0,
             10,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
 
         //when excluded role applied to standard user can not retrieve task
@@ -2306,9 +2283,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             0,
             10,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
 
 
@@ -2342,9 +2317,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             0,
             10,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
 
         //when excluded role applied to challenged user can not retrieve task
@@ -2388,9 +2361,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             0,
             10,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
 
 
@@ -2424,9 +2395,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             0,
             10,
             searchRequest,
-            accessControlResponse,
-            false,
-            false
+            accessControlResponse
         );
 
         //when excluded role applied to specific user can retrieve task

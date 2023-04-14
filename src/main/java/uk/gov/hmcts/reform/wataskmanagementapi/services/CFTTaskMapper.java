@@ -69,20 +69,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateC
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
-    private final Set<PermissionTypes> permissionsNewGranular = new HashSet<>(
-        asList(
-            PermissionTypes.COMPLETE,
-            PermissionTypes.COMPLETE_OWN,
-            PermissionTypes.CANCEL_OWN,
-            PermissionTypes.CLAIM,
-            PermissionTypes.UNCLAIM,
-            PermissionTypes.ASSIGN,
-            PermissionTypes.UNASSIGN,
-            PermissionTypes.UNCLAIM_ASSIGN,
-            PermissionTypes.UNASSIGN_CLAIM,
-            PermissionTypes.UNASSIGN_ASSIGN
-        )
-    );
 
     public CFTTaskMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -226,19 +212,14 @@ public class CFTTaskMapper {
     }
 
 
-    public Task mapToTaskAndExtractPermissionsUnion(TaskResource taskResource, List<RoleAssignment> roleAssignments,
-                                                    boolean granularPermissionResponseFeature) {
+    public Task mapToTaskAndExtractPermissionsUnion(TaskResource taskResource,
+                                                    List<RoleAssignment> roleAssignments) {
         Set<PermissionTypes> permissionsUnionForUser =
             extractUnionOfPermissionsForUser(
                 taskResource.getTaskRoleResources(),
                 roleAssignments,
-                taskResource.getCaseId(),
-                granularPermissionResponseFeature
+                taskResource.getCaseId()
             );
-
-        if (!granularPermissionResponseFeature) {
-            permissionsUnionForUser.removeAll(permissionsNewGranular);
-        }
 
         return mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
     }
@@ -269,15 +250,14 @@ public class CFTTaskMapper {
     }
 
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
-                                                                 List<RoleAssignment> roleAssignments,
-                                                                 boolean granularPermissionResponseFeature) {
+                                                                 List<RoleAssignment> roleAssignments) {
         Optional caseId = taskRoleResources.stream()
             .filter(t -> t.getTaskResource() != null
                 && t.getTaskResource().getCaseId() != null).map(t -> t.getTaskResource().getCaseId())
             .findFirst();
         if (caseId.isPresent()) {
             return extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments,
-                                                    (String) caseId.get(), granularPermissionResponseFeature);
+                                                    (String) caseId.get());
         } else {
             return new TreeSet<PermissionTypes>();
         }
@@ -285,8 +265,7 @@ public class CFTTaskMapper {
 
     private Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments,
-                                                                 String caseId,
-                                                                 boolean granularPermissionResponseFeature) {
+                                                                 String caseId) {
         TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
         if (caseId != null) {
             List<String> userRoleNames = roleAssignments.stream()
@@ -308,22 +287,13 @@ public class CFTTaskMapper {
             }
         }
 
-        if (!granularPermissionResponseFeature) {
-            permissionsFound.removeAll(permissionsNewGranular);
-        }
-
         return permissionsFound;
     }
 
-    public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource,
-                                                        boolean granularPermissionResponseFeature) {
+    public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
         List<String> authorisations = asList(taskRoleResource.getAuthorizations());
 
         final Set<PermissionTypes> permissionTypes = extractUnionOfPermissions(Set.of(taskRoleResource));
-
-        if (!granularPermissionResponseFeature) {
-            permissionTypes.removeAll(permissionsNewGranular);
-        }
 
         return new TaskRolePermissions(
             taskRoleResource.getRoleCategory(),

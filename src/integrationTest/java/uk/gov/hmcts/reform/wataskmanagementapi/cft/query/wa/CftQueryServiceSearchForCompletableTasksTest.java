@@ -106,8 +106,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -151,8 +150,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            true
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -210,8 +208,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -253,8 +250,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -310,8 +306,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -353,8 +348,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -410,8 +404,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();

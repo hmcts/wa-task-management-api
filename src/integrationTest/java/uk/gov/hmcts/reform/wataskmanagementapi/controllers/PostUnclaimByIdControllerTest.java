@@ -22,8 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -79,8 +77,6 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
@@ -134,7 +130,9 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, true, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, false,
+            true, false, false, false, false, false
         );
         insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
@@ -193,7 +191,9 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER.getRoleName(),
             false, true, true, true, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER.getRoleCategory().name()
+            TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, false,
+            true, false, false, false, false, false
         );
         insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
@@ -252,7 +252,9 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleName(),
             false, true, true, true, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, false,
+            true, false, false, false, false, false
         );
         insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
@@ -312,7 +314,9 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, true, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, false,
+            true, false, false, false, false, false
         );
         insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
@@ -369,7 +373,9 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             false, true, true, true, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
+            taskId, OffsetDateTime.now(), false, false, false, false,
+            true, false, false, false, false, false
         );
         insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
 
@@ -400,71 +406,6 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
                     "Task Unclaim Error: Task unclaim partially succeeded. "
                     + "The Task state was updated to unassigned, but the Task could not be unclaimed.")
             ));
-    }
-
-    @Test
-    public void user_should_unclaim_task_when_granular_permissions_are_off()
-        throws Exception {
-        String jurisdiction = "WA";
-        String caseType = "caseType";
-
-        mockServices.mockServiceAPIs();
-
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId("caseId1")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
-
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, false, false, true, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
-        );
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, taskRoleResource, mockedUserInfo.getUid());
-
-        when(idamWebApi.userInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(accessControlResponse);
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            IDAM_USER_ID, IDAM_USER_EMAIL
-        )).thenReturn(false);
-
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
-        );
-
-        verify(camundaServiceApi).unclaimTask(any(), any());
-        TaskResource taskResource = cftTaskDatabaseService.findByIdOnly(taskId).get();
-        assertNull(taskResource.getAssignee());
-        assertEquals(UNASSIGNED, taskResource.getState());
-
-        assertNotNull(taskResource.getLastUpdatedTimestamp());
-        assertEquals(IDAM_USER_ID, taskResource.getLastUpdatedUser());
-        assertEquals(TaskAction.UNCLAIM.getValue(), taskResource.getLastUpdatedAction());
     }
 
     @ParameterizedTest
@@ -525,11 +466,6 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(accessControlResponse);
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            IDAM_USER_ID, IDAM_USER_EMAIL
-        )).thenReturn(true);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -606,11 +542,6 @@ class PostUnclaimByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            IDAM_USER_ID, IDAM_USER_EMAIL
-        )).thenReturn(true);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)

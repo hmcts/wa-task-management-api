@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -14,15 +13,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -39,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import javax.persistence.EntityManager;
 
 import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,19 +65,10 @@ class GetTaskRoleGranularPermissionsControllerTest extends SpringBootIntegration
     private CamundaServiceApi camundaServiceApi;
     @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @SpyBean
-    private CftQueryService cftQueryService;
     @Mock
     private UserInfo mockedUserInfo;
-    @MockBean
-    @Autowired
-    private EntityManager entityManager;
-    @MockBean
-    private ClientAccessControlService clientAccessControlService;
     @Mock
     private ServiceMocks mockServices;
 
@@ -111,82 +96,6 @@ class GetTaskRoleGranularPermissionsControllerTest extends SpringBootIntegration
             camundaServiceApi,
             roleAssignmentServiceApi
         );
-    }
-
-    @Test
-    void should_return_task_with_old_permissions_when_granular_permission_flag_off() throws Exception {
-        String caseId = "searchForCompletableCaseId3";
-        searchEventAndCase = new SearchEventAndCase(
-            caseId,
-            "decideAnApplication",
-            "ia",
-            "asylum"
-        );
-        mockServices.mockUserInfo();
-
-        // Role attribute is IA
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction("IA")
-                    .caseType("Asylum")
-                    .caseId(caseId)
-                    .build()
-            )
-            .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
-
-        // Task created is IA
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            true, true, true, false, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
-            taskId, OffsetDateTime.now(), true, true, true, true,
-            true, true, true, true, true, false
-        );
-
-        insertDummyTaskInDb(caseId, taskId, "IA", "Asylum", taskRoleResource);
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
-            roleAssignments
-        );
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(accessControlResponse);
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
-            "taskType", new CamundaVariable("reviewTheAppeal", "String"),
-            "completionMode", new CamundaVariable("Auto", "String"),
-            "workType", new CamundaVariable("decision_making_work", "String"),
-            "description", new CamundaVariable("aDescription", "String")
-        ));
-        when(camundaServiceApi.evaluateDMN(any(), any(), any(), anyMap()))
-            .thenReturn(mockedResponse);
-
-        when(camundaServiceApi.getAllVariables(any(), any()))
-            .thenReturn(mockedAllVariables(caseId, "processInstanceId", "IA", taskId));
-
-        mockMvc.perform(
-            get("/task/" + taskId + "/roles")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpectAll(
-            status().isOk(),
-            jsonPath("$.roles").isNotEmpty(),
-            jsonPath("$.roles.length()").value(1),
-            jsonPath("$.roles[0].role_category").value("LEGAL_OPERATIONS"),
-            jsonPath("$.roles[0].role_name").value("tribunal-caseworker"),
-            jsonPath("$.roles[0].permissions[0]").value("Read"),
-            jsonPath("$.roles[0].permissions[1]").value("Own"),
-            jsonPath("$.roles[0].permissions[2]").value("Execute"),
-            jsonPath("$.roles[0].permissions.length()").value(3)
-        ).andReturn();
     }
 
     @Test
@@ -246,12 +155,6 @@ class GetTaskRoleGranularPermissionsControllerTest extends SpringBootIntegration
 
         when(camundaServiceApi.getAllVariables(any(), any()))
             .thenReturn(mockedAllVariables(caseId, "processInstanceId", "IA", taskId));
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
-            mockedUserInfo.getUid(),
-            mockedUserInfo.getEmail()
-        )).thenReturn(true);
 
         mockMvc.perform(
             get("/task/" + taskId + "/roles")
