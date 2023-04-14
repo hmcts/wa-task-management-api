@@ -36,8 +36,7 @@ public class TaskManagerCancelTaskProviderTest extends SpringBootContractProvide
             taskManagementService,
             accessControlService,
             systemDateProvider,
-            clientAccessControlService,
-            launchDarklyFeatureFlagProvider
+            clientAccessControlService
         ));
         if (context != null) {
             context.setTarget(testTarget);
