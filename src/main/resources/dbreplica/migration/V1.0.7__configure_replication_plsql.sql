@@ -101,7 +101,19 @@ begin
     is_within_sla = case when (l_task.last_updated_action='Complete') and (l_task.last_updated_timestamp <= l_task.due_date_time) then 'Yes'
                           when (l_task.last_updated_action='Complete') and (l_task.last_updated_timestamp > l_task.due_date_time) then 'No' end,
     number_of_reassignments = (select count(*) -1 from cft_task_db.task_history where task_history.state = 'ASSIGNED' and task_history.task_id =  l_task.task_id),
-    due_date_to_completed_diff_days = case when (l_task.last_updated_action='Complete') then (l_task.last_updated_timestamp::date - l_task.due_date_time::date) end
+    due_date_to_completed_diff_days = case when (l_task.last_updated_action='Complete') then (l_task.last_updated_timestamp::date - l_task.due_date_time::date) end,
+    wait_time = case when (reportable_task.wait_time is null) and (l_task.state='ASSIGNED')
+                    then (date_trunc('second', l_task.last_updated_timestamp) - date_trunc('second', l_task.created))
+                    else reportable_task.wait_time end,
+    handling_time = case when (reportable_task.handling_time is null) and (l_task.state='COMPLETED')
+                    then (date_trunc('second', l_task.last_updated_timestamp) - date_trunc('second', reportable_task.first_assigned_date_time))
+                    else reportable_task.handling_time end,
+    processing_time = case when (reportable_task.processing_time is null) and (l_task.state='COMPLETED')
+                    then (date_trunc('second', l_task.last_updated_timestamp) - date_trunc('second', l_task.created))
+                    else reportable_task.processing_time end,
+    due_date_to_completed_diff_time = case when (reportable_task.due_date_to_completed_diff_time is null) and (l_task.state='COMPLETED')
+                    then (date_trunc('second', l_task.due_date_time) - date_trunc('second', l_task.last_updated_timestamp))
+                    else reportable_task.due_date_to_completed_diff_time end
   where reportable_task.task_id = l_task.task_id;
 
 return l_update_id;
