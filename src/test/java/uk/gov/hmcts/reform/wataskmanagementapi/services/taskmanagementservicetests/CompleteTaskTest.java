@@ -272,7 +272,7 @@ class CompleteTaskTest extends CamundaHelpers {
     }
 
     @Test
-    void completeTask_should_throw_task_state_incorrect_exception_when_task_has_no_assignee_gp_flag_is_on() {
+    void completeTask_should_throw_task_state_incorrect_exception_when_task_has_no_assignee() {
 
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
@@ -323,42 +323,6 @@ class CompleteTaskTest extends CamundaHelpers {
 
     @Test
     void should_throw_exception_when_task_resource_not_found() {
-
-        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-
-        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-        TaskResource taskResource = spy(TaskResource.class);
-
-        assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))
-            .isInstanceOf(TaskNotFoundException.class)
-            .hasNoCause()
-            .hasMessage("Task Not Found Error: The task could not be found.");
-        verify(camundaService, times(0)).completeTask(any(), anyBoolean());
-        verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
-    }
-
-    @Test
-    void should_throw_exception_when_task_resource_not_found_and_gp_feature_flag_is_on() {
-
-        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-
-        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-        TaskResource taskResource = spy(TaskResource.class);
-
-        assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))
-            .isInstanceOf(TaskNotFoundException.class)
-            .hasNoCause()
-            .hasMessage("Task Not Found Error: The task could not be found.");
-        verify(camundaService, times(0)).completeTask(any(), anyBoolean());
-        verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
-    }
-
-    @Test
-    void should_throw_exception_when_task_resource_not_found_and_gp_feature_flag_is_off() {
 
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
 
