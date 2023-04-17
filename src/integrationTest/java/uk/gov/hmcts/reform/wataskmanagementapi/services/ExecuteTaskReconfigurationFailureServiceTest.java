@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -33,10 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ExecuteTaskReconfigurationFailureServiceTest {
     @Autowired
     TaskResourceRepository taskResourceRepository;
-    @MockBean
-    private ConfigureTaskService configureTaskService;
-    @MockBean
-    private TaskAutoAssignmentService taskAutoAssignmentService;
+
     private ExecuteTaskReconfigurationFailureService executeTaskReconfigurationFailureService;
 
     @BeforeEach
