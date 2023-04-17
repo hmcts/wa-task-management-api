@@ -1429,7 +1429,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1438,63 +1438,6 @@ class CFTTaskMapperTest {
         assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
         assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
-    }
-
-    @Test
-    void should_extract_permission_union_all_true_with_non_granular_permission() {
-
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            "tribunal-caseworker",
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            new String[]{},
-            0,
-            false,
-            "JUDICIAL",
-            taskId,
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
-            true,
-            false,
-            false,
-            true,
-            false,
-            true,
-            false,
-            false,
-            false,
-            true
-        );
-        TaskResource taskResource = mock(TaskResource.class);
-        when(taskResource.getCaseId()).thenReturn("CASE_ID");
-        taskRoleResource.setTaskResource(taskResource);
-        Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
-
-        Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
-
-        assertFalse(permissionsUnion.isEmpty());
-        assertTrue(permissionsUnion.contains(PermissionTypes.READ));
-        assertTrue(permissionsUnion.contains(PermissionTypes.OWN));
-        assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
-        assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
-        assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
-
-        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE));
-        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE_OWN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL_OWN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.CLAIM));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM));
-        assertFalse(permissionsUnion.contains(PermissionTypes.ASSIGN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM_ASSIGN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_CLAIM));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_ASSIGN));
     }
 
     @Test
@@ -1532,7 +1475,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, true);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1651,7 +1594,7 @@ class CFTTaskMapperTest {
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
-        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments, false);
+        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments);
 
         assertNotNull(mappedTask);
 
@@ -1659,23 +1602,23 @@ class CFTTaskMapperTest {
         assertNotNull(taskPermissions.getValues());
 
         Set<PermissionTypes> permissionsUnion = taskPermissions.getValues();
+        assertTrue(permissionsUnion.contains(PermissionTypes.ASSIGN));
+        assertTrue(permissionsUnion.contains(PermissionTypes.CLAIM));
+        assertTrue(permissionsUnion.contains(PermissionTypes.COMPLETE));
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
         assertTrue(permissionsUnion.contains(PermissionTypes.OWN));
+        assertTrue(permissionsUnion.contains(PermissionTypes.UNASSIGN_ASSIGN));
+
         assertFalse(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
         assertFalse(permissionsUnion.contains(PermissionTypes.REFER));
-
-        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE));
         assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE_OWN));
         assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL_OWN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.CLAIM));
         assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM));
-        assertFalse(permissionsUnion.contains(PermissionTypes.ASSIGN));
         assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN));
         assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM_ASSIGN));
         assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_CLAIM));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_ASSIGN));
     }
 
     @Test
@@ -1774,7 +1717,7 @@ class CFTTaskMapperTest {
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
-        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments, true);
+        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments);
 
         assertNotNull(mappedTask);
 
@@ -1821,7 +1764,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertFalse(permissionsUnion.contains(PermissionTypes.READ));
@@ -1852,7 +1795,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1883,7 +1826,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1914,7 +1857,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1945,7 +1888,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1976,7 +1919,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -2023,7 +1966,7 @@ class CFTTaskMapperTest {
         );
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertEquals(2, permissionsUnion.size());
@@ -2071,7 +2014,7 @@ class CFTTaskMapperTest {
             RoleAssignmentCreator.aRoleAssignment().roleName("senior-tribunal-caseworker").build()
         );
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertEquals(5, permissionsUnion.size());
@@ -2101,7 +2044,7 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
 
-        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource, false);
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
 
         assertEquals("tribunal-caseworker", taskRolePermissions.getRoleName());
         assertEquals("JUDICIAL", taskRolePermissions.getRoleCategory());
@@ -2137,7 +2080,7 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
 
-        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource, false);
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
 
         assertEquals("tribunal-caseworker", taskRolePermissions.getRoleName());
         assertEquals("JUDICIAL", taskRolePermissions.getRoleCategory());
@@ -2182,7 +2125,7 @@ class CFTTaskMapperTest {
             false, false, false, false, false, false, false, false, false, false
         );
 
-        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource, false);
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
 
         assertEquals("tribunal-caseworker", taskRolePermissions.getRoleName());
         assertEquals("JUDICIAL", taskRolePermissions.getRoleCategory());
@@ -2447,7 +2390,7 @@ class CFTTaskMapperTest {
             true
         );
 
-        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource, true);
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
 
         assertEquals("ctsc", taskRolePermissions.getRoleName());
         assertEquals("CTSC", taskRolePermissions.getRoleCategory());
