@@ -61,6 +61,8 @@ withPipeline(type, product, component) {
     env.CCD_GW_URL = "https://gateway-ccd.aat.platform.hmcts.net"
     env.WA_WORKFLOW_API_URL = "http://wa-workflow-api-aat.service.core-compute-aat.internal"
 
+    enableMutationTest()
+
     afterSuccess('checkout') {
       sh 'date'
     }
@@ -99,7 +101,6 @@ withPipeline(type, product, component) {
     }
 
     onPR() {
-      enableMutationTest()
       enableCleanupOfHelmReleaseOnSuccess()
         enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
     }
