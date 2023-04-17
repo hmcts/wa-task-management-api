@@ -22,8 +22,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED;
-
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
@@ -47,9 +45,6 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE)) {
             executeTasksToReconfigure(taskOperationRequest);
-        } else if (taskOperationRequest.getOperation().getType()
-            .equals(TaskOperationType.EXECUTE_RECONFIGURE_FAILURES)) {
-            executeReconfigurationFailLog(taskOperationRequest.getOperation().getRetryWindowHours());
         }
         return List.of();
     }
@@ -75,20 +70,6 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
             executeReconfiguration(failedTaskIds,
                 successfulTaskResources,
                 taskOperationRequest.getOperation().getMaxTimeLimit());
-        }
-    }
-
-    private void executeReconfigurationFailLog(long retryWindowHours) {
-        OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(retryWindowHours);
-
-        List<TaskResource> failedTasksToReport = cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
-                List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retryWindow);
-
-        if (!failedTasksToReport.isEmpty()) {
-            throw new TaskExecuteReconfigurationException(TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED,
-                failedTasksToReport
-            );
         }
     }
 
