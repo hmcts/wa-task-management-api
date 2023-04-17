@@ -37,6 +37,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.USER;
 
@@ -618,7 +619,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
                 new SearchParameterList(USER, SearchOperator.IN, singletonList(assigneeId)),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
+                new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED"))
             )
         );
 
