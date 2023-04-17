@@ -44,6 +44,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 def branchesToSync = ['demo', 'ithc', 'perftest']
 withPipeline(type, product, component) {
+    enableMutationTest()
     disableLegacyDeployment()
     loadVaultSecrets(secrets)
 
@@ -63,7 +64,6 @@ withPipeline(type, product, component) {
 
     afterSuccess('checkout') {
       sh 'date'
-      enableMutationTest()
     }
     afterSuccess('test') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
