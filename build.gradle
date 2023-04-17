@@ -176,7 +176,7 @@ pitest {
 
 task tests {
   description = "Runs junit , integration and functional tests"
-  dependsOn test, integration, functional
+  dependsOn test, integration, functional, pitest
 }
 
 project.tasks['pitest'].group = "Verification"
@@ -475,5 +475,3 @@ bootJar {
 wrapper {
   distributionType = Wrapper.DistributionType.ALL
 }
-
-build dependsOn pitest
