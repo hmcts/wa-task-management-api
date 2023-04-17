@@ -44,7 +44,6 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 def branchesToSync = ['demo', 'ithc', 'perftest']
 withPipeline(type, product, component) {
-    enableMutationTest()
     disableLegacyDeployment()
     loadVaultSecrets(secrets)
 
