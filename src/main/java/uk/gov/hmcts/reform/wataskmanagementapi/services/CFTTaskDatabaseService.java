@@ -82,12 +82,13 @@ public class CFTTaskDatabaseService {
         if (task.getPriorityDate() == null) {
             task.setPriorityDate(task.getDueDateTime());
         }
+        log.info("Saving task ****************** " + task.getTaskId() + " with update action " + task.getLastUpdatedAction());
         return tasksRepository.save(task);
     }
 
     public void insertAndLock(String taskId, OffsetDateTime dueDate) throws SQLException {
         OffsetDateTime created = OffsetDateTime.now();
-        tasksRepository.insertAndLock(taskId, dueDate, created, dueDate);
+        tasksRepository.insertAndLock(taskId, created, dueDate, dueDate);
     }
 
     public Optional<TaskResource> findTaskBySpecification(Specification<TaskResource> specification) {
