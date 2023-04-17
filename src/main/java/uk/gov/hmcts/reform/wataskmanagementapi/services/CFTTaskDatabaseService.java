@@ -112,9 +112,11 @@ public class CFTTaskDatabaseService {
         Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
         List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
 
-        log.info("Task search for filter signatures {} and role signatures {}", filterSignature, roleSignature);
+        log.info("Task search for \nfilter signatures {} \nrole signatures {} \nexcluded case ids {}",
+            filterSignature, roleSignature, excludeCaseIds);
         List<String> taskIds = tasksRepository.searchTasksIds(firstResult, maxResults, filterSignature, roleSignature,
             excludeCaseIds, searchRequest);
+        log.info("Number of tasks returned {}", isEmpty(taskIds) ? 0 : taskIds.size());
 
         if (isEmpty(taskIds)) {
             return new GetTasksResponse<>(List.of(), 0);
