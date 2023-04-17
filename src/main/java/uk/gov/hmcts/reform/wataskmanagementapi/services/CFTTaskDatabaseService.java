@@ -82,7 +82,6 @@ public class CFTTaskDatabaseService {
         if (task.getPriorityDate() == null) {
             task.setPriorityDate(task.getDueDateTime());
         }
-        log.info("Saving task ****************** " + task.getTaskId() + " with update action " + task.getLastUpdatedAction());
         return tasksRepository.save(task);
     }
 
