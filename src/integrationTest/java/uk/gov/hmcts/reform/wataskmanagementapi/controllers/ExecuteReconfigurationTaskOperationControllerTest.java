@@ -80,32 +80,24 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @SuppressWarnings("checkstyle:LineLength")
 class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegrationBaseTest {
 
-    private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     public static final String SYSTEM_USER_1 = "system_user1";
     public static final String ASSIGNEE_USER = "assigneeUser";
     public static final String OLD_ASSIGNEE_USER = "oldAssigneeUser";
-
-    @MockBean
-    private ClientAccessControlService clientAccessControlService;
-
-    @MockBean
-    private CftQueryService cftQueryService;
-
-    @MockBean
-    private CcdDataService ccdDataService;
-
-    @MockBean
-    private DmnEvaluationService dmnEvaluationService;
-
-    @SpyBean
-    private CFTTaskDatabaseService cftTaskDatabaseService;
-
-    @MockBean
-    private RoleAssignmentService roleAssignmentService;
-
+    private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     @MockBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
-
+    @MockBean
+    private ClientAccessControlService clientAccessControlService;
+    @MockBean
+    private CftQueryService cftQueryService;
+    @MockBean
+    private CcdDataService ccdDataService;
+    @MockBean
+    private DmnEvaluationService dmnEvaluationService;
+    @SpyBean
+    private CFTTaskDatabaseService cftTaskDatabaseService;
+    @MockBean
+    private RoleAssignmentService roleAssignmentService;
     @MockBean
     private IdamWebApi idamWebApi;
 
@@ -114,6 +106,10 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
     private String taskId;
     private String bearerAccessToken1;
+
+    public static void assertCloseTo(OffsetDateTime expected, OffsetDateTime actual, int offsetSeconds) {
+        assertTrue(expected.minusSeconds(offsetSeconds).isBefore(actual) && expected.plusSeconds(offsetSeconds).isAfter(actual));
+    }
 
     @BeforeEach
     void setUp() {
@@ -602,10 +598,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 assertEquals(TaskAction.AUTO_UNASSIGN_ASSIGN.getValue(), task.getLastUpdatedAction());
             }
         );
-    }
-
-    public static void assertCloseTo(OffsetDateTime expected, OffsetDateTime actual, int offsetSeconds) {
-        assertTrue(expected.minusSeconds(offsetSeconds).isBefore(actual) && expected.plusSeconds(offsetSeconds).isAfter(actual));
     }
 
     @Test
