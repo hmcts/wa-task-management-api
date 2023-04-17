@@ -176,7 +176,7 @@ pitest {
 
 task tests {
   description = "Runs junit , integration and functional tests"
-  dependsOn test, integration, functional, pitest
+  dependsOn test, integration, functional
 }
 
 project.tasks['pitest'].group = "Verification"
