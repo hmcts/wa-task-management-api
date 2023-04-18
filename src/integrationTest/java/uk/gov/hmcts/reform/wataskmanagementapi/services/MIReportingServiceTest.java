@@ -76,7 +76,6 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    @Disabled
     void should_save_task_and_get_task_from_replica_tables() {
         TaskResource taskResource = createAndSaveTask();
 
@@ -112,6 +111,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
             "someTaskName",
             "someTaskType",
             UNCONFIGURED,
+            "CASE-ID-00000",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResource.setCreated(OffsetDateTime.now());
