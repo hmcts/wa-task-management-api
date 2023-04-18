@@ -45,6 +45,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 
 @Slf4j
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
@@ -77,7 +79,7 @@ public class TaskSearchController extends BaseController {
     }
 
     @Operation(description = "Retrieve a list of Task resources identified by set of search criteria.",
-        security = {@SecurityRequirement(name = "ServiceAuthorization"), @SecurityRequirement(name = "Authorization")})
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = OK, content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = GetTasksResponse.class))}),
@@ -89,7 +91,7 @@ public class TaskSearchController extends BaseController {
     })
     @PostMapping
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String authToken,
+        @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
 
         @RequestParam(required = false, name = "first_result")
         @Min(value = 0, message = "first_result must not be less than zero") Integer firstResult,
@@ -166,7 +168,7 @@ public class TaskSearchController extends BaseController {
 
     @Operation(description = "Retrieve a list of Task resources identified by set of search"
         + " criteria that are eligible for automatic completion",
-        security = {@SecurityRequirement(name = "ServiceAuthorization"), @SecurityRequirement(name = "Authorization")})
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
                 schema = @Schema(implementation = GetTasksCompletableResponse.class))}),
@@ -177,7 +179,7 @@ public class TaskSearchController extends BaseController {
     })
     @PostMapping(path = "/search-for-completable")
     public ResponseEntity<GetTasksCompletableResponse<Task>> searchWithCriteriaForAutomaticCompletion(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String authToken,
+        @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
 
         GetTasksCompletableResponse<Task> response;
