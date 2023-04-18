@@ -59,7 +59,7 @@ module "wa_task_management_api_database_flexible" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=postgres-vnet-provider"
+  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
   product            = var.product
   component          = var.component
   name               = "${var.postgres_db_component_name}-postgres-db-flexible"
@@ -95,7 +95,7 @@ module "wa_task_management_api_database_flexible_replica" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=postgres-vnet-provider"
+  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
   product            = var.product
   component          = var.component
   name               = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
