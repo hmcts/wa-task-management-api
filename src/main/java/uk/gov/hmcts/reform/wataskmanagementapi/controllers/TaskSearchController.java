@@ -118,20 +118,7 @@ public class TaskSearchController extends BaseController {
         }
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        log.debug("Search request received '{}'", searchTaskRequest);
-        //Release 2
-
-        boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
-
-        boolean isGranularPermissionEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
+        log.info("Search request received '{}'", searchTaskRequest);
 
         boolean isIndexSearchEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
@@ -140,6 +127,7 @@ public class TaskSearchController extends BaseController {
         );
 
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        log.info("Search request mapped to '{}'", searchRequest);
 
         if (isIndexSearchEnabled) {
             log.info("Search tasks using search_index");
@@ -153,9 +141,7 @@ public class TaskSearchController extends BaseController {
                 Optional.ofNullable(firstResult).orElse(0),
                 Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 searchRequest,
-                accessControlResponse,
-                granularPermissionResponseFeature,
-                isGranularPermissionEnabled
+                accessControlResponse
             );
         }
 
@@ -200,17 +186,10 @@ public class TaskSearchController extends BaseController {
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
 
-        boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
-
         response = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             accessControlResponse.getRoleAssignments(),
-            permissionsRequired,
-            granularPermissionResponseFeature
+            permissionsRequired
         );
 
         return ResponseEntity
