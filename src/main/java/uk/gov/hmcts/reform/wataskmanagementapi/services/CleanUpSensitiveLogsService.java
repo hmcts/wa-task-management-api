@@ -42,9 +42,15 @@ public class CleanUpSensitiveLogsService implements TaskOperationService {
         LocalDateTime cleanUpStartDate = getCleanUpStartDate(request.getTaskFilter());
         Objects.requireNonNull(cleanUpStartDate);
 
-        int deletedRows = cftSensitiveTaskEventLogsDatabaseService.cleanUpSensitiveLogs(cleanUpStartDate);
+        try {
+            int deletedRows = cftSensitiveTaskEventLogsDatabaseService.cleanUpSensitiveLogs(cleanUpStartDate);
 
-        return new TaskOperationResponse(Map.of("deletedRows", deletedRows));
+            return new TaskOperationResponse(Map.of("deletedRows", deletedRows));
+
+        } catch (IllegalArgumentException e) {
+            log.error("{} request: {}", CLEANUP_SENSITIVE_LOG_ENTRIES.name(), e);
+            return new TaskOperationResponse(Map.of("exception", e.getMessage()));
+        }
     }
 
     private LocalDateTime getCleanUpStartDate(List<TaskFilter<?>> taskFilters) {

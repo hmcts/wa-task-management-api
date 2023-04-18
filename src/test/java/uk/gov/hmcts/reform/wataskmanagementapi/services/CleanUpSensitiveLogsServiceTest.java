@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,10 +18,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogs
 import java.time.OffsetDateTime;
 import java.util.List;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 class CleanUpSensitiveLogsServiceTest {
@@ -81,6 +85,29 @@ class CleanUpSensitiveLogsServiceTest {
 
         assertEquals(0, deletedRows);
 
+    }
+
+    @Test
+    void should_throw_exception_when_cannot_connect_to_db_during_clean_up_sensitive_logs() {
+        OffsetDateTime timestamp = OffsetDateTime.now();
+
+        List<TaskFilter<?>> taskFilters = createTaskFilters(KEY, timestamp);
+        TaskOperationRequest request = new TaskOperationRequest(
+            TaskOperation.builder()
+                .name(TaskOperationName.CLEANUP_SENSITIVE_LOG_ENTRIES)
+                .runId("")
+                .build(),
+            taskFilters
+        );
+
+        doThrow(new IllegalArgumentException("exception"))
+            .when(cftSensitiveTaskEventLogsDatabaseService).cleanUpSensitiveLogs(any(LocalDateTime.class));
+
+        assertThatThrownBy(() -> cleanUpSensitiveLogsService.performOperation(request)
+        )
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasNoCause()
+            .hasMessage("exception");
     }
 
     @Test
