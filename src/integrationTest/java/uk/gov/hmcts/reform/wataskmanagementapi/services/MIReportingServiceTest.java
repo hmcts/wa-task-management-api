@@ -77,7 +77,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_save_task_and_get_task_from_replica_tables() {
-        TaskResource taskResource = createAndSaveTask();
+        TaskResource taskResource = createAndSaveTask("CASE-ID-00000");
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -96,6 +96,23 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
+    @Test
+    void should_save_task_without_case_id_and_get_filtered_out_from_replica_tables() {
+        TaskResource taskResource = createAndSaveTask(null);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskHistoryResource> taskHistoryResourceList
+                        = miReportingService.findByTaskId(taskResource.getTaskId());
+
+                    assertTrue(taskHistoryResourceList.isEmpty());
+                    return true;
+                });
+    }
+
 
 
     @Test
@@ -105,13 +122,13 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
         assertTrue(taskHistoryResourceList.isEmpty());
     }
 
-    private TaskResource createAndSaveTask() {
+    private TaskResource createAndSaveTask(String caseId) {
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
             "someTaskName",
             "someTaskType",
             UNCONFIGURED,
-            "CASE-ID-00000",
+            caseId,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResource.setCreated(OffsetDateTime.now());
