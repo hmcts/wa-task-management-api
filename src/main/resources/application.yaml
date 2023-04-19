@@ -72,9 +72,6 @@ replication:
   username: ${REPLICATION_USERNAME:repl_user}
   password: ${REPLICATION_PASSWORD:repl_password}
 
-springdoc:
-  writer-with-order-by-keys: true
-
 spring:
   config:
     import: "optional:configtree:/mnt/secrets/wa/"
