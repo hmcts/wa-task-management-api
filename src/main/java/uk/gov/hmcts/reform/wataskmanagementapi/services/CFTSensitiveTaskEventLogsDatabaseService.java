@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -37,12 +39,13 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
     private SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
         try {
             return sensitiveTaskEventLogsRepository.save(sensitiveTaskEventLog);
-        } catch (Error e) {
-            log.info("Couldn't save SensitiveTaskEventLog");
+        } catch (IllegalArgumentException e) {
+            log.error("Couldn't save SensitiveTaskEventLog for taskId {}", sensitiveTaskEventLog.getTaskId());
             return sensitiveTaskEventLog;
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processSensitiveTaskEventLog(String taskId,
                                              List<RoleAssignment> roleAssignments,
                                              ErrorMessages customErrorMessage) {
@@ -62,9 +65,9 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
                 ZonedDateTime.now().toOffsetDateTime()
             );
 
-            sensitiveTaskEventLogsExecutorService.execute(() -> {
-                saveSensitiveTaskEventLog(sensitiveTaskEventLog);
-            });
+            sensitiveTaskEventLogsExecutorService.execute(() ->
+                saveSensitiveTaskEventLog(sensitiveTaskEventLog)
+            );
         }
 
     }
