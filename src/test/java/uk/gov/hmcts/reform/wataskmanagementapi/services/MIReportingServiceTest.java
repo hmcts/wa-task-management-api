@@ -25,7 +25,8 @@ public class MIReportingServiceTest {
     @Test
     void given_unknown_task_id_get_empty_list() {
         TaskHistoryResourceRepository taskHistoryResourceRepository = mock(TaskHistoryResourceRepository.class);
-        when(taskHistoryResourceRepository.findAllByTaskIdOrderByUpdatedAsc("1111111")).thenReturn(Collections.emptyList());
+        when(taskHistoryResourceRepository.findAllByTaskIdOrderByUpdatedAsc("1111111"))
+            .thenReturn(Collections.emptyList());
         miReportingService = new MIReportingService(taskHistoryResourceRepository, null,
                                                     null);
 
