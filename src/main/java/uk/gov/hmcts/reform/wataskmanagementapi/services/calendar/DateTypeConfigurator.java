@@ -225,7 +225,7 @@ public class DateTypeConfigurator {
             .collect(Collectors.toList());
 
         if (dateTypeResponse != null) {
-            Optional.of(dateTypeResponse).filter(r -> !r.getValue().getValue().isBlank()).map(filtered::add);
+            Optional.of(dateTypeResponse).filter(r -> !r.getValue().getValue().isBlank()).ifPresent(filtered::add);
         }
         configResponses.getAndSet(filtered);
     }
