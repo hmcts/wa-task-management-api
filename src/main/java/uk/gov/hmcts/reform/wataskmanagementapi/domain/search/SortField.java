@@ -10,8 +10,8 @@ public enum SortField {
     DUE_DATE_CAMEL_CASE("dueDate", "due_date_time", "dueDateTime"),
     DUE_DATE_SNAKE_CASE("due_date", "due_date_time", "dueDateTime"),
 
-    TASK_TITLE_CAMEL_CASE("taskTitle", "task_title", "title"),
-    TASK_TITLE_SNAKE_CASE("task_title", "task_title", "title"),
+    TASK_TITLE_CAMEL_CASE("taskTitle", "title", "title"),
+    TASK_TITLE_SNAKE_CASE("task_title", "title", "title"),
 
     LOCATION_NAME_CAMEL_CASE("locationName", "location_name", "locationName"),
     LOCATION_NAME_SNAKE_CASE("location_name", "location_name", "locationName"),
