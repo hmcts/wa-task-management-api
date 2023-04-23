@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 
 /**
  * We test logical replication in here.
@@ -130,13 +130,73 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
             UUID.randomUUID().toString(),
             "someTaskName",
             "someTaskType",
-            UNCONFIGURED,
+            UNASSIGNED,
             "987654",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResource.setCreated(OffsetDateTime.now());
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedAction("Configure");
         return taskResourceRepository.save(taskResource);
+    }
+
+
+    private TaskResource createAndSaveThisTask(String taskId) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            UNASSIGNED,
+            "987654",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+        );
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedAction("Configure");
+        return taskResourceRepository.save(taskResource);
+    }
+
+    private TaskResource createAndSaveReconfigurationTask(String taskId) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            UNASSIGNED,
+            "666",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+        );
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedAction("Configure");
+        taskResource.setReconfigureRequestTime(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
+        return taskResourceRepository.save(taskResource);
+    }
+
+    @Test
+    void should_save_first_task_and_ignore_reconfiguration_save() {
+        String taskId = UUID.randomUUID().toString();
+        TaskResource taskResource = createAndSaveThisTask(taskId);
+        createAndSaveReconfigurationTask(taskId);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(taskId);
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(taskId, reportableTaskList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
+                    assertEquals("666", reportableTaskList.get(0).getCaseId());
+
+                    List<TaskHistoryResource> taskHistoryList
+                        = miReportingService.findByTaskId(taskId);
+                    assertEquals(2, taskHistoryList.size());
+                    return true;
+                });
     }
 
 }
