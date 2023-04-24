@@ -65,7 +65,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultHistory.prettyPrint();
         resultHistory.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("task_history_list.size()", equalTo(1))
+            .body("task_history_list.size()", equalTo(2))
             .body("task_history_list.get(0).state", equalTo("UNASSIGNED"))
             .body("task_history_list.get(0).assignee", equalTo(null))
             .body("task_history_list.get(0).updated_by", notNullValue())
@@ -100,17 +100,22 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultHistory.prettyPrint();
         resultHistory.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("task_history_list.size()", equalTo(2))
+            .body("task_history_list.size()", equalTo(3))
             .body("task_history_list.get(0).state", equalTo("UNASSIGNED"))
             .body("task_history_list.get(0).assignee", equalTo(null))
             .body("task_history_list.get(0).updated_by", notNullValue())
             .body("task_history_list.get(0).updated", notNullValue())
             .body("task_history_list.get(0).update_action", equalTo("Configure"))
-            .body("task_history_list.get(1).state", equalTo("ASSIGNED"))
-            .body("task_history_list.get(1).assignee", notNullValue())
+            .body("task_history_list.get(1).state", equalTo("UNASSIGNED"))
+            .body("task_history_list.get(1).assignee", equalTo(null))
             .body("task_history_list.get(1).updated_by", notNullValue())
             .body("task_history_list.get(1).updated", notNullValue())
-            .body("task_history_list.get(1).update_action", equalTo("Claim"));
+            .body("task_history_list.get(1).update_action", equalTo("Configure"))
+            .body("task_history_list.get(2).state", equalTo("ASSIGNED"))
+            .body("task_history_list.get(2).assignee", notNullValue())
+            .body("task_history_list.get(2).updated_by", notNullValue())
+            .body("task_history_list.get(2).updated", notNullValue())
+            .body("task_history_list.get(2).update_action", equalTo("Claim"));
 
         common.cleanUpTask(taskId);
     }
@@ -151,14 +156,15 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultHistory.prettyPrint();
         resultHistory.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("task_history_list.size()", equalTo(3))
+            .body("task_history_list.size()", equalTo(4))
             .body("task_history_list.get(0).update_action", equalTo("Configure"))
-            .body("task_history_list.get(1).update_action", equalTo("Claim"))
-            .body("task_history_list.get(2).state", equalTo("TERMINATED"))
-            .body("task_history_list.get(2).assignee", notNullValue())
-            .body("task_history_list.get(2).updated_by", notNullValue())
-            .body("task_history_list.get(2).updated", notNullValue())
-            .body("task_history_list.get(2).update_action", equalTo("AutoCancel"));
+            .body("task_history_list.get(1).update_action", equalTo("Configure"))
+            .body("task_history_list.get(2).update_action", equalTo("Claim"))
+            .body("task_history_list.get(3).state", equalTo("TERMINATED"))
+            .body("task_history_list.get(3).assignee", notNullValue())
+            .body("task_history_list.get(3).updated_by", notNullValue())
+            .body("task_history_list.get(3).updated", notNullValue())
+            .body("task_history_list.get(3).update_action", equalTo("AutoCancel"));
 
         common.cleanUpTask(taskId);
     }
