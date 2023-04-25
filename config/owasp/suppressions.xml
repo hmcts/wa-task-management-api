@@ -59,6 +59,12 @@
   </suppress>
   <suppress>
     <notes>
+      This CVE is related to spring-boot-starter-json 2.7.7, spring boot 3 needed
+    </notes>
+    <cve>CVE-2023-20863</cve>
+  </suppress>
+  <suppress>
+    <notes>
       com.launchdarkly:launchdarkly-java-server-sdk:5.10.2 is directly used by spring-boot-starter-json 2.7.7, spring boot 3 needed
     </notes>
     <cve>CVE-2022-1471</cve>

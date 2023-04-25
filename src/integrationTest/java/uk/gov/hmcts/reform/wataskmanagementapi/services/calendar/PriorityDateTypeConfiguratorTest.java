@@ -1049,7 +1049,7 @@ public class PriorityDateTypeConfiguratorTest {
             taskAttributes
         ))
             .isInstanceOf(DateCalculationException.class)
-            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
+            .hasMessage(String.format(INVALID_DATE_REFERENCE_FIELD, "dueDate"));
     }
 
     @Test

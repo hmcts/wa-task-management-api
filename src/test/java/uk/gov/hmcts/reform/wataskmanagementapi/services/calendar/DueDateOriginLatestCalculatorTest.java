@@ -189,7 +189,7 @@ class DueDateOriginLatestCalculatorTest {
                 calculatedConfigurations
             ))
             .isInstanceOf(DateCalculationException.class)
-            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
+            .hasMessage(String.format(INVALID_DATE_REFERENCE_FIELD, "priorityDate"));
     }
 
     @ParameterizedTest

@@ -1113,7 +1113,7 @@ public class DueDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
+            .hasMessage(String.format(INVALID_DATE_REFERENCE_FIELD, "priorityDate"));
     }
 
     @Test
@@ -1477,7 +1477,7 @@ public class DueDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
+            .hasMessage(String.format(INVALID_DATE_REFERENCE_FIELD, "hearingDateIntervalDate"));
     }
 
     @Test
@@ -1511,6 +1511,6 @@ public class DueDateTypeConfiguratorTest {
                 taskAttributes
             ))
             .isInstanceOf(RuntimeException.class)
-            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
+            .hasMessage(String.format(INVALID_DATE_REFERENCE_FIELD, "hearingDateIntervalDate"));
     }
 }

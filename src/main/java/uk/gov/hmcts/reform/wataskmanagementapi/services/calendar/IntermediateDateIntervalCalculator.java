@@ -61,7 +61,7 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
                 readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, isReconfigureRequest),
                 localDateTime,
                 isReconfigureRequest))
-            .orElse(null);
+            .orElse(addEmptyConfiguration(dateTypeObject.dateTypeName()));
     }
 
     protected Optional<LocalDateTime> getReferenceDate(
@@ -78,6 +78,13 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
                 return v.getValue().getValue();
             })
             .map(this::parseDateTime);
+    }
+
+    private  ConfigurationDmnEvaluationResponse addEmptyConfiguration(String type) {
+        return ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue(type))
+            .value(CamundaValue.stringValue(""))
+            .build();
     }
 
     protected DateTypeIntervalData readDateTypeOriginFields(
