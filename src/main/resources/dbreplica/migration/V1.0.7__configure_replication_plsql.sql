@@ -37,8 +37,9 @@ begin
             intersect  select not exists (select 1 from cft_task_db.task_history where task_history.task_id = l_task.task_id having count(*) > 1)
     into l_new_task;
 
-  if (l_task.last_updated_action = 'Configure') and (l_task.state = 'UNASSIGNED')
-                                                and (l_task.last_reconfiguration_time is null) then
+  if (l_task.last_reconfiguration_time is null) and
+      ((l_task.last_updated_action = 'Configure' and l_task.state in ('UNASSIGNED', 'ASSIGNED'))
+        or (l_task.last_updated_action = 'AutoAssign' and l_task.state = 'ASSIGNED')) then
     l_result_action = 'insert';
     if not l_new_task then
       l_result_action = 'update';

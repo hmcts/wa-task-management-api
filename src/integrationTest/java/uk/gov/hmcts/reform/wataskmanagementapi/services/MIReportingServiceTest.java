@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ActiveProfiles;
@@ -12,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -26,6 +29,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
@@ -141,42 +145,50 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
 
-    private TaskResource createAndSaveThisTask(String taskId) {
+    private TaskResource createAndSaveThisTask(String taskId, String taskName,
+                                               CFTTaskState taskState, String lastAction) {
         TaskResource taskResource = new TaskResource(
             taskId,
-            "someTaskName",
+            taskName,
             "someTaskType",
-            UNASSIGNED,
+            taskState,
             "987654",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResource.setCreated(OffsetDateTime.now());
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
-        taskResource.setLastUpdatedAction("Configure");
+        taskResource.setLastUpdatedAction(lastAction);
         return taskResourceRepository.save(taskResource);
     }
 
-    private TaskResource createAndSaveReconfigurationTask(String taskId) {
+    private TaskResource createAndSaveTaskWithLastReconfigurationTime(String taskId, String taskName,
+                                                                      CFTTaskState taskState, String lastAction) {
         TaskResource taskResource = new TaskResource(
             taskId,
-            "someTaskName",
+            taskName,
             "someTaskType",
-            UNASSIGNED,
-            "666",
+            taskState,
+            "987654",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResource.setCreated(OffsetDateTime.now());
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
-        taskResource.setLastUpdatedAction("Configure");
-        taskResource.setReconfigureRequestTime(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedAction(lastAction);
+        taskResource.setLastReconfigurationTime(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
         return taskResourceRepository.save(taskResource);
     }
 
-    @Test
-    void should_save_first_task_and_ignore_reconfiguration_save() {
+    @ParameterizedTest
+    @CsvSource(value = {
+        "UNASSIGNED,Configure",
+        "ASSIGNED,AutoAssign",
+        "ASSIGNED,Configure"
+    })
+    void should_insert_first_task_and_update_reconfiguration_task(String state, String lastAction) {
         String taskId = UUID.randomUUID().toString();
-        TaskResource taskResource = createAndSaveThisTask(taskId);
-        createAndSaveReconfigurationTask(taskId);
+        createAndSaveThisTask(taskId, "FirstTask", CFTTaskState.valueOf(state), lastAction);
+        createAndSaveTaskWithLastReconfigurationTime(taskId,
+                                                     "SecondTask", CFTTaskState.valueOf(state), lastAction);
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -189,12 +201,37 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
                     assertEquals(taskId, reportableTaskList.get(0).getTaskId());
-                    assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
-                    assertEquals("666", reportableTaskList.get(0).getCaseId());
+                    assertEquals("SecondTask", reportableTaskList.get(0).getTaskName());
 
                     List<TaskHistoryResource> taskHistoryList
                         = miReportingService.findByTaskId(taskId);
                     assertEquals(2, taskHistoryList.size());
+                    return true;
+                });
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "UNASSIGNED,Configure",
+        "ASSIGNED,AutoAssign"
+    })
+    void should_ignore_insert_reconfiguration_task(String state, String lastAction) {
+        String taskId = UUID.randomUUID().toString();
+        createAndSaveTaskWithLastReconfigurationTime(taskId,
+                                                     "SecondTask", CFTTaskState.valueOf(state), lastAction);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(taskId);
+
+                    assertTrue(reportableTaskList.isEmpty());
+                    List<TaskHistoryResource> taskHistoryList
+                        = miReportingService.findByTaskId(taskId);
+                    assertEquals(1, taskHistoryList.size());
                     return true;
                 });
     }
