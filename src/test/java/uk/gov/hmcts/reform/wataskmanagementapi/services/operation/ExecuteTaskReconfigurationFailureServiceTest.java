@@ -30,7 +30,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(value = {MockitoExtension.class, OutputCaptureExtension.class})
 class ExecuteTaskReconfigurationFailureServiceTest {
 
