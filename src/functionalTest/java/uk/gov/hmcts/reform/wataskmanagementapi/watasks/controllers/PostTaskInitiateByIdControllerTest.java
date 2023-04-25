@@ -597,6 +597,59 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
+    public void should_calculate_due_date_and_priority_date_using_intervals() {
+
+        TestVariables taskVariables =
+            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_empty_hearing_date.json",
+                                             "functionalTestTask2", "functional Test Task 2"
+            );
+        String taskId = taskVariables.getTaskId();
+
+        Consumer<Response> assertConsumer = (result) -> {
+            //Note: this is the TaskResource.class
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("functional Test Task 2"))
+                .body("task.type", equalTo("functionalTestTask2"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.task_system", equalTo("SELF"))
+                .body("task.security_classification", equalTo("PUBLIC"))
+                .body("task.task_title", equalTo("functional Test Task 2"))
+                .body("task.created_date", notNullValue())
+                .body("task.due_date", notNullValue())
+                .body("task.location_name", equalTo("Taylor House"))
+                .body("task.location", equalTo("765324"))
+                .body("task.execution_type", equalTo("Case Management Task"))
+                .body("task.jurisdiction", equalTo("WA"))
+                .body("task.region", equalTo("1"))
+                .body("task.case_type_id", equalTo("WaCaseType"))
+                .body("task.case_id", equalTo(taskVariables.getCaseId()))
+                .body("task.case_category", equalTo("Protection"))
+                .body("task.case_name", equalTo("Bob Smith"))
+                .body("task.auto_assigned", equalTo(false))
+                .body("task.warnings", equalTo(false))
+                .body("task.case_management_category", equalTo("Protection"))
+                .body("task.next_hearing_date", nullValue())
+                .body("task.priority_date", equalTo("2023-01-04T18:00:00+0000"))
+                .body("task.due_date", equalTo("2023-01-04T18:00:00+0000"));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
     public void should_initiate_review_appeal_skeleton_argument_task_with_ctsc_category() {
         TestVariables taskVariables
             = common.setupWATaskAndRetrieveIds(
