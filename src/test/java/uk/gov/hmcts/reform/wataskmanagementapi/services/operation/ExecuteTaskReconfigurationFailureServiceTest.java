@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
@@ -20,13 +22,15 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(value = { MockitoExtension.class, OutputCaptureExtension.class })
 class ExecuteTaskReconfigurationFailureServiceTest {
 
     @Mock
@@ -64,7 +68,7 @@ class ExecuteTaskReconfigurationFailureServiceTest {
     }
 
     @Test
-    void should_get_reconfiguration_fail_log() {
+    void should_get_reconfiguration_fail_log(CapturedOutput output) {
 
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
@@ -84,6 +88,14 @@ class ExecuteTaskReconfigurationFailureServiceTest {
         List<TaskResource> actualTasks = taskReconfigurationFailureService.performOperation(request);
 
         assertEquals(actualTasks.size(), taskResources.size());
+        String failureLogMessage = taskResources.stream()
+            .map(task -> "\n" + task.getTaskId()
+                         + " ," + task.getTaskName()
+                         + " ," + task.getState()
+                         + " ," + task.getReconfigureRequestTime()
+                         + " ," + task.getLastReconfigurationTime())
+            .collect(Collectors.joining());
+        assertTrue(output.getOut().contains("Task Execute Reconfiguration Failed for following tasks " + failureLogMessage));
     }
 
     @Test

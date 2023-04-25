@@ -45,7 +45,7 @@ public class ExecuteTaskReconfigurationFailureServiceTest {
     }
 
     @Test
-    void should_get_reconfiguration_fail_log() {
+    void should_get_reconfiguration_failed_records() {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
 
         TaskOperationRequest taskOperationRequest = new TaskOperationRequest(
