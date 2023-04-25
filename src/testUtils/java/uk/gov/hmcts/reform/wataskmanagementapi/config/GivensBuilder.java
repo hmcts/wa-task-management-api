@@ -339,6 +339,14 @@ public class GivensBuilder {
         );
     }
 
+    public void updateWACcdCase(String caseId, Map<String, Object> updates, String event) {
+        TestAuthenticationCredentials lawFirmCredentials
+            = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
+        updateCase("WA", "WaCaseType", event,
+                   caseId, lawFirmCredentials, updates
+        );
+    }
+
     public String createCCDCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
                                                                     String caseType,
                                                                     String startEventId,
@@ -419,15 +427,37 @@ public class GivensBuilder {
 
         log.info("Created case [" + caseDetails.getId() + "]");
 
+        updateCase(jurisdiction, caseType, submitEventId, caseDetails.getId().toString(), credentials, Map.of());
+
+        authorizationProvider.deleteAccount(credentials.getAccount().getUsername());
+
+        return caseDetails.getId().toString();
+    }
+
+    private void updateCase(String jurisdiction,
+                            String caseType,
+                            String submitEventId,
+                            String caseId,
+                            TestAuthenticationCredentials credentials,
+                            Map<String, Object> updates
+    ) {
+
+        String userToken = credentials.getHeaders().getValue(AUTHORIZATION);
+        String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
+        UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
         StartEventResponse submitCase = ccdRetryableClient.startEventForCaseWorker(
             userToken,
             serviceToken,
             userInfo.getUid(),
             jurisdiction,
             caseType,
-            caseDetails.getId().toString(),
+            caseId,
             submitEventId
         );
+
+        Map<String, Object> data = submitCase.getCaseDetails().getData();
+
+        data.putAll(updates);
 
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
@@ -445,15 +475,12 @@ public class GivensBuilder {
             userInfo.getUid(),
             jurisdiction,
             caseType,
-            caseDetails.getId().toString(),
+            caseId,
             true,
             submitCaseDataContent
         );
-        log.info("Submitted case [" + caseDetails.getId() + "]");
 
-        authorizationProvider.deleteAccount(credentials.getAccount().getUsername());
-
-        return caseDetails.getId().toString();
+        log.info("Submitted case [" + caseId + "]");
     }
 
     public Map<String, DmnValue<?>> standaloneProcessVariables(String caseId,
