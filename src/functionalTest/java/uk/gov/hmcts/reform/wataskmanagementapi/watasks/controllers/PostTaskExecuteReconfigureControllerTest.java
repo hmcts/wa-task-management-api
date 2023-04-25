@@ -170,7 +170,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
 
     @Test
-    public void should_return_204_after_task_marked_but_not_executed_and_failure_process_finds_unprocessed_log_message()
+    public void should_return_204_after_task_marked_but_not_executed_and_failure_process_finds_unprocessed_record()
         throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication",
@@ -239,6 +239,25 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             ),
             assigneeCredentials.getHeaders()
         );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value()); //Default max results
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue());
 
         common.cleanUpTask(taskId);
     }

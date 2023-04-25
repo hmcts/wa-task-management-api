@@ -46,10 +46,10 @@ public class ExecuteTaskReconfigurationFailureService implements TaskOperationPe
             log.warn(ERROR_TITLE,
                 taskResources.stream()
                     .map(task -> "\n" + task.getTaskId()
-                                 + " ," + task.getTaskName()
-                                 + " ," + task.getState()
-                                 + " ," + task.getReconfigureRequestTime()
-                                 + " ," + task.getLastReconfigurationTime())
+                                 + ", " + task.getTaskName()
+                                 + ", " + task.getState()
+                                 + ", " + task.getReconfigureRequestTime()
+                                 + ", " + task.getLastReconfigurationTime())
                     .collect(Collectors.joining()));
         }
         return taskResources;
