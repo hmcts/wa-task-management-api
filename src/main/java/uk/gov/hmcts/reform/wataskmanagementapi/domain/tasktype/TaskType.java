@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,8 +14,10 @@ import java.util.Locale;
 @Slf4j
 public class TaskType {
 
+    @Schema(name = "task_type_id")
     private final String taskTypeId;
 
+    @Schema(name = "task_type_name")
     private final String taskTypeName;
 
     @JsonCreator
