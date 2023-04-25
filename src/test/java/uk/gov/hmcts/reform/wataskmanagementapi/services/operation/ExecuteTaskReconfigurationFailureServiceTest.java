@@ -30,7 +30,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(value = { MockitoExtension.class, OutputCaptureExtension.class })
+
+@ExtendWith(value = {MockitoExtension.class, OutputCaptureExtension.class})
 class ExecuteTaskReconfigurationFailureServiceTest {
 
     @Mock
@@ -38,6 +39,59 @@ class ExecuteTaskReconfigurationFailureServiceTest {
     @InjectMocks
     private ExecuteTaskReconfigurationFailureService taskReconfigurationFailureService;
 
+    @Test
+    void should_get_reconfiguration_fail_log(CapturedOutput output) {
+
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
+        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
+
+        when(cftTaskDatabaseService
+            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(anyList(), any())
+        ).thenReturn(taskResources);
+
+        TaskOperationRequest request = new TaskOperationRequest(
+            TaskOperation.builder()
+                .type(TaskOperationType.EXECUTE_RECONFIGURE_FAILURES)
+                .runId("")
+                .maxTimeLimit(2)
+                .build(), taskFilters
+        );
+
+        List<TaskResource> actualTasks = taskReconfigurationFailureService.performOperation(request);
+
+        assertEquals(actualTasks.size(), taskResources.size());
+        String failureLogMessage = taskResources.stream()
+            .map(task -> "\n" + task.getTaskId()
+                + ", " + task.getTaskName()
+                + ", " + task.getState()
+                + ", " + task.getReconfigureRequestTime()
+                + ", " + task.getLastReconfigurationTime())
+            .collect(Collectors.joining());
+        assertTrue(output.getOut().contains("Task Execute Reconfiguration Failed for following tasks "
+                                            + failureLogMessage));
+    }
+
+    @Test
+    void should_get_no_tasks_on_reconfiguration_fail_log() {
+
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
+
+        when(cftTaskDatabaseService
+            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(anyList(), any())
+        ).thenReturn(Collections.emptyList());
+
+        TaskOperationRequest request = new TaskOperationRequest(
+            TaskOperation.builder()
+                .type(TaskOperationType.EXECUTE_RECONFIGURE_FAILURES)
+                .runId("")
+                .maxTimeLimit(2)
+                .build(), taskFilters
+        );
+
+        List<TaskResource> taskResourcesReconfigured = taskReconfigurationFailureService
+            .performOperation(request);
+        assertEquals(0, taskResourcesReconfigured.size());
+    }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
         ExecuteReconfigureTaskFilter filter = new ExecuteReconfigureTaskFilter(
@@ -67,58 +121,4 @@ class ExecuteTaskReconfigurationFailureServiceTest {
         return List.of(taskResource1, taskResource2);
     }
 
-    @Test
-    void should_get_reconfiguration_fail_log(CapturedOutput output) {
-
-        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
-        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
-
-        when(cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(anyList(), any())
-        ).thenReturn(taskResources);
-
-        TaskOperationRequest request = new TaskOperationRequest(
-            TaskOperation.builder()
-                .type(TaskOperationType.EXECUTE_RECONFIGURE_FAILURES)
-                .runId("")
-                .maxTimeLimit(2)
-                .build(), taskFilters
-        );
-
-        List<TaskResource> actualTasks = taskReconfigurationFailureService.performOperation(request);
-
-        assertEquals(actualTasks.size(), taskResources.size());
-        String failureLogMessage = taskResources.stream()
-            .map(task -> "\n" + task.getTaskId()
-                         + " ," + task.getTaskName()
-                         + " ," + task.getState()
-                         + " ," + task.getReconfigureRequestTime()
-                         + " ," + task.getLastReconfigurationTime())
-            .collect(Collectors.joining());
-        assertTrue(output.getOut().contains("Task Execute Reconfiguration Failed for following tasks " + failureLogMessage));
-    }
-
-    @Test
-    void should_get_no_tasks_on_reconfiguration_fail_log() {
-
-        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
-
-        when(cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(anyList(), any())
-        ).thenReturn(Collections.emptyList());
-
-        TaskOperationRequest request = new TaskOperationRequest(
-            TaskOperation.builder()
-                .type(TaskOperationType.EXECUTE_RECONFIGURE_FAILURES)
-                .runId("")
-                .maxTimeLimit(2)
-                .build(), taskFilters
-        );
-
-        List<TaskResource> taskResourcesReconfigured = taskReconfigurationFailureService
-            .performOperation(request);
-        assertEquals(0, taskResourcesReconfigured.size());
-    }
-
 }
-
