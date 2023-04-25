@@ -351,7 +351,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    public void should_recalculate_next_hearing_date_using_interval_calculation_when_executed_for_reconfigure() {
+    public void should_recalculate_next_hearing_date_using_interval_calculation_when_executed_for_reconfigure()
+        throws InterruptedException {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "functionalTestTask1",
@@ -432,6 +433,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         log.info("after reconfiguration execute");
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
+        Thread.sleep(3000L);
 
         taskId = taskVariables.getTaskId();
 
