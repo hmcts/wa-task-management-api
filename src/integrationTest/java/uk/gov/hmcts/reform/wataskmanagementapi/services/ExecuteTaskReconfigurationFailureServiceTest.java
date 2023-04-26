@@ -3,9 +3,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -21,14 +24,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ExecuteTaskRec
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/reconfigure_task_data.sql")
+@ExtendWith(OutputCaptureExtension.class)
 public class ExecuteTaskReconfigurationFailureServiceTest {
     @Autowired
     TaskResourceRepository taskResourceRepository;
@@ -45,7 +51,7 @@ public class ExecuteTaskReconfigurationFailureServiceTest {
     }
 
     @Test
-    void should_get_reconfiguration_failed_records() {
+    void should_get_reconfiguration_failed_records(CapturedOutput output) {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
 
         TaskOperationRequest taskOperationRequest = new TaskOperationRequest(
@@ -62,6 +68,16 @@ public class ExecuteTaskReconfigurationFailureServiceTest {
         );
 
         assertEquals(failedTasks.size(), 1);
+
+        String failureLogMessage = failedTasks.stream()
+            .map(task -> "\n" + task.getTaskId()
+                         + ", " + task.getTaskName()
+                         + ", " + task.getState()
+                         + ", " + task.getReconfigureRequestTime()
+                         + ", " + task.getLastReconfigurationTime())
+            .collect(Collectors.joining());
+        assertTrue(output.getOut().contains("Task Execute Reconfiguration Failed for following tasks "
+                                            + failureLogMessage));
     }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
