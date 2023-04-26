@@ -8,6 +8,7 @@ AS $function$
 declare
   l_update_id bigint;
 begin
+if l_task.case_id is not null then
 insert into cft_task_db.task_history
 (task_id, task_name, task_type, due_date_time,
  state, task_system, security_classification,
@@ -29,6 +30,7 @@ values
    l_task.termination_reason, l_task.created, l_task.last_updated_user, l_task.last_updated_timestamp,
    l_task.last_updated_action)
   returning update_id into l_update_id;
+end if;
 return l_update_id;
 end $function$
 ;

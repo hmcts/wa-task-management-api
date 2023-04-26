@@ -16,7 +16,7 @@ public interface TaskHistoryResourceRepository
         "select count(*) from pg_subscription pgp WHERE subname='task_subscription';";
 
 
-    List<TaskHistoryResource> getByTaskId(String taskId);
+    List<TaskHistoryResource> findAllByTaskIdOrderByUpdatedAsc(String taskId);
 
     List<TaskHistoryResource> getByCaseId(String caseId);
 
