@@ -33,7 +33,7 @@ public class MIReportingService {
     }
 
     public List<TaskHistoryResource> findByTaskId(String taskId) {
-        return taskHistoryRepository.getByTaskId(taskId);
+        return taskHistoryRepository.findAllByTaskIdOrderByUpdatedAsc(taskId);
     }
 
     public void logicalReplicationCheck() {

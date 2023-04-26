@@ -110,6 +110,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
             "someTaskName",
             "someTaskType",
             UNCONFIGURED,
+            "CASE_ID",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResource.setCreated(OffsetDateTime.now());
