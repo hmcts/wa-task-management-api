@@ -32,9 +32,9 @@ java:
           alias: POSTGRES_PORT
         - name: cft-task-POSTGRES-DATABASE-FLEXIBLE
           alias: POSTGRES_NAME
-        - name: cft-task-POSTGRES-REPLICA-PASS-FLEXIBLE-REPLICA
+        - name: cft-task-POSTGRES-FLEXIBLE-REPLICA-PASS
           alias: REPLICATION_PASSWORD
-        - name: cft-task-POSTGRES-REPLICA-USER-FLEXIBLE-REPLICA
+        - name: cft-task-POSTGRES-FLEXIBLE-REPLICA-USER
           alias: REPLICATION_USERNAME
         - name: cft-task-POSTGRES-PORT-FLEXIBLE-REPLICA
           alias: POSTGRES_PORT
