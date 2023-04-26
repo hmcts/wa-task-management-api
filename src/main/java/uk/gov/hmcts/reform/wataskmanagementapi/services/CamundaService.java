@@ -73,8 +73,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 })
 public class CamundaService {
 
-    public static final String THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH = "There was a problem performing the search";
-
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
 
     private final CamundaServiceApi camundaServiceApi;
@@ -392,6 +390,7 @@ public class CamundaService {
 
         try {
             camundaServiceApi.assignTask(authTokenGenerator.generate(), taskId, body);
+            log.info("Task id '{}' assigned to user id: '{}'", taskId, userId);
         } catch (FeignException ex) {
             throw new CamundaTaskAssignException(ex);
         }
@@ -407,7 +406,7 @@ public class CamundaService {
         updateTaskStateTo(taskId, TaskState.ASSIGNED);
         try {
             camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
-            log.debug("Task id '{}' successfully claimed", taskId);
+            log.info("Task id '{}' successfully claimed", taskId);
         } catch (FeignException ex) {
             CamundaExceptionMessage camundaException =
                 camundaObjectMapper.readValue(ex.contentUTF8(), CamundaExceptionMessage.class);
@@ -443,7 +442,7 @@ public class CamundaService {
 
         try {
             camundaServiceApi.completeTask(authTokenGenerator.generate(), taskId, new CompleteTaskVariables());
-            log.debug("Task '{}' completed", taskId);
+            log.info("Task '{}' completed", taskId);
         } catch (FeignException ex) {
             log.error("There was a problem completing the task '{}'", taskId);
             throw new CamundaTaskCompleteException(ex);
@@ -463,7 +462,7 @@ public class CamundaService {
         }
         try {
             camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
-            log.debug("Task id '{}' unclaimed", taskId);
+            log.info("Task id '{}' unclaimed", taskId);
         } catch (FeignException ex) {
             log.error("There was a problem while claiming task id '{}'", taskId);
             throw new CamundaTaskUnclaimException(ex);
@@ -494,7 +493,7 @@ public class CamundaService {
             throw new CamundaCftTaskStateUpdateException(ex);
         }
 
-        log.debug("Updated task '{}' with cft task state '{}'", taskId, newState.value());
+        log.info("Updated task '{}' with cft task state '{}'", taskId, newState.value());
     }
 
     /**
@@ -518,7 +517,7 @@ public class CamundaService {
             throw new CamundaTaskStateUpdateException(ex);
         }
 
-        log.debug("Updated task '{}' with state '{}'", taskId, newState.value());
+        log.info("Updated task '{}' with state '{}'", taskId, newState.value());
     }
 
     /**
@@ -531,7 +530,7 @@ public class CamundaService {
         body.put("escalationCode", ESCALATION_CODE);
         try {
             camundaServiceApi.bpmnEscalation(authTokenGenerator.generate(), taskId, body);
-            log.debug("Task id '{}' cancelled", taskId);
+            log.info("Task id '{}' cancelled", taskId);
         } catch (FeignException ex) {
             log.error("Task id '{}' could not be cancelled", taskId);
             throw new CamundaTaskCancelException(ex);
