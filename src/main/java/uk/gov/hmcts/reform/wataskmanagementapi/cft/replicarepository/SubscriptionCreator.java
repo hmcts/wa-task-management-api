@@ -36,8 +36,8 @@ public class SubscriptionCreator {
 
     public SubscriptionCreator(@Value("${replication.username}") String replicaUser,
                                @Value("${replication.password}") String replicaPassword,
-                               @Value("${replication.username}") String primaryUser,
-                               @Value("${replication.password}") String primaryPassword) {
+                               @Value("${primary.username}") String primaryUser,
+                               @Value("${primary.password}") String primaryPassword) {
         this.replicaUser = replicaUser;
         this.replicaPassword = replicaPassword;
         this.primaryUser = primaryUser;
