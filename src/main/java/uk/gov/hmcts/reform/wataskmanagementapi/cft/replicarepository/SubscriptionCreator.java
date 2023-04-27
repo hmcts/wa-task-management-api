@@ -28,13 +28,20 @@ public class SubscriptionCreator {
     @Qualifier("replicaDataSource")
     private DataSource replicaDataSource;
 
-    String user;
-    String password;
+    String replicaUser;
+    String replicaPassword;
+    String primaryUser;
+    String primaryPassword;
 
-    public SubscriptionCreator(@Value("${replication.username}") String user,
-                               @Value("${replication.password}") String password) {
-        this.user = user;
-        this.password = password;
+
+    public SubscriptionCreator(@Value("${replication.username}") String replicaUser,
+                               @Value("${replication.password}") String replicaPassword,
+                               @Value("${replication.username}") String primaryUser,
+                               @Value("${replication.password}") String primaryPassword) {
+        this.replicaUser = replicaUser;
+        this.replicaPassword = replicaPassword;
+        this.primaryUser = primaryUser;
+        this.primaryPassword = primaryPassword;
     }
 
     public void createSubscription() {
@@ -55,7 +62,7 @@ public class SubscriptionCreator {
             String replicaPort = replicaProperties.get("PGPORT").toString();
             String replicaDbName = replicaProperties.get("PGDBNAME").toString();
 
-            createSubscription(user, password, host, port, dbName, replicaHost, replicaPort, replicaDbName);
+            createSubscription(host, port, dbName, replicaHost, replicaPort, replicaDbName);
             log.info("Subscription created for: " + host + ":" + port + "/" + dbName);
 
         } catch (SQLException ex) {
@@ -63,22 +70,22 @@ public class SubscriptionCreator {
         }
     }
 
-    void createSubscription(String user, String password, String host, String port, String dbName,
+    void createSubscription(String host, String port, String dbName,
                             String replicaHost, String replicaPort, String replicaDbName) {
 
-        String replicaUrl = "jdbc:postgresql://" + host + ":" + replicaPort + "/" + replicaDbName
-            + "?user=" + user + "&password=" + password;
+        String replicaUrl = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
+            + "?user=" + replicaUser + "&password=" + replicaPassword;
         log.info("replicaUrl = " + replicaUrl);
 
         String subscriptionUrl;
         if ("5432".equals(port)) {
             //hard coded host for local environment, will need fixing when we move to remote environments
             subscriptionUrl = "postgresql://" + host + ":" + port + "/" + dbName
-                + "?user=" + user + "&password=" + password;
+                + "?user=" + primaryUser + "&password=" + primaryPassword;
         } else {
             //this is hard coded for integration test locally
             subscriptionUrl = "postgresql://" + "cft_task_db" + ":" + "5432" + "/" + dbName
-                + "?user=" + user + "&password=" + password;
+                + "?user=" + primaryUser + "&password=" + primaryPassword;
         }
 
         log.info("subscriptionUrl" + subscriptionUrl);
