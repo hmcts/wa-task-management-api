@@ -86,12 +86,8 @@ public class OriginLatestDateTypeConfiguratorTest {
         );
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(5)
+            .hasSize(4)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue("2022-10-13T16:00"))
@@ -194,12 +190,8 @@ public class OriginLatestDateTypeConfiguratorTest {
         );
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(4)
+            .hasSize(3)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDuration"))
                     .value(CamundaValue.stringValue("2022-10-15T16:00"))
@@ -431,12 +423,8 @@ public class OriginLatestDateTypeConfiguratorTest {
                 taskAttributes
             );
 
-        assertThat(configurationDmnEvaluationResponses).hasSize(5)
+        assertThat(configurationDmnEvaluationResponses).hasSize(4)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(nextHearingDateValue))

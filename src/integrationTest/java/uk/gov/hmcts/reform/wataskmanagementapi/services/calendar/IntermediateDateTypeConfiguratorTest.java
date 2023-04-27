@@ -95,13 +95,8 @@ public class IntermediateDateTypeConfiguratorTest {
             = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(5)
+            .hasSize(4)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("calculatedDates"))
-                    .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .canReconfigure(CamundaValue.booleanValue(configurable))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue("2022-10-13T16:00"))
@@ -172,13 +167,8 @@ public class IntermediateDateTypeConfiguratorTest {
             = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(5)
+            .hasSize(4)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("calculatedDates"))
-                    .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .canReconfigure(CamundaValue.booleanValue(configurable))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue("2022-10-13T16:00"))
@@ -253,13 +243,8 @@ public class IntermediateDateTypeConfiguratorTest {
             = dateTypeConfigurator.configureDates(evaluationResponses, false, configurable, taskAttributes);
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(6)
+            .hasSize(5)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("calculatedDates"))
-                    .value(stringValue(calculatedDatesValue))
-                    .canReconfigure(CamundaValue.booleanValue(configurable))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue("2022-10-13T16:00"))
@@ -625,13 +610,8 @@ public class IntermediateDateTypeConfiguratorTest {
             configurable,
             taskAttributes
         );
-        assertThat(configurationDmnEvaluationResponses).hasSize(4)
+        assertThat(configurationDmnEvaluationResponses).hasSize(3)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("calculatedDates"))
-                    .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .canReconfigure(CamundaValue.booleanValue(configurable))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue("2022-10-13T16:00"))
@@ -692,13 +672,8 @@ public class IntermediateDateTypeConfiguratorTest {
             false,
             configurable,
             taskAttributes
-        )).hasSize(4)
+        )).hasSize(3)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("calculatedDates"))
-                    .value(stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .canReconfigure(CamundaValue.booleanValue(configurable))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue("2022-10-13T16:00"))
@@ -918,12 +893,8 @@ public class IntermediateDateTypeConfiguratorTest {
                 ), false, true, taskAttributes
             );
 
-        assertThat(configurationDmnEvaluationResponses).hasSize(5)
+        assertThat(configurationDmnEvaluationResponses).hasSize(4)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("calculatedDates"))
-                    .value(stringValue("nextHearingDate,hearingDatePreDate,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue(nextHearingDateValue + "T16:00"))
@@ -1057,12 +1028,8 @@ public class IntermediateDateTypeConfiguratorTest {
                 ), false, true, taskAttributes
             );
 
-        assertThat(configurationDmnEvaluationResponses).hasSize(5)
+        assertThat(configurationDmnEvaluationResponses).hasSize(4)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("calculatedDates"))
-                    .value(stringValue("nextHearingDate,hearingDatePreDate,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue(nextHearingDateValue + "T16:00"))
@@ -1199,12 +1166,8 @@ public class IntermediateDateTypeConfiguratorTest {
                 ), false, true, taskAttributes
             );
 
-        assertThat(configurationDmnEvaluationResponses).hasSize(5)
+        assertThat(configurationDmnEvaluationResponses).hasSize(4)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("calculatedDates"))
-                    .value(stringValue("nextHearingDate,hearingDatePreDate,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue(nextHearingDateValue + "T16:00"))
@@ -1340,12 +1303,8 @@ public class IntermediateDateTypeConfiguratorTest {
             ), false, true, taskAttributes
         );
 
-        assertThat(evaluationResponses).hasSize(4)
+        assertThat(evaluationResponses).hasSize(3)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(stringValue("calculatedDates"))
-                    .value(stringValue("nextHearingDate,nonSpecifiedIntDate,hearingDatePreDate,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(stringValue("nextHearingDate"))
                     .value(stringValue("2022-10-14T16:00"))
