@@ -1149,7 +1149,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     "values": [
                       "hearing_work","upper_tribunal","routine_work","routine_work","decision_making_work",
                       "applications","priority","error_management","access_requests","review_case","evidence",
-                      "follow_up"
+                      "follow_up","pre_hearing","post_hearing"
                     ]
                   }
                 ]
