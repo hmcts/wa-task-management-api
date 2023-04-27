@@ -86,7 +86,8 @@ public class TaskTypesService {
             }
         );
 
-        return taskTypeResponses.stream().map(TaskTypeResponse::new).collect(Collectors.toSet());
+        return taskTypeResponses.stream().map(TaskTypeResponse::new)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
 
     }
 
