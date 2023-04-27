@@ -63,7 +63,8 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
-        subscriptionCreator = new SubscriptionCreator("repl_user", "repl_password");
+        subscriptionCreator = new SubscriptionCreator("repl_user", "repl_password",
+                                                      "repl_user", "repl_password");
         miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
                                                     subscriptionCreator);
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
