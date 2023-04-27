@@ -20,7 +20,7 @@ public class NoteResource implements Serializable {
     private String code;
     @Schema(name = "note_type")
     private String noteType;
-    @Schema(name = "note_id")
+    @Schema(name = "user_id")
     private String userId;
     private String content;
 

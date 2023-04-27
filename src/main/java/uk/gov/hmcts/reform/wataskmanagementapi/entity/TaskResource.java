@@ -180,10 +180,10 @@ public class TaskResource implements Serializable {
     private OffsetDateTime priorityDate;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
-    @Schema(name = "lastUpdated_timestamp")
+    @Schema(name = "last_updated_timestamp")
     private OffsetDateTime lastUpdatedTimestamp;
 
-    @Schema(name = "lastUpdated_user")
+    @Schema(name = "last_updated_user")
     private String lastUpdatedUser;
 
     @Schema(name = "last_updated_action")
