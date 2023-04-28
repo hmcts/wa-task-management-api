@@ -78,9 +78,9 @@ class TaskTypesServiceTest {
         assertNotNull(response.getTaskTypeResponses());
         assertEquals(1, response.getTaskTypeResponses().size());
         assertEquals("processApplication", response.getTaskTypeResponses()
-            .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId());
+                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId());
         assertEquals("Process Application", response.getTaskTypeResponses()
-            .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName());
+                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName());
 
     }
 
@@ -89,14 +89,14 @@ class TaskTypesServiceTest {
 
         //given
         TaskTypesDmnResponse taskTypesDmnResponse = new TaskTypesDmnResponse(
-            "wa-task-types-wa-wacasetype",
-            "wa",
-            "wa-task-types-wa-wacasetype.dmn"
+                "wa-task-types-wa-wacasetype",
+                "wa",
+                "wa-task-types-wa-wacasetype.dmn"
         );
         Set<TaskTypesDmnResponse> taskTypesDmnResponses = Set.of(taskTypesDmnResponse);
 
         when(dmnEvaluationService.retrieveTaskTypesDmn("wa", "wa-task-types-"))
-            .thenReturn(taskTypesDmnResponses);
+                .thenReturn(taskTypesDmnResponses);
 
 
         List<TaskTypesDmnEvaluationResponse> taskTypesDmnEvaluationResponses = new ArrayList<>();
@@ -105,7 +105,7 @@ class TaskTypesServiceTest {
         CamundaValue<String> taskTypeName = new CamundaValue<>("Process Application", "String");
 
         TaskTypesDmnEvaluationResponse taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(
-            taskTypeId, taskTypeName
+                taskTypeId, taskTypeName
         );
         taskTypesDmnEvaluationResponses.add(taskTypesDmnEvaluationResponse);
 
@@ -114,7 +114,7 @@ class TaskTypesServiceTest {
         taskTypeName = new CamundaValue<>("Review Appeal Skeleton Argument", "String");
 
         taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(
-            taskTypeId, taskTypeName
+                taskTypeId, taskTypeName
         );
         taskTypesDmnEvaluationResponses.add(taskTypesDmnEvaluationResponse);
 
@@ -123,7 +123,7 @@ class TaskTypesServiceTest {
         taskTypeName = new CamundaValue<>("Process Application-2", "String");
 
         taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(
-            taskTypeId, taskTypeName
+                taskTypeId, taskTypeName
         );
         taskTypesDmnEvaluationResponses.add(taskTypesDmnEvaluationResponse);
 
@@ -132,7 +132,7 @@ class TaskTypesServiceTest {
         taskTypeName = new CamundaValue<>("Process Application", "String");
 
         taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(
-            taskTypeId, taskTypeName
+                taskTypeId, taskTypeName
         );
         taskTypesDmnEvaluationResponses.add(taskTypesDmnEvaluationResponse);
 
@@ -141,12 +141,12 @@ class TaskTypesServiceTest {
         taskTypeName = new CamundaValue<>("Process Application", "String");
 
         taskTypesDmnEvaluationResponse = new TaskTypesDmnEvaluationResponse(
-            taskTypeId, taskTypeName
+                taskTypeId, taskTypeName
         );
         taskTypesDmnEvaluationResponses.add(taskTypesDmnEvaluationResponse);
 
         when(dmnEvaluationService.evaluateTaskTypesDmn("wa", "wa-task-types-wa-wacasetype"))
-            .thenReturn(taskTypesDmnEvaluationResponses);
+                .thenReturn(taskTypesDmnEvaluationResponses);
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
@@ -209,16 +209,16 @@ class TaskTypesServiceTest {
 
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
-            .forEach(roleType -> {
-                RoleAssignment roleAssignment = createBaseAssignment(
-                    UUID.randomUUID().toString(),
-                    "tribunal-caseworker",
-                    roleType,
-                    Classification.PUBLIC,
-                    roleAttributes
-                );
-                allTestRoles.add(roleAssignment);
-            }));
+                .forEach(roleType -> {
+                    RoleAssignment roleAssignment = createBaseAssignment(
+                            UUID.randomUUID().toString(),
+                            "tribunal-caseworker",
+                            roleType,
+                            Classification.PUBLIC,
+                            roleAttributes
+                    );
+                    allTestRoles.add(roleAssignment);
+                }));
         return allTestRoles;
     }
 
@@ -228,15 +228,15 @@ class TaskTypesServiceTest {
                                                 Classification classification,
                                                 Map<String, String> attributes) {
         return new RoleAssignment(
-            ActorIdType.IDAM,
-            actorId,
-            roleType,
-            roleName,
-            classification,
-            GrantType.SPECIFIC,
-            RoleCategory.LEGAL_OPERATIONS,
-            false,
-            attributes
+                ActorIdType.IDAM,
+                actorId,
+                roleType,
+                roleName,
+                classification,
+                GrantType.SPECIFIC,
+                RoleCategory.LEGAL_OPERATIONS,
+                false,
+                attributes
         );
     }
 }
