@@ -31,7 +31,7 @@ class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
 
         final List<WorkType> allWorkTypes = cftWorkTypeDatabaseService.getAllWorkTypes();
 
-        assertEquals(11, allWorkTypes.size());
+        assertEquals(13, allWorkTypes.size());
         assertEquals("hearing_work", allWorkTypes.get(0).getId());
         assertEquals("Hearing work", allWorkTypes.get(0).getLabel());
         assertEquals("upper_tribunal", allWorkTypes.get(1).getId());
@@ -54,6 +54,10 @@ class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
         assertEquals("Evidence", allWorkTypes.get(9).getLabel());
         assertEquals("follow_up", allWorkTypes.get(10).getId());
         assertEquals("Follow Up", allWorkTypes.get(10).getLabel());
+        assertEquals("pre_hearing", allWorkTypes.get(11).getId());
+        assertEquals("Pre-Hearing", allWorkTypes.get(11).getLabel());
+        assertEquals("post_hearing", allWorkTypes.get(12).getId());
+        assertEquals("Post-Hearing", allWorkTypes.get(12).getLabel());
     }
 
     @Test

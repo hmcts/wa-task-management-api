@@ -102,7 +102,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(11)
+            jsonPath("$.work_types.length()").value(13)
         ).andReturn();
 
 
@@ -126,7 +126,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(11)
+            jsonPath("$.work_types.length()").value(13)
         );
     }
 
@@ -138,7 +138,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal,post_hearing");
 
         List<RoleAssignment> allTestRoles = mockServices
             .createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
@@ -158,8 +158,12 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
 
         WorkType expectedWorkType1 = new WorkType("hearing_work", "Hearing work");
         WorkType expectedWorkType2 = new WorkType("upper_tribunal", "Upper Tribunal");
+        WorkType expectedWorkType3 = new WorkType("post_hearing", "Post-Hearing");
 
-        GetWorkTypesResponse expectedResponse = new GetWorkTypesResponse(asList(expectedWorkType1, expectedWorkType2));
+        GetWorkTypesResponse expectedResponse = new GetWorkTypesResponse(asList(
+            expectedWorkType1,
+            expectedWorkType2,
+            expectedWorkType3));
 
         runWorkTypeAssertion(expectedResponse, response);
     }
@@ -316,12 +320,14 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         WorkType expectedWorkType9 = new WorkType("review_case", "Review Case");
         WorkType expectedWorkType10 = new WorkType("evidence", "Evidence");
         WorkType expectedWorkType11 = new WorkType("follow_up", "Follow Up");
+        WorkType expectedWorkType12 = new WorkType("pre_hearing", "Pre-Hearing");
+        WorkType expectedWorkType13 = new WorkType("post_hearing", "Post-Hearing");
 
         return new GetWorkTypesResponse(asList(
             expectedWorkType1, expectedWorkType2, expectedWorkType3,
             expectedWorkType4, expectedWorkType5, expectedWorkType6,
             expectedWorkType7, expectedWorkType8, expectedWorkType9,
-            expectedWorkType10, expectedWorkType11
+            expectedWorkType10, expectedWorkType11, expectedWorkType12, expectedWorkType13
         ));
     }
 
