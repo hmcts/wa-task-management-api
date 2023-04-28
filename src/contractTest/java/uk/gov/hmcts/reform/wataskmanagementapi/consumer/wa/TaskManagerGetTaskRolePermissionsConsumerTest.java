@@ -78,11 +78,19 @@ public class TaskManagerGetTaskRolePermissionsConsumerTest extends SpringBootCon
                         .array("permissions",
                             permission -> permission
                                 .stringType(PermissionTypes.READ.value())
+                                .stringType(PermissionTypes.OWN.value())
                                 .stringType(PermissionTypes.MANAGE.value())
                                 .stringType(PermissionTypes.EXECUTE.value())
+                                .stringType(PermissionTypes.CANCEL.value())
+                                .stringType(PermissionTypes.COMPLETE.value())
                                 .stringType(PermissionTypes.COMPLETE_OWN.value())
+                                .stringType(PermissionTypes.CANCEL_OWN.value())
+                                .stringType(PermissionTypes.UNCLAIM.value())
                                 .stringType(PermissionTypes.ASSIGN.value())
-                                .stringType(PermissionTypes.UNCLAIM.value()))
+                                .stringType(PermissionTypes.UNASSIGN.value())
+                                .stringType(PermissionTypes.UNCLAIM_ASSIGN.value())
+                                .stringType(PermissionTypes.UNASSIGN_CLAIM.value())
+                                .stringType(PermissionTypes.UNASSIGN_ASSIGN.value()))
                         .array("authorisations",
                             authorisation -> authorisation
                                 .stringType("373")
