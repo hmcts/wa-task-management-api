@@ -504,7 +504,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.violations.[0].message")
                         .value("work_type must be one of [hearing_work, upper_tribunal, routine_work, "
                                + "decision_making_work, applications, priority, access_requests, "
-                               + "error_management, review_case, evidence, follow_up]")
+                               + "error_management, review_case, evidence, follow_up, pre_hearing, post_hearing]")
                 ));
     }
 
@@ -1149,7 +1149,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     "values": [
                       "hearing_work","upper_tribunal","routine_work","routine_work","decision_making_work",
                       "applications","priority","error_management","access_requests","review_case","evidence",
-                      "follow_up"
+                      "follow_up","pre_hearing","post_hearing"
                     ]
                   }
                 ]
