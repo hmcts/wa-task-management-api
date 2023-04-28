@@ -3,32 +3,31 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
-import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import javax.transaction.Transactional;
 
-import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 
+@Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Sql("/scripts/wa/get_task_data.sql")
 public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
@@ -36,64 +35,87 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends SpringBootInte
 
     @Autowired
     ExecutorService sensitiveTaskEventLogsExecutorService;
-
-    @MockBean
-    private IdamWebApi idamWebApi;
-    @MockBean
-    private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
-    private CamundaServiceApi camundaServiceApi;
-    @MockBean
-    private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
+    @Autowired
     CFTTaskDatabaseService cftTaskDatabaseService;
-
-    private ServiceMocks mockServices;
-
     CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
 
     @BeforeEach
     void setUp() {
-        cftSensitiveTaskEventLogsDatabaseService =
-            new CFTSensitiveTaskEventLogsDatabaseService(sensitiveTaskEventLogsRepository,
-                cftTaskDatabaseService,
-                sensitiveTaskEventLogsExecutorService);
-
-        mockServices = new ServiceMocks(
-            idamWebApi,
-            serviceAuthorisationApi,
-            camundaServiceApi,
-            roleAssignmentServiceApi
+        cftSensitiveTaskEventLogsDatabaseService = new CFTSensitiveTaskEventLogsDatabaseService(
+            sensitiveTaskEventLogsRepository,
+            cftTaskDatabaseService,
+            sensitiveTaskEventLogsExecutorService
         );
     }
 
     @Test
+    @Transactional
     void should_process_and_save_sensitive_task_event_log() {
-        String taskId = UUID.randomUUID().toString();
-        String caseId = "Some caseId";
-        TaskResource taskResource = new TaskResource(
+        List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
+
+        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111001";
+
+        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
             taskId,
-            "someTaskName",
-            "someTaskType",
-            UNCONFIGURED,
-            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+            roleAssignments,
+            ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
         );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setCaseId(caseId);
-
-        final List<String> roleNames = singletonList("tribunal-caseworker");
-
-        List<RoleAssignment> roleAssignments =
-            mockServices.createTestRoleAssignments(roleNames);
-
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(java.util.Optional.of(taskResource));
-
-        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
-            roleAssignments, ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE);
 
         ExecutorService executorService = new ScheduledThreadPoolExecutor(1);
-        executorService.execute(() -> {
-            verify(sensitiveTaskEventLogsRepository, times(1)).save(any(SensitiveTaskEventLog.class));
-        });
+        executorService.execute(() -> verify(sensitiveTaskEventLogsRepository, times(1))
+            .save(any(SensitiveTaskEventLog.class)));
+    }
+
+    private static List<RoleAssignment> roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification() {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(
+                TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + Classification.PUBLIC.name())
+            )
+            .roleAssignmentAttribute(
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .region("1")
+                    .baseLocation(PRIMARY_LOCATION)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(
+                TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + Classification.PUBLIC.name())
+            )
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(IA_JURISDICTION)
+                    .region("2")
+                    .baseLocation("765325")
+                    .build()
+            )
+            .authorisations(List.of("skill2"))
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(
+                TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + Classification.PRIVATE.name())
+            )
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .region("1")
+                    .baseLocation(PRIMARY_LOCATION)
+                    .build()
+            )
+            .build();
+
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+
+        return roleAssignments;
     }
 }

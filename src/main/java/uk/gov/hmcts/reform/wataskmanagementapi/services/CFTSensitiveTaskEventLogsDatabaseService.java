@@ -65,9 +65,7 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
                 ZonedDateTime.now().toOffsetDateTime()
             );
 
-            sensitiveTaskEventLogsExecutorService.execute(() ->
-                saveSensitiveTaskEventLog(sensitiveTaskEventLog)
-            );
+            sensitiveTaskEventLogsExecutorService.execute(() -> saveSensitiveTaskEventLog(sensitiveTaskEventLog));
         }
 
     }
