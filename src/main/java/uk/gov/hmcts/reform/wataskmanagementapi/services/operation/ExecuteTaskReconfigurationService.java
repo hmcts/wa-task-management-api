@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -9,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Exec
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskExecuteReconfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED;
 
 @Slf4j
 @Component
@@ -41,23 +39,22 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
     }
 
     @Override
-    @Transactional(noRollbackFor = TaskExecuteReconfigurationException.class)
+    @Transactional
+    @Async
     public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE)) {
-            return executeTasksToReconfigure(taskOperationRequest);
+            executeTasksToReconfigure(taskOperationRequest);
         }
         return List.of();
     }
 
-    private List<TaskResource> executeTasksToReconfigure(TaskOperationRequest request) {
-        log.debug("execute tasks toReconfigure request: {}", request);
-        OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(request.getTaskFilter());
+    private void executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
+        log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
+        OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
-
         List<TaskResource> taskResources = cftTaskDatabaseService
             .getActiveTasksAndReconfigureRequestTimeGreaterThan(
                 List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), reconfigureDateTime);
-
         List<TaskResource> successfulTaskResources = new ArrayList<>();
 
         List<String> taskIds = taskResources.stream()
@@ -66,32 +63,12 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
 
         List<String> failedTaskIds = executeReconfiguration(taskIds,
             successfulTaskResources,
-            request.getOperation().getMaxTimeLimit());
+            taskOperationRequest.getOperation().getMaxTimeLimit());
 
         if (!failedTaskIds.isEmpty()) {
-            failedTaskIds = executeReconfiguration(failedTaskIds,
+            executeReconfiguration(failedTaskIds,
                 successfulTaskResources,
-                request.getOperation().getMaxTimeLimit());
-        }
-
-        if (!failedTaskIds.isEmpty()) {
-            configurationFailLog(failedTaskIds, request.getOperation().getRetryWindowHours());
-        }
-
-        return successfulTaskResources;
-    }
-
-    private void configurationFailLog(List<String> failedTaskIds, long retryWindowHours) {
-        OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(retryWindowHours);
-
-        List<TaskResource> failedTasksToReport = cftTaskDatabaseService
-            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
-                failedTaskIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retryWindow);
-
-        if (!failedTasksToReport.isEmpty()) {
-            throw new TaskExecuteReconfigurationException(TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED,
-                failedTasksToReport
-            );
+                taskOperationRequest.getOperation().getMaxTimeLimit());
         }
     }
 

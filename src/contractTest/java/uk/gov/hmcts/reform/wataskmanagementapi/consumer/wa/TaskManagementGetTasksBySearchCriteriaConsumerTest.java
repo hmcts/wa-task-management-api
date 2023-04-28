@@ -388,7 +388,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                                 .unorderedArray("values", (p) -> p
                                     .stringValue(PermissionTypes.READ.value())
                                     .stringValue(PermissionTypes.EXECUTE.value())
-                                    .stringValue(PermissionTypes.REFER.value())
                                     .stringValue(PermissionTypes.COMPLETE.value())
                                     .stringValue(PermissionTypes.ASSIGN.value())
                                     .stringValue(PermissionTypes.UNASSIGN.value()));
