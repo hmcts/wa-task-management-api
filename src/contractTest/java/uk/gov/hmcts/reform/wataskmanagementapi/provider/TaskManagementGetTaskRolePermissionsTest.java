@@ -70,8 +70,22 @@ public class TaskManagementGetTaskRolePermissionsTest extends SpringBootContract
         TaskRolePermissions taskRolePermissions = new TaskRolePermissions(
             "LEGAL_OPERATIONS",
             "tribunal-caseworker",
-            List.of(PermissionTypes.READ, PermissionTypes.MANAGE, PermissionTypes.EXECUTE,
-                    PermissionTypes.COMPLETE_OWN, PermissionTypes.ASSIGN, PermissionTypes.UNCLAIM),
+            List.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.MANAGE,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.COMPLETE_OWN,
+                PermissionTypes.CANCEL_OWN,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.ASSIGN,
+                PermissionTypes.UNASSIGN,
+                PermissionTypes.UNCLAIM_ASSIGN,
+                PermissionTypes.UNASSIGN_CLAIM,
+                PermissionTypes.UNASSIGN_ASSIGN
+                ),
             List.of("IAC", "SCSS")
         );
 

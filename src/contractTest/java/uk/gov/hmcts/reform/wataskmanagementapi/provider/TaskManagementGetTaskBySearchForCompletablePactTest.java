@@ -87,8 +87,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
                 PermissionTypes.OWN,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE,
-                PermissionTypes.REFER
+                PermissionTypes.MANAGE
             )
         );
 
@@ -136,7 +135,6 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
             Set.of(
                 PermissionTypes.READ,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.REFER,
                 PermissionTypes.COMPLETE,
                 PermissionTypes.ASSIGN,
                 PermissionTypes.UNCLAIM
@@ -194,8 +192,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
                 PermissionTypes.OWN,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE,
-                PermissionTypes.REFER
+                PermissionTypes.MANAGE
             )
         );
 
