@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums;
 public enum TaskOperationType {
     MARK_TO_RECONFIGURE("mark_to_reconfigure"),
     EXECUTE_RECONFIGURE("execute_reconfigure"),
+    EXECUTE_RECONFIGURE_FAILURES("execute_reconfigure_failures"),
     UPDATE_SEARCH_INDEX("update_search_index");
 
     private final String value;

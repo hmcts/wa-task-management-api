@@ -1,13 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -17,57 +18,66 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ExecuteTaskReconfigurationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ExecuteTaskReconfigurationFailureService;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/reconfigure_task_data.sql")
-public class ExecuteTaskReconfigurationServiceTest {
-    @MockBean
-    private ConfigureTaskService configureTaskService;
-    @MockBean
-    private TaskAutoAssignmentService taskAutoAssignmentService;
+@ExtendWith(OutputCaptureExtension.class)
+public class ExecuteTaskReconfigurationFailureServiceTest {
     @Autowired
     TaskResourceRepository taskResourceRepository;
 
-    private ExecuteTaskReconfigurationService executeTaskReconfigurationService;
+    private ExecuteTaskReconfigurationFailureService executeTaskReconfigurationFailureService;
 
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository,
             cftTaskMapper);
-        executeTaskReconfigurationService = new ExecuteTaskReconfigurationService(
-            cftTaskDatabaseService,
-            configureTaskService,
-            taskAutoAssignmentService);
+        executeTaskReconfigurationFailureService = new ExecuteTaskReconfigurationFailureService(
+            cftTaskDatabaseService);
     }
 
     @Test
-    void should_get_reconfiguration_fail_log() {
+    void should_get_reconfiguration_failed_records(CapturedOutput output) {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
 
         TaskOperationRequest taskOperationRequest = new TaskOperationRequest(
             TaskOperation.builder()
-                .type(TaskOperationType.EXECUTE_RECONFIGURE)
+                .type(TaskOperationType.EXECUTE_RECONFIGURE_FAILURES)
                 .maxTimeLimit(2)
                 .retryWindowHours(1)
                 .runId("")
                 .build(), taskFilters
         );
 
-        Assertions.assertThatThrownBy(() -> executeTaskReconfigurationService.performOperation(taskOperationRequest))
-            .hasMessageContaining("Task Execute Reconfiguration Failed: "
-                                  + "Task Reconfiguration process failed to execute "
-                                  + "reconfiguration for the following tasks:")
-            .hasMessageContaining("8d6cc5cf-c973-11eb-bdba-0242ac222001", "taskName", "ASSIGNED",
-                "2022-10-18T10:19:45.345875+01:00", "2022-05-09T20:15:45.345875+01:00", "");
+        List<TaskResource> failedTasks = executeTaskReconfigurationFailureService.performOperation(
+            taskOperationRequest
+        );
+
+        assertEquals(failedTasks.size(), 1);
+
+        String failureLogMessage = failedTasks.stream()
+            .map(task -> "\n" + task.getTaskId()
+                         + ", " + task.getTaskName()
+                         + ", " + task.getState()
+                         + ", " + task.getReconfigureRequestTime()
+                         + ", " + task.getLastReconfigurationTime())
+            .collect(Collectors.joining());
+        assertTrue(output.getOut().contains("Task Execute Reconfiguration Failed for following tasks "
+                                            + failureLogMessage));
     }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
