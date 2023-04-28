@@ -747,7 +747,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     }
 
     @Test
-    void should_execute_reconfigure_on_task_and_fail_due_to_calendar_configuration(CapturedOutput output)
+    void should_execute_reconfigure_on_task_and_fail_due_to_calendar_configuration_alerts_captured(CapturedOutput output)
         throws Exception {
         String caseIdToday = "calendarCaseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
