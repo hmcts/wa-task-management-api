@@ -164,8 +164,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                                     .stringValue(PermissionTypes.OWN.value())
                                     .stringValue(PermissionTypes.EXECUTE.value())
                                     .stringValue(PermissionTypes.CANCEL.value())
-                                    .stringValue(PermissionTypes.MANAGE.value())
-                                    .stringValue(PermissionTypes.REFER.value()));
+                                    .stringValue(PermissionTypes.MANAGE.value()));
                         })
                         .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
                         .stringType("description", "a description")
@@ -215,7 +214,6 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                             value.unorderedArray("values", (p) -> p
                                 .stringValue(PermissionTypes.READ.value())
                                 .stringValue(PermissionTypes.EXECUTE.value())
-                                .stringValue(PermissionTypes.REFER.value())
                                 .stringValue(PermissionTypes.COMPLETE.value())
                                 .stringValue(PermissionTypes.ASSIGN.value())
                                 .stringValue(PermissionTypes.UNCLAIM.value()));
@@ -268,8 +266,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                                     .stringValue(PermissionTypes.OWN.value())
                                     .stringValue(PermissionTypes.EXECUTE.value())
                                     .stringValue(PermissionTypes.CANCEL.value())
-                                    .stringValue(PermissionTypes.MANAGE.value())
-                                    .stringValue(PermissionTypes.REFER.value()));
+                                    .stringValue(PermissionTypes.MANAGE.value()));
                         })
                         .object("additional_properties", value -> value
                             .stringType("name1", "value1")
