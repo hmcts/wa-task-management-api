@@ -825,9 +825,13 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.NO_CONTENT.value())
         );
 
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(0);
 
-        taskResourcesAfter
+        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService
+            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
+                List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retryWindow);
+
+        taskResourcesAfter.stream().filter(task -> task.getCaseId().equals(caseIdToday))
             .forEach(task -> {
                 assertNull(task.getLastReconfigurationTime());
                 assertNotNull(task.getReconfigureRequestTime());
