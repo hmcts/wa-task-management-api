@@ -2,9 +2,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -53,6 +56,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -79,6 +83,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValu
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SuppressWarnings("checkstyle:LineLength")
+@ExtendWith(OutputCaptureExtension.class)
 class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegrationBaseTest {
 
     public static final String SYSTEM_USER_1 = "system_user1";
@@ -742,7 +747,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     }
 
     @Test
-    void should_execute_reconfigure_on_task_and_fail_due_to_calendar_configuration() throws Exception {
+    void should_execute_reconfigure_on_task_and_fail_due_to_calendar_configuration(CapturedOutput output)
+        throws Exception {
         String caseIdToday = "calendarCaseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
@@ -826,6 +832,16 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 assertNull(task.getLastReconfigurationTime());
                 assertNotNull(task.getReconfigureRequestTime());
             });
+
+        String failureLogMessage = taskResourcesAfter.stream()
+            .map(task -> "\n" + task.getTaskId()
+                         + ", " + task.getTaskName()
+                         + ", " + task.getState()
+                         + ", " + task.getReconfigureRequestTime()
+                         + ", " + task.getLastReconfigurationTime())
+            .collect(Collectors.joining());
+        assertTrue(output.getOut().contains("Task Execute Reconfiguration Failed for following tasks "
+                                            + failureLogMessage));
     }
 
     private List<ConfigurationDmnEvaluationResponse> invalidIntermediateDateCalendarDmnResponse() {
