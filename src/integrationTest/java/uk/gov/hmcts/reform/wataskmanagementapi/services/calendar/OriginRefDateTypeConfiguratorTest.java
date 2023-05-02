@@ -188,13 +188,8 @@ public class OriginRefDateTypeConfiguratorTest {
         );
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(3)
+            .hasSize(2)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .canReconfigure(CamundaValue.booleanValue(configurable))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDuration"))
                     .value(CamundaValue.stringValue("2022-10-15T16:00"))
@@ -935,12 +930,8 @@ public class OriginRefDateTypeConfiguratorTest {
                 taskAttributes
             );
 
-        assertThat(configResponses).hasSize(3)
+        assertThat(configResponses).hasSize(2)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDuration"))
                     .value(CamundaValue.stringValue("2022-10-12T21:00"))

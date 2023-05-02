@@ -285,12 +285,8 @@ public class DateTypeConfiguratorTest {
                 true,
                 taskAttributes
             );
-            assertThat(dmnEvaluationResponses).hasSize(3)
+            assertThat(dmnEvaluationResponses).hasSize(2)
                 .isEqualTo(List.of(
-                    ConfigurationDmnEvaluationResponse.builder()
-                        .name(CamundaValue.stringValue("calculatedDates"))
-                        .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
-                        .build(),
                     ConfigurationDmnEvaluationResponse.builder()
                         .name(CamundaValue.stringValue("nextHearingDate"))
                         .value(CamundaValue.stringValue(nextHearingDateValue))

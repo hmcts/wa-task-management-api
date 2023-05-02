@@ -64,9 +64,12 @@ public class DateTypeConfigurator {
         );
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> calculatedResponses
             = new AtomicReference<>(new ArrayList<>());
-
+        List<ConfigurationDmnEvaluationResponse> configurationResponsesWithoutCalculatedDates
+            = dmnConfigurationResponses.stream()
+            .filter(r -> !r.getName().getValue().contains(CALCULATED_DATES.getType()))
+            .toList();
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configurationResponses
-            = new AtomicReference<>(new ArrayList<>(dmnConfigurationResponses));
+            = new AtomicReference<>(new ArrayList<>(configurationResponsesWithoutCalculatedDates));
 
         calculationOrder
             .forEach(dateTypeObject -> {
