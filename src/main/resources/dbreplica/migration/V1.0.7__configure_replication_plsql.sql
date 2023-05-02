@@ -9,6 +9,7 @@ declare
   l_update_id bigint;
   l_new_task boolean;
   l_result_action varchar default 'ignore';
+  l_update_lock integer;
 begin
 
   insert into cft_task_db.task_history
@@ -74,6 +75,10 @@ begin
   end if;
 
   if l_result_action = 'update' then
+
+    select 1 into l_update_lock from cft_task_db.reportable_task
+      where reportable_task.task_id = l_task.task_id FOR UPDATE;
+
     update cft_task_db.reportable_task
       set   task_name = l_task.task_name,
       task_type = l_task.task_type,
