@@ -1102,14 +1102,7 @@ public class NextHearingDateTypeConfiguratorTest {
             true,
             taskAttributes
         );
-        assertThat(configurationDmnEvaluationResponses).hasSize(1)
-            .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDuration,nextHearingDate,dueDate,priorityDate"))
-                    .canReconfigure(CamundaValue.booleanValue(true))
-                    .build()
-            ));
+        assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
 
     @Test
