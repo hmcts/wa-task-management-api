@@ -74,8 +74,7 @@ public class TaskTypesService {
     private Set<TaskTypeResponse> extractValues(List<TaskTypesDmnEvaluationResponse> evaluationResponses) {
         return evaluationResponses.stream()
             .map(r -> new TaskType(r.getTaskTypeId().getValue(), r.getTaskTypeName().getValue()))
-            .collect(Collectors.toList())
-            .stream().distinct()
+            .distinct()
             .map(TaskTypeResponse::new)
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
