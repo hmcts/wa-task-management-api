@@ -72,8 +72,8 @@ replication:
   username: ${REPLICATION_USERNAME:repl_user}
   password: ${REPLICATION_PASSWORD:repl_password}
 primary:
-  username: ${POSTGRES_USERNAME:wa_user}
-  password: ${POSTGRES_PASSWORD:password}
+  username: ${POSTGRES_USERNAME:repl_user}
+  password: ${POSTGRES_PASSWORD:repl_password}
 
 spring:
   config:
