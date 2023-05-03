@@ -75,7 +75,7 @@ public class SubscriptionCreator {
 
         String replicaUrl = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
             + "?user=" + replicaUser + "&password=" + replicaPassword;
-        log.info("replicaUrl = " + replicaUrl);
+        log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - replicaPassword.length()));
 
         String subscriptionUrl;
         if ("5432".equals(port)) {
@@ -88,7 +88,7 @@ public class SubscriptionCreator {
                 + "?user=" + primaryUser + "&password=" + primaryPassword;
         }
 
-        log.info("subscriptionUrl" + subscriptionUrl);
+        log.info("subscriptionUrl" + subscriptionUrl.substring(0, subscriptionUrl.length() - primaryPassword.length()));
 
         String sql = "CREATE SUBSCRIPTION task_subscription CONNECTION '" + subscriptionUrl
             + "' PUBLICATION task_publication WITH (slot_name = main_slot_v1, create_slot = FALSE);";
