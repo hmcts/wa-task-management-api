@@ -89,7 +89,8 @@ public class SubscriptionCreator {
                 + "?user=" + primaryUser + "&password=" + primaryPassword;
         }
 
-        //log.info("subscriptionUrl" + subscriptionUrl.substring(0, subscriptionUrl.length() - primaryPassword.length()));
+        //log.info("subscriptionUrl" + subscriptionUrl
+        //.substring(0, subscriptionUrl.length() - primaryPassword.length()));
         log.info("subscriptionUrl" + subscriptionUrl);
 
         String sql = "CREATE SUBSCRIPTION task_subscription CONNECTION '" + subscriptionUrl
