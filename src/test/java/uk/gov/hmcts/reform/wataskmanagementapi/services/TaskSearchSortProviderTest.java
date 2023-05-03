@@ -100,4 +100,4 @@ public class TaskSearchSortProviderTest {
         assertNotNull(query.getOrderFor(SortField.CASE_NAME_SNAKE_CASE.getCftVariableName()));
         assertNotNull(query.getOrderFor(SortField.NEXT_HEARING_DATE_SNAKE_CASE.getCftVariableName()));
     }
-}
+} 
