@@ -120,7 +120,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_return_ordered_by_decs_task_list_and_count_when_search_find_some_tasks() {
+    void should_return_ordered_by_desc_task_list_and_count_when_search_find_some_tasks() {
         List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         indexRecord();

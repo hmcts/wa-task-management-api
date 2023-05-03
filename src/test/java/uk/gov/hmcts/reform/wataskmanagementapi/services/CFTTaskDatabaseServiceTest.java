@@ -164,12 +164,12 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime retry = OffsetDateTime.now().minusHours(2);
 
-        when(taskResourceRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
-            List.of("199"), List.of(ASSIGNED), retry)).thenReturn(List.of(someTaskResource));
+        when(taskResourceRepository.findByStateInAndReconfigureRequestTimeIsLessThan(
+            List.of(ASSIGNED), retry)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
-                List.of("199"), List.of(ASSIGNED), retry);
+            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
+                List.of(ASSIGNED), retry);
 
         assertNotNull(actualTaskResource);
         assertEquals(someTaskResource, actualTaskResource.get(0));
