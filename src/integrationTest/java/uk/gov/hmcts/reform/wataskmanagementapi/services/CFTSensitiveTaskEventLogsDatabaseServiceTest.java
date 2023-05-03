@@ -17,10 +17,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogs
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import javax.transaction.Transactional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -64,6 +67,10 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends SpringBootInte
         ExecutorService executorService = new ScheduledThreadPoolExecutor(1);
         executorService.execute(() -> verify(sensitiveTaskEventLogsRepository, times(1))
             .save(any(SensitiveTaskEventLog.class)));
+
+        Optional<SensitiveTaskEventLog> sensitiveTask = sensitiveTaskEventLogsRepository.findByTaskId(taskId);
+        assertThat(sensitiveTask).isPresent();
+        assertThat(sensitiveTask.get().getTaskData()).isNotEmpty().hasSize(1);    
     }
 
     private static List<RoleAssignment> roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification() {
