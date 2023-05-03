@@ -36,8 +36,6 @@ java:
   postgresql:
     enabled: true
     auth:
-      username: wa_user
-      password: password
       database: cft_task_db
     primary:
       persistence:
