@@ -23,7 +23,7 @@ java:
     OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
-    POSTGRES_REPLICA: "{{ .Release.Name }}-postgresql"
+    POSTGRES_REPLICA_HOST: "{{ .Release.Name }}-postgresql"
     POSTGRES_REPLICA_PORT: 5432
     POSTGRES_NAME: "{{ .Values.postgresql.auth.database}}"
     POSTGRES_REPLICA_NAME: "cft_task_db_replica"
