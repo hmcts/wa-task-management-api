@@ -23,7 +23,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -70,7 +69,8 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends SpringBootInte
 
         Optional<SensitiveTaskEventLog> sensitiveTask = sensitiveTaskEventLogsRepository.findByTaskId(taskId);
         assertThat(sensitiveTask).isPresent();
-        assertThat(sensitiveTask.get().getTaskData()).isNotEmpty().hasSize(1);    
+        assertThat(sensitiveTask.get().getTaskData()).isNotEmpty().hasSize(1);
+        assertThat(sensitiveTask.get().getUserData()).isNotNull();
     }
 
     private static List<RoleAssignment> roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification() {
