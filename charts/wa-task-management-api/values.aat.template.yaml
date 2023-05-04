@@ -6,6 +6,37 @@ java:
   devcpuRequests: '1000m'
   devmemoryLimits: '3Gi'
   devcpuLimits: '2500m'
+  keyVaults:
+    wa:
+      secrets:
+        - name: app-insights-connection-string
+          alias: app-insights-connection-string
+        - name: wa-system-username
+          alias: WA_SYSTEM_USERNAME
+        - name: wa-system-password
+          alias: WA_SYSTEM_PASSWORD
+        - name: wa-idam-client-secret
+          alias: WA_IDAM_CLIENT_SECRET
+        - name: s2s-secret-task-management-api
+          alias: S2S_SECRET_TASK_MANAGEMENT_API
+        - name: ld-secret
+          alias: LAUNCH_DARKLY_SDK_KEY
+        - name: cft-task-POSTGRES-PASS-FLEXIBLE
+          alias: POSTGRES_PASSWORD
+        - name: cft-task-POSTGRES-USER-FLEXIBLE
+          alias: POSTGRES_USERNAME
+        - name: cft-task-POSTGRES-PORT-FLEXIBLE
+          alias: POSTGRES_PORT
+        - name: cft-task-POSTGRES-DATABASE-FLEXIBLE
+          alias: POSTGRES_NAME
+        - name: cft-task-POSTGRES-PASS-FLEXIBLE-REPLICA
+          alias: REPLICATION_PASSWORD
+        - name: cft-task-POSTGRES-USER-FLEXIBLE-REPLICA
+          alias: REPLICATION_USERNAME
+        - name: cft-task-POSTGRES-PORT-FLEXIBLE-REPLICA
+          alias: POSTGRES_PORT
+        - name: cft-task-POSTGRES-DATABASE-FLEXIBLE-REPLICA
+          alias: POSTGRES_NAME
   environment:
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
     IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
