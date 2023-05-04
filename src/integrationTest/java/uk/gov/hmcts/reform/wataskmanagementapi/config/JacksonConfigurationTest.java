@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 import lombok.Builder;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 
@@ -10,6 +11,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class JacksonConfigurationTest extends SpringBootIntegrationBaseTest {
 
     @Test

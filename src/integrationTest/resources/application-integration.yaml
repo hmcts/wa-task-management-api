@@ -2,8 +2,12 @@ spring:
   datasource:
     driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
     url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
+    jdbcUrl: jdbc:tc:postgresql:11.4://localhost/cft_task_db
     hikari:
       minimum-idle: 1
+      connectionTimeout: 10000
+      idleTimeout: 30000
+      maxLifetime: 60000
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
