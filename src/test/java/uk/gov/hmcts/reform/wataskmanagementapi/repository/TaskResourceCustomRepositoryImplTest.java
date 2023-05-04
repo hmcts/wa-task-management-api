@@ -57,8 +57,10 @@ public class TaskResourceCustomRepositoryImplTest {
             null, SearchRequest.builder().build());
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
@@ -79,8 +81,10 @@ public class TaskResourceCustomRepositoryImplTest {
                 .build());
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY case_id ASC, case_name ASC, "
                           + "major_priority ASC, priority_date ASC, minor_priority ASC "
@@ -99,8 +103,10 @@ public class TaskResourceCustomRepositoryImplTest {
             SearchRequest.builder().build());
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
@@ -117,8 +123,10 @@ public class TaskResourceCustomRepositoryImplTest {
                 .build());
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND assignee IS NULL "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
@@ -140,8 +148,10 @@ public class TaskResourceCustomRepositoryImplTest {
             .build());
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND assignee IS NULL "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
         verify(entityManager).createNativeQuery(queryStr);
@@ -161,8 +171,10 @@ public class TaskResourceCustomRepositoryImplTest {
                 .build());
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND assignee = :assignee "
                        + "AND state IN ('COMPLETED') "
                        + "AND case_id = :caseId "
@@ -192,8 +204,10 @@ public class TaskResourceCustomRepositoryImplTest {
             .build());
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND assignee = :assignee "
                        + "AND state IN ('COMPLETED') "
                        + "AND case_id = :caseId "
@@ -218,8 +232,10 @@ public class TaskResourceCustomRepositoryImplTest {
                 .build());
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
@@ -249,8 +265,10 @@ public class TaskResourceCustomRepositoryImplTest {
             .build());
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
@@ -275,8 +293,10 @@ public class TaskResourceCustomRepositoryImplTest {
                 .build());
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
@@ -308,8 +328,10 @@ public class TaskResourceCustomRepositoryImplTest {
             .build());
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+                          + "t.security_classification) && :roleSignature "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
@@ -336,8 +358,10 @@ public class TaskResourceCustomRepositoryImplTest {
                 .build());
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, "
+                          + "t.location, t.case_id, t.security_classification) && :roleSignature "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
@@ -369,8 +393,10 @@ public class TaskResourceCustomRepositoryImplTest {
             .build());
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                       + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
+                       + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
+                          + "t.work_type, t.region, t.location) && :filterSignature "
+                       + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, "
+                          + "t.case_id, t.security_classification) && :roleSignature "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
