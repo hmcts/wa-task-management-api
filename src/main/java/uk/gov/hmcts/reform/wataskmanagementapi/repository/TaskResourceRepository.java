@@ -20,9 +20,20 @@ import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
 @SuppressWarnings({
-    "PMD.UseVarargs"})
+    "PMD.UseVarargs", "PMD.TooManyMethods"})
 public interface TaskResourceRepository extends CrudRepository<TaskResource, String>,
     JpaSpecificationExecutor<TaskResource>, TaskResourceCustomRepository {
+
+    String CHECK_REPLICATION_SLOT =
+        "select count(*) from pg_replication_slots pgrs WHERE slot_name='main_slot_v1';";
+
+    String CREATE_REPLICATION_SLOT = "SELECT * FROM pg_create_logical_replication_slot('main_slot_v1', 'pgoutput');";
+
+    String CHECK_PUBLICATION =
+        "select count(*) from pg_publication pgp WHERE pubname='task_publication';";
+
+    String CREATE_PUBLICATION = "CREATE PUBLICATION task_publication FOR TABLE cft_task_db.tasks "
+        + "WITH (publish = 'insert,update,delete');";
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
@@ -73,4 +84,19 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
         @Param("due_date_time") OffsetDateTime dueDate,
         @Param("priority_date") OffsetDateTime priorityDate
     );
+
+    @Query(value = CHECK_REPLICATION_SLOT, nativeQuery = true)
+    int countReplicationSlots();
+
+    @Transactional
+    @Query(value = CREATE_REPLICATION_SLOT, nativeQuery = true)
+    Object createReplicationSlot();
+
+    @Query(value = CHECK_PUBLICATION, nativeQuery = true)
+    int countPublications();
+
+    @Modifying
+    @Transactional
+    @Query(value = CREATE_PUBLICATION, nativeQuery = true)
+    Object createPublication();
 }
