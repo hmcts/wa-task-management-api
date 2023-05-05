@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -58,7 +59,8 @@ public class ExclusiveTaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "/{task-id}/initiation")
-    public ResponseEntity<TaskResource> initiate(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+    public ResponseEntity<TaskResource> initiate(@Parameter(hidden = true)
+                                                     @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @PathVariable(TASK_ID) String taskId,
                                                  @RequestBody InitiateTaskRequestMap initiateTaskRequest) {
         log.debug("Initiate task(id={}) with attributes: {} ", taskId, initiateTaskRequest.getTaskAttributes());
@@ -88,7 +90,8 @@ public class ExclusiveTaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(path = "/{task-id}")
-    public ResponseEntity<Void> terminateTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+    public ResponseEntity<Void> terminateTask(@Parameter(hidden = true)
+                                                  @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                               @PathVariable(TASK_ID) String taskId,
                                               @RequestBody TerminateTaskRequest terminateTaskRequest) {
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);

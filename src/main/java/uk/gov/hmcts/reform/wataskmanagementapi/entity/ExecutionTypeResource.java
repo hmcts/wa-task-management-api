@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -33,9 +34,11 @@ public class ExecutionTypeResource implements Serializable {
     @Column(name = "execution_code")
     @Enumerated(EnumType.STRING)
     @Type(type = "pgsql_enum")
+    @Schema(name = "execution_code")
     private ExecutionType executionCode;
 
     @Column(name = "execution_name")
+    @Schema(name = "execution_name")
     private String executionName;
 
     private String description;
