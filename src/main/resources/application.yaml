@@ -107,7 +107,6 @@ spring:
   flyway:
     enabled: true
     baselineOnMigrate: true
-    lockRetryCount: -1
     defaultSchema: ${POSTGRES_NAME:cft_task_db}
     schemas: ${POSTGRES_NAME:cft_task_db}
   security:

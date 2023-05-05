@@ -18,11 +18,14 @@ import javax.persistence.SqlResultSetMapping;
 
 @Slf4j
 public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepository {
-    private static final String BASE_QUERY = "%sFROM {h-schema}tasks t "
-                                             + "WHERE indexed "
-                                             + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                                             + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
-                                             + "%s%s%s";
+    private static final String BASE_QUERY =
+        "%sFROM {h-schema}tasks t "
+        + "WHERE indexed "
+        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, t.region, "
+        + "t.location) && :filterSignature "
+        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+        + "t.security_classification) && :roleSignature "
+        + "%s%s%s";
 
     private static final String SELECT_CLAUSE = "SELECT t.task_id ";
     private static final String COUNT_CLAUSE = "SELECT count(*) ";
