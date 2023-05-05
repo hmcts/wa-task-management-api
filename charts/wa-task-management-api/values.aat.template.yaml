@@ -23,16 +23,12 @@ java:
           alias: LAUNCH_DARKLY_SDK_KEY
         - name: cft-task-POSTGRES-PASS-FLEXIBLE
           alias: POSTGRES_PASSWORD
-        - name: cft-task-POSTGRES-USER-FLEXIBLE
-          alias: POSTGRES_USERNAME
         - name: cft-task-POSTGRES-PORT-FLEXIBLE
           alias: POSTGRES_PORT
         - name: cft-task-POSTGRES-DATABASE-FLEXIBLE
           alias: POSTGRES_NAME
         - name: cft-task-POSTGRES-PASS-FLEXIBLE-REPLICA
           alias: REPLICATION_PASSWORD
-        - name: cft-task-POSTGRES-USER-FLEXIBLE-REPLICA
-          alias: REPLICATION_USERNAME
         - name: cft-task-POSTGRES-PORT-FLEXIBLE-REPLICA
           alias: POSTGRES_PORT
         - name: cft-task-POSTGRES-DATABASE-FLEXIBLE-REPLICA
