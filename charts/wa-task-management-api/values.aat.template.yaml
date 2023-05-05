@@ -6,4 +6,54 @@ java:
   devcpuRequests: '1000m'
   devmemoryLimits: '3Gi'
   devcpuLimits: '2500m'
+  keyVaults:
+    wa:
+      secrets:
+        - name: app-insights-connection-string
+          alias: app-insights-connection-string
+        - name: wa-system-username
+          alias: WA_SYSTEM_USERNAME
+        - name: wa-system-password
+          alias: WA_SYSTEM_PASSWORD
+        - name: wa-idam-client-secret
+          alias: WA_IDAM_CLIENT_SECRET
+        - name: s2s-secret-task-management-api
+          alias: S2S_SECRET_TASK_MANAGEMENT_API
+        - name: ld-secret
+          alias: LAUNCH_DARKLY_SDK_KEY
+        - name: cft-task-POSTGRES-PASS-FLEXIBLE
+          alias: POSTGRES_PASSWORD
+        - name: cft-task-POSTGRES-PORT-FLEXIBLE
+          alias: POSTGRES_PORT
+        - name: cft-task-POSTGRES-DATABASE-FLEXIBLE
+          alias: POSTGRES_NAME
+        - name: cft-task-POSTGRES-PASS-FLEXIBLE-REPLICA
+          alias: REPLICATION_PASSWORD
+        - name: cft-task-POSTGRES-PORT-FLEXIBLE-REPLICA
+          alias: POSTGRES_PORT
+        - name: cft-task-POSTGRES-DATABASE-FLEXIBLE-REPLICA
+          alias: POSTGRES_NAME
+  environment:
+    CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
+    IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
+    S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
+    ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    POSTGRES_PORT: 5432
+    POSTGRES_HOST: cft-task-postgres-db-flexible-{{ .Values.global.environment }}.postgres.database.azure.com
+    POSTGRES_NAME: cft_task_db
+    POSTGRES_REPLICA_PORT: 5432
+    POSTGRES_REPLICA_HOST: cft-task-postgres-db-flexible-replica-{{ .Values.global.environment }}.postgres.database.azure.com
+    POSTGRES_REPLICA_NAME: cft_task_db
+    POSTGRES_CONNECTION_OPTIONS: "?sslmode=require"
+    ALLOWED_JURISDICTIONS: wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW,EMPLOYMENT
+    ALLOWED_CASE_TYPES: asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS,ET_EnglandWales,ET_EnglandWales_Listings,ET_EnglandWales_Multiple,ET_Scotland,ET_Scotland_Listings,ET_Scotland_Multiple,ET_Admin
+    TASK_TYPE_CACHE_TIMEOUT_DURATION: 60
+    TASK_TYPE_CACHE_TIMEOUT_TIMEUNIT: MINUTES
+    CALENDAR_CACHE_TIMEOUT_DURATION: 24
+    CALENDAR_CACHE_TIMEOUT_TIMEUNIT: HOURS
+    SPRING_PROFILES_ACTIVE: "replica"
+    POSTGRES_USERNAME: "pgreplication"
+    REPLICATION_USERNAME: "pgreplication"
 

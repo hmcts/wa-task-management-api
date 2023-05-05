@@ -61,6 +61,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+
 class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBaseTest {
 
     @MockBean
