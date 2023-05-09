@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface SensitiveTaskEventLogsRepository extends CrudRepository<SensitiveTaskEventLog, String>,
     JpaSpecificationExecutor<SensitiveTaskEventLog> {
 
-    Optional<SensitiveTaskEventLog> findByTaskId(String taskId);
+    Optional<SensitiveTaskEventLog> getByTaskId(String taskId);
 }

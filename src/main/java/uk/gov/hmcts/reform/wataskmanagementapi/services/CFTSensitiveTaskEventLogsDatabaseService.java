@@ -16,6 +16,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Service
@@ -36,21 +37,13 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
         this.sensitiveTaskEventLogsExecutorService = sensitiveTaskEventLogsExecutorService;
     }
 
-    private SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
-        try {
-            return sensitiveTaskEventLogsRepository.save(sensitiveTaskEventLog);
-        } catch (IllegalArgumentException e) {
-            log.error("Couldn't save SensitiveTaskEventLog for taskId {}", sensitiveTaskEventLog.getTaskId());
-            return sensitiveTaskEventLog;
-        }
-    }
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void processSensitiveTaskEventLog(String taskId,
-                                             List<RoleAssignment> roleAssignments,
-                                             ErrorMessages customErrorMessage) {
+    public SensitiveTaskEventLog processSensitiveTaskEventLog(String taskId,
+                                                              List<RoleAssignment> roleAssignments,
+                                                              ErrorMessages customErrorMessage) {
         TelemetryContext telemetryContext = new TelemetryContext();
         Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+        AtomicReference<SensitiveTaskEventLog> sensitiveTaskEventLogOutput = new AtomicReference<>();
         if (taskResource.isPresent()) {
             log.info("TaskRoles for taskId {} is {}", taskId, taskResource.get().getTaskRoleResources());
             SensitiveTaskEventLog sensitiveTaskEventLog = new SensitiveTaskEventLog(
@@ -65,8 +58,19 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
                 ZonedDateTime.now().toOffsetDateTime()
             );
 
-            sensitiveTaskEventLogsExecutorService.execute(() -> saveSensitiveTaskEventLog(sensitiveTaskEventLog));
-        }
+            sensitiveTaskEventLogsExecutorService
+                .execute(() -> sensitiveTaskEventLogOutput.set(saveSensitiveTaskEventLog(sensitiveTaskEventLog)));
 
+        }
+        return sensitiveTaskEventLogOutput.get();
+    }
+
+    private SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
+        try {
+            return sensitiveTaskEventLogsRepository.save(sensitiveTaskEventLog);
+        } catch (IllegalArgumentException e) {
+            log.error("Couldn't save SensitiveTaskEventLog for taskId {}", sensitiveTaskEventLog.getTaskId());
+            return sensitiveTaskEventLog;
+        }
     }
 }
