@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,8 @@ public class TaskOperationController extends BaseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/operation")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public ResponseEntity<Void> performOperation(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+    public ResponseEntity<Void> performOperation(@Parameter(hidden = true)
+                                                     @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @RequestBody TaskOperationRequest taskOperationRequest) {
         log.info("task operation request received '{}'", taskOperationRequest);
         boolean hasExclusiveAccessRequest =

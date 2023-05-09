@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -12,6 +13,7 @@ import lombok.ToString;
 @ToString
 public class AssignTaskRequest {
 
+    @Schema(name = "user_id")
     private String userId;
 
     @JsonCreator

@@ -17,6 +17,7 @@ import java.util.List;
 @ToString
 public class NotesRequest {
 
+    @Schema(name = "note_resource")
     private final List<NoteResource> noteResource;
 
     @JsonCreator

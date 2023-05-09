@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 
 import java.io.OutputStream;
@@ -11,7 +12,7 @@ import java.nio.file.Paths;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class OpenAPIPublisherTest extends SpringBootIntegrationBaseTest {
 
     private static final String SWAGGER_DOCS_VERSION = "/v3/api-docs";

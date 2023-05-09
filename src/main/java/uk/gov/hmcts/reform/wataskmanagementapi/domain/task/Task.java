@@ -18,49 +18,54 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 public class Task {
     public static final String SAMPLE_ISO_DATE_TIME = "2020-09-05T14:47:01.250542+01:00";
     @Schema(
-        required = true,
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "Unique identifier for the task"
     )
     private final String id;
     @Schema(
-        required = true,
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "Name of the task assigned in the process model"
     )
     private final String name;
     @Schema(
-        required = true,
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "The single user who has been assigned this task i.e. IDAM ID"
     )
     private final String assignee;
     @Schema(
-        required = true,
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "Unique identifier for the conceptual business task"
     )
     private final String type;
     @Schema(
-        required = true,
+        name = "task_state",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "unconfigured, unassigned, configured, assigned, referred, completed, cancelled"
     )
     private final String taskState;
     @Schema(
-        required = true,
+        name = "task_system",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = " Code indicating the system which is responsible for this task. For MVP will be always SELF"
     )
     private final String taskSystem;
     @Schema(
-        required = true,
+        name = "security_classification",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "The security classification of the main business entity this task relates to."
                       + " Can be PUBLIC, PRIVATE, RESTRICTED"
     )
     private final String securityClassification;
     @Schema(
-        required = true,
+        name = "task_title",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "Task title to display in task list UI"
     )
     private final String taskTitle;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
+        name = "created_date",
         example = SAMPLE_ISO_DATE_TIME,
         description = "Optional due date for the task that will be created"
     )
@@ -68,48 +73,63 @@ public class Task {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
+        name = "due_date",
         example = SAMPLE_ISO_DATE_TIME,
         description = "Optional due date for the task that will be created"
     )
     private final ZonedDateTime dueDate;
-    @Schema(required = true,
+    @Schema(
+        name = "location_name",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "`location to display in task list UI"
     )
     private final String locationName;
-    @Schema(required = true,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
         description = "The ePims ID for the physical location"
     )
     private final String location;
-    @Schema(required = true,
+    @Schema(
+        name = "execution_type",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "Indicator to the user interface of how this task is to be executed. "
                       + "For MVP, this will always be \"Case Management Task\""
     )
     private final String executionType;
-    @Schema(required = true,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
         description = "For MVP, will always be \"IA\""
     )
     private final String jurisdiction;
-    @Schema(required = true,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
         description = " The region ID. For IAC is always \"1\" (national)"
     )
     private final String region;
-    @Schema(required = true,
+    @Schema(
+        name = "case_type_id",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = " The CCD case type ID"
     )
     private final String caseTypeId;
-    @Schema(required = true,
+    @Schema(
+        name = "case_id",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = " Case ID to display in task list UI"
     )
     private final String caseId;
-    @Schema(required = true,
+    @Schema(
+        name = "case_category",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = " Case category  to display in task list UI"
     )
     private final String caseCategory;
-    @Schema(required = true,
+    @Schema(
+        name = "case_name",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = " Case name to display in task list UI"
     )
     private final String caseName;
-    @Schema(required = true,
+    @Schema(
+        name = "auto_assigned",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "If TRUE then task was auto-assigned, otherwise FALSE"
     )
     private final boolean autoAssigned;
@@ -119,62 +139,81 @@ public class Task {
     private final Boolean warnings;
 
     @Schema(
+        name = "warning_list",
         description = "A list of values containing a warning code and warning text")
     private final WarningValues warningList;
 
-    @Schema(description = "A value describing the category of the case, for IA, "
+    @Schema(
+        name = "case_management_category",
+        description = "A value describing the category of the case, for IA, "
                           + "it has the same value as the AppealType field")
     private final String caseManagementCategory;
 
-    @Schema(required = true,
+    @Schema(
+        name = "work_type_id",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A value containing the work type id for this task, for IA")
     private final String workTypeId;
 
-    @Schema(required = true,
+    @Schema(
+        name = "work_type_label",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A value containing the work type label for this task, for IA")
     private final String workTypeLabel;
 
-    @Schema(required = true,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A value describing the task permissions")
     private final TaskPermissions permissions;
-    @Schema(required = true,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A value describing to users what they should do next")
     private final String description;
 
-    @Schema(required = true,
+    @Schema(
+        name = "role_category",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A value describing the role category")
     private final String roleCategory;
 
-    @Schema(required = true,
+    @Schema(
+        name = "additional_properties",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A value describing the additional properties")
     private final Map<String, String> additionalProperties;
-    @Schema(description = "Next hearing identifier")
+    @Schema(name = "next_hearing_id", description = "Next hearing identifier")
     private final String nextHearingId;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
+        name = "next_hearing_date",
         example = SAMPLE_ISO_DATE_TIME,
         description = "Next hearing date time"
     )
     private final ZonedDateTime nextHearingDate;
 
-    @Schema(required = true,
+    @Schema(
+        name = "minor_priority",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A value to be able to sort by priority")
     private final Integer minorPriority;
 
-    @Schema(required = true,
+    @Schema(
+        name = "major_priority",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A value to be able to sort by priority")
     private final Integer majorPriority;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
-    @Schema(required = true,
+    @Schema(
+        name = "priority_date",
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A value to be able to sort by priority")
     private final ZonedDateTime priorityDate;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
+        name = "reconfigure_request_time",
         example = SAMPLE_ISO_DATE_TIME,
         description = "Optional reconfigure request time"
     )
@@ -183,6 +222,7 @@ public class Task {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
+        name = "last_reconfiguration_time",
         example = SAMPLE_ISO_DATE_TIME,
         description = "Optional last reconfiguration request time"
     )
