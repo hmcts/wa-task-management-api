@@ -18,6 +18,8 @@ public class MIReportingService {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MIReportingService.class);
     public static final String MAIN_SLOT_NAME = "main_slot_v1";
 
+    private static final int PUBLICATION_ROW_COUNT_WITHOUT_WORK_TYPES = 1;
+
     private final TaskHistoryResourceRepository taskHistoryRepository;
     private final TaskResourceRepository taskResourceRepository;
 
@@ -39,7 +41,12 @@ public class MIReportingService {
     public void logicalReplicationCheck() {
         LOGGER.debug("Postgresql logical replication check executed");
         if (isReplicationSlotPresent()) {
-            if (!isPublicationPresent()) {
+            if (isPublicationPresent()) {
+                if (!isWorkTypesInPublication()) {
+                    addWorkTypesToPublication();
+                    subscriptionCreator.refreshSubscription();
+                }
+            } else {
                 createPublication();
             }
             if (!isSubscriptionPresent()) {
@@ -76,9 +83,23 @@ public class MIReportingService {
         }
     }
 
+    protected boolean isWorkTypesInPublication() {
+        if (taskResourceRepository.countPublicationTables() == PUBLICATION_ROW_COUNT_WITHOUT_WORK_TYPES) {
+            LOGGER.info("Work types not added to publication");
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     private void createPublication() {
         taskResourceRepository.createPublication();
         LOGGER.info("Created publication");
+    }
+
+    private void addWorkTypesToPublication() {
+        taskResourceRepository.addWorkTypesToPublication();
+        LOGGER.info("Added work types to publication");
     }
 
     protected boolean isSubscriptionPresent() {
