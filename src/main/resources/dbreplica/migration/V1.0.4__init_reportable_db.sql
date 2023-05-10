@@ -2,6 +2,7 @@
 -- drop table if exists reportable_task cascade;
 create table cft_task_db.reportable_task
 (
+  update_id               SERIAL NOT NULL,
   task_id                 TEXT NOT NULL,
   task_name               TEXT,
   task_type               TEXT,

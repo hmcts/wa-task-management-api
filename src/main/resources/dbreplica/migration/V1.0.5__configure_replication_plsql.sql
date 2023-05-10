@@ -71,7 +71,8 @@ begin
        l_task.case_id, l_task.case_type_id, l_task.case_category, l_task.case_name,
        l_task.jurisdiction, l_task.region, l_task.location, l_task.business_context,
        l_task.termination_reason, l_task.created, l_task.last_updated_user, l_task.last_updated_timestamp,
-       l_task.last_updated_action);
+       l_task.last_updated_action)
+    returning update_id into l_update_id;
   end if;
 
   if l_result_action = 'update' then
