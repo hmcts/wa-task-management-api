@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -42,6 +44,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.status;
@@ -72,7 +75,8 @@ public class TaskActionsController extends BaseController {
         this.clientAccessControlService = clientAccessControlService;
     }
 
-    @Operation(description = "Retrieve a Task Resource identified by its unique id.")
+    @Operation(description = "Retrieve a Task Resource identified by its unique id.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = GetTaskResponse.class))}),
@@ -82,8 +86,9 @@ public class TaskActionsController extends BaseController {
         @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
-    @GetMapping(path = "/{task-id}")
-    public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader(AUTHORIZATION) String authToken,
+    @GetMapping(path = "/{task-id}", consumes = {ALL_VALUE})
+    public ResponseEntity<GetTaskResponse<Task>> getTask(@Parameter(hidden = true)
+                                                             @RequestHeader(AUTHORIZATION) String authToken,
                                                          @PathVariable(TASK_ID) String id) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -99,7 +104,8 @@ public class TaskActionsController extends BaseController {
             .body(new GetTaskResponse<>(task));
     }
 
-    @Operation(description = "Claim the identified Task for the currently logged in user.")
+    @Operation(description = "Claim the identified Task for the currently logged in user.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = NO_CONTENT, content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
@@ -111,7 +117,7 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/claim")
-    public ResponseEntity<Void> claimTask(@RequestHeader(AUTHORIZATION) String authToken,
+    public ResponseEntity<Void> claimTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
                                           @PathVariable(TASK_ID) String taskId) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -123,7 +129,8 @@ public class TaskActionsController extends BaseController {
 
     }
 
-    @Operation(description = "Unclaim the identified Task for the currently logged in user.")
+    @Operation(description = "Unclaim the identified Task for the currently logged in user.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task unclaimed", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
@@ -135,7 +142,7 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/unclaim")
-    public ResponseEntity<Void> unclaimTask(@RequestHeader(AUTHORIZATION) String authToken,
+    public ResponseEntity<Void> unclaimTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
                                             @PathVariable(TASK_ID) String taskId) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -146,7 +153,8 @@ public class TaskActionsController extends BaseController {
             .build();
     }
 
-    @Operation(description = "Assign the identified Task to a specified user.")
+    @Operation(description = "Assign the identified Task to a specified user.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task assigned", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
@@ -158,7 +166,8 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/assign")
-    public ResponseEntity<Void> assignTask(@RequestHeader(AUTHORIZATION) String assignerAuthToken,
+    public ResponseEntity<Void> assignTask(@Parameter(hidden = true)
+                                               @RequestHeader(AUTHORIZATION) String assignerAuthToken,
                                            @PathVariable(TASK_ID) String taskId,
                                            @RequestBody AssignTaskRequest assignTaskRequest) {
 
@@ -176,7 +185,8 @@ public class TaskActionsController extends BaseController {
         return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
     }
 
-    @Operation(description = "Completes a Task identified by an id.")
+    @Operation(description = "Completes a Task identified by an id.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task has been completed", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
@@ -189,8 +199,9 @@ public class TaskActionsController extends BaseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public ResponseEntity<Void> completeTask(@RequestHeader(AUTHORIZATION) String authToken,
-                                             @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+    public ResponseEntity<Void> completeTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
+                                             @Parameter(hidden = true)
+                                                @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
@@ -218,7 +229,8 @@ public class TaskActionsController extends BaseController {
             .build();
     }
 
-    @Operation(description = "Cancel a Task identified by an id.")
+    @Operation(description = "Cancel a Task identified by an id.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task has been cancelled", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
@@ -230,7 +242,7 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/cancel")
-    public ResponseEntity<Void> cancelTask(@RequestHeader(AUTHORIZATION) String authToken,
+    public ResponseEntity<Void> cancelTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
                                            @PathVariable(TASK_ID) String taskId) {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
@@ -258,7 +270,7 @@ public class TaskActionsController extends BaseController {
     @PostMapping(path = "/{task-id}/notes")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public ResponseEntity<Void> updatesTaskWithNotes(
-        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+        @Parameter(hidden = true) @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
         @PathVariable(TASK_ID) String taskId,
         @RequestBody NotesRequest notesRequest
     ) {
@@ -281,7 +293,8 @@ public class TaskActionsController extends BaseController {
             .build();
     }
 
-    @Operation(description = "Retrieve the role permissions information for the task identified by the given task-id.")
+    @Operation(description = "Retrieve the role permissions information for the task identified by the given task-id.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
                 schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
@@ -291,9 +304,9 @@ public class TaskActionsController extends BaseController {
         @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
-    @GetMapping(path = "/{task-id}/roles")
+    @GetMapping(path = "/{task-id}/roles", consumes = {ALL_VALUE})
     public ResponseEntity<GetTaskRolePermissionsResponse> getTaskRolePermissions(
-        @RequestHeader(AUTHORIZATION) String authToken, @PathVariable(TASK_ID) String id) {
+        @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken, @PathVariable(TASK_ID) String id) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 

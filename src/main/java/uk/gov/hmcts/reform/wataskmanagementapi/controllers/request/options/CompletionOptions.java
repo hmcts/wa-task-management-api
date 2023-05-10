@@ -13,6 +13,7 @@ import lombok.ToString;
 @ToString
 public class CompletionOptions {
 
+    @Schema(name = "assign_and_complete")
     private final boolean assignAndComplete;
 
     @JsonCreator

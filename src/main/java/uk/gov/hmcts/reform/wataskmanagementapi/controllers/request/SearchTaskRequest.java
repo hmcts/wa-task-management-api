@@ -22,11 +22,13 @@ public class SearchTaskRequest {
 
     @Schema(
         required = true,
+        name = "search_parameters",
         description = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
     @NotEmpty(message = "At least one search_parameter element is required.")
     private List<@Valid SearchParameter<?>> searchParameters;
+    @Schema(name = "sorting_parameters")
     private List<SortingParameter> sortingParameters;
-    @Schema(allowableValues = "ALL_WORK, AVAILABLE_TASKS", example = "ALL_WORK")
+    @Schema(name = "request_context", allowableValues = "ALL_WORK, AVAILABLE_TASKS", example = "ALL_WORK")
     private RequestContext requestContext;
 
     private SearchTaskRequest() {
