@@ -14,7 +14,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.executors.ExecutorServiceConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
@@ -22,12 +21,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
