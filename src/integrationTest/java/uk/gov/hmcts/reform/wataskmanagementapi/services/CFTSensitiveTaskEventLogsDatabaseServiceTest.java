@@ -15,26 +15,26 @@ import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.executors.ExecutorServiceConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ActiveProfiles("integration")
 @DataJpaTest
-@Import(AllowedJurisdictionConfiguration.class)
+@Import(ExecutorServiceConfig.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/get_task_data.sql")
@@ -44,6 +44,7 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
     TaskResourceRepository taskResourceRepository;
     @Autowired
     SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
+    @Autowired
     ExecutorService sensitiveTaskEventLogsExecutorService;
     CFTTaskDatabaseService cftTaskDatabaseService;
     CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
@@ -52,7 +53,6 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
-        sensitiveTaskEventLogsExecutorService = Executors.newFixedThreadPool(1);
         cftSensitiveTaskEventLogsDatabaseService = new CFTSensitiveTaskEventLogsDatabaseService(
             sensitiveTaskEventLogsRepository,
             cftTaskDatabaseService,
