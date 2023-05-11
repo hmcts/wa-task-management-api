@@ -66,5 +66,6 @@ public abstract class BaseTaskHistoryResource {
     private OffsetDateTime updated;
     private String updateAction;
 
-    protected abstract void method();
+    //abstract class must have abstract method
+    protected abstract String getTaskTitle();
 }

@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -86,7 +85,6 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
         Testcontainers.exposeHostPorts(container.getFirstMappedPort(), containerReplica.getFirstMappedPort());
     }
 
-    @Disabled
     @Test
     void should_save_task_and_get_task_from_replica_tables() {
         TaskResource taskResource = createAndSaveTask();
@@ -103,6 +101,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(1, taskHistoryResourceList.size());
                     assertEquals(taskResource.getTaskId(), taskHistoryResourceList.get(0).getTaskId());
                     assertEquals(taskResource.getTaskName(), taskHistoryResourceList.get(0).getTaskName());
+                    assertEquals(taskResource.getTitle(), taskHistoryResourceList.get(0).getTaskTitle());
 
                     return true;
                 });
@@ -124,6 +123,7 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(1, reportableTaskList.size());
                     assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
+                    assertEquals(taskResource.getTitle(), reportableTaskList.get(0).getTaskTitle());
 
                     return true;
                 });

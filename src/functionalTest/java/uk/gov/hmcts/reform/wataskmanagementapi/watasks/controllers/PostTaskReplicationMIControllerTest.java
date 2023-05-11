@@ -226,6 +226,23 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         String taskId = taskVariables.getTaskId();
+
+        Response resultTaskReportable = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultTaskReportable.prettyPrint();
+        resultTaskReportable.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).task_id", equalTo(taskId))
+            .body("reportable_task_list.get(0).state", equalTo("UNASSIGNED"))
+            .body("reportable_task_list.get(0).updated_by", notNullValue())
+            .body("reportable_task_list.get(0).updated", notNullValue())
+            .body("reportable_task_list.get(0).update_action", equalTo("Configure"));
+
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             caseworkerCredentials.getHeaders(),

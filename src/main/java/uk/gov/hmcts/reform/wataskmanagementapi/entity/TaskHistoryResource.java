@@ -11,7 +11,7 @@ import javax.persistence.Table;
 public class TaskHistoryResource extends BaseTaskHistoryResource {
 
     @Override
-    protected void method() {
-
+    public String getTaskTitle() {
+        return getTitle();
     }
 }
