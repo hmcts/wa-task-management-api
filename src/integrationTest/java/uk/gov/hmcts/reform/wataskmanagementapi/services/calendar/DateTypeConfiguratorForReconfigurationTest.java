@@ -12,9 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -757,59 +755,63 @@ public class DateTypeConfiguratorForReconfigurationTest {
     }
 
     @Test
-    public void shouldReconfigureDates(){
+    public void should_reconfigure_dates_based_task_attributes() {
         ZoneId systemDefault = ZoneId.systemDefault();
-        taskAttributes.put("dueDateTime",
-                           ZonedDateTime.of(2022, 12, 3, 16, 0, 0, 0, systemDefault)
-                               .toOffsetDateTime());
-        taskAttributes.put("priorityDate",
-                           ZonedDateTime.of(2022, 12, 3, 16, 0, 0, 0, systemDefault)
-            .toOffsetDateTime());
+        taskAttributes.put(
+            "dueDateTime",
+            ZonedDateTime.of(2022, 12, 3, 16, 0, 0, 0, systemDefault)
+                .toOffsetDateTime()
+        );
+        taskAttributes.put(
+            "priorityDate",
+            ZonedDateTime.of(2022, 12, 3, 16, 0, 0, 0, systemDefault)
+                .toOffsetDateTime()
+        );
 
-        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+        var calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
             .value(CamundaValue.stringValue("nextHearingDate,nextHearingDatePreDate,dueDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDatePreDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+        var nextHearingDatePreDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDatePreDateOriginRef"))
             .value(CamundaValue.stringValue("nextHearingDate"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDatePreDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+        var nextHearingDatePreDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDatePreDateIntervalDays"))
             .value(CamundaValue.stringValue("-3"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+        var nextHearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDatePreDateNonWorkingCalendar"))
             .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
-        ConfigurationDmnEvaluationResponse nextHearingDatePreDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+        var nextHearingDatePreDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDatePreDateNonWorkingDaysOfWeek"))
             .value(CamundaValue.stringValue("SATURDAY, SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDatePreDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+        var nextHearingDatePreDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDatePreDateSkipNonWorkingDays"))
             .value(CamundaValue.stringValue("true"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse nextHearingDatePreDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+        var nextHearingDatePreDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDatePreDateMustBeWorkingDay"))
             .value(CamundaValue.stringValue("No"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
-        ConfigurationDmnEvaluationResponse priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
-            .value(CamundaValue.stringValue("nextHearingDatePreDate,dueDate"))
+        var priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginRef"))
+            .value(CamundaValue.stringValue("dueDate"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
@@ -818,10 +820,12 @@ public class DateTypeConfiguratorForReconfigurationTest {
                 List.of(calculatedDates, nextHearingDatePreDateOriginRef,
                         nextHearingDatePreDateIntervalDays, nextHearingDatePreDateNonWorkingCalendar,
                         nextHearingDatePreDateNonWorkingDaysOfWeek, nextHearingDatePreDateSkipNonWorkingDays,
-                        nextHearingDatePreDateMustBeWorkingDay, priorityDateOriginEarliest),
+                        nextHearingDatePreDateMustBeWorkingDay, priorityDateOriginEarliest
+                ),
                 false,
                 true,
-                taskAttributes);
+                taskAttributes
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
