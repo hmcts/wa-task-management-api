@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -40,13 +39,6 @@ class TaskTypesServiceTest {
     @Mock
     private DmnEvaluationService dmnEvaluationService;
     private TaskTypesService taskTypesService;
-
-    @BeforeEach
-    public void setUp() {
-        taskTypesService = new TaskTypesService(
-                dmnEvaluationService
-        );
-    }
 
     @Test
     void should_return_task_types() {
@@ -92,8 +84,6 @@ class TaskTypesServiceTest {
 
     }
 
-
-    @Disabled
     @Test
     void should_return_all_task_types_with_first_record_and_without_duplicate() {
 
@@ -174,22 +164,22 @@ class TaskTypesServiceTest {
         assertEquals(
                 "processApplication",
                 response.getTaskTypeResponses()
-                    .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeId()
+                    .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId()
         );
         assertEquals(
                 "Process Application",
             response.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeName()
+                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName()
         );
         assertEquals(
                 "reviewAppealSkeletonArgument",
             response.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId()
+                .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeId()
         );
         assertEquals(
                 "Review Appeal Skeleton Argument",
             response.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName()
+                .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeName()
         );
     }
 
@@ -205,6 +195,13 @@ class TaskTypesServiceTest {
         //then
         assertNotNull(response);
         assertNull(response.getTaskTypeResponses());
+    }
+
+    @BeforeEach
+    public void setUp() {
+        taskTypesService = new TaskTypesService(
+            dmnEvaluationService
+        );
     }
 
     private List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames,
