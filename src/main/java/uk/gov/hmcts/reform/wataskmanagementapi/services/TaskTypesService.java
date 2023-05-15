@@ -72,22 +72,11 @@ public class TaskTypesService {
     }
 
     private Set<TaskTypeResponse> extractValues(List<TaskTypesDmnEvaluationResponse> evaluationResponses) {
-
-        Set<TaskType> taskTypeResponses = new LinkedHashSet<>();
-
-        evaluationResponses.forEach(item -> {
-
-                TaskType taskType = new TaskType(
-                    item.getTaskTypeId().getValue(),
-                    item.getTaskTypeName().getValue()
-                );
-
-                taskTypeResponses.add(taskType);
-            }
-        );
-
-        return taskTypeResponses.stream().map(TaskTypeResponse::new).collect(Collectors.toSet());
-
+        return evaluationResponses.stream()
+            .map(r -> new TaskType(r.getTaskTypeId().getValue(), r.getTaskTypeName().getValue()))
+            .distinct()
+            .map(TaskTypeResponse::new)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private void validateRequest(String jurisdiction) {
