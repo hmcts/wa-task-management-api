@@ -89,6 +89,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private CamundaService camundaService;
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
+    private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @SpyBean
     private CftQueryService cftQueryService;
     @SpyBean
@@ -133,8 +135,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         taskId = UUID.randomUUID().toString();
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
-            cftQueryService
-        );
+            cftQueryService,
+            cftSensitiveTaskEventLogsDatabaseService);
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
@@ -143,8 +145,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             taskAutoAssignmentService,
             roleAssignmentVerification,
             entityManager,
-            idamTokenGenerator
-        );
+            idamTokenGenerator,
+            cftSensitiveTaskEventLogsDatabaseService);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
         testTaskResource.setCreated(OffsetDateTime.now());
