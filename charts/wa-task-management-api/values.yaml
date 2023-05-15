@@ -3,8 +3,6 @@ java:
   image: 'hmctspublic.azurecr.io/wa/task-management-api:latest'
   ingressHost: wa-task-management-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: wa
-  startupDelay: 300
-  startupTimeout: 30
   autoscaling:
     enabled: true
     maxReplicas: 4

@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Termi
 @ToString
 public class TerminateTaskRequest {
 
+    @Schema(name = "terminate_info")
     private final TerminateInfo terminateInfo;
 
     @JsonCreator
