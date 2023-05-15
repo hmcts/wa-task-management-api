@@ -92,6 +92,9 @@ public class WorkTypeProviderTest extends SpringBootContractProviderBaseTest {
                 Classification.RESTRICTED, GrantType.SPECIFIC, RoleCategory.JUDICIAL, false, attributes)
         );
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
         when(workTypesService.getWorkTypes(any())).thenReturn(workTypes);
