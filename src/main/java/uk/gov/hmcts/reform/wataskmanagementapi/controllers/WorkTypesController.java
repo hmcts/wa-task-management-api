@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 @RequestMapping(path = "/work-types", produces = APPLICATION_JSON_VALUE)
 @RestController
+@Slf4j
 public class WorkTypesController extends BaseController {
     private final AccessControlService accessControlService;
     private final WorkTypesService workTypesService;
@@ -61,8 +63,9 @@ public class WorkTypesController extends BaseController {
             required = false, name = "filter-by-user", defaultValue = "false") boolean filterByUser
     ) {
         AccessControlResponse roles = accessControlService.getRoles(authToken);
-        List<WorkType> workTypes;
+        log.info("Get work type request from user {}", roles.getUserInfo().getUid());
 
+        List<WorkType> workTypes;
         if (filterByUser) {
             workTypes = workTypesService.getWorkTypes(roles);
         } else {
