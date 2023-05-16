@@ -6,9 +6,9 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Entity(name = "taskHistory")
-@Table(name = "task_history")
-public class TaskHistoryResource extends BaseTaskHistoryResource {
+@Entity(name = "reportableTask")
+@Table(name = "reportable_task")
+public class ReportableTaskResource extends BaseTaskHistoryResource {
 
     @Override
     public String getTaskTitle() {
