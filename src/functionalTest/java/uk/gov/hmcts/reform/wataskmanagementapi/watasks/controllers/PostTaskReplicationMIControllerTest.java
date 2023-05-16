@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 
-
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -77,6 +76,22 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_history_list.get(1).updated_by", notNullValue())
             .body("task_history_list.get(1).updated", notNullValue())
             .body("task_history_list.get(1).update_action", equalTo("Configure"));
+
+        Response resultReportable = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultReportable.prettyPrint();
+        resultReportable.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("UNASSIGNED"))
+            .body("reportable_task_list.get(0).assignee", equalTo(null))
+            .body("reportable_task_list.get(0).updated_by", notNullValue())
+            .body("reportable_task_list.get(0).updated", notNullValue())
+            .body("reportable_task_list.get(0).update_action", equalTo("Configure"));
 
         common.cleanUpTask(taskId);
     }

@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 
 /**
@@ -102,6 +103,11 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(taskResource.getTaskId(), taskHistoryResourceList.get(0).getTaskId());
                     assertEquals(taskResource.getTaskName(), taskHistoryResourceList.get(0).getTaskName());
                     assertEquals(taskResource.getTitle(), taskHistoryResourceList.get(0).getTaskTitle());
+                    assertEquals(taskResource.getAssignee(), taskHistoryResourceList.get(0).getAssignee());
+                    assertEquals(taskResource.getLastUpdatedTimestamp(), taskHistoryResourceList.get(0).getUpdated());
+                    assertEquals(taskResource.getState().toString(), taskHistoryResourceList.get(0).getState());
+                    assertEquals(taskResource.getLastUpdatedUser(), taskHistoryResourceList.get(0).getUpdatedBy());
+                    assertEquals(taskResource.getLastUpdatedAction(), taskHistoryResourceList.get(0).getUpdateAction());
 
                     return true;
                 });
@@ -124,6 +130,39 @@ class MIReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
                     assertEquals(taskResource.getTitle(), reportableTaskList.get(0).getTaskTitle());
+                    assertEquals(taskResource.getAssignee(), reportableTaskList.get(0).getAssignee());
+                    assertEquals(taskResource.getLastUpdatedTimestamp(), reportableTaskList.get(0).getUpdated());
+                    assertEquals(taskResource.getState().toString(), reportableTaskList.get(0).getState());
+                    assertEquals(taskResource.getLastUpdatedUser(), reportableTaskList.get(0).getUpdatedBy());
+                    assertEquals(taskResource.getLastUpdatedAction(), reportableTaskList.get(0).getUpdateAction());
+
+                    return true;
+                });
+    }
+
+    @Test
+    void should_save_AutoAssign_task_and_get_task_from_reportable_task() {
+        String taskId = UUID.randomUUID().toString();
+        TaskResource taskResource = createAndSaveThisTask(taskId, "FirstTask", ASSIGNED, "AutoAssign");
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(taskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
+                    assertEquals(taskResource.getTitle(), reportableTaskList.get(0).getTaskTitle());
+                    assertEquals(taskResource.getAssignee(), reportableTaskList.get(0).getAssignee());
+                    assertEquals(taskResource.getLastUpdatedTimestamp(), reportableTaskList.get(0).getUpdated());
+                    assertEquals(taskResource.getState().toString(), reportableTaskList.get(0).getState());
+                    assertEquals(taskResource.getLastUpdatedUser(), reportableTaskList.get(0).getUpdatedBy());
+                    assertEquals(taskResource.getLastUpdatedAction(), reportableTaskList.get(0).getUpdateAction());
 
                     return true;
                 });
