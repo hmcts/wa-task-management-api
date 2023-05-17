@@ -246,6 +246,68 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
             .body("task_assignments_list.get(1).assignment_end_reason", equalTo(null));
 
+        Response resultReportable = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultReportable.prettyPrint();
+        resultReportable.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("ASSIGNED"))
+            .body("reportable_task_list.get(0).assignee", notNullValue())
+            .body("reportable_task_list.get(0).updated_by", notNullValue())
+            .body("reportable_task_list.get(0).updated", notNullValue())
+            .body("reportable_task_list.get(0).update_action", equalTo("Claim"));
+
+        Response resultAssignments = restApiActions.get(
+            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultAssignments.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_assignments_list.size()", equalTo(1));
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED_UNCLAIM,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        Response resultAssignmentsUnclaim = restApiActions.get(
+            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultAssignmentsUnclaim.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_assignments_list.size()", equalTo(1))
+            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"));
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+
+        Response resultAssignmentsClaim = restApiActions.get(
+            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultAssignmentsClaim.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_assignments_list.size()", equalTo(2))
+            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
+            .body("task_assignments_list.get(1).assignment_end_reason", equalTo(null));
+
         common.cleanUpTask(taskId);
     }
 

@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 
 /**
@@ -370,6 +371,115 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_save_task_and_get_task_from_task_assignments() {
+        TaskResource taskResource = createAndAssignTask();
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(taskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
+                    assertEquals(taskResource.getTitle(), reportableTaskList.get(0).getTaskTitle());
+                    assertEquals(taskResource.getAssignee(), reportableTaskList.get(0).getAssignee());
+                    assertEquals(taskResource.getState().toString(), reportableTaskList.get(0).getState());
+                    assertEquals(taskResource.getLastUpdatedUser(), reportableTaskList.get(0).getUpdatedBy());
+                    assertEquals(taskResource.getLastUpdatedAction(), reportableTaskList.get(0).getUpdateAction());
+
+                    return true;
+                });
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingService.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                    assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+
+                    return true;
+                });
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "COMPLETED,Complete,COMPLETED",
+        "ASSIGNED,Assign,REASSIGNED",
+        "UNASSIGNED,Unassign,UNASSIGNED",
+        "UNASSIGNED,Unclaim,UNCLAIMED",
+        "UNASSIGNED,AutoUnassign,UNASSIGNED",
+        "UNASSIGNED,AutoUnassignAssign,UNASSIGNED",
+        "UNASSIGNED,UnassignAssign,UNASSIGNED",
+        "UNASSIGNED,UnassignClaim,UNASSIGNED",
+        "UNASSIGNED,UnclaimAssign,UNASSIGNED"
+    })
+    void should_save_task_and_get_task_from_task_assignments_ended(String state, String lastAction, String endReason) {
+        TaskResource taskResource = createAndAssignTask();
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingService.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                    assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+
+                    return true;
+                });
+
+        if (!state.equals(COMPLETED.toString())) {
+            taskResource.setAssignee(null);
+        }
+        taskResource.setLastUpdatedAction(lastAction);
+        taskResource.setState(CFTTaskState.valueOf(state));
+        taskResourceRepository.save(taskResource);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingService.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    System.out.println("taskAssignmentsList.get(0): " + taskAssignmentsList.get(0));
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                    assertNotNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertEquals(endReason, taskAssignmentsList.get(0).getAssignmentEndReason());
+
+                    return true;
+                });
+    }
+
+    @Test
     void given_zero_publications_should_return_false() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countPublications()).thenReturn(0);
@@ -438,6 +548,26 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResource.setCreated(OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"));
         taskResource.setAssignee("someAssignee");
         taskResource.setLastUpdatedAction("AutoAssign");
+        taskResource.setState(ASSIGNED);
+        return taskResourceRepository.save(taskResource);
+    }
+
+    private TaskResource createAndAssignTask() {
+
+        TaskResource taskResource = new TaskResource(
+            UUID.randomUUID().toString(),
+            "someNewCaseId",
+            "someJurisdiction",
+            "someLocation",
+            "someRoleCategory",
+            "someTaskName",
+            OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"),
+            OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"),
+            OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"),
+            OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"),
+            "someAssignee",
+            "AutoAssign");
+
         taskResource.setState(ASSIGNED);
         return taskResourceRepository.save(taskResource);
     }
