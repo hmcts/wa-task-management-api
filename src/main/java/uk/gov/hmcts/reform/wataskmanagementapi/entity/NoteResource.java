@@ -2,10 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -14,25 +13,23 @@ import java.io.Serializable;
 @Getter
 @EqualsAndHashCode
 @ToString
-@NoArgsConstructor
 public class NoteResource implements Serializable {
 
     private static final long serialVersionUID = 1928058324454924191L;
 
     private String code;
+    @Schema(name = "note_type")
     private String noteType;
+    @Schema(name = "user_id")
     private String userId;
     private String content;
 
-    //private NoteResource() {
-    //    // required for runtime proxy generation in Hibernate
-    //}
+    private NoteResource() {
+        // required for runtime proxy generation in Hibernate
+    }
 
     @JsonCreator
-    public NoteResource(@JsonProperty("code") String code,
-                        @JsonProperty("note_type") String noteType,
-                        @JsonProperty("user_id") String userId,
-                        @JsonProperty("content") String content) {
+    public NoteResource(String code, String noteType, String userId, String content) {
         this.code = code;
         this.noteType = noteType;
         this.userId = userId;

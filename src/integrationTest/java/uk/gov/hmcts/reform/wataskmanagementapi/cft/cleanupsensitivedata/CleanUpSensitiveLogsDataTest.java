@@ -8,9 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.executors.ExecutorServiceConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
@@ -19,13 +21,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(ExecutorServiceConfig.class)
 @Testcontainers
 @Sql("/scripts/cleanup/data.sql")
 @Slf4j
@@ -33,6 +35,9 @@ public class CleanUpSensitiveLogsDataTest {
 
     @Autowired
     TaskResourceRepository taskResourceRepository;
+
+    @Autowired
+    private ExecutorService sensitiveTaskEventLogsExecutorService;
 
     @Autowired
     private SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
@@ -48,7 +53,8 @@ public class CleanUpSensitiveLogsDataTest {
 
         cftSensitiveTaskEventLogsDatabaseService = new CFTSensitiveTaskEventLogsDatabaseService(
             sensitiveTaskEventLogsRepository,
-            cftTaskDatabaseService
+            cftTaskDatabaseService,
+            sensitiveTaskEventLogsExecutorService
         );
     }
 
@@ -76,8 +82,8 @@ public class CleanUpSensitiveLogsDataTest {
 
         Assertions.assertThat(sensitiveTaskEventLogList).isNotEmpty();
 
-        Assertions.assertThat(sensitiveTaskEventLogList.get(0).getExpiryTime())
-            .isAfter(OffsetDateTime.of(jobStartTime, ZoneOffset.UTC));
+        Assertions.assertThat(sensitiveTaskEventLogList.get(0).getExpiryTime().toLocalDateTime())
+            .isAfter(jobStartTime);
 
     }
 

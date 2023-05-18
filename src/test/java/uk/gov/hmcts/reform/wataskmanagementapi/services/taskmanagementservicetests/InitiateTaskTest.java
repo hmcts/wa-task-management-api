@@ -13,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
@@ -30,7 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -80,8 +79,6 @@ class InitiateTaskTest extends CamundaHelpers {
     @Spy
     CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
     @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @Mock
     ConfigureTaskService configureTaskService;
     @Mock
     private IdamTokenGenerator idamTokenGenerator;
@@ -99,7 +96,7 @@ class InitiateTaskTest extends CamundaHelpers {
     private EntityManager entityManager;
 
     @Mock
-    private List<TaskOperationService> taskOperationServices;
+    private List<TaskOperationPerformService> taskOperationPerformServices;
     @Mock
     private UserInfo userInfo;
 
@@ -113,11 +110,9 @@ class InitiateTaskTest extends CamundaHelpers {
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskOperationServices,
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService);

@@ -85,14 +85,17 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue("2022-10-13T16:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue("2022-10-18T17:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
                     .value(CamundaValue.stringValue("2022-10-26T21:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build()
             ));
     }
@@ -135,14 +138,17 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue("2022-10-13T16:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue("2022-10-18T17:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
                     .value(CamundaValue.stringValue("2022-10-15T16:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
                     .build()
             ));
     }
@@ -182,20 +188,17 @@ public class OriginRefDateTypeConfiguratorTest {
         );
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(3)
+            .hasSize(2)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .canReconfigure(CamundaValue.booleanValue(configurable))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDuration"))
                     .value(CamundaValue.stringValue("2022-10-15T16:00"))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue("2022-10-19T17:00"))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
                     .build()
             ));
     }
@@ -356,10 +359,12 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(priorityDateValue))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue("2022-10-30T02:30"))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
                     .build()
             ));
     }
@@ -431,10 +436,12 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(priorityDateValue))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue("2023-03-30T01:30"))
+                    .canReconfigure(CamundaValue.booleanValue(configurable))
                     .build()
             ));
     }
@@ -477,10 +484,12 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(nextHearingDateValue + "T21:00"))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(calculatedDueDate))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -523,10 +532,12 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(nextHearingDateValue + "T21:00"))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
                     .value(CamundaValue.stringValue(calculatedDueDate))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -569,10 +580,12 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(calculatedDueDate))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(nextHearingDateValue + "T21:00"))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -800,6 +813,7 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(dueDateValue + "T18:00"))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -833,6 +847,7 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
                     .value(CamundaValue.stringValue(priorityDate.getValue().getValue()))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -866,6 +881,7 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(nextHearingDateValue + "T18:00"))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -914,21 +930,19 @@ public class OriginRefDateTypeConfiguratorTest {
                 taskAttributes
             );
 
-        assertThat(configResponses).hasSize(3)
+        assertThat(configResponses).hasSize(2)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDuration"))
                     .value(CamundaValue.stringValue("2022-10-12T21:00"))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("dueDate"))
                     .value(CamundaValue.stringValue(taskResourceDueDate
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                                         + "T18:00"))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -975,12 +989,14 @@ public class OriginRefDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(nextHearingDateValue + "T18:00"))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("priorityDate"))
                     .value(CamundaValue.stringValue(taskResourceDueDate
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                                         + "T18:00"))
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -1179,6 +1195,7 @@ public class OriginRefDateTypeConfiguratorTest {
                     .value(CamundaValue.stringValue(
                         nextHearingDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T18:00")
                     )
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -1211,7 +1228,7 @@ public class OriginRefDateTypeConfiguratorTest {
 
         ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-            .value(CamundaValue.stringValue("SAT,SUN"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
         ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
@@ -1242,6 +1259,71 @@ public class OriginRefDateTypeConfiguratorTest {
                     .value(CamundaValue.stringValue(
                         nextHearingDate.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T18:00")
                     )
+                    .canReconfigure(CamundaValue.booleanValue(true))
+                    .build()
+            ));
+    }
+
+    @Test
+    @DisplayName("Only OriginRef is set and reconfigurable including all parameters and with negative interval")
+    public void shouldCalculateDateWhenOriginDateRefIsSetForReconfigurationWithNegativeInterval() {
+        LocalDateTime priorityDate = GIVEN_DATE.minusDays(6);
+        LocalDateTime nextHearingDate = GIVEN_DATE.plusDays(6);
+        taskAttributes.put("priorityDate", priorityDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("dueDate", GIVEN_DATE.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("nextHearingDate", nextHearingDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+
+        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginRef"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+            .value(CamundaValue.stringValue("-2"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue("Previous"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(
+                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar,
+                        dueDateMustBeWorkingDay, dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays,
+                        dueDateOriginRef
+                ),
+                false, true,
+                taskAttributes
+            );
+
+        assertThat(configurationDmnEvaluationResponses).hasSize(1)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(
+                        nextHearingDate.minusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T18:00")
+                    )
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -1274,7 +1356,7 @@ public class OriginRefDateTypeConfiguratorTest {
 
         ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-            .value(CamundaValue.stringValue("SAT,SUN"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(false))
             .build();
         ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
@@ -1305,6 +1387,7 @@ public class OriginRefDateTypeConfiguratorTest {
                     .value(CamundaValue.stringValue(
                         nextHearingDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T18:00")
                     )
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }
@@ -1337,7 +1420,7 @@ public class OriginRefDateTypeConfiguratorTest {
 
         ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
-            .value(CamundaValue.stringValue("SAT,SUN"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
         ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()

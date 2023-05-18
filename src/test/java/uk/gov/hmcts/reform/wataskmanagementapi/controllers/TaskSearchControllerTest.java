@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -88,7 +87,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean(), anyBoolean()))
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(tasksResponse);
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
@@ -109,7 +108,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean(), anyBoolean()))
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(tasksResponse);
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
@@ -133,7 +132,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean(), anyBoolean()))
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(tasksResponse);
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")))
@@ -157,7 +156,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean(), anyBoolean()))
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(tasksResponse);
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")))
@@ -233,8 +232,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(),
-            anyBoolean(), anyBoolean())).thenReturn(tasksResponse);
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any())).thenReturn(tasksResponse);
 
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
@@ -256,7 +254,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksCompletableResponse<Task> tasksResponse = new GetTasksCompletableResponse<>(true, taskList);
-        when(cftQueryService.searchForCompletableTasks(any(), any(), any(), anyBoolean())).thenReturn(tasksResponse);
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any())).thenReturn(tasksResponse);
 
         ResponseEntity<GetTasksCompletableResponse<Task>> response =
             taskSearchController.searchWithCriteriaForAutomaticCompletion(
@@ -313,7 +311,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean(), anyBoolean()))
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(tasksResponse);
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
@@ -358,7 +356,7 @@ class TaskSearchControllerTest {
             )
         );
 
-        verify(cftQueryService, never()).searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean(), anyBoolean());
+        verify(cftQueryService, never()).searchForTasks(anyInt(), anyInt(), any(), any());
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());

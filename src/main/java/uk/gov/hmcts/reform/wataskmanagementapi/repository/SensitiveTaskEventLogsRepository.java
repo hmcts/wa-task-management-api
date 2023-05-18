@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface SensitiveTaskEventLogsRepository extends CrudRepository<SensitiveTaskEventLog, String>,
     JpaSpecificationExecutor<SensitiveTaskEventLog> {
@@ -22,5 +23,7 @@ public interface SensitiveTaskEventLogsRepository extends CrudRepository<Sensiti
     @Modifying
     @Query(value = CLEANUP_SENSITIVE_LOG_ENTRIES, nativeQuery = true)
     int cleanUpSensitiveLogs(@Param("timestamp") LocalDateTime timestamp);
+
+    Optional<SensitiveTaskEventLog> getByTaskId(String taskId);
 
 }

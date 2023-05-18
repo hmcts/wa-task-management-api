@@ -32,7 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificati
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -72,7 +72,7 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
     @MockBean
-    private List<TaskOperationService> taskOperationServices;
+    private List<TaskOperationPerformService> taskOperationPerformServices;
     @MockBean
     private IdamTokenGenerator idamTokenGenerator;
     @MockBean
@@ -102,11 +102,9 @@ public class TaskManagementProviderTestConfiguration {
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerificationService,
-            taskOperationServices,
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService);

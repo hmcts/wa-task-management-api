@@ -51,8 +51,8 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
         return referenceDate.map(localDateTime -> calculateDate(
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
-            localDateTime
-        )).orElse(null);
+            localDateTime,
+            isReconfigureRequest)).orElse(null);
     }
 
     @Override
@@ -131,6 +131,6 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
                 log.info("Input {}: {}", NEXT_HEARING_DATE_ORIGIN, v);
                 return v.getValue().getValue();
             })
-            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
+            .map(this::parseDateTime);
     }
 }
