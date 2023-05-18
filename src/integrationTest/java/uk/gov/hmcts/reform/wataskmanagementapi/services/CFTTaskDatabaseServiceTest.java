@@ -3,19 +3,30 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CANCELLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
@@ -53,7 +64,7 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_succeed_and_find_a_task_by_id() {
 
-        TaskResource taskResource = createAndSaveTask();
+        TaskResource taskResource = createAndSaveTask(UNCONFIGURED);
 
         Optional<TaskResource> updatedTaskResource =
             cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResource.getTaskId());
@@ -69,7 +80,7 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_succeed_and_find_a_task_by_id_with_no_lock() {
 
-        TaskResource taskResource = createAndSaveTask();
+        TaskResource taskResource = createAndSaveTask(UNCONFIGURED);
 
         Optional<TaskResource> updatedTaskResource =
             cftTaskDatabaseService.findByIdOnly(taskResource.getTaskId());
@@ -82,12 +93,29 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
         assertEquals(UNCONFIGURED, updatedTaskResource.get().getState());
     }
 
-    private TaskResource createAndSaveTask() {
+    @Test
+    void should_succeed_and_find_a_tasks_to_update_index() {
+
+        createAndSaveTask(ASSIGNED);
+        createAndSaveTask(UNASSIGNED);
+        createAndSaveTask(COMPLETED);
+        createAndSaveTask(CANCELLED);
+
+        List<TaskResource> taskResourceToIndex = cftTaskDatabaseService.findTaskToUpdateIndex();
+
+        assertNotNull(taskResourceToIndex);
+        assertFalse(taskResourceToIndex.isEmpty());
+        assertEquals(2, taskResourceToIndex.size());
+        assertThat(taskResourceToIndex.stream().map(TaskResource::getState).toList(),
+            containsInAnyOrder(ASSIGNED, UNASSIGNED));
+    }
+
+    private TaskResource createAndSaveTask(CFTTaskState state) {
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
             "someTaskName",
             "someTaskType",
-            UNCONFIGURED,
+            state,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResource.setCreated(OffsetDateTime.now());

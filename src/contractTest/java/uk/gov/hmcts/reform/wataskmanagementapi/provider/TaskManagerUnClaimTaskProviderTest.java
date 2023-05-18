@@ -36,8 +36,7 @@ public class TaskManagerUnClaimTaskProviderTest extends SpringBootContractProvid
             taskManagementService,
             accessControlService,
             systemDateProvider,
-            clientAccessControlService,
-            launchDarklyFeatureFlagProvider
+            clientAccessControlService
         ));
         if (context != null) {
             context.setTarget(testTarget);

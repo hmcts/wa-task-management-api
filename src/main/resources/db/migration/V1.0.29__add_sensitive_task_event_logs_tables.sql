@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS sensitive_task_event_logs;
 CREATE TABLE sensitive_task_event_logs
 (
-    id                      TEXT        NOT NULL,
+    id                      UUID,
     request_id              TEXT        NULL,
     correlation_id          TEXT        NULL,
     task_id                 TEXT        NOT NULL,

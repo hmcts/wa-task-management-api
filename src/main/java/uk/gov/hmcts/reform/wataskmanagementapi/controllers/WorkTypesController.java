@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +39,8 @@ public class WorkTypesController extends BaseController {
         this.workTypesService = workTypesService;
     }
 
-    @Operation(description = "Retrieve a list of work types with or without filter by user")
+    @Operation(description = "Retrieve a list of work types with or without filter by user",
+        security = {@SecurityRequirement(name = "ServiceAuthorization"), @SecurityRequirement(name = "Authorization")})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
                 schema = @Schema(implementation = GetWorkTypesResponse.class))}),
@@ -53,7 +56,7 @@ public class WorkTypesController extends BaseController {
     })
     @GetMapping
     public ResponseEntity<GetWorkTypesResponse> getWorkTypes(
-        @RequestHeader(AUTHORIZATION) String authToken,
+        @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
         @RequestParam(
             required = false, name = "filter-by-user", defaultValue = "false") boolean filterByUser
     ) {

@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskSearchSortProvider;
 
@@ -19,11 +18,14 @@ import javax.persistence.SqlResultSetMapping;
 
 @Slf4j
 public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepository {
-    private static final String BASE_QUERY = "%sFROM {h-schema}tasks t "
-                                             + "WHERE indexed "
-                                             + "AND {h-schema}filter_signatures(t.task_id) && :filterSignature "
-                                             + "AND {h-schema}role_signatures(t.task_id) && :roleSignature "
-                                             + "%s%s%s";
+    private static final String BASE_QUERY =
+        "%sFROM {h-schema}tasks t "
+        + "WHERE indexed "
+        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, t.region, "
+        + "t.location) && :filterSignature "
+        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+        + "t.security_classification) && :roleSignature "
+        + "%s%s%s";
 
     private static final String SELECT_CLAUSE = "SELECT t.task_id ";
     private static final String COUNT_CLAUSE = "SELECT count(*) ";
@@ -98,11 +100,13 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             extraConstraints.append(buildListConstraint(searchRequest.getUsers(), "assignee", "assignee", true));
         }
         if (CollectionUtils.isEmpty(searchRequest.getCftTaskStates())) {
-            extraConstraints.append("AND cast(state as text) IN ('ASSIGNED','UNASSIGNED') ");
+            extraConstraints.append("AND state IN ('ASSIGNED', 'UNASSIGNED') ");
         } else {
-            extraConstraints.append(buildListConstraint(searchRequest.getCftTaskStates(), "cast(state as text)",
-                "state", true));
-            //extraConstraints.append("AND state = cast(:state as {h-schema}task_state_enum) " );
+            String states = searchRequest.getCftTaskStates()
+                .stream()
+                .map(s -> "'" + s.getValue() + "'")
+                .collect(Collectors.joining(", "));
+            extraConstraints.append("AND state IN (").append(states).append(") ");
         }
         extraConstraints.append(buildListConstraint(searchRequest.getCaseIds(), "case_id", "caseId", true))
             .append(buildListConstraint(excludeCaseIds, "case_id", "excludedCaseId", false))
@@ -145,13 +149,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         List<String> users = searchRequest.getUsers();
         if (!searchRequest.isAvailableTasksOnly() && !CollectionUtils.isEmpty(users)) {
             setParameter(query, "assignee", users);
-        }
-        if (!CollectionUtils.isEmpty(searchRequest.getCftTaskStates())) {
-            List<String> states = searchRequest.getCftTaskStates()
-                .stream()
-                .map(CFTTaskState::getValue)
-                .collect(Collectors.toList());
-            setParameter(query, "state", states);
         }
         List<String> caseIds = searchRequest.getCaseIds();
         if (!CollectionUtils.isEmpty(searchRequest.getCaseIds())) {

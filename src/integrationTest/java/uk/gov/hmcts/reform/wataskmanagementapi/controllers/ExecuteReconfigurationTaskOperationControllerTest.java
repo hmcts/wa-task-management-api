@@ -2,11 +2,15 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -34,13 +38,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdDataService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,12 +53,13 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -62,9 +68,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -72,6 +76,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType.EXECUTE_RECONFIGURE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType.EXECUTE_RECONFIGURE_FAILURES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType.MARK_TO_RECONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.integerValue;
@@ -79,31 +84,28 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValu
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SuppressWarnings("checkstyle:LineLength")
+@ExtendWith(OutputCaptureExtension.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegrationBaseTest {
 
-    private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     public static final String SYSTEM_USER_1 = "system_user1";
     public static final String ASSIGNEE_USER = "assigneeUser";
     public static final String OLD_ASSIGNEE_USER = "oldAssigneeUser";
-
-    @MockBean
-    private ClientAccessControlService clientAccessControlService;
-
-    @MockBean
-    private CftQueryService cftQueryService;
-
-    @MockBean
-    private CaseConfigurationProviderService caseConfigurationProviderService;
-
-    @SpyBean
-    private CFTTaskDatabaseService cftTaskDatabaseService;
-
-    @MockBean
-    private RoleAssignmentService roleAssignmentService;
-
+    private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     @MockBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
-
+    @MockBean
+    private ClientAccessControlService clientAccessControlService;
+    @MockBean
+    private CftQueryService cftQueryService;
+    @MockBean
+    private CcdDataService ccdDataService;
+    @MockBean
+    private DmnEvaluationService dmnEvaluationService;
+    @SpyBean
+    private CFTTaskDatabaseService cftTaskDatabaseService;
+    @MockBean
+    private RoleAssignmentService roleAssignmentService;
     @MockBean
     private IdamWebApi idamWebApi;
 
@@ -113,15 +115,21 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     private String taskId;
     private String bearerAccessToken1;
 
+    public static void assertCloseTo(OffsetDateTime expected, OffsetDateTime actual, int offsetSeconds) {
+        assertTrue(expected.minusSeconds(offsetSeconds).isBefore(actual) && expected.plusSeconds(offsetSeconds).isAfter(actual));
+    }
+
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
-        lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(
             anyString(),
-            any()
+            anyString(),
+            anyString(),
+            anyString()
         )).thenReturn(List.of(
             new ConfigurationDmnEvaluationResponse(
                 CamundaValue.stringValue("caseName"),
@@ -132,7 +140,13 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         bearerAccessToken1 = "Token" + UUID.randomUUID();
         when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
-
+        CaseDetails caseDetails = new CaseDetails(
+            "IA",
+            "Asylum",
+            SecurityClassification.PUBLIC.getSecurityClassification(),
+            Map.of("caseAccessCategory", "categoryA,categoryC")
+        );
+        lenient().when(ccdDataService.getCaseData(anyString())).thenReturn(caseDetails);
         RoleAssignment roleAssignmentResource = buildRoleAssignment(
             ASSIGNEE_USER,
             "tribunalCaseworker",
@@ -181,13 +195,16 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNotNull(task.getDueDateTime());
         });
 
-        TaskConfigurationResults results = new TaskConfigurationResults(
-            emptyMap(),
-            configurationDmnResponse(false),
-            permissionsResponse()
-        );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean()))
-            .thenReturn(results);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(configurationDmnResponse(false));
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResources.get(0)));
 
         mockMvc.perform(
@@ -201,7 +218,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
-
+        Thread.sleep(5000);
         taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResources.forEach(task -> {
             assertNotNull(task.getLastReconfigurationTime());
@@ -265,13 +282,16 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNotNull(task.getDueDateTime());
         });
 
-        TaskConfigurationResults results = new TaskConfigurationResults(
-            emptyMap(),
-            configurationDmnResponse(true),
-            permissionsResponse()
-        );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean()))
-            .thenReturn(results);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(configurationDmnResponse(true));
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
 
         mockMvc.perform(
@@ -285,7 +305,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
-
+        Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
         taskResourcesAfter
@@ -352,14 +372,17 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNull(task.getNextHearingId());
         });
 
-        TaskConfigurationResults results = new TaskConfigurationResults(
-            emptyMap(),
-            configurationDmnResponse(true),
-            permissionsResponse()
-        );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean()))
-            .thenReturn(results);
-
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(configurationDmnResponse(true));
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(permissionsResponse());
+        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -371,7 +394,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
-
+        Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
@@ -437,13 +460,16 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNull(task.getNextHearingId());
         });
 
-        TaskConfigurationResults results = new TaskConfigurationResults(
-            emptyMap(),
-            configurationDmnResponse(true),
-            permissionsResponse()
-        );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean()))
-            .thenReturn(results);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(configurationDmnResponse(true));
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(permissionsResponse());
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
 
         mockMvc.perform(
@@ -457,7 +483,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
-
+        Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
@@ -525,13 +551,17 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNull(task.getNextHearingId());
         });
 
-        TaskConfigurationResults results = new TaskConfigurationResults(
-            emptyMap(),
-            configurationDmnResponse(true),
-            permissionsResponse()
-        );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean()))
-            .thenReturn(results);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(configurationDmnResponse(true));
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(permissionsResponse());
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -543,6 +573,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        Thread.sleep(5000);
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
@@ -574,10 +606,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 assertEquals(TaskAction.AUTO_UNASSIGN_ASSIGN.getValue(), task.getLastUpdatedAction());
             }
         );
-    }
-
-    public static void assertCloseTo(OffsetDateTime expected, OffsetDateTime actual, int offsetSeconds) {
-        assertTrue(expected.minusSeconds(offsetSeconds).isBefore(actual) && expected.plusSeconds(offsetSeconds).isAfter(actual));
     }
 
     @Test
@@ -616,13 +644,16 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNull(task.getNextHearingId());
         });
 
-        TaskConfigurationResults results = new TaskConfigurationResults(
-            emptyMap(),
-            configurationDmnResponse(true),
-            permissionsResponse()
-        );
-        when(caseConfigurationProviderService.getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean()))
-            .thenReturn(results);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(configurationDmnResponse(true));
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(permissionsResponse());
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
 
         mockMvc.perform(
@@ -636,6 +667,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
+
+        Thread.sleep(5000);
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
@@ -705,6 +738,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.NO_CONTENT.value())
         );
 
+        Thread.sleep(5000);
+
         taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
         taskResources.forEach(task -> {
@@ -713,13 +748,231 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         });
     }
 
+    @Test
+    void should_execute_reconfigure_on_task_and_fail_due_to_calendar_configuration_alerts_captured(CapturedOutput output)
+        throws Exception {
+        String caseIdToday = "calendarCaseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        taskResourcesBefore.forEach(task -> {
+            assertEquals(ASSIGNEE_USER, task.getAssignee());
+            assertEquals(CFTTaskState.ASSIGNED, task.getState());
+            assertNotNull(task.getReconfigureRequestTime());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate());
+            assertNull(task.getMinorPriority());
+            assertNull(task.getMajorPriority());
+            assertNull(task.getDescription());
+            assertNull(task.getCaseName());
+            assertEquals("765324", task.getLocation());
+            assertEquals("Taylor House", task.getLocationName());
+            assertNull(task.getCaseCategory());
+            assertNull(task.getWorkTypeResource());
+            assertNull(task.getRoleCategory());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+            assertNull(task.getNextHearingDate());
+            assertNull(task.getNextHearingId());
+            assertNotNull(task.getDueDateTime());
+        });
+
+        List<ConfigurationDmnEvaluationResponse> caseDataConfigurationDmnResponse = configurationDmnResponse(true);
+        List<ConfigurationDmnEvaluationResponse> calendarConfigurationDmnResponse = invalidIntermediateDateCalendarDmnResponse();
+        List<ConfigurationDmnEvaluationResponse> configurationDmnResponse = new ArrayList<>();
+        configurationDmnResponse.addAll(caseDataConfigurationDmnResponse);
+        configurationDmnResponse.addAll(calendarConfigurationDmnResponse);
+
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(configurationDmnResponse);
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(permissionsResponse());
+        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusMinutes(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE_FAILURES,
+                    executeTaskFilters(OffsetDateTime.now().minusMinutes(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(0);
+
+        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService
+            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
+                List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retryWindow);
+
+        taskResourcesAfter.stream().filter(task -> task.getCaseId().equals(caseIdToday))
+            .forEach(task -> {
+                assertNull(task.getLastReconfigurationTime());
+                assertNotNull(task.getReconfigureRequestTime());
+            });
+
+        String failureLogMessage = taskResourcesAfter.stream()
+            .map(task -> "\n" + task.getTaskId()
+                         + ", " + task.getTaskName()
+                         + ", " + task.getState()
+                         + ", " + task.getReconfigureRequestTime()
+                         + ", " + task.getLastReconfigurationTime())
+            .collect(Collectors.joining());
+        assertTrue(output.getOut().contains("Task Execute Reconfiguration Failed for following tasks "
+                                            + failureLogMessage));
+    }
+
+    private List<ConfigurationDmnEvaluationResponse> invalidIntermediateDateCalendarDmnResponse() {
+        ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
+            .name(stringValue("calculatedDates"))
+            .value(stringValue("nextHearingDate,nonSpecifiedIntDate,hearingDatePreDate,dueDate,priorityDate"))
+            .build();
+        LocalDateTime nextHearingDateLocalDateTime = LocalDateTime.of(
+            2022,
+            10,
+            13,
+            18,
+            0,
+            0
+        );
+        String nextHearingDateValue = nextHearingDateLocalDateTime
+            .plusDays(1)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDate"))
+            .value(CamundaValue.stringValue(nextHearingDateValue))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse hearingDatePreDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("hearingDatePreDateOriginRef"))
+            .value(CamundaValue.stringValue("nonSpecifiedIntDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse hearingDatePreDateIntervalDays = ConfigurationDmnEvaluationResponse
+            .builder()
+            .name(CamundaValue.stringValue("hearingDatePreDateIntervalDays"))
+            .value(CamundaValue.stringValue("5"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse
+            .builder()
+            .name(CamundaValue.stringValue("hearingDatePreDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse
+            .builder()
+            .name(CamundaValue.stringValue("hearingDatePreDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse hearingDatePreDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse
+            .builder()
+            .name(CamundaValue.stringValue("hearingDatePreDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse hearingDatePreDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse
+            .builder()
+            .name(CamundaValue.stringValue("hearingDatePreDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue("Next"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOriginRef"))
+            .value(CamundaValue.stringValue("nextHearingDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+            .value(CamundaValue.stringValue("21"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue("Next"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginLatest"))
+            .value(CamundaValue.stringValue("hearingDatePreDate,dueDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        return List.of(
+            calculatedDates, nextHearingDate, hearingDatePreDateOriginRef,
+            hearingDatePreDateIntervalDays, hearingDatePreDateNonWorkingCalendar,
+            hearingDatePreDateNonWorkingDaysOfWeek, hearingDatePreDateSkipNonWorkingDays,
+            hearingDatePreDateMustBeWorkingDay, dueDateOriginRef, dueDateIntervalDays,
+            dueDateNonWorkingCalendar, dueDateMustBeWorkingDay, dueDateNonWorkingDaysOfWeek,
+            dueDateSkipNonWorkingDays, priorityDateOriginEarliest
+        );
+    }
+
     private TaskOperationRequest taskOperationRequest(TaskOperationType operationName, List<TaskFilter<?>> taskFilters) {
         TaskOperation operation = TaskOperation
             .builder()
             .type(operationName)
             .runId(UUID.randomUUID().toString())
-            .maxTimeLimit(2)
-            .retryWindowHours(120)
+            .maxTimeLimit(60)
+            .retryWindowHours(0)
             .build();
         return new TaskOperationRequest(operation, taskFilters);
     }

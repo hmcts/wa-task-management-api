@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -77,14 +78,21 @@ public class CaseConfigurationProviderService {
             );
         log.debug("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
 
+        taskConfigurationDmnResults
+            .forEach(r -> {
+                Objects.requireNonNull(r.getName(), "Configuration name cannot be null");
+                Objects.requireNonNull(r.getName().getValue(), "Configuration name value cannot be null");
+                Objects.requireNonNull(r.getValue(), "Configuration value cannot be null");
+            });
+
         boolean initiationDueDateFound = taskAttributes.containsKey(DUE_DATE.value());
 
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsAfterUpdate
             = updateTaskConfigurationDmnResultsForAdditionalProperties(
-                taskConfigurationDmnResults,
-                initiationDueDateFound,
-                isReconfigureRequest,
-                taskAttributes
+            taskConfigurationDmnResults,
+            initiationDueDateFound,
+            isReconfigureRequest,
+            taskAttributes
         );
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
@@ -161,10 +169,11 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return dateTypeConfigurator.configureDates(configResponses,
-                                                   initiationDueDateFound,
-                                                   isReconfigureRequest,
-                                                   taskAttributes
+        return dateTypeConfigurator.configureDates(
+            configResponses,
+            initiationDueDateFound,
+            isReconfigureRequest,
+            taskAttributes
         );
     }
 
@@ -199,6 +208,13 @@ public class CaseConfigurationProviderService {
     private Map<String, Object> extractDmnResults(List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
                                                   List<PermissionsDmnEvaluationResponse> permissionsDmnResults) {
 
+        List<ConfigurationDmnEvaluationResponse> configDmnNullValues = taskConfigurationDmnResults.stream()
+            .filter(d -> d.getValue().getValue() == null).toList();
+
+        configDmnNullValues.forEach(d -> log.error(
+            "The field '{}' in the configuration DMN file  has a null value ",
+            d.getName().getValue()
+        ));
         // Combine and Collect all dmns results into a single map
         Map<String, Object> caseConfigurationVariables = new ConcurrentHashMap<>();
 

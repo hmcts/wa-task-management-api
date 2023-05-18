@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -25,6 +25,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 
 @ExtendWith(MockitoExtension.class)
 public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
+
+    @Mock
+    ExecutorService sensitiveTaskEventLogsExecutorService;
 
     @Mock
     private SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
@@ -40,7 +43,11 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
     @BeforeEach
     void setUp() {
         cftSensitiveTaskEventLogsDatabaseService =
-            new CFTSensitiveTaskEventLogsDatabaseService(sensitiveTaskEventLogsRepository, cftTaskDatabaseService);
+            new CFTSensitiveTaskEventLogsDatabaseService(
+                sensitiveTaskEventLogsRepository,
+                cftTaskDatabaseService,
+                sensitiveTaskEventLogsExecutorService
+            );
     }
 
     @Test
@@ -57,8 +64,11 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
         taskResource.setCreated(OffsetDateTime.now());
         taskResource.setCaseId(caseId);
 
-        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
-            List.of(roleAssignments), ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE);
+        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
+            taskId,
+            List.of(roleAssignments),
+            ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
+        );
 
         ExecutorService executorService = new ScheduledThreadPoolExecutor(1);
         executorService.execute(() -> {
@@ -72,10 +82,13 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
         doThrow(new RuntimeException("some unexpected error"))
             .when(sensitiveTaskEventLogsRepository).save(any(SensitiveTaskEventLog.class));
 
-        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
-            List.of(roleAssignments), ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE);
-        assertThatThrownBy(() ->
-            cftSensitiveTaskEventLogsDatabaseService.saveSensitiveTaskEventLog(any(SensitiveTaskEventLog.class)))
+        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
+            taskId,
+            List.of(roleAssignments),
+            ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
+        );
+        assertThatThrownBy(() -> cftSensitiveTaskEventLogsDatabaseService.saveSensitiveTaskEventLog(any(
+            SensitiveTaskEventLog.class)))
             .isInstanceOf(RuntimeException.class);
     }
 }

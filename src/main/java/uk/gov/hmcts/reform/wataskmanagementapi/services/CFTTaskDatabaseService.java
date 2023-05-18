@@ -72,10 +72,10 @@ public class CFTTaskDatabaseService {
             states, reconfigureRequestTime);
     }
 
-    public List<TaskResource> getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
-        List<String> taskIds, List<CFTTaskState> states, OffsetDateTime retryWindow) {
-        return tasksRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
-            taskIds, states, retryWindow);
+    public List<TaskResource> getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
+        List<CFTTaskState> states, OffsetDateTime retryWindow) {
+        return tasksRepository.findByStateInAndReconfigureRequestTimeIsLessThan(
+            states, retryWindow);
     }
 
     public TaskResource saveTask(TaskResource task) {
@@ -87,7 +87,7 @@ public class CFTTaskDatabaseService {
 
     public void insertAndLock(String taskId, OffsetDateTime dueDate) throws SQLException {
         OffsetDateTime created = OffsetDateTime.now();
-        tasksRepository.insertAndLock(taskId, dueDate, created, dueDate);
+        tasksRepository.insertAndLock(taskId, created, dueDate, dueDate);
     }
 
     public Optional<TaskResource> findTaskBySpecification(Specification<TaskResource> specification) {
@@ -112,9 +112,11 @@ public class CFTTaskDatabaseService {
         Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
         List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
 
-        log.debug("Task search for filter signatures {} and role signatures {}", filterSignature, roleSignature);
+        log.info("Task search for \nfilter signatures {} \nrole signatures {} \nexcluded case ids {}",
+            filterSignature, roleSignature, excludeCaseIds);
         List<String> taskIds = tasksRepository.searchTasksIds(firstResult, maxResults, filterSignature, roleSignature,
             excludeCaseIds, searchRequest);
+        log.info("Number of tasks returned {}", isEmpty(taskIds) ? 0 : taskIds.size());
 
         if (isEmpty(taskIds)) {
             return new GetTasksResponse<>(List.of(), 0);
@@ -129,8 +131,7 @@ public class CFTTaskDatabaseService {
             .map(taskResource ->
                 cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
                     taskResource,
-                    roleAssignments,
-                    true
+                    roleAssignments
                 )
             )
             .collect(Collectors.toList());
@@ -139,7 +140,7 @@ public class CFTTaskDatabaseService {
     }
 
     public List<TaskResource> findTaskToUpdateIndex() {
-        return tasksRepository.findByIndexedFalse();
+        return tasksRepository.findByIndexedFalseAndStateIn(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
     }
 
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
