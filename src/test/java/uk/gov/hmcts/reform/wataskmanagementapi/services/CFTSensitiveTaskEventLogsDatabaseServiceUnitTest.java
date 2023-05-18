@@ -28,6 +28,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 public class CFTSensitiveTaskEventLogsDatabaseServiceUnitTest {
 
     @Mock
+    ExecutorService sensitiveTaskEventLogsExecutorService;
+    @Mock
     private SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
 
     @Mock
@@ -41,7 +43,11 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceUnitTest {
     @BeforeEach
     void setUp() {
         cftSensitiveTaskEventLogsDatabaseService =
-            new CFTSensitiveTaskEventLogsDatabaseService(sensitiveTaskEventLogsRepository, cftTaskDatabaseService);
+            new CFTSensitiveTaskEventLogsDatabaseService(
+                sensitiveTaskEventLogsRepository,
+                cftTaskDatabaseService,
+                sensitiveTaskEventLogsExecutorService
+            );
     }
 
     @Test
@@ -58,8 +64,11 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceUnitTest {
         taskResource.setCreated(OffsetDateTime.now());
         taskResource.setCaseId(caseId);
 
-        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
-            List.of(roleAssignments), ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE);
+        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
+            taskId,
+            List.of(roleAssignments),
+            ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
+        );
 
         ExecutorService executorService = new ScheduledThreadPoolExecutor(1);
         executorService.execute(() -> {

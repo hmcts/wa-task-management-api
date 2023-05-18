@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
@@ -27,7 +26,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.persistence.LockTimeoutException;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,6 +42,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithStandardGrantType;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithoutAttributes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_NAME;
@@ -81,6 +84,28 @@ class CFTTaskDatabaseServiceTest {
     }
 
     @Test
+    void should_find_by_id_and_wait_and_obtain_pessimistic_write_lock() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByIdAndWaitForLock(taskId)).thenReturn(Optional.of(someTaskResource));
+
+        final Optional<TaskResource> actualTaskResource =
+            cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId);
+
+        assertNotNull(actualTaskResource);
+        assertTrue(actualTaskResource.isPresent());
+        assertEquals(someTaskResource, actualTaskResource.get());
+    }
+
+    @Test
+    void should_find_by_id_and_wait_and_obtain_pessimistic_write_lock_throw_exception() {
+        when(taskResourceRepository.findByIdAndWaitForLock(taskId)).thenThrow(new LockTimeoutException());
+
+        assertThatThrownBy(() -> cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId))
+            .isInstanceOf(LockTimeoutException.class);
+    }
+
+    @Test
     void should_find_by_id_only() {
         TaskResource someTaskResource = mock(TaskResource.class);
 
@@ -110,10 +135,10 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
 
         when(taskResourceRepository.findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(
-            List.of("1234"), List.of(CFTTaskState.ASSIGNED))).thenReturn(List.of(someTaskResource));
+            List.of("1234"), List.of(ASSIGNED))).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(List.of("1234"), List.of(CFTTaskState.ASSIGNED));
+            .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(List.of("1234"), List.of(ASSIGNED));
 
         assertNotNull(actualTaskResource);
         assertEquals(someTaskResource, actualTaskResource.get(0));
@@ -124,10 +149,10 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime reconfigureRequestTime = OffsetDateTime.now().minusHours(1L);
         when(taskResourceRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
-            List.of(CFTTaskState.ASSIGNED), reconfigureRequestTime)).thenReturn(List.of(someTaskResource));
+            List.of(ASSIGNED), reconfigureRequestTime)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeGreaterThan(List.of(CFTTaskState.ASSIGNED),
+            .getActiveTasksAndReconfigureRequestTimeGreaterThan(List.of(ASSIGNED),
                 reconfigureRequestTime);
 
         assertNotNull(actualTaskResource);
@@ -139,12 +164,12 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime retry = OffsetDateTime.now().minusHours(2);
 
-        when(taskResourceRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
-            List.of("199"), List.of(CFTTaskState.ASSIGNED), retry)).thenReturn(List.of(someTaskResource));
+        when(taskResourceRepository.findByStateInAndReconfigureRequestTimeIsLessThan(
+            List.of(ASSIGNED), retry)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
-                List.of("199"), List.of(CFTTaskState.ASSIGNED), retry);
+            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
+                List.of(ASSIGNED), retry);
 
         assertNotNull(actualTaskResource);
         assertEquals(someTaskResource, actualTaskResource.get(0));
@@ -260,8 +285,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
-            anyList(),
-            eq(true)
+            anyList()
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
@@ -305,8 +329,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
-            anyList(),
-            eq(true)
+            anyList()
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
@@ -350,8 +373,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
-            anyList(),
-            eq(true)
+            anyList()
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
@@ -359,5 +381,18 @@ class CFTTaskDatabaseServiceTest {
         assertEquals(1, response.getTotalRecords());
         assertEquals(1, response.getTasks().size());
         assertEquals(task, response.getTasks().get(0));
+    }
+
+    @Test
+    void should_find_task_to_update_index_return_list_of_tasks() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByIndexedFalseAndStateIn(List.of(ASSIGNED, UNASSIGNED)))
+            .thenReturn(List.of(someTaskResource));
+
+        final List<TaskResource> actualTaskResource = cftTaskDatabaseService.findTaskToUpdateIndex();
+
+        assertNotNull(actualTaskResource);
+        assertEquals(1, actualTaskResource.size());
     }
 }

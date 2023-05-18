@@ -18,9 +18,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
@@ -32,20 +31,27 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Termi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.persistence.EntityManager;
@@ -56,11 +62,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
@@ -68,7 +71,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TER
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
 @Slf4j
@@ -90,7 +92,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private CFTTaskMapper cftTaskMapper;
     @Autowired
     RoleAssignmentVerificationService roleAssignmentVerificationService;
-    @MockBean
+    @Autowired
     private CftQueryService cftQueryService;
     @Autowired
     private TaskManagementService taskManagementService;
@@ -113,7 +115,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
     @MockBean
-    private List<TaskOperationService> taskOperationServices;
+    private List<TaskOperationPerformService> taskOperationPerformServices;
     @MockBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @Autowired
@@ -137,11 +139,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskOperationServices,
             entityManager,
             systemUserIdamToken,
             cftSensitiveTaskEventLogsDatabaseService);
@@ -226,8 +226,61 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             taskResource.setCreated(OffsetDateTime.now());
             taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
             taskResource.setCaseId("CASE_ID");
+            taskResource.setJurisdiction("WA");
+            taskResource.setRegion("1");
+            taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+            taskResource.setLocation("765324");
+            taskResource.setCaseTypeId(WA_CASE_TYPE);
+
+            taskResource.setTaskRoleResources(prepareTaskResources(taskId));
             taskResourceRepository.save(taskResource);
         });
+    }
+
+    private Set<TaskRoleResource> prepareTaskResources(String taskId) {
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null,
+            0,
+            true,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+        );
+        Set<TaskRoleResource> taskRoleResources = new HashSet<>();
+        taskRoleResources.add(taskRoleResource);
+        return taskRoleResources;
+
+    }
+
+    private RoleAssignmentRequest prepareRoleAssignmentRequest() {
+        return RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(WA_JURISDICTION)
+                    .caseType(WA_CASE_TYPE)
+                    .region("1")
+                    .caseId("CASE_ID")
+                    .build()
+            )
+            .build();
     }
 
     private void createAndAssignTestTask(String taskId) {
@@ -243,6 +296,13 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             taskResource.setCreated(OffsetDateTime.now());
             taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
             taskResource.setCaseId("CASE_ID");
+            taskResource.setJurisdiction("WA");
+            taskResource.setRegion("1");
+            taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+            taskResource.setLocation("765324");
+            taskResource.setCaseTypeId(WA_CASE_TYPE);
+            taskResource.setTaskRoleResources(prepareTaskResources(taskId));
+
             taskResourceRepository.save(taskResource);
         });
     }
@@ -253,13 +313,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         @Test
         void cancelTask_should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            RoleAssignment roleAssignment = mock(RoleAssignment.class);
-            when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
-            List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
-            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
 
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
             when(camundaServiceApi.searchHistory(any(), any()))
                 .thenReturn(singletonList(new HistoryVariableInstance(
                     "someId",
@@ -270,9 +328,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
             createAndSaveTestTask(taskId, UNCONFIGURED);
-            Optional<TaskResource> taskResource = taskResourceRepository.findById(taskId);
-            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
-                .thenReturn(taskResource);
+
+            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                 () -> taskManagementService.cancelTask(taskId, accessControlResponse)))
@@ -294,15 +353,12 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         void should_set_task_state_terminated_when_camunda_api_throws_an_exception_and_cft_task_state_is_not_terminated(
             String state) {
 
-            CFTTaskState cftTaskState = CFTTaskState.valueOf(state);
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            RoleAssignment roleAssignment = mock(RoleAssignment.class);
-            when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
-            List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
-            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-            when(accessControlResponse.getUserInfo())
-                .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
 
@@ -312,18 +368,13 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
-            Optional<TaskResource> taskResource = Optional.of(new TaskResource(
-                taskId,
-                "taskName",
-                "taskType",
-                cftTaskState,
-                OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
-            ));
-
-            when(cftQueryService.getTask(any(), any(), any(PermissionRequirements.class)))
-                .thenReturn(taskResource);
+            CFTTaskState cftTaskState = CFTTaskState.valueOf(state);
 
             createAndSaveTestTask(taskId, cftTaskState);
+
+            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             transactionHelper.doInNewTransaction(
                 () -> taskManagementService.cancelTask(taskId, accessControlResponse)
@@ -336,13 +387,12 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         @Test
         void should_no_change_in_cft_task_state_when_camunda_task_state_pending_termination() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            RoleAssignment roleAssignment = mock(RoleAssignment.class);
-            when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
-            List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
-            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-            when(accessControlResponse.getUserInfo())
-                .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
 
@@ -358,18 +408,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
-            Optional<TaskResource> taskResource = Optional.of(new TaskResource(
-                taskId,
-                "taskName",
-                "taskType",
-                UNASSIGNED,
-                OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
-            ));
-
-            when(cftQueryService.getTask(any(), any(), any(PermissionRequirements.class)))
-                .thenReturn(taskResource);
-
             createAndSaveTestTask(taskId, UNASSIGNED);
+
+            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                 () -> taskManagementService.cancelTask(taskId, accessControlResponse)))
@@ -389,17 +432,17 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         @Test
         void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            RoleAssignment roleAssignment = mock(RoleAssignment.class);
-            when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
-            List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
-            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             createAndAssignTestTask(taskId);
-            Optional<TaskResource> taskResource = taskResourceRepository.findById(taskId);
-            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
-                .thenReturn(taskResource);
+
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
@@ -416,17 +459,16 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         @Test
         void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda_complete() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            RoleAssignment roleAssignment = mock(RoleAssignment.class);
-            when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
-            List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
-            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             createAndAssignTestTask(taskId);
-            Optional<TaskResource> taskResource = taskResourceRepository.findById(taskId);
-            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
-                .thenReturn(taskResource);
 
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).completeTask(any(), any(), any());
@@ -454,20 +496,19 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             @Test
             void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                RoleAssignment roleAssignment = mock(RoleAssignment.class);
-                when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
-                List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
-                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-                when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+                List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+                RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+
+                createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+                UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+                AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
                 createAndAssignTestTask(taskId);
-                Optional<TaskResource> taskResource = taskResourceRepository.findById(taskId);
-                when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
-                    .thenReturn(taskResource);
 
                 assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -494,20 +535,19 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             @Test
             void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                RoleAssignment roleAssignment = mock(RoleAssignment.class);
-                when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
-                List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
-                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-                when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+                List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+                RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+
+                createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+                UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+                AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).completeTask(any(), any(), any());
 
                 createAndAssignTestTask(taskId);
-                Optional<TaskResource> taskResource = taskResourceRepository.findById(taskId);
-                when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
-                    .thenReturn(taskResource);
 
                 assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(

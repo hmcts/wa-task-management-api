@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +17,7 @@ import static java.util.Objects.requireNonNull;
 @ToString
 public class TaskTypeResponse {
 
+    @JsonProperty("task_type")
     private TaskType taskType;
 
     @JsonCreator

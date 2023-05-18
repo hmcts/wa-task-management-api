@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @Getter
 @Builder
 @EqualsAndHashCode
+@ToString
 public class SearchRequest {
     private List<CFTTaskState> cftTaskStates;
     private List<String> jurisdictions;

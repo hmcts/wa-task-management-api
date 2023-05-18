@@ -7,7 +7,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -66,10 +65,9 @@ public interface DateCalculator {
     String DEFAULT_DATE_TIME = "16:00";
     DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
-        .withHour(16).withMinute(0).withSecond(0);
+    LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2).withHour(16).withMinute(0).withSecond(0);
     LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
-    String INVALID_DATE_REFERENCE_FIELD = "Invalid Date reference field {}. Referred field is not yet available.";
+    String INVALID_DATE_REFERENCE_FIELD = "Invalid Date reference field %s. Referred field is not yet available.";
 
     boolean supports(List<ConfigurationDmnEvaluationResponse> dueDateProperties,
                      DateTypeObject dateTypeObject,
@@ -89,7 +87,7 @@ public interface DateCalculator {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dueDatePrefix))
             .filter(r -> Strings.isNotBlank(r.getValue().getValue()))
-            .filter(r -> !isReconfigureRequest || r.getCanReconfigure().getValue())
+            .filter(r -> !isReconfigureRequest || r.getCanReconfigure() != null && r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
             .orElse(null);
     }
@@ -117,10 +115,20 @@ public interface DateCalculator {
             return zonedDateTime.toLocalDateTime();
         } catch (DateTimeParseException p) {
             if (dateContainsTime(inputDate)) {
-                return LocalDateTime.parse(inputDate, DATE_TIME_FORMATTER);
+                Optional<LocalDateTime> calculated = parseDateTime(inputDate, DateTimeFormatter.ISO_DATE_TIME);
+                return calculated
+                    .orElseThrow(() -> new RuntimeException("Provided date has invalid format: " + inputDate));
             } else {
                 return LocalDate.parse(inputDate, DATE_FORMATTER).atStartOfDay();
             }
+        }
+    }
+
+    default Optional<LocalDateTime> parseDateTime(String inputDate, DateTimeFormatter formatter) {
+        try {
+            return Optional.of(LocalDateTime.parse(inputDate, formatter));
+        } catch (DateTimeParseException e) {
+            return Optional.empty();
         }
     }
 
@@ -183,7 +191,7 @@ public interface DateCalculator {
         ).max(LocalDateTime::compareTo);
     }
 
-    private static Stream<LocalDateTime> getReferenceDateValues(
+    private Stream<LocalDateTime> getReferenceDateValues(
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations,
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
@@ -194,39 +202,56 @@ public interface DateCalculator {
             .filter(Objects::nonNull);
     }
 
-    private static LocalDateTime getMatchingConfigResponseDate(
+    private LocalDateTime getMatchingConfigResponseDate(
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations,
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
         String dateTypeName) {
+
+        throwErrorWhenDateTypeIsNotPresentInAlreadyCalculatedConfigurationsAndIsNotReconfiguration(
+            calculatedConfigurations, isReconfigureRequest, dateTypeName);
+
         return calculatedConfigurations.stream()
             .filter(Objects::nonNull)
-            .filter(c -> c.getName().getValue().equals(dateTypeName))
+            .filter(c1 -> c1.getName().getValue().equals(dateTypeName))
+            .filter(c -> !c.getValue().getValue().isBlank())
             .map(c -> LocalDateTime.parse(c.getValue().getValue(), DATE_TIME_FORMATTER))
             .findFirst()
             .orElseGet(() -> defaultWithTaskAttributes(taskAttributes, isReconfigureRequest, dateTypeName));
     }
 
-    private static LocalDateTime defaultWithTaskAttributes(
+    private void throwErrorWhenDateTypeIsNotPresentInAlreadyCalculatedConfigurationsAndIsNotReconfiguration(
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations,
+        boolean isReconfigureRequest, String dateTypeName) {
+        boolean dateTypePresentInCalculatedConfigurations = calculatedConfigurations.stream()
+            .filter(Objects::nonNull)
+            .anyMatch(c1 -> c1.getName().getValue().equals(dateTypeName));
+        if (!dateTypePresentInCalculatedConfigurations
+            && !isAlreadyConfiguredDate(isReconfigureRequest, dateTypeName)) {
+            throw new DateCalculationException(String.format(INVALID_DATE_REFERENCE_FIELD, dateTypeName));
+        }
+    }
+
+    private LocalDateTime defaultWithTaskAttributes(
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
         String dateTypeName) {
-        if (isReconfigureRequest && List.of("dueDate", "priorityDate", "nextHearingDate").contains(dateTypeName)) {
-            return getTaskAttributeDate(taskAttributes, dateTypeName);
-        }
-        throw new DateCalculationException(INVALID_DATE_REFERENCE_FIELD);
+        return isAlreadyConfiguredDate(isReconfigureRequest, dateTypeName)
+            ? getTaskAttributeDate(taskAttributes, dateTypeName)
+            : null;
     }
 
-    private static LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes,
-                                                      String keyName) {
+    private boolean isAlreadyConfiguredDate(boolean isReconfigureRequest, String dateTypeName) {
+        return isReconfigureRequest && List.of("dueDate", "priorityDate", "nextHearingDate").contains(dateTypeName);
+    }
+
+    private LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes, String keyName) {
         Object dateObject;
         if (keyName.equals("dueDate")) {
             dateObject = taskAttributes.get("dueDateTime");
         } else {
             dateObject = taskAttributes.get(keyName);
         }
-        return Optional.ofNullable(dateObject).isPresent()
-            ? ((OffsetDateTime) dateObject).toLocalDateTime()
-            : null;
+        return Optional.ofNullable(dateObject).map(d -> parseDateTime(d.toString())).orElse(null);
     }
 }

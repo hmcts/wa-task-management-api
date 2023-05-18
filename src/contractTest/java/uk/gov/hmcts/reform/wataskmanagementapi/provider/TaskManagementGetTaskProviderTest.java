@@ -64,8 +64,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             taskManagementService,
             accessControlService,
             systemDateProvider,
-            clientAccessControlService,
-            launchDarklyFeatureFlagProvider
+            clientAccessControlService
         ));
 
         if (context != null) {
@@ -155,8 +154,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
                 PermissionTypes.OWN,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE,
-                PermissionTypes.REFER
+                PermissionTypes.MANAGE
             )
         );
 

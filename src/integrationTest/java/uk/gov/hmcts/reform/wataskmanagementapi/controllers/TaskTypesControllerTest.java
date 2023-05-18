@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -44,6 +46,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles({"integration"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/task-types";
     private static final String DMN_NAME = "Task Types DMN";
@@ -188,7 +191,8 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTaskTypesDmnTable(
             anyString(),
             anyString(),
-            anyString()
+            anyString(),
+            anyBoolean()
         )).thenThrow(FeignException.FeignServerException.class);
 
         mockMvc.perform(
@@ -221,7 +225,8 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTaskTypesDmnTable(
             anyString(),
             anyString(),
-            anyString()
+            anyString(),
+            anyBoolean()
         )).thenThrow(FeignException.ServiceUnavailable.class);
 
         mockMvc.perform(

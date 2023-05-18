@@ -10,7 +10,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractProviderBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskOperationsController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskOperationController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 
 import java.util.HashMap;
@@ -33,8 +33,8 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskOperationsController(
-            taskManagementService,
+        testTarget.setControllers(new TaskOperationController(
+            taskOperationService,
             clientAccessControlService
         ));
         if (context != null) {
@@ -59,6 +59,6 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
 
     private void setInitMock() {
         when(clientAccessControlService.hasExclusiveAccess(anyString())).thenReturn(true);
-        when(taskManagementService.performOperation(any())).thenReturn(new TaskOperationResponse(new HashMap<>()));
+        when(taskOperationService.performOperation(any())).thenReturn(new TaskOperationResponse(new HashMap<>()));
     }
 }
