@@ -291,7 +291,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value());
+            .statusCode(HttpStatus.NO_CONTENT.value());
 
         taskId = taskVariables.getTaskId();
 
@@ -321,7 +321,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value());
+            .statusCode(HttpStatus.NO_CONTENT.value());
 
         sleep(3000L);
         taskId = taskVariables.getTaskId();
