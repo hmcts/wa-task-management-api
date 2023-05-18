@@ -18,10 +18,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.request.SendMessageRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.documents.Document;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -42,7 +40,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.documents.DocumentNames.NOTICE_OF_APPEAL_PDF;
 
 @Slf4j
 public class GivensBuilder {
@@ -51,7 +48,6 @@ public class GivensBuilder {
     private final RestApiActions workflowApiActions;
     private final RestApiActions restApiActions;
     private final AuthorizationProvider authorizationProvider;
-    private final DocumentManagementFiles documentManagementFiles;
 
     private final AtomicInteger nextHearingDateCounter = new AtomicInteger();
     private final CcdRetryableClient ccdRetryableClient;
@@ -61,14 +57,12 @@ public class GivensBuilder {
                          RestApiActions restApiActions,
                          AuthorizationProvider authorizationProvider,
                          CcdRetryableClient ccdRetryableClient,
-                         DocumentManagementFiles documentManagementFiles,
                          RestApiActions workflowApiActions
     ) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationProvider = authorizationProvider;
         this.ccdRetryableClient = ccdRetryableClient;
-        this.documentManagementFiles = documentManagementFiles;
         this.workflowApiActions = workflowApiActions;
 
     }
@@ -358,8 +352,6 @@ public class GivensBuilder {
         String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
 
-        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, credentials);
-
         StartEventResponse startCase = ccdRetryableClient.startForCaseworker(
             userToken,
             serviceToken,
@@ -385,19 +377,6 @@ public class GivensBuilder {
             if (nextHearingDateCounter.get() > 10) {
                 nextHearingDateCounter.set(0);
             }
-
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-                document.getDocumentUrl()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-                document.getDocumentFilename()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-                document.getDocumentBinaryUrl()
-            );
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
         } catch (IOException e) {
