@@ -67,7 +67,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         taskId = taskVariables.getTaskId();
 
@@ -127,7 +127,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         //after mark to reconfigure
         result = restApiActions.get(
