@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Date;
 import javax.persistence.Entity;
@@ -32,10 +31,10 @@ public class ReportableTaskResource extends BaseTaskHistoryResource {
     private Integer numberOfReassignments;
     private Date dueDate;
     private Date lastUpdatedDate;
-    private Duration waitTime;
-    private Duration handlingTime;
-    private Duration processingTime;
-    private Duration dueDateToCompletedDiffTime;
+    private String waitTime;
+    private String handlingTime;
+    private String processingTime;
+    private String dueDateToCompletedDiffTime;
 
     @Override
     public String getTaskTitle() {
