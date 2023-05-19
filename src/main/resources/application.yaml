@@ -139,6 +139,8 @@ launchDarkly:
   connectionTimeout: 5000
   socketTimeout: 5000
 
+environment: ${ENVIRONMENT:local}
+
 logging:
   level:
     root: INFO
