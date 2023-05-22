@@ -70,7 +70,7 @@ public class MIReportingServiceTest {
         TaskHistoryResourceRepository taskHistoryResourceRepository = mock(TaskHistoryResourceRepository.class);
         when(taskHistoryResourceRepository.countSubscriptions()).thenReturn(1);
 
-        miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
+        miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository, null,
                                                     subscriptionCreator);
 
         assertTrue(miReportingService.isPublicationPresent());
@@ -88,7 +88,7 @@ public class MIReportingServiceTest {
         when(taskResourceRepository.countPublications()).thenReturn(1);
         when(taskResourceRepository.countPublicationTables()).thenReturn(2);
 
-        miReportingService = new MIReportingService(null, taskResourceRepository,
+        miReportingService = new MIReportingService(null, taskResourceRepository, null,
                                                     null);
 
         assertTrue(miReportingService.isPublicationPresent());
