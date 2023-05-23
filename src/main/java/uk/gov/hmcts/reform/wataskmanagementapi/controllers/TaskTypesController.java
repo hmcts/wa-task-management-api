@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 @RequestMapping(path = "/task/task-types", produces = APPLICATION_JSON_VALUE)
 @RestController
+@Slf4j
 public class TaskTypesController extends BaseController {
 
     private final AccessControlService accessControlService;
@@ -63,6 +65,8 @@ public class TaskTypesController extends BaseController {
         @RequestParam(name = "jurisdiction") String jurisdiction
     ) {
         AccessControlResponse roles = accessControlService.getRoles(authToken);
+        log.info("Get task type request from user {}", roles.getUserInfo().getUid());
+
         GetTaskTypesResponse response = taskTypesService.getTaskTypes(roles, jurisdiction.toLowerCase(Locale.ENGLISH));
 
         return ResponseEntity

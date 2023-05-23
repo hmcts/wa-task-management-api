@@ -56,7 +56,7 @@ public class TaskOperationController extends BaseController {
     public ResponseEntity<Void> performOperation(@Parameter(hidden = true)
                                                      @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @RequestBody TaskOperationRequest taskOperationRequest) {
-        log.info("task operation request received '{}'", taskOperationRequest);
+        log.info("Task operation request received '{}'", taskOperationRequest);
         boolean hasExclusiveAccessRequest =
             clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
 
