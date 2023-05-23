@@ -102,6 +102,7 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
         taskIds.forEach(taskId -> {
 
             try {
+                log.info("Mark task-id {} to reconfigure", taskId);
                 Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
                     .findByIdAndObtainPessimisticWriteLock(taskId);
 
@@ -113,6 +114,7 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
                     successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
                 }
             } catch (Exception e) {
+                log.error("Error marking task-id {} to reconfigure", taskId, e);
                 failedTaskIds.add(taskId);
             }
         });

@@ -122,6 +122,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         if (endTimer.isAfter(OffsetDateTime.now())) {
             taskIds.forEach(taskId -> {
                 try {
+                    log.info("Re-configure task-id {}", taskId);
                     Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
                         .findByIdAndObtainPessimisticWriteLock(taskId);
 

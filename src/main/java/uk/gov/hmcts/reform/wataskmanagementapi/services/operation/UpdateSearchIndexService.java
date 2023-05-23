@@ -37,6 +37,7 @@ public class UpdateSearchIndexService implements TaskOperationPerformService {
 
         if (taskToReIndexed != null) {
             taskToReIndexed.forEach(t -> {
+                log.info("Update search index for task-id {}", t.getTaskId());
                 Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
                     .findByIdAndWaitAndObtainPessimisticWriteLock(t.getTaskId());
 
