@@ -67,7 +67,10 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         Query query = entityManager.createNativeQuery(queryString, RESULT_MAPPER);
         addParameters(query, firstResult, maxResults, filterSignature, roleSignature, excludeCaseIds, searchRequest);
 
-        return query.getResultList();
+        List<String> taskIds = query.getResultList();
+        log.info("Number of tasks returned {}", CollectionUtils.isEmpty(taskIds) ? 0 : taskIds.size());
+
+        return taskIds;
     }
 
     @Override
@@ -85,7 +88,10 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         Query query = entityManager.createNativeQuery(queryString);
         addParameters(query, filterSignature, roleSignature, excludeCaseIds, searchRequest);
 
-        return ((Number) query.getSingleResult()).longValue();
+        Long taskCount = ((Number) query.getSingleResult()).longValue();
+        log.info("Total number of tasks {}", taskCount);
+
+        return taskCount;
     }
 
     void setEntityManager(EntityManager em) {

@@ -153,8 +153,6 @@ public class TaskManagementService {
             taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
         );
 
-        log.info("task resource due date before conversion {}", taskResource.getDueDateTime());
-
         Set<PermissionTypes> permissionsUnionForUser =
             cftTaskMapper.extractUnionOfPermissionsForUser(
                 taskResource.getTaskRoleResources(),
@@ -223,8 +221,6 @@ public class TaskManagementService {
      */
     @Transactional
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
-        log.info("GP for {} and {} is {}", accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail());
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
 
