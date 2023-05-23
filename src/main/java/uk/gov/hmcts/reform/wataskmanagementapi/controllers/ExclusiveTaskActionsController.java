@@ -63,7 +63,7 @@ public class ExclusiveTaskActionsController extends BaseController {
                                                      @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @PathVariable(TASK_ID) String taskId,
                                                  @RequestBody InitiateTaskRequestMap initiateTaskRequest) {
-        log.debug("Initiate task(id={}) with attributes: {} ", taskId, initiateTaskRequest.getTaskAttributes());
+        log.info("Initiate task-id {} with attributes: {} ", taskId, initiateTaskRequest.getTaskAttributes());
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
@@ -94,6 +94,7 @@ public class ExclusiveTaskActionsController extends BaseController {
                                                   @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                               @PathVariable(TASK_ID) String taskId,
                                               @RequestBody TerminateTaskRequest terminateTaskRequest) {
+        log.info("Terminate task-id {} with {} ", taskId, terminateTaskRequest.getTerminateInfo());
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);

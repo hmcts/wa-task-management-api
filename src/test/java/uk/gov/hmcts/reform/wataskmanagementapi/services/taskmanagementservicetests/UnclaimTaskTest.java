@@ -89,9 +89,6 @@ class UnclaimTaskTest extends CamundaHelpers {
     @Test
     void unclaimTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.unclaimTask(
@@ -110,7 +107,8 @@ class UnclaimTaskTest extends CamundaHelpers {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
             cftQueryService,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService
+        );
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
@@ -120,7 +118,8 @@ class UnclaimTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService
+        );
 
 
         taskId = UUID.randomUUID().toString();
