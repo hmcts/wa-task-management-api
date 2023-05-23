@@ -1053,6 +1053,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 

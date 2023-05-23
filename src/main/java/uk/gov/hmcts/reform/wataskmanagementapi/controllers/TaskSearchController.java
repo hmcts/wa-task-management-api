@@ -118,7 +118,8 @@ public class TaskSearchController extends BaseController {
         }
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        log.info("Search request received '{}'", searchTaskRequest);
+        log.info("Search request received '{}', first_result '{}', max_result '{}'", searchTaskRequest,
+            firstResult, maxResults);
 
         boolean isIndexSearchEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
@@ -127,7 +128,9 @@ public class TaskSearchController extends BaseController {
         );
 
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
-        log.info("Search request mapped to '{}'", searchRequest);
+        log.info("Search request mapped to '{}', first_result '{}', max_result '{}'", searchRequest,
+            Optional.ofNullable(firstResult).orElse(0),
+            Optional.ofNullable(maxResults).orElse(defaultMaxResults));
 
         if (isIndexSearchEnabled) {
             log.info("Search tasks using search_index");
