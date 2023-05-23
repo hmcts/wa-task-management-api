@@ -63,6 +63,9 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     List<TaskResource> findByStateInAndReconfigureRequestTimeGreaterThan(
         List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime);
 
+    List<TaskResource> findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
+        List<String> taskIds, List<CFTTaskState> states, OffsetDateTime retry);
+
     List<TaskResource> findByStateInAndReconfigureRequestTimeIsLessThan(
         List<CFTTaskState> states, OffsetDateTime retry);
 

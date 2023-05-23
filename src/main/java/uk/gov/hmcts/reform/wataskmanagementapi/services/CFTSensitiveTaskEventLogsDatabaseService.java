@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.Users;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -70,5 +71,9 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
             log.error("Couldn't save SensitiveTaskEventLog for taskId {}", sensitiveTaskEventLog.getTaskId());
             return sensitiveTaskEventLog;
         }
+    }
+
+    public int cleanUpSensitiveLogs(LocalDateTime timeStamp) {
+        return sensitiveTaskEventLogsRepository.cleanUpSensitiveLogs(timeStamp);
     }
 }

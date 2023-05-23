@@ -21,11 +21,10 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
@@ -45,7 +44,7 @@ class ExecuteTaskReconfigurationFailureServiceTest {
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
         when(cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(anyList(), any())
+                 .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(anyList(), any())
         ).thenReturn(taskResources);
 
         TaskOperationRequest request = new TaskOperationRequest(
@@ -56,18 +55,9 @@ class ExecuteTaskReconfigurationFailureServiceTest {
                 .build(), taskFilters
         );
 
-        List<TaskResource> actualTasks = taskReconfigurationFailureService.performOperation(request);
-
-        assertEquals(actualTasks.size(), taskResources.size());
-        String failureLogMessage = taskResources.stream()
-            .map(task -> "\n" + task.getTaskId()
-                + ", " + task.getTaskName()
-                + ", " + task.getState()
-                + ", " + task.getReconfigureRequestTime()
-                + ", " + task.getLastReconfigurationTime())
-            .collect(Collectors.joining());
-        assertTrue(output.getOut().contains("Task Execute Reconfiguration Failed for following tasks "
-                                            + failureLogMessage));
+        Map<String, Object> resourceMap = taskReconfigurationFailureService.performOperation(request).getResponseMap();
+        int actualTasks = (int) resourceMap.get("successfulTaskResources");
+        assertEquals(actualTasks, taskResources.size());
     }
 
     @Test
@@ -76,7 +66,7 @@ class ExecuteTaskReconfigurationFailureServiceTest {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
 
         when(cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(anyList(), any())
+                 .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(anyList(), any())
         ).thenReturn(Collections.emptyList());
 
         TaskOperationRequest request = new TaskOperationRequest(
@@ -87,9 +77,9 @@ class ExecuteTaskReconfigurationFailureServiceTest {
                 .build(), taskFilters
         );
 
-        List<TaskResource> taskResourcesReconfigured = taskReconfigurationFailureService
-            .performOperation(request);
-        assertEquals(0, taskResourcesReconfigured.size());
+        Map<String, Object> resourceMap = taskReconfigurationFailureService.performOperation(request).getResponseMap();
+        int taskResourcesReconfigured = (int) resourceMap.get("successfulTaskResources");
+        assertEquals(0, taskResourcesReconfigured);
     }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
