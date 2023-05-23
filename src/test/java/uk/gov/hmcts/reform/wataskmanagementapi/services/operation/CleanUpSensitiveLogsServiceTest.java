@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,10 +15,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperatio
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -95,20 +94,22 @@ class CleanUpSensitiveLogsServiceTest {
         List<TaskFilter<?>> taskFilters = createTaskFilters(KEY, timestamp);
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
-                .name(TaskOperationName.CLEANUP_SENSITIVE_LOG_ENTRIES)
+                .type(TaskOperationType.CLEANUP_SENSITIVE_LOG_ENTRIES)
                 .runId("")
                 .build(),
             taskFilters
         );
 
-        doThrow(new IllegalArgumentException("exception"))
+        doThrow(new IllegalArgumentException("cleanup exception"))
             .when(cftSensitiveTaskEventLogsDatabaseService).cleanUpSensitiveLogs(any(LocalDateTime.class));
 
-        assertThatThrownBy(() -> cleanUpSensitiveLogsService.performOperation(request)
-        )
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasNoCause()
-            .hasMessage("exception");
+        TaskOperationResponse taskOperationResponse = cleanUpSensitiveLogsService.performOperation(request);
+
+        assertNotNull(taskOperationResponse);
+
+        String exceptionMessage = (String) taskOperationResponse.getResponseMap().get("exception");
+
+        assertEquals("cleanup exception", exceptionMessage);
     }
 
     @Test
@@ -124,8 +125,10 @@ class CleanUpSensitiveLogsServiceTest {
             taskFilters
         );
 
-        assertThrows(NullPointerException.class,
-            () -> cleanUpSensitiveLogsService.performOperation(request));
+        assertThrows(
+            NullPointerException.class,
+            () -> cleanUpSensitiveLogsService.performOperation(request)
+        );
 
     }
 
