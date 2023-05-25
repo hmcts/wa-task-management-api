@@ -72,7 +72,7 @@ public class CleanUpSensitiveLogsDataTest {
     }
 
     @Test
-    void remaining_records_expiry_time_should_after_current_time() {
+    void should_not_clean_up_tasks_where_expiry_time_is_greater_than_current_time() {
 
         LocalDateTime jobStartTime = LocalDateTime.now();
         cftSensitiveTaskEventLogsDatabaseService.cleanUpSensitiveLogs(jobStartTime);
