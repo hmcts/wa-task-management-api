@@ -169,7 +169,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -216,7 +216,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                     executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
         Thread.sleep(5000);
         taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -258,7 +258,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -303,7 +303,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                     executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
         Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -351,7 +351,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -392,7 +392,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                     executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
         Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -439,7 +439,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -481,7 +481,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                     executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
         Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -528,7 +528,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -571,7 +571,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                     executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         Thread.sleep(5000);
@@ -621,7 +621,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -665,7 +665,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                     executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         Thread.sleep(5000);
@@ -716,7 +716,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
 
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -735,7 +735,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                     executeTaskFilters(OffsetDateTime.now().plusDays(1))
                 )))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         Thread.sleep(5000);
@@ -761,7 +761,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -812,7 +812,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                     executeTaskFilters(OffsetDateTime.now().minusMinutes(30L))
                 )))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         mockMvc.perform(
@@ -824,7 +824,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                     executeTaskFilters(OffsetDateTime.now().minusMinutes(30L))
                 )))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(0);
