@@ -91,7 +91,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         taskId = taskVariables.getTaskId();
 
@@ -137,7 +137,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
         sleep(3000L);
         taskId = taskVariables.getTaskId();
 
@@ -168,7 +168,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         common.cleanUpTask(taskId);
     }
@@ -198,7 +198,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         taskId = taskVariables.getTaskId();
 
@@ -246,7 +246,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value()); //Default max results
+            .statusCode(HttpStatus.OK.value()); //Default max results
 
         result = restApiActions.get(
             "/task/{task-id}",
@@ -291,7 +291,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         taskId = taskVariables.getTaskId();
 
@@ -321,7 +321,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         sleep(3000L);
         taskId = taskVariables.getTaskId();
@@ -402,7 +402,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         log.info("after mark to reconfigure");
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
 
         result = restApiActions.get(
@@ -432,7 +432,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         log.info("after reconfiguration execute");
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         Thread.sleep(3000L);
 
