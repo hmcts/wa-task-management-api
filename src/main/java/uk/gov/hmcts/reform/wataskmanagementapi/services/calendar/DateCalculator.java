@@ -7,7 +7,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -192,7 +191,7 @@ public interface DateCalculator {
         ).max(LocalDateTime::compareTo);
     }
 
-    private static Stream<LocalDateTime> getReferenceDateValues(
+    private Stream<LocalDateTime> getReferenceDateValues(
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations,
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
@@ -203,7 +202,7 @@ public interface DateCalculator {
             .filter(Objects::nonNull);
     }
 
-    private static LocalDateTime getMatchingConfigResponseDate(
+    private LocalDateTime getMatchingConfigResponseDate(
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations,
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
@@ -221,7 +220,7 @@ public interface DateCalculator {
             .orElseGet(() -> defaultWithTaskAttributes(taskAttributes, isReconfigureRequest, dateTypeName));
     }
 
-    private static void throwErrorWhenDateTypeIsNotPresentInAlreadyCalculatedConfigurationsAndIsNotReconfiguration(
+    private void throwErrorWhenDateTypeIsNotPresentInAlreadyCalculatedConfigurationsAndIsNotReconfiguration(
         List<ConfigurationDmnEvaluationResponse> calculatedConfigurations,
         boolean isReconfigureRequest, String dateTypeName) {
         boolean dateTypePresentInCalculatedConfigurations = calculatedConfigurations.stream()
@@ -233,7 +232,7 @@ public interface DateCalculator {
         }
     }
 
-    private static LocalDateTime defaultWithTaskAttributes(
+    private LocalDateTime defaultWithTaskAttributes(
         Map<String, Object> taskAttributes,
         boolean isReconfigureRequest,
         String dateTypeName) {
@@ -242,19 +241,17 @@ public interface DateCalculator {
             : null;
     }
 
-    private static boolean isAlreadyConfiguredDate(boolean isReconfigureRequest, String dateTypeName) {
+    private boolean isAlreadyConfiguredDate(boolean isReconfigureRequest, String dateTypeName) {
         return isReconfigureRequest && List.of("dueDate", "priorityDate", "nextHearingDate").contains(dateTypeName);
     }
 
-    private static LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes, String keyName) {
+    private LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes, String keyName) {
         Object dateObject;
         if (keyName.equals("dueDate")) {
             dateObject = taskAttributes.get("dueDateTime");
         } else {
             dateObject = taskAttributes.get(keyName);
         }
-        return Optional.ofNullable(dateObject).isPresent()
-            ? ((OffsetDateTime) dateObject).toLocalDateTime()
-            : null;
+        return Optional.ofNullable(dateObject).map(d -> parseDateTime(d.toString())).orElse(null);
     }
 }

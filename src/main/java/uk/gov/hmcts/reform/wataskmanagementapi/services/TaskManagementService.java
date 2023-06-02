@@ -112,6 +112,7 @@ public class TaskManagementService {
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final RoleAssignmentVerificationService roleAssignmentVerification;
     private final IdamTokenGenerator idamTokenGenerator;
+    private final CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -124,7 +125,8 @@ public class TaskManagementService {
                                  TaskAutoAssignmentService taskAutoAssignmentService,
                                  RoleAssignmentVerificationService roleAssignmentVerification,
                                  EntityManager entityManager,
-                                 IdamTokenGenerator idamTokenGenerator) {
+                                 IdamTokenGenerator idamTokenGenerator,
+                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -133,6 +135,7 @@ public class TaskManagementService {
         this.roleAssignmentVerification = roleAssignmentVerification;
         this.entityManager = entityManager;
         this.idamTokenGenerator = idamTokenGenerator;
+        this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDatabaseService;
     }
 
     /**
@@ -149,8 +152,6 @@ public class TaskManagementService {
         TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
             taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
         );
-
-        log.info("task resource due date before conversion {}", taskResource.getDueDateTime());
 
         Set<PermissionTypes> permissionsUnionForUser =
             cftTaskMapper.extractUnionOfPermissionsForUser(
@@ -220,8 +221,6 @@ public class TaskManagementService {
      */
     @Transactional
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
-        log.info("GP for {} and {} is {}", accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail());
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
 
@@ -237,6 +236,9 @@ public class TaskManagementService {
         if (taskResource.getAssignee() != null && !userId.equals(taskResource.getAssignee())
             && !checkUserHasUnassignPermission(accessControlResponse.getRoleAssignments(),
             taskResource.getTaskRoleResources())) {
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+                accessControlResponse.getRoleAssignments(),
+                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
@@ -459,6 +461,9 @@ public class TaskManagementService {
                 || !userId.equals(taskResource.getAssignee())
             )
         ) {
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+                accessControlResponse.getRoleAssignments(),
+                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
@@ -805,6 +810,9 @@ public class TaskManagementService {
             .findFirst();
 
         if (taskResourceQueryResult.isEmpty()) {
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+                accessControlResponse.getRoleAssignments(),
+                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
