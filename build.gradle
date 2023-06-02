@@ -430,6 +430,10 @@ pact {
     tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
     version = project.pacticipantVersion
   }
+  pactVerify {
+    publish = true
+  }
+
 }
 
 task contract(type: Test) {
