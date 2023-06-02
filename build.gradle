@@ -430,9 +430,6 @@ pact {
     tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
     version = project.pacticipantVersion
   }
-  pactVerify {
-    publish = true
-  }
 
 }
 
@@ -449,6 +446,10 @@ task runProviderPactVerification(type: Test) {
   logger.lifecycle("Runs provider pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
+  if (project.hasProperty('pact.verifier.publishResults')) {
+    logger.lifecycle("Publish tasks: " + project.property('pact.verifier.publishResults'))
+    systemProperty 'pact.verifier.publishResults', project.property('pact.verifier.publishResults')
+  }
   systemProperty 'pact.provider.version', project.pacticipantVersion
 }
 
