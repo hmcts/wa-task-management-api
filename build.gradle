@@ -433,7 +433,7 @@ pact {
 }
 
 task contract(type: Test) {
-  description = "Runs the consumer Pact tests"
+  description = "Runs the Pact tests"
   group = 'Verification'
   useJUnitPlatform()
   testClassesDirs = sourceSets.contractTest.output.classesDirs
@@ -441,10 +441,10 @@ task contract(type: Test) {
 }
 
 task runProviderPactVerification(type: Test) {
+  useJUnitPlatform()
   logger.lifecycle("Runs provider pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
-  systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
   systemProperty 'pact.provider.version', project.pacticipantVersion
 }
 
