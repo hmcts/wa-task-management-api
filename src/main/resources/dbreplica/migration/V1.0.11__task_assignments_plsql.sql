@@ -34,14 +34,14 @@ update cft_task_db.task_assignments
 set  assignment_end =  l_report_task_new.updated,
      assignment_end_reason =
        case when l_report_task_new.update_action
-         in ('UnassignAssign','UassignClaim','UnclaimAssign','AutoUnassignAssign')
-              then 'UNASSIGNED'
-            when l_report_task_new.update_action = 'Unclaim'
-              then 'UNCLAIMED'
-            when l_report_task_new.update_action = 'Assign'
-              then 'REASSIGNED'
-            when l_report_task_new.state = 'TERMINATED'
-              then 'CANCELLED'
+                  in ('UnassignAssign','UnassignClaim','UnclaimAssign','AutoUnassignAssign')
+            then 'REASSIGNED'
+            when l_report_task_new.update_action in ('Unclaim')
+            then 'UNCLAIMED'
+            when l_report_task_new.update_action in ('AutoUnassign','Unassign')
+            then 'UNASSIGNED'
+            when l_report_task_new.update_action in ('AutoCancel','Cancel')
+            then 'CANCELLED'
             else  l_report_task_new.state
          end
 where task_id = l_report_task_new.task_id

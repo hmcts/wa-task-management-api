@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 
 /**
@@ -225,16 +224,17 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     @ParameterizedTest
     @CsvSource(value = {
         "COMPLETED,Complete,COMPLETED",
-        "ASSIGNED,Assign,REASSIGNED",
+        "ASSIGNED,AutoUnassignAssign,REASSIGNED",
+        "ASSIGNED,UnassignAssign,REASSIGNED",
+        "ASSIGNED,UnassignClaim,REASSIGNED",
+        "UNASSIGNED,UnclaimAssign,REASSIGNED",
         "UNASSIGNED,Unassign,UNASSIGNED",
-        "UNASSIGNED,Unclaim,UNCLAIMED",
         "UNASSIGNED,AutoUnassign,UNASSIGNED",
-        "UNASSIGNED,AutoUnassignAssign,UNASSIGNED",
-        "UNASSIGNED,UnassignAssign,UNASSIGNED",
-        "UNASSIGNED,UnassignClaim,UNASSIGNED",
-        "UNASSIGNED,UnclaimAssign,UNASSIGNED"
+        "UNASSIGNED,Unclaim,UNCLAIMED",
+        "ASSIGNED,AutoCancel,CANCELLED",
+        "ASSIGNED,Cancel,CANCELLED",
     })
-    void should_save_task_and_get_task_from_task_assignments_ended(String state, String lastAction, String endReason) {
+    void should_save_task_and_check_task_assignments(String newState, String lastAction, String endReason) {
         TaskResource taskResource = createAndAssignTask();
 
         await().ignoreException(AssertionFailedError.class)
@@ -257,11 +257,14 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     return true;
                 });
 
-        if (!state.equals(COMPLETED.toString())) {
+        if (lastAction.matches("Unassign|Unclaim|AutoUnassign")) {
             taskResource.setAssignee(null);
         }
+        if (lastAction.matches("AutoUnassignAssign|UnassignAssign|UnassignClaim|UnclaimAssign|Assign")) {
+            taskResource.setAssignee("newAssignee");
+        }
         taskResource.setLastUpdatedAction(lastAction);
-        taskResource.setState(CFTTaskState.valueOf(state));
+        taskResource.setState(CFTTaskState.valueOf(newState));
         taskResourceRepository.save(taskResource);
 
         await().ignoreException(AssertionFailedError.class)
@@ -275,7 +278,12 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     System.out.println("taskAssignmentsList.get(0): " + taskAssignmentsList.get(0));
 
                     assertFalse(taskAssignmentsList.isEmpty());
-                    assertEquals(1, taskAssignmentsList.size());
+                    if (lastAction.matches("AutoUnassignAssign|UnassignAssign|UnassignClaim|UnclaimAssign|Assign")) {
+                        assertEquals(2, taskAssignmentsList.size());
+                    } else {
+                        assertEquals(1, taskAssignmentsList.size());
+                    }
+
                     assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
                     assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
                     assertNotNull(taskAssignmentsList.get(0).getAssignmentEnd());
