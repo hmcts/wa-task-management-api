@@ -419,6 +419,7 @@ task runAndPublishConsumerPactTests(type: Test) {
   logger.lifecycle("Runs pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
+  include "uk/gov/hmcts/reform/wataskmanagementapi/consumer/**"
 }
 
 runAndPublishConsumerPactTests.finalizedBy pactPublish
@@ -448,6 +449,7 @@ task runProviderPactVerification(type: Test) {
   logger.lifecycle("Runs provider pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
+  include "uk/gov/hmcts/reform/wataskmanagementapi/consumer/**"
   if (project.hasProperty('pact.verifier.publishResults')) {
     logger.lifecycle("Publish tasks: " + project.property('pact.verifier.publishResults'))
     systemProperty 'pact.verifier.publishResults', project.property('pact.verifier.publishResults')
