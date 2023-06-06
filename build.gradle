@@ -327,6 +327,7 @@ def versions = [
   springSecurity      : '6.0.3',
   testcontainers      : '1.17.6',
   wiremock            : '2.35.0',
+  flywaydb            : '9.19.1',
 ]
 
 ext['jackson.version'] = '2.14.1'
@@ -386,7 +387,7 @@ dependencies {
 
   implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.14.2'
 
-  implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.13'
+  implementation group: 'org.flywaydb', name: 'flyway-core', version: versions.flywaydb
   implementation group: 'org.postgresql', name: 'postgresql', version: '42.6.0'
   // required to convert postgres to hibernate types
   implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.21.1'
@@ -403,7 +404,7 @@ dependencies {
 
   testImplementation group: 'org.awaitility', name: 'awaitility', version: '3.0.0'
   testImplementation group: 'com.github.tomakehurst', name: 'wiremock-jre8-standalone', version: versions.wiremock
-  testImplementation group: 'org.flywaydb', name: 'flyway-core', version: '9.19.1'
+  testImplementation group: 'org.flywaydb', name: 'flyway-core', version: versions.flywaydb
   testImplementation group: 'com.h2database', name: 'h2', version: '2.1.214'
 
 
