@@ -59,6 +59,43 @@ public class MIReportingServiceTest {
     }
 
     @Test
+    void given_no_work_types_in_publication_should_return_false_and_add_them() {
+        TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
+        when(taskResourceRepository.countReplicationSlots()).thenReturn(1);
+        when(taskResourceRepository.countPublications()).thenReturn(1);
+        when(taskResourceRepository.countPublicationTables()).thenReturn(1);
+
+        SubscriptionCreator subscriptionCreator = mock(SubscriptionCreator.class);
+
+        TaskHistoryResourceRepository taskHistoryResourceRepository = mock(TaskHistoryResourceRepository.class);
+        when(taskHistoryResourceRepository.countSubscriptions()).thenReturn(1);
+
+        miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository, null,
+                                                    subscriptionCreator);
+
+        assertTrue(miReportingService.isPublicationPresent());
+        assertFalse(miReportingService.isWorkTypesInPublication());
+
+        miReportingService.logicalReplicationCheck();
+
+        verify(taskResourceRepository, times(1)).addWorkTypesToPublication();
+        verify(subscriptionCreator, times(1)).refreshSubscription();
+    }
+
+    @Test
+    void given_work_types_in_publication_should_return_true() {
+        TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
+        when(taskResourceRepository.countPublications()).thenReturn(1);
+        when(taskResourceRepository.countPublicationTables()).thenReturn(2);
+
+        miReportingService = new MIReportingService(null, taskResourceRepository, null,
+                                                    null);
+
+        assertTrue(miReportingService.isPublicationPresent());
+        assertTrue(miReportingService.isWorkTypesInPublication());
+    }
+
+    @Test
     void given_zero_replication_slots_should_return_false() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countReplicationSlots()).thenReturn(0);

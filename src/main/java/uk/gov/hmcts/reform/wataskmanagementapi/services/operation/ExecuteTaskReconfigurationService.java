@@ -49,7 +49,6 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
     }
 
     private void executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
-        log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
         List<TaskResource> taskResources = cftTaskDatabaseService
@@ -94,6 +93,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         if (endTimer.isAfter(OffsetDateTime.now())) {
             taskIds.forEach(taskId -> {
                 try {
+                    log.info("Re-configure task-id {}", taskId);
                     Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
                         .findByIdAndObtainPessimisticWriteLock(taskId);
 

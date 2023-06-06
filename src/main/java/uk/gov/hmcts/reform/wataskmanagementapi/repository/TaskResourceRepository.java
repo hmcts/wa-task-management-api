@@ -33,8 +33,13 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     String CHECK_PUBLICATION =
         "select count(*) from pg_publication pgp WHERE pubname='task_publication';";
 
-    String CREATE_PUBLICATION = "CREATE PUBLICATION task_publication FOR TABLE cft_task_db.tasks "
-        + "WITH (publish = 'insert,update,delete');";
+    String CHECK_PUBLICATION_TABLES =
+        "select count(*) from pg_publication_TABLES pgp WHERE pubname='task_publication';";
+    String CREATE_PUBLICATION =
+        "CREATE PUBLICATION task_publication FOR TABLE cft_task_db.tasks, "
+            + "cft_task_db.work_types WITH (publish = 'insert,update,delete');";
+
+    String ADD_WORK_TYPES_TO_PUBLICATION = "ALTER PUBLICATION task_publication ADD TABLE {h-schema}work_types;";
 
     @Lock(PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
@@ -96,8 +101,18 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     @Query(value = CHECK_PUBLICATION, nativeQuery = true)
     int countPublications();
 
+    @Query(value = CHECK_PUBLICATION_TABLES, nativeQuery = true)
+    int countPublicationTables();
+
     @Modifying
     @Transactional
     @Query(value = CREATE_PUBLICATION, nativeQuery = true)
     Object createPublication();
+
+
+    @Modifying
+    @Transactional
+    @Query(value = ADD_WORK_TYPES_TO_PUBLICATION, nativeQuery = true)
+    Object addWorkTypesToPublication();
+
 }

@@ -210,6 +210,8 @@ class WorkTypesControllerTest {
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(mockedAccessControlResponse);
 
+        when(mockedAccessControlResponse.getUserInfo()).thenReturn(userInfo);
+
         ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN, true);
 
         assertNotNull(response);
