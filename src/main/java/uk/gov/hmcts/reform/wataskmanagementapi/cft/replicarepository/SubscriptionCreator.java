@@ -32,6 +32,10 @@ public class SubscriptionCreator {
     String replicaPassword;
     String primaryUser;
     String primaryPassword;
+    private static final String REFRESH_SUBSCRIPTION = "ALTER SUBSCRIPTION task_subscription REFRESH PUBLICATION;";
+
+    private static final String AND_PASSWORD = "&password=";
+    private static final String AND_USER = "?user=";
 
 
     public SubscriptionCreator(@Value("${replication.username}") String replicaUser,
@@ -74,18 +78,18 @@ public class SubscriptionCreator {
                             String replicaHost, String replicaPort, String replicaDbName) {
 
         String replicaUrl = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
-            + "?user=" + replicaUser + "&password=" + replicaPassword;
+            + AND_USER + replicaUser + AND_PASSWORD + replicaPassword;
         log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - replicaPassword.length()));
 
         String subscriptionUrl;
         if ("5432".equals(port)) {
             //hard coded host for local environment, will need fixing when we move to remote environments
             subscriptionUrl = "postgresql://" + host + ":" + port + "/" + dbName
-                + "?user=" + primaryUser + "&password=" + primaryPassword;
+                + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
         } else {
             //this is hard coded for integration test locally
             subscriptionUrl = "postgresql://" + "cft_task_db" + ":" + "5432" + "/" + dbName
-                + "?user=" + primaryUser + "&password=" + primaryPassword;
+                + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
         }
 
         log.info("subscriptionUrl" + subscriptionUrl
@@ -97,6 +101,7 @@ public class SubscriptionCreator {
         sendToDatabase(replicaUrl,sql);
     }
 
+
     private void sendToDatabase(String replicaUrl, String sql) {
         try (Connection subscriptionConn = DriverManager.getConnection(replicaUrl);
              Statement subscriptionStatement = subscriptionConn.createStatement();) {
@@ -106,6 +111,41 @@ public class SubscriptionCreator {
             log.info("Subscription created");
         } catch (SQLException e) {
             log.error("Error setting up replication", e);
+            throw new ReplicationException("An error occurred during setting up of replication", e);
+        }
+    }
+
+    public void refreshSubscription() {
+        try (Connection connection = replicaDataSource.getConnection();) {
+
+            log.info("Replica datasource URL: " + connection.getMetaData().getURL());
+
+            Properties replicaProperties = Driver.parseURL(connection.getMetaData().getURL(), null);
+
+            String replicaHost = replicaProperties.get("PGHOST").toString();
+            String replicaPort = replicaProperties.get("PGPORT").toString();
+            String replicaDbName = replicaProperties.get("PGDBNAME").toString();
+
+            refreshSubscription(replicaHost, replicaPort, replicaDbName);
+
+        } catch (SQLException ex) {
+            log.error("Primary datasource connection exception.", ex);
+        }
+    }
+
+    private void refreshSubscription(String replicaHost, String replicaPort, String replicaDbName) {
+        String replicaUrl = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
+            + AND_USER + replicaUser + AND_PASSWORD + replicaPassword;
+        log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - replicaPassword.length()));
+
+        try (Connection subscriptionConn = DriverManager.getConnection(replicaUrl);
+             Statement subscriptionStatement = subscriptionConn.createStatement();) {
+
+            subscriptionStatement.execute(REFRESH_SUBSCRIPTION);
+
+            log.info("Subscription refreshed");
+        } catch (SQLException e) {
+            log.error("Error refreshing subscription", e);
             throw new ReplicationException("An error occurred during setting up of replication", e);
         }
     }

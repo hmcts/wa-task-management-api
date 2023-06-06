@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
@@ -92,6 +93,8 @@ public class TaskActionsController extends BaseController {
                                                          @PathVariable(TASK_ID) String id) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Get task request for task-id {}, user {}", id,
+            accessControlResponse.getUserInfo().getUid());
 
         Task task = taskManagementService.getTask(
             id,
@@ -121,6 +124,9 @@ public class TaskActionsController extends BaseController {
                                           @PathVariable(TASK_ID) String taskId) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Claim task request for task-id {}, user {}", taskId,
+            accessControlResponse.getUserInfo().getUid());
+
         taskManagementService.claimTask(taskId, accessControlResponse);
         return ResponseEntity
             .noContent()
@@ -146,6 +152,9 @@ public class TaskActionsController extends BaseController {
                                             @PathVariable(TASK_ID) String taskId) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Unclaim task request for task-id {}, user {}", taskId,
+            accessControlResponse.getUserInfo().getUid());
+
         taskManagementService.unclaimTask(taskId, accessControlResponse);
         return ResponseEntity
             .noContent()
@@ -177,6 +186,10 @@ public class TaskActionsController extends BaseController {
             assignTaskRequest
         );
 
+        LOG.info("Task Action: Assign task request for task-id {}, user {}, assignee {}", taskId,
+            assignerAccessControlResponse.getUserInfo().getUid(),
+            assigneeAccessControlResponse.map(AccessControlResponse::getUserInfo).map(UserInfo::getUid));
+
         taskManagementService.assignTask(
             taskId,
             assignerAccessControlResponse,
@@ -206,6 +219,8 @@ public class TaskActionsController extends BaseController {
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
+            accessControlResponse.getUserInfo().getUid());
 
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
             taskManagementService.completeTask(taskId, accessControlResponse);
@@ -245,6 +260,8 @@ public class TaskActionsController extends BaseController {
     public ResponseEntity<Void> cancelTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
                                            @PathVariable(TASK_ID) String taskId) {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Cancel task request for task-id {}, user {}", taskId,
+            accessControlResponse.getUserInfo().getUid());
 
         taskManagementService.cancelTask(taskId, accessControlResponse);
 
@@ -275,6 +292,7 @@ public class TaskActionsController extends BaseController {
         @RequestBody NotesRequest notesRequest
     ) {
 
+        LOG.info("Task Action: Add task notes request for task-id {}", taskId);
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
@@ -309,6 +327,8 @@ public class TaskActionsController extends BaseController {
         @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken, @PathVariable(TASK_ID) String id) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Get task role permission request for task-id {}, user {}", id,
+            accessControlResponse.getUserInfo().getUid());
 
         final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
             id,

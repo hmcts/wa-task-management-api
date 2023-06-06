@@ -26,7 +26,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDef
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
@@ -101,8 +100,6 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired
     protected CcdRetryableClient ccdRetryableClient;
     @Autowired
-    protected DocumentManagementFiles documentManagementFiles;
-    @Autowired
     protected RoleAssignmentHelper roleAssignmentHelper;
     @Autowired
     protected IdamService idamService;
@@ -145,14 +142,12 @@ public abstract class SpringBootFunctionalBaseTest {
         assertions = new Assertions(camundaApiActions, restApiActions, authorizationProvider);
 
         launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
-        documentManagementFiles.prepare();
 
         given = new GivensBuilder(
             camundaApiActions,
             restApiActions,
             authorizationProvider,
             ccdRetryableClient,
-            documentManagementFiles,
             workflowApiActions
         );
 

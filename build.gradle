@@ -200,8 +200,8 @@ sonarqube {
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java," +
       "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**," +
-      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/**" +
-      "uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository/**"
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/**," +
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/cft/replicarepository/**"
     property "sonar.cpd.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/services/calendar/**"
   }
 }
@@ -352,6 +352,8 @@ dependencies {
   implementation group: 'org.postgresql', name: 'postgresql', version: '42.5.1'
   // required to convert postgres to hibernate types
   implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.21.1'
+
+  implementation 'com.microsoft.azure:applicationinsights-core:2.6.0'
 
   //cache
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.1.5'
