@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.launchdarkly.shaded.com.google.common.base.CaseFormat;
 import feign.FeignException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.Customiz
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.validation.ConstraintViolationException;
 
 import static java.util.Comparator.comparing;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;

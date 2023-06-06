@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
+import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -16,8 +17,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.LockModeType;
-import javax.persistence.QueryHint;
+
+import static jakarta.persistence.LockModeType.PESSIMISTIC_WRITE;
 
 @SuppressWarnings({
     "PMD.UseVarargs", "PMD.TooManyMethods"})
@@ -35,14 +36,14 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     String CREATE_PUBLICATION = "CREATE PUBLICATION task_publication FOR TABLE cft_task_db.tasks "
         + "WITH (publish = 'insert,update,delete');";
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Lock(PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
     @Transactional
     @NonNull
     @Override
     Optional<TaskResource> findById(@NonNull String id);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Lock(PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "5000")})
     @Transactional
     @NonNull

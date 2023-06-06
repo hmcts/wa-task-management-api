@@ -3,11 +3,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
-
-import javax.validation.constraints.NotNull;
 
 @Schema(
     name = "SearchParameterBoolean",

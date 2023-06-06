@@ -53,7 +53,7 @@ public final class SearchTaskRequestMapper {
             requestContext = RequestContext.AVAILABLE_TASKS;
         } else {
             SearchParameterList stateParam = keyMap.get(STATE);
-            cftTaskStates = getCftTaskStates(stateParam);
+            cftTaskStates.addAll(getCftTaskStates(stateParam));
         }
         final SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
         final SearchParameterList locationParam = keyMap.get(LOCATION);

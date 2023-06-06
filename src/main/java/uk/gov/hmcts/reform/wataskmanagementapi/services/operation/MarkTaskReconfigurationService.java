@@ -44,7 +44,7 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
 
     protected List<TaskResource> markTasksToReconfigure(List<TaskFilter<?>> taskFilters) {
         List<String> caseIds = taskFilters.stream()
-            .filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
+            .filter(filter -> "case_id".equalsIgnoreCase(filter.getKey()))
             .flatMap(filter -> ((MarkTaskToReconfigureTaskFilter) filter).getValues().stream())
             .map(Object::toString)
             .collect(Collectors.toList());

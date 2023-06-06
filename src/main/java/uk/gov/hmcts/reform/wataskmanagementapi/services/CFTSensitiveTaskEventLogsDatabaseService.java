@@ -41,26 +41,25 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
     public SensitiveTaskEventLog processSensitiveTaskEventLog(String taskId,
                                                               List<RoleAssignment> roleAssignments,
                                                               ErrorMessages customErrorMessage) {
-        TelemetryContext telemetryContext = new TelemetryContext();
         Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
         AtomicReference<SensitiveTaskEventLog> sensitiveTaskEventLogOutput = new AtomicReference<>();
         if (taskResource.isPresent()) {
             log.info("TaskRoles for taskId {} is {}", taskId, taskResource.get().getTaskRoleResources());
-            SensitiveTaskEventLog sensitiveTaskEventLog = new SensitiveTaskEventLog(
-                telemetryContext.getOperation().getId(),
-                "",
-                taskId,
-                taskResource.get().getCaseId(),
-                customErrorMessage.getDetail(),
-                List.of(taskResource.get()),
-                new Users(roleAssignments),
-                ZonedDateTime.now().toOffsetDateTime().plusDays(90),
-                ZonedDateTime.now().toOffsetDateTime()
-            );
-
             sensitiveTaskEventLogsExecutorService
-                .execute(() -> sensitiveTaskEventLogOutput.set(saveSensitiveTaskEventLog(sensitiveTaskEventLog)));
-
+                .execute(() -> {
+                    SensitiveTaskEventLog sensitiveTaskEventLog = new SensitiveTaskEventLog(
+                        new TelemetryContext().getOperation().getId(),
+                        "",
+                        taskId,
+                        taskResource.get().getCaseId(),
+                        customErrorMessage.getDetail(),
+                        List.of(taskResource.get()),
+                        new Users(roleAssignments),
+                        ZonedDateTime.now().toOffsetDateTime().plusDays(90),
+                        ZonedDateTime.now().toOffsetDateTime()
+                    );
+                    sensitiveTaskEventLogOutput.set(saveSensitiveTaskEventLog(sensitiveTaskEventLog));
+                });
         }
         return sensitiveTaskEventLogOutput.get();
     }

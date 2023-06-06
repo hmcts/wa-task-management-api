@@ -151,11 +151,11 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             setParameter(query, "assignee", users);
         }
         List<String> caseIds = searchRequest.getCaseIds();
-        if (!CollectionUtils.isEmpty(searchRequest.getCaseIds())) {
+        if (!CollectionUtils.isEmpty(caseIds)) {
             setParameter(query, "caseId", caseIds);
         }
         List<String> taskTypes = searchRequest.getTaskTypes();
-        if (!CollectionUtils.isEmpty(searchRequest.getTaskTypes())) {
+        if (!CollectionUtils.isEmpty(taskTypes)) {
             setParameter(query, "taskType", taskTypes);
         }
         if (!CollectionUtils.isEmpty(excludeCaseIds)) {
