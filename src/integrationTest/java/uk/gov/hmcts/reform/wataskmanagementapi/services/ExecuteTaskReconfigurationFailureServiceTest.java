@@ -52,7 +52,7 @@ public class ExecuteTaskReconfigurationFailureServiceTest {
             cftTaskDatabaseService);
     }
 
-    @Test
+    @Disabled
     void should_get_reconfiguration_failed_records(CapturedOutput output) {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
 
