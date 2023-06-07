@@ -1,7 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
-import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
-import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,16 +50,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
 
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -121,7 +119,7 @@ class TaskResourceDaoTest {
     @Mock
     private Path<Object> path;
     @Mock(extraInterfaces = Serializable.class)
-    private CriteriaBuilderImpl builder;
+    private CriteriaBuilder builder;
 
     @InjectMocks
     private TaskResourceDao taskResourceDao;
@@ -145,12 +143,12 @@ class TaskResourceDaoTest {
         lenient().when(builder.or(any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
-        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
+        /*BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
             builder,
             null,
             Boolean.TRUE
-        );
-        lenient().when(builder.conjunction()).thenReturn(booleanAssertionPredicate);
+        );*/
+        lenient().when(builder.conjunction()).thenReturn(predicate);
         lenient().when(builder.equal(any(), any())).thenReturn(predicate);
         lenient().when(inObject.value(any())).thenReturn(values);
 

@@ -42,14 +42,14 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     String ADD_WORK_TYPES_TO_PUBLICATION = "ALTER PUBLICATION task_publication ADD TABLE {h-schema}work_types;";
 
     @Lock(PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0")})
     @Transactional
     @NonNull
     @Override
     Optional<TaskResource> findById(@NonNull String id);
 
     @Lock(PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "5000")})
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "5000")})
     @Transactional
     @NonNull
     @Query("select t from tasks t where t.taskId = :id")
@@ -74,8 +74,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     @Modifying
     @QueryHints({
-        @QueryHint(name = "javax.persistence.lock.timeout", value = "0"),
-        @QueryHint(name = "javax.persistence.query.timeout", value = "5000"),
+        @QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"),
+        @QueryHint(name = "jakarta.persistence.query.timeout", value = "5000"),
         @QueryHint(name = "org.hibernate.timeout", value = "5")
     })
     @Query(

@@ -1,8 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.Builder;
-import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
-import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,12 +33,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -69,7 +67,7 @@ public class TaskResourceSpecificationTest {
     @Mock(extraInterfaces = Serializable.class)
     CriteriaQuery<?> query;
     @Mock(extraInterfaces = Serializable.class)
-    CriteriaBuilderImpl criteriaBuilder;
+    CriteriaBuilder criteriaBuilder;
     @Mock
     Join<Object, Object> taskRoleResources;
     @Mock
@@ -98,12 +96,12 @@ public class TaskResourceSpecificationTest {
         lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any(), any(), any())).thenReturn(inObject);
-        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
+        /*BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
             criteriaBuilder,
             null,
             Boolean.TRUE
-        );
-        lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
+        );*/
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
         lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(mockPredicate);
         lenient().when(criteriaBuilder.equal(any(), anyString())).thenReturn(mockPredicate);
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
