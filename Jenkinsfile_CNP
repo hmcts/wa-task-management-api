@@ -95,12 +95,12 @@ withPipeline(type, product, component) {
     }
 
     onMaster() {
-        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
+        //enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
     }
 
     onPR() {
         enableCleanupOfHelmReleaseOnSuccess()
-        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
+        //enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
     }
 
     // Sync environment specific branches with master branch
