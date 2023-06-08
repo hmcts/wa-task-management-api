@@ -5,21 +5,22 @@ CREATE OR REPLACE FUNCTION cft_task_db.add_task_history(l_task cft_task_db.tasks
  RETURNS bigint
  LANGUAGE plpgsql
 AS $function$
+
 declare
   l_update_id bigint;
+
 begin
-if l_task.case_id is not null then
-insert into cft_task_db.task_history
-(task_id, task_name, task_type, due_date_time,
- state, task_system, security_classification,
- title, major_priority, minor_priority, assignee,
- auto_assigned, execution_type_code, work_type,
- role_category, has_warnings, assignment_expiry,
- case_id, case_type_id, case_category, case_name,
- jurisdiction, region, location, business_context,
- termination_reason, created, updated_by, updated,
- update_action)
-values
+  insert into cft_task_db.task_history
+  (task_id, task_name, task_type, due_date_time,
+   state, task_system, security_classification,
+   title, major_priority, minor_priority, assignee,
+   auto_assigned, execution_type_code, work_type,
+   role_category, has_warnings, assignment_expiry,
+   case_id, case_type_id, case_category, case_name,
+   jurisdiction, region, location, business_context,
+   termination_reason, created, updated_by, updated,
+   update_action)
+  values
   (l_task.task_id, l_task.task_name, l_task.task_type, l_task.due_date_time,
    l_task.state, l_task.task_system, l_task.security_classification,
    l_task.title, l_task.major_priority, l_task.minor_priority, l_task.assignee,
@@ -30,23 +31,21 @@ values
    l_task.termination_reason, l_task.created, l_task.last_updated_user, l_task.last_updated_timestamp,
    l_task.last_updated_action)
   returning update_id into l_update_id;
-end if;
-return l_update_id;
-end $function$
-;
 
+return l_update_id;
+end $function$;
 
 --
 -- Function to call from triggers whenever a task record is inserted or updated.
 --
-create or replace function on_task_upsert()
+create or replace function on_task_insert()
   returns trigger
   language plpgsql
-as $$
+as $function$
 begin
-  perform cft_task_db.add_task_history(new, false);
+  perform cft_task_db.add_task_history(new, true);
 return new;
-end $$;
+end $function$;
 
 --
 -- Function to call from triggers whenever a task record is deleted.
@@ -54,19 +53,19 @@ end $$;
 create or replace function on_task_delete()
   returns trigger
   language plpgsql
-as $$
+as $function$
 begin
   perform cft_task_db.add_task_history(old, true);
 return old;
-end $$;
+end $function$;
 
-DROP TRIGGER IF EXISTS trg_on_task_upsert ON cft_task_db.tasks;
+DROP TRIGGER IF EXISTS trg_on_task_insert ON cft_task_db.tasks;
 --
--- Add the task upsert trigger.
+-- Add the task insert trigger.
 --
-CREATE TRIGGER trg_on_task_upsert before insert or update on cft_task_db.tasks
-  for each row execute function on_task_upsert();
-alter table cft_task_db.tasks enable always trigger trg_on_task_upsert;
+CREATE TRIGGER trg_on_task_insert before insert or update on cft_task_db.tasks
+  for each row when (NEW.case_id is not null) execute function on_task_insert();
+alter table cft_task_db.tasks enable always trigger trg_on_task_insert;
 
 DROP TRIGGER IF EXISTS trg_on_task_delete ON cft_task_db.tasks;
 --
@@ -74,4 +73,3 @@ DROP TRIGGER IF EXISTS trg_on_task_delete ON cft_task_db.tasks;
 --
 CREATE TRIGGER trg_on_task_delete before delete on cft_task_db.tasks for each row execute function on_task_delete();
 alter table cft_task_db.tasks enable always trigger trg_on_task_delete;
-

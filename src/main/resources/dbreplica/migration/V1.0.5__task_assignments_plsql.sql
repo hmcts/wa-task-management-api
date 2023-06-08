@@ -6,6 +6,7 @@ CREATE OR REPLACE FUNCTION cft_task_db.add_task_assignments(l_report_task_new cf
  RETURNS bigint
  LANGUAGE plpgsql
 AS $function$
+
 declare
 l_update_id bigint;
   l_assignment_end boolean DEFAULT FALSE;
@@ -15,38 +16,38 @@ begin
       and (l_report_task_new.update_action in
           ('AutoUnassignAssign', 'UnassignAssign', 'UnassignClaim', 'UnclaimAssign', 'Assign'))) then
       l_assignment_end := TRUE;
-end if;
+    end if;
 
   if ((COALESCE(l_report_task_new.assignee,'') = '')
       and (l_report_task_new.update_action in
           ('Unassign', 'Unclaim', 'AutoUnassign'))) then
       l_assignment_end := TRUE;
-end if;
+    end if;
 
   if ((COALESCE(l_report_task_old.assignee,'') = (COALESCE(l_report_task_new.assignee,'')))
       and (l_report_task_new.update_action in
           ('Complete', 'AutoCancel', 'Cancel'))) then
       l_assignment_end := TRUE;
-end if;
+    end if;
 
   if (l_assignment_end) then
-update cft_task_db.task_assignments
-set  assignment_end =  l_report_task_new.updated,
-     assignment_end_reason =
-       case when l_report_task_new.update_action
-                  in ('UnassignAssign','UnassignClaim','UnclaimAssign','AutoUnassignAssign')
-            then 'REASSIGNED'
-            when l_report_task_new.update_action in ('Unclaim')
-            then 'UNCLAIMED'
-            when l_report_task_new.update_action in ('AutoUnassign','Unassign')
-            then 'UNASSIGNED'
-            when l_report_task_new.update_action in ('AutoCancel','Cancel')
-            then 'CANCELLED'
-            else  l_report_task_new.state
-         end
-where task_id = l_report_task_new.task_id
-  and   assignee = l_report_task_old.assignee;
-end if;
+    update cft_task_db.task_assignments
+    set  assignment_end =  l_report_task_new.updated,
+         assignment_end_reason =
+           case when l_report_task_new.update_action
+                      in ('UnassignAssign','UnassignClaim','UnclaimAssign','AutoUnassignAssign')
+                then 'REASSIGNED'
+                when l_report_task_new.update_action in ('Unclaim')
+                then 'UNCLAIMED'
+                when l_report_task_new.update_action in ('AutoUnassign','Unassign')
+                then 'UNASSIGNED'
+                when l_report_task_new.update_action in ('AutoCancel','Cancel')
+                then 'CANCELLED'
+                else  l_report_task_new.state
+             end
+    where task_id = l_report_task_new.task_id
+      and   assignee = l_report_task_old.assignee;
+    end if;
 
   if ((l_report_task_new.assignee is NOT NULL)
       and ((COALESCE(l_report_task_old.assignee,'') = '')
@@ -62,8 +63,7 @@ end if;
               l_report_task_new.jurisdiction, l_report_task_new.location,
               l_report_task_new.role_category, l_report_task_new.task_name)
             returning assignment_id into l_update_id;
-
-end if;
+    end if;
 
 return l_update_id;
 end $function$

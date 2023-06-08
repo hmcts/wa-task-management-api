@@ -45,46 +45,6 @@ CREATE TABLE "cft_task_db"."tasks"
   PRIMARY KEY ( "task_id" )
 );
 
--- DROP TABLE IF EXISTS tasks CASCADE;
--- CREATE TABLE cft_task_db.tasks
--- (
---   task_id                 TEXT,
---   task_name               TEXT,
---   task_type               TEXT,
---   due_date_time           TIMESTAMP,
---   state                   TEXT,
---   task_system             TEXT,
---   security_classification TEXT,
---   title                   TEXT,
---   description             TEXT,
---   notes                   JSONB,
---   major_priority          INTEGER,
---   minor_priority          INTEGER,
---   assignee                TEXT,
---   auto_assigned           BOOLEAN   default false,
---   execution_type_code     TEXT,
---   work_type               TEXT,
---   role_category           TEXT,
---   has_warnings            BOOLEAN   default false,
---   assignment_expiry       TIMESTAMP,
---   case_id                 TEXT,
---   case_type_id            TEXT,
---   case_category           TEXT,
---   case_name               TEXT,
---   jurisdiction            TEXT,
---   region                  TEXT,
---   region_name             TEXT,
---   location                TEXT,
---   location_name           TEXT,
---   business_context        TEXT,
---   termination_reason      TEXT,
---   created                 TIMESTAMP default CURRENT_TIMESTAMP,
---   updated                 TIMESTAMP default CURRENT_TIMESTAMP,
---   updated_by              TEXT,
---   update_action           TEXT,
---   PRIMARY KEY (task_id)
--- );
-
 -- drop table if exists task_history cascade;
 create table cft_task_db.task_history
 (
@@ -124,50 +84,81 @@ create table cft_task_db.task_history
 create index task_history_update_id_idx on cft_task_db.task_history (task_id, update_id);
 create index task_history_updated_idx on cft_task_db.task_history (task_id, updated);
 
--- /*
---  * Identifies the update record which holds the latest task data.
---  */
--- drop view if exists latest_task_update_id cascade;
--- create view latest_task_update_id as
--- select task_id, max(update_id) as update_id
--- from task_history
--- group by task_id;
---
--- /*
---  * The latest data for every task.
---  */
--- drop view if exists current_task cascade;
--- create view current_task as
--- select h.*
--- from task_history h, latest_task_update_id u
--- where h.update_id = u.update_id
--- and   h.task_id = u.task_id;
---
--- drop table if exists assignment_history cascade;
--- create table assignment_history
--- (
---   id serial not null,
---   task_id  text not null,
---   assignee text,
---   start_at timestamp not null,
---   start_with text not null,
---   end_at timestamp not null,
---   end_with text not null,
---   primary key (id)
--- );
--- create index assignment_history_task_id_start_at_idx on assignment_history (task_id, start_at);
--- create index assignment_history_assignee_idx on assignment_history (assignee);
---
--- drop table if exists task_timings cascade;
--- create table task_timings
--- (
---   task_id text not null,
---   created timestamp,
---   assignment_count integer,
---   assignment_duration_seconds integer,
---   last_assignment_duration_seconds integer,
---   terminated timestamp,
---   termination_reason text,
---   assignee_at_termination text,
---   primary key (task_id)
--- );
+-- drop table if exists reportable_task cascade;
+create table cft_task_db.reportable_task
+(
+    update_id               SERIAL NOT NULL,
+    task_id                 TEXT NOT NULL,
+    task_name               TEXT,
+    task_type               TEXT,
+    due_date_time           TIMESTAMP,
+    state                   TEXT,
+    task_system             TEXT,
+    security_classification TEXT,
+    title                   TEXT,
+    major_priority          INTEGER,
+    minor_priority          INTEGER,
+    assignee                TEXT,
+    auto_assigned           BOOLEAN,
+    execution_type_code     TEXT,
+    work_type               TEXT,
+    role_category           TEXT,
+    has_warnings            BOOLEAN,
+    assignment_expiry       TIMESTAMP,
+    case_id                 TEXT,
+    case_type_id            TEXT,
+    case_category           TEXT,
+    case_name               TEXT,
+    jurisdiction            TEXT,
+    region                  TEXT,
+    location                TEXT,
+    business_context        TEXT,
+    termination_reason      TEXT,
+    created                 TIMESTAMP,
+    updated_by              TEXT,
+    updated                 TIMESTAMP,
+    update_action           TEXT,
+    created_date            DATE NOT NULL,
+    final_state_label       TEXT,
+    wait_time_days          INTEGER,
+    handling_time_days      INTEGER,
+    processing_time_days    INTEGER,
+    is_within_sla           TEXT,
+    due_date_to_completed_diff_days    INTEGER,
+    completed_date          DATE,
+    completed_date_time     TIMESTAMP,
+    first_assigned_date     DATE,
+    first_assigned_date_time     TIMESTAMP,
+    number_of_reassignments      INTEGER DEFAULT 0 NOT NULL,
+    due_date                 DATE,
+    last_updated_date        DATE,
+    wait_time                       INTERVAL,
+    handling_time                   INTERVAL,
+    processing_time                 INTERVAL,
+    due_date_to_completed_diff_time INTERVAL,
+    PRIMARY KEY ( "task_id" )
+);
+
+drop table if exists task_assignments cascade;
+create table cft_task_db.task_assignments
+(
+    assignment_id               SERIAL NOT NULL,
+    assignment_start            TIMESTAMP NOT NULL,
+    assignment_end              TIMESTAMP,
+    assignee                    TEXT NOT NULL,
+    task_id                     TEXT NOT NULL,
+    service                     TEXT NOT NULL,
+    location                    TEXT NOT NULL,
+    role_category               TEXT,
+    task_name                   TEXT NOT NULL,
+    assignment_end_reason       TEXT,
+    PRIMARY KEY ( "assignment_id" )
+);
+
+DROP TABLE IF EXISTS work_types;
+CREATE TABLE work_types
+(
+    work_type_id TEXT,
+    label TEXT,
+    PRIMARY KEY (work_type_id)
+);

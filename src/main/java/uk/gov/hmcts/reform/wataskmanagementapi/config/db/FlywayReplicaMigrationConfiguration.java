@@ -46,6 +46,7 @@ public class FlywayReplicaMigrationConfiguration {
                     .baselineOnMigrate(true)
                     .target(MigrationVersion.LATEST).load();
 
+                flywayReplica.repair();
                 flywayReplica.migrate();
 
             }
