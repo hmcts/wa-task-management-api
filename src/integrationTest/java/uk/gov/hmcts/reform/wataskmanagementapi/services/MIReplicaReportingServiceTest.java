@@ -152,8 +152,11 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         String taskId = UUID.randomUUID().toString();
         TaskResource taskResource = createAndSaveThisTask(taskId, "FirstTask", ASSIGNED, "AutoAssign");
 
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-07T20:15:50.345875+01:00"));
+        taskResourceRepository.save(taskResource);
+
         await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
+            .pollInterval(2, SECONDS)
             .atMost(10, SECONDS)
             .until(
                 () -> {
@@ -170,6 +173,9 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(taskResource.getState().toString(), reportableTaskList.get(0).getState());
                     assertEquals(taskResource.getLastUpdatedUser(), reportableTaskList.get(0).getUpdatedBy());
                     assertEquals(taskResource.getLastUpdatedAction(), reportableTaskList.get(0).getUpdateAction());
+
+                    assertEquals(2, reportableTaskList.get(0).getWaitTimeDays());
+                    assertEquals("2 days 00:00:05", reportableTaskList.get(0).getWaitTime());
 
                     return true;
                 });
@@ -260,7 +266,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         TaskResource taskResource = createAndAssignTask();
         String taskId = taskResource.getTaskId();
         await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
+            .pollInterval(2, SECONDS)
             .atMost(10, SECONDS)
             .until(
                 () -> {
@@ -291,7 +297,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResourceRepository.save(taskResource);
 
         await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
+            .pollInterval(2, SECONDS)
             .atMost(10, SECONDS)
             .until(
                 () -> {
@@ -343,6 +349,25 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(2, taskHistoryList.size());
                     return true;
                 });
+
+        if (lastAction.equals("Complete")) {
+            taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-07T20:15:55.345875+01:00"));
+            taskResourceRepository.save(taskResource);
+
+            await().ignoreException(AssertionFailedError.class)
+                .pollInterval(1, SECONDS)
+                .atMost(10, SECONDS)
+                .until(
+                    () -> {
+                        List<ReportableTaskResource> reportableTaskList
+                            = miReportingService.findByReportingTaskId(taskId);
+
+                        assertEquals("00:00:10", reportableTaskList.get(0).getHandlingTime());
+                        assertEquals("15 days 01:00:00", reportableTaskList.get(0).getProcessingTime());
+                        assertEquals("-2 days", reportableTaskList.get(0).getDueDateToCompletedDiffTime());
+                        return true;
+                    });
+        }
     }
 
     @Test
@@ -394,6 +419,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResource.setCreated(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedAction(lastAction);
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-07T20:15:45.345875+01:00"));
         return taskResourceRepository.save(taskResource);
     }
 
