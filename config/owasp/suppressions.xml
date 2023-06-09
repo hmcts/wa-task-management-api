@@ -73,4 +73,8 @@
     <notes>Wait for updates on dependencies</notes>
     <cve>CVE-2021-37533</cve>
   </suppress>
+  <suppress>
+    <notes>Wait for spring boot 3 upgrades</notes>
+    <cve>CVE-2023-20883</cve>
+  </suppress>
 </suppressions>
