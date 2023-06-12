@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredenti
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -20,12 +21,17 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     private static final String ENDPOINT_BEING_TESTED_TASK = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED_HISTORY = "/task/{task-id}/history";
     private static final String ENDPOINT_BEING_TESTED_REPORTABLE = "/task/{task-id}/reportable";
+    private static final String ENDPOINT_BEING_TESTED_COMPLETE = "task/{task-id}/complete";
+    private static final String ENDPOINT_BEING_TESTED_ASSIGNMENTS = "/task/{task-id}/assignments";
+    private static final String ENDPOINT_BEING_TESTED_UNCLAIM = "task/{task-id}/unclaim";
 
     private TestAuthenticationCredentials caseworkerCredentials;
+    private TestAuthenticationCredentials caseworkerCredentials2;
 
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        caseworkerCredentials2 = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r3-");
     }
 
     @After
@@ -35,7 +41,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     }
 
     @Test
-    public void user_should_configure_task_and_configure_action_recorded_in_replicate_db() {
+    public void user_should_configure_task_and_configure_action_recorded_in_replica_tables() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data.json",
@@ -93,6 +99,15 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).updated", notNullValue())
             .body("reportable_task_list.get(0).update_action", equalTo("Configure"));
 
+        Response resultAssignments = restApiActions.get(
+            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultAssignments.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_assignments_list", empty());
+
         common.cleanUpTask(taskId);
     }
 
@@ -137,6 +152,68 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_history_list.get(2).updated_by", notNullValue())
             .body("task_history_list.get(2).updated", notNullValue())
             .body("task_history_list.get(2).update_action", equalTo("Claim"));
+
+        Response resultReportable = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultReportable.prettyPrint();
+        resultReportable.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("ASSIGNED"))
+            .body("reportable_task_list.get(0).assignee", notNullValue())
+            .body("reportable_task_list.get(0).updated_by", notNullValue())
+            .body("reportable_task_list.get(0).updated", notNullValue())
+            .body("reportable_task_list.get(0).update_action", equalTo("Claim"));
+
+        Response resultAssignments = restApiActions.get(
+            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultAssignments.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_assignments_list.size()", equalTo(1));
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED_UNCLAIM,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        Response resultAssignmentsUnclaim = restApiActions.get(
+            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultAssignmentsUnclaim.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_assignments_list.size()", equalTo(1))
+            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"));
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+
+        Response resultAssignmentsClaim = restApiActions.get(
+            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultAssignmentsClaim.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_assignments_list.size()", equalTo(2))
+            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
+            .body("task_assignments_list.get(1).assignment_end_reason", equalTo(null));
 
         common.cleanUpTask(taskId);
     }
@@ -186,6 +263,22 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_history_list.get(3).updated_by", notNullValue())
             .body("task_history_list.get(3).updated", notNullValue())
             .body("task_history_list.get(3).update_action", equalTo("AutoCancel"));
+
+        Response resultAssignments = restApiActions.get(
+            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultAssignments.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_assignments_list.size()", equalTo(1))
+            .body("task_assignments_list.get(0).service", equalTo("WA"))
+            .body("task_assignments_list.get(0).location", equalTo("765324"))
+            .body("task_assignments_list.get(0).assignment_start", notNullValue())
+            .body("task_assignments_list.get(0).assignment_end", notNullValue())
+            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("CANCELLED"))
+            .body("task_assignments_list.get(0).assignee", notNullValue())
+            .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
     }
@@ -283,4 +376,97 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void user_should_complete_task_and_complete_action_recorded_in_replica_tables() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
+        initiateTask(taskVariables);
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
+
+        String taskId = taskVariables.getTaskId();
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+
+        Response resultHistory = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultHistory.prettyPrint();
+        resultHistory.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("ASSIGNED"))
+            .body("reportable_task_list.get(0).assignee", notNullValue())
+            .body("reportable_task_list.get(0).updated_by", notNullValue())
+            .body("reportable_task_list.get(0).updated", notNullValue())
+            .body("reportable_task_list.get(0).update_action", equalTo("Claim"));
+
+        Response resultAssignments = restApiActions.get(
+            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultAssignments.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_assignments_list.size()", equalTo(1))
+            .body("task_assignments_list.get(0).service", equalTo("WA"))
+            .body("task_assignments_list.get(0).location", equalTo("765324"))
+            .body("task_assignments_list.get(0).assignment_start", notNullValue())
+            .body("task_assignments_list.get(0).assignment_end", equalTo(null))
+            .body("task_assignments_list.get(0).assignment_end_reason", equalTo(null))
+            .body("task_assignments_list.get(0).assignee", notNullValue())
+            .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("task_assignments_list.get(0).task_name", equalTo("Process Application"));
+
+        Response resultComplete = restApiActions.post(
+            ENDPOINT_BEING_TESTED_COMPLETE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultComplete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        Response resultCompleteReport = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultCompleteReport.prettyPrint();
+        resultCompleteReport.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
+            .body("reportable_task_list.get(0).assignee", notNullValue())
+            .body("reportable_task_list.get(0).updated_by", notNullValue())
+            .body("reportable_task_list.get(0).updated", notNullValue())
+            .body("reportable_task_list.get(0).update_action", equalTo("Complete"));
+
+        resultAssignments = restApiActions.get(
+            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultAssignments.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_assignments_list.size()", equalTo(1))
+            .body("task_assignments_list.get(0).service", equalTo("WA"))
+            .body("task_assignments_list.get(0).location", equalTo("765324"))
+            .body("task_assignments_list.get(0).assignment_start", notNullValue())
+            .body("task_assignments_list.get(0).assignment_end", notNullValue())
+            .body("task_assignments_list.get(0).assignee", notNullValue())
+            .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("task_assignments_list.get(0).task_name", equalTo("Process Application"))
+            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("COMPLETED"));
+
+        common.cleanUpTask(taskId);
+    }
 }
