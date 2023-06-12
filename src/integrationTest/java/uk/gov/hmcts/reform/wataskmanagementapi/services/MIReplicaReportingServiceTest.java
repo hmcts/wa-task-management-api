@@ -405,14 +405,14 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
             "someJurisdiction",
             "someLocation",
             "someRoleCategory",
-            "someTaskName",
-            OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00"),
-            OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"),
-            OffsetDateTime.parse("2023-03-26T20:15:45.345875+01:00"),
-            OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"),
-            "someAssignee",
-            "AutoAssign");
+            "someTaskName");
 
+        taskResource.setDueDateTime(OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"));
+        taskResource.setPriorityDate(OffsetDateTime.parse("2023-03-26T20:15:45.345875+01:00"));
+        taskResource.setCreated(OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"));
+        taskResource.setAssignee("someAssignee");
+        taskResource.setLastUpdatedAction("AutoAssign");
         taskResource.setState(ASSIGNED);
         return taskResourceRepository.save(taskResource);
     }
