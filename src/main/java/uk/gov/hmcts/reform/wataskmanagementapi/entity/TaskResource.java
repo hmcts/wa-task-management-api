@@ -556,13 +556,7 @@ public class TaskResource implements Serializable {
                         String jurisdiction,
                         String location,
                         String roleCategory,
-                        String taskName,
-                        OffsetDateTime dueDateTime,
-                        OffsetDateTime lastUpdatedTimestamp,
-                        OffsetDateTime priorityDate,
-                        OffsetDateTime created,
-                        String assignee,
-                        String lastUpdatedAction
+                        String taskName
     ) {
         this.taskId = taskId;
         this.caseId = caseId;
@@ -570,11 +564,5 @@ public class TaskResource implements Serializable {
         this.location = location;
         this.roleCategory = roleCategory;
         this.taskName = taskName;
-        this.dueDateTime = dueDateTime;
-        this.lastUpdatedTimestamp = lastUpdatedTimestamp;
-        this.priorityDate = priorityDate;
-        this.created = created;
-        this.assignee = assignee;
-        this.lastUpdatedAction = lastUpdatedAction;
     }
 }

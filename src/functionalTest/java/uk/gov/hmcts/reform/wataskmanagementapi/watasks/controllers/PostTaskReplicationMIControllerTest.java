@@ -24,6 +24,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     private static final String ENDPOINT_BEING_TESTED_COMPLETE = "task/{task-id}/complete";
     private static final String ENDPOINT_BEING_TESTED_ASSIGNMENTS = "/task/{task-id}/assignments";
     private static final String ENDPOINT_BEING_TESTED_UNCLAIM = "task/{task-id}/unclaim";
+    private static final String ENDPOINT_BEING_TESTED_CANCEL = "task/{task-id}/cancel";
 
     private TestAuthenticationCredentials caseworkerCredentials;
     private TestAuthenticationCredentials caseworkerCredentials2;
@@ -150,8 +151,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_history_list.get(2).state", equalTo("ASSIGNED"))
             .body("task_history_list.get(2).assignee", notNullValue())
             .body("task_history_list.get(2).updated_by", notNullValue())
-            .body("task_history_list.get(2).updated", notNullValue())
-            .body("task_history_list.get(2).update_action", equalTo("Claim"));
+            .body("task_history_list.get(2).updated", notNullValue());
 
         Response resultReportable = restApiActions.get(
             ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -167,7 +167,21 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).assignee", notNullValue())
             .body("reportable_task_list.get(0).updated_by", notNullValue())
             .body("reportable_task_list.get(0).updated", notNullValue())
-            .body("reportable_task_list.get(0).update_action", equalTo("Claim"));
+            .body("reportable_task_list.get(0).update_action", equalTo("Claim"))
+            .body("reportable_task_list.get(0).completed_date", equalTo(null))
+            .body("reportable_task_list.get(0).completed_date_time", equalTo(null))
+            .body("reportable_task_list.get(0).created_date", notNullValue())
+            .body("reportable_task_list.get(0).final_state_label", equalTo(null))
+            .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
+            .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
+            .body("reportable_task_list.get(0).wait_time_days", equalTo(0))
+            .body("reportable_task_list.get(0).handling_time_days", equalTo(null))
+            .body("reportable_task_list.get(0).processing_time_days", equalTo(null))
+            .body("reportable_task_list.get(0).is_within_sla", equalTo(null))
+            .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+            .body("reportable_task_list.get(0).due_date_to_completed_diff_time", equalTo(null))
+            .body("reportable_task_list.get(0).due_date", notNullValue())
+            .body("reportable_task_list.get(0).last_updated_date", notNullValue());
 
         Response resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
@@ -209,6 +223,19 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             taskId,
             caseworkerCredentials.getHeaders()
         );
+
+        Response resultReport = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultReport.prettyPrint();
+        resultReport.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("ASSIGNED"))
+            .body("reportable_task_list.get(0).number_of_reassignments", equalTo(1));
+
         resultAssignmentsClaim.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("task_assignments_list.size()", equalTo(2))
@@ -406,7 +433,19 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).assignee", notNullValue())
             .body("reportable_task_list.get(0).updated_by", notNullValue())
             .body("reportable_task_list.get(0).updated", notNullValue())
-            .body("reportable_task_list.get(0).update_action", equalTo("Claim"));
+            .body("reportable_task_list.get(0).update_action", equalTo("Claim"))
+            .body("reportable_task_list.get(0).created_date", notNullValue())
+            .body("reportable_task_list.get(0).final_state_label", equalTo(null))
+            .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
+            .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
+            .body("reportable_task_list.get(0).wait_time_days", notNullValue())
+            .body("reportable_task_list.get(0).handling_time_days", equalTo(null))
+            .body("reportable_task_list.get(0).processing_time_days", equalTo(null))
+            .body("reportable_task_list.get(0).is_within_sla", equalTo(null))
+            .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+            .body("reportable_task_list.get(0).due_date_to_completed_diff_days", equalTo(null))
+            .body("reportable_task_list.get(0).due_date", notNullValue())
+            .body("reportable_task_list.get(0).last_updated_date", notNullValue());
 
         Response resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
@@ -448,7 +487,21 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).assignee", notNullValue())
             .body("reportable_task_list.get(0).updated_by", notNullValue())
             .body("reportable_task_list.get(0).updated", notNullValue())
-            .body("reportable_task_list.get(0).update_action", equalTo("Complete"));
+            .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
+            .body("reportable_task_list.get(0).completed_date", notNullValue())
+            .body("reportable_task_list.get(0).completed_date_time", notNullValue())
+            .body("reportable_task_list.get(0).created_date", notNullValue())
+            .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
+            .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
+            .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
+            .body("reportable_task_list.get(0).wait_time_days", notNullValue())
+            .body("reportable_task_list.get(0).handling_time_days", notNullValue())
+            .body("reportable_task_list.get(0).processing_time_days", notNullValue())
+            .body("reportable_task_list.get(0).is_within_sla", equalTo("Yes"))
+            .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+            .body("reportable_task_list.get(0).due_date_to_completed_diff_days", equalTo(-1))
+            .body("reportable_task_list.get(0).due_date", notNullValue())
+            .body("reportable_task_list.get(0).last_updated_date", notNullValue());
 
         resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
@@ -466,6 +519,52 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task_assignments_list.get(0).task_name", equalTo("Process Application"))
             .body("task_assignments_list.get(0).assignment_end_reason", equalTo("COMPLETED"));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void user_should_cancel_task_when_role_assignment_verification_passed() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestJudiciary",
+                                                                       "Review Specific Access Request Judiciary");
+
+        common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials2.getHeaders(), "judge");
+
+        initiateTask(taskVariables, caseworkerCredentials2.getHeaders());
+
+        String taskId = taskVariables.getTaskId();
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED_CANCEL,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        Response resultCancelReport = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultCancelReport.prettyPrint();
+        resultCancelReport.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("CANCELLED"))
+            .body("reportable_task_list.get(0).assignee", equalTo(null))
+            .body("reportable_task_list.get(0).updated_by", notNullValue())
+            .body("reportable_task_list.get(0).updated", notNullValue())
+            .body("reportable_task_list.get(0).update_action", equalTo("Cancel"))
+            .body("reportable_task_list.get(0).completed_date", equalTo(null))
+            .body("reportable_task_list.get(0).completed_date_time", equalTo(null))
+            .body("reportable_task_list.get(0).final_state_label", equalTo("USER_CANCELLED"))
+            .body("reportable_task_list.get(0).wait_time_days", equalTo(null))
+            .body("reportable_task_list.get(0).due_date", notNullValue())
+            .body("reportable_task_list.get(0).last_updated_date", notNullValue());
 
         common.cleanUpTask(taskId);
     }
