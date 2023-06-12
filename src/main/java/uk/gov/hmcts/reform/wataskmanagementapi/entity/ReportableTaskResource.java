@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -13,6 +14,7 @@ import javax.persistence.Table;
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings({"PMD.TooManyFields", "PMD.LinguisticNaming", "PMD.UnusedPrivateField"})
+@EqualsAndHashCode(callSuper = false)
 @Entity(name = "reportableTask")
 @Table(name = "reportable_task")
 public class ReportableTaskResource extends BaseTaskHistoryResource {
