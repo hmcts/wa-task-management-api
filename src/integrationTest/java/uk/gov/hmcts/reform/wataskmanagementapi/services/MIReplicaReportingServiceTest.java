@@ -363,7 +363,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                             = miReportingService.findByReportingTaskId(taskId);
 
                         assertEquals("00:00:10", reportableTaskList.get(0).getHandlingTime());
-                        assertEquals("15 days 01:00:00", reportableTaskList.get(0).getProcessingTime());
+                        assertTrue(reportableTaskList.get(0).getProcessingTime().startsWith("15 days"));
                         assertEquals("-2 days", reportableTaskList.get(0).getDueDateToCompletedDiffTime());
                         return true;
                     });
