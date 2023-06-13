@@ -266,7 +266,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         TaskResource taskResource = createAndAssignTask();
         String taskId = taskResource.getTaskId();
         await().ignoreException(AssertionFailedError.class)
-            .pollInterval(2, SECONDS)
+            .pollInterval(1, SECONDS)
             .atMost(10, SECONDS)
             .until(
                 () -> {
@@ -297,7 +297,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResourceRepository.save(taskResource);
 
         await().ignoreException(AssertionFailedError.class)
-            .pollInterval(2, SECONDS)
+            .pollInterval(1, SECONDS)
             .atMost(10, SECONDS)
             .until(
                 () -> {
