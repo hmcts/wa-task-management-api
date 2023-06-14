@@ -2,6 +2,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -11,11 +16,6 @@ import org.hibernate.annotations.TypeDef;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 
 import java.io.Serializable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
 
 @EqualsAndHashCode
 @Getter

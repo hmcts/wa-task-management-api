@@ -118,7 +118,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
     private OffsetDateTime getReconfigureRequestTime(List<TaskFilter<?>> taskFilters) {
 
         return taskFilters.stream()
-            .filter(filter -> filter.getKey().equalsIgnoreCase("reconfigure_request_time"))
+            .filter(filter -> "reconfigure_request_time".equalsIgnoreCase(filter.getKey()))
             .findFirst()
             .map(filter -> ((ExecuteReconfigureTaskFilter) filter).getValues())
             .orElseGet(() -> null);

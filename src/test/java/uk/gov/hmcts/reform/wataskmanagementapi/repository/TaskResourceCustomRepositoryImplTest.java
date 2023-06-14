@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,8 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;

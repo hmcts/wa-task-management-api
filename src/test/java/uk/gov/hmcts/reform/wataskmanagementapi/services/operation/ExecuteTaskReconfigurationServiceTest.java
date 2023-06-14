@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
+import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,7 +23,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import javax.persistence.OptimisticLockException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;

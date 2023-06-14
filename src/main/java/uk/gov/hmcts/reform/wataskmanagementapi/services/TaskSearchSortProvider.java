@@ -22,22 +22,24 @@ public final class TaskSearchSortProvider {
     }
 
     public static Sort getSortOrders(SearchRequest searchRequest) {
-        List<Sort.Order> orders = Stream.ofNullable(searchRequest.getSortingParameters())
-            .flatMap(Collection::stream)
-            .filter(s -> s.getSortOrder() != null)
-            .map(sortingParameter -> {
-                if (sortingParameter.getSortOrder() == ASCENDANT) {
-                    return Sort.Order.asc(sortingParameter.getSortBy().getCftVariableName());
-                } else {
-                    return Sort.Order.desc(sortingParameter.getSortBy().getCftVariableName());
-                }
-            }).collect(Collectors.toList());
-
-        Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+        return Sort.by(
+            Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
             .map(x -> Sort.Order.asc(x.getCftVariableName()))
-            .collect(Collectors.toCollection(() -> orders));
-
-        return Sort.by(orders);
+            .collect(
+                Collectors.toCollection(() ->
+                    Stream.ofNullable(searchRequest.getSortingParameters())
+                        .flatMap(Collection::stream)
+                        .filter(s -> s.getSortOrder() != null)
+                        .map(sortingParameter -> {
+                            if (sortingParameter.getSortOrder() == ASCENDANT) {
+                                return Sort.Order.asc(sortingParameter.getSortBy().getCftVariableName());
+                            } else {
+                                return Sort.Order.desc(sortingParameter.getSortBy().getCftVariableName());
+                            }
+                        }).collect(Collectors.toList())
+                )
+            )
+        );
     }
 
     public static String getSortOrderQuery(SearchRequest searchRequest) {

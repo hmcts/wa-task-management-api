@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
+import jakarta.validation.ConstraintViolationException;
 import lombok.Builder;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +43,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.validation.ConstraintViolationException;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;

@@ -37,14 +37,14 @@ public final class RoleSignatureBuilder {
 
     public static Set<String> buildRoleSignatures(Collection<RoleAssignment> roleAssignments,
                                                   SearchRequest searchTaskRequest) {
-        String permission = permissionRequirement(searchTaskRequest);
         Set<RoleAssignment> filteredRoleAssignments = filterRoleAssignments(roleAssignments, searchTaskRequest);
 
         Set<String> roleSignatures = new HashSet<>();
         for (RoleAssignment roleAssignment : filteredRoleAssignments) {
             for (String authorisation : authorisations(roleAssignment, searchTaskRequest)) {
                 String classification = roleAssignment.getClassification().getAbbreviation();
-                String roleSignature = makeRoleSignature(roleAssignment, classification, authorisation, permission);
+                String roleSignature = makeRoleSignature(roleAssignment, classification, authorisation,
+                                                         permissionRequirement(searchTaskRequest));
                 roleSignatures.add(roleSignature);
             }
         }

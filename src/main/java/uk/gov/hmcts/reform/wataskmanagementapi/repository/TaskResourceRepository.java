@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
+import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -16,8 +17,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.LockModeType;
-import javax.persistence.QueryHint;
+
+import static jakarta.persistence.LockModeType.PESSIMISTIC_WRITE;
 
 @SuppressWarnings({
     "PMD.UseVarargs", "PMD.TooManyMethods"})
@@ -40,15 +41,15 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     String ADD_WORK_TYPES_TO_PUBLICATION = "ALTER PUBLICATION task_publication ADD TABLE {h-schema}work_types;";
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
+    @Lock(PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0")})
     @Transactional
     @NonNull
     @Override
     Optional<TaskResource> findById(@NonNull String id);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "5000")})
+    @Lock(PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "5000")})
     @Transactional
     @NonNull
     @Query("select t from tasks t where t.taskId = :id")
@@ -73,8 +74,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     @Modifying
     @QueryHints({
-        @QueryHint(name = "javax.persistence.lock.timeout", value = "0"),
-        @QueryHint(name = "javax.persistence.query.timeout", value = "5000"),
+        @QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"),
+        @QueryHint(name = "jakarta.persistence.query.timeout", value = "5000"),
         @QueryHint(name = "org.hibernate.timeout", value = "5")
     })
     @Query(

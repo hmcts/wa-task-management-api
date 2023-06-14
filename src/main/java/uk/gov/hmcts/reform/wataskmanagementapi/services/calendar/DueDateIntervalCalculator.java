@@ -141,13 +141,15 @@ public class DueDateIntervalCalculator implements DateCalculator {
 
     private LocalDateTime calculateTime(
         String dateTypeTime, LocalDateTime referenceDate, LocalDate calculateDate) {
-        LocalTime baseReferenceTime = referenceDate.toLocalTime();
-        LocalDateTime dateTime = calculateDate.atTime(baseReferenceTime);
-
+        LocalDateTime dateTime;
         if (Optional.ofNullable(dateTypeTime).isPresent()) {
             dateTime = calculateDate.atTime(LocalTime.parse(dateTypeTime));
-        } else if (dateTime.getHour() == 0) {
-            dateTime = calculateDate.atTime(LocalTime.parse(DEFAULT_DATE_TIME));
+        } else {
+            LocalTime baseReferenceTime = referenceDate.toLocalTime();
+            dateTime = calculateDate.atTime(baseReferenceTime);
+            if (dateTime.getHour() == 0) {
+                dateTime = calculateDate.atTime(LocalTime.parse(DEFAULT_DATE_TIME));
+            }
         }
         return dateTime;
     }
