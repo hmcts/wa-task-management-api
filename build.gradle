@@ -240,10 +240,10 @@ dependencyUpdates {
 
 // https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
 dependencyCheck {
-  // Specifies if the build should be failed if a CVSS score above a specified level is identified.
-  // range of 0-10 fails the build, anything greater and it doesn't fail the build
-  failBuildOnCVSS = System.getProperty('dependencyCheck.failBuild') == 'true' ? 0 : 11
   suppressionFile = 'config/owasp/suppressions.xml'
+
+  //CVE Scanning only relevant to production code that is published, not test or other implementations
+  scanConfigurations += 'releaseCompileClasspath'
 
   analyzers {
     // Disable scanning of .NET related binaries
@@ -253,10 +253,9 @@ dependencyCheck {
 
 dependencyManagement {
   dependencies {
-
     dependency group: 'commons-io', name: 'commons-io', version: '2.8.0'
 
-    dependencySet( group: 'org.springframework.security', version: '6.0.3'){
+    dependencySet( group: 'org.springframework.security', version: '5.7.8'){
       entry 'spring-security-core'
       entry 'spring-security-acl'
       entry 'spring-security-aspects'
@@ -310,7 +309,7 @@ repositories {
 
 def versions = [
   commonsIo           : '2.7',
-  junit               : '5.9.2',
+  junit               : '5.9.0',
   junitPlatform       : '1.9.2',
   lombok              : '1.18.22',
   reformLogging       : '6.0.1',

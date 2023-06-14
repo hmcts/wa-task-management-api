@@ -550,4 +550,19 @@ public class TaskResource implements Serializable {
     public void setIndexed(Boolean indexed) {
         this.indexed = indexed;
     }
+
+    public TaskResource(String taskId,
+                        String caseId,
+                        String jurisdiction,
+                        String location,
+                        String roleCategory,
+                        String taskName
+    ) {
+        this.taskId = taskId;
+        this.caseId = caseId;
+        this.jurisdiction = jurisdiction;
+        this.location = location;
+        this.roleCategory = roleCategory;
+        this.taskName = taskName;
+    }
 }

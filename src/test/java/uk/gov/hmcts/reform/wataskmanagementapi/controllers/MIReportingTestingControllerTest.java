@@ -6,8 +6,10 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.ReportableTaskResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskAssignmentsResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskHistoryResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskAssignmentsResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
@@ -58,6 +60,19 @@ public class MIReportingTestingControllerTest {
 
         assertEquals(reportableTaskResource, reportableTaskResponse.getReportableTaskList().get(0));
     }
+
+    @Test
+    public void when_requested_a_task_assignment_object_returned() {
+        String id = UUID.randomUUID().toString();
+        TaskAssignmentsResource taskAssignmentsResource = new TaskAssignmentsResource();
+
+        when(miReportingService.findByAssignmentsTaskId(id)).thenReturn(Arrays.asList(taskAssignmentsResource));
+
+        TaskAssignmentsResponse taskAssignmentsResponse = miReportingTestingController.getTaskAssignments(id);
+
+        assertEquals(taskAssignmentsResource, taskAssignmentsResponse.getTaskAssignmentsList().get(0));
+    }
+
 
     @Test
     public void should_throw_error_when_mi_history_endpoints_called_in_prod() {

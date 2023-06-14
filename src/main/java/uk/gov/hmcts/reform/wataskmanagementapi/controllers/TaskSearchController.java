@@ -39,6 +39,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -194,6 +195,12 @@ public class TaskSearchController extends BaseController {
             accessControlResponse.getRoleAssignments(),
             permissionsRequired
         );
+
+        log.info(String.format("POST /search-for-completable - userId: %s, caseId: %s, taskIds: %s",
+                               accessControlResponse.getUserInfo().getUid(),
+                               searchEventAndCase.getCaseId(),
+                               response.getTasks().stream().map(Task::getId).collect(Collectors.toSet())
+        ));
 
         return ResponseEntity
             .ok()
