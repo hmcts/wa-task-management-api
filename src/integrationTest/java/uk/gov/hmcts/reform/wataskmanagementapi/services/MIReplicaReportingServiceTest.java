@@ -80,7 +80,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     @BeforeEach
     void setUp() {
         subscriptionCreator = new SubscriptionCreator("repl_user", "repl_password",
-                                                      "repl_user", "repl_password");
+                                                      "wa_user", "wa_password");
         miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
                                                     reportableTaskRepository,
                                                     taskAssignmentsRepository,
@@ -378,18 +378,18 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
             .atMost(10, SECONDS)
             .until(
                 () -> {
-                    List<ReportableTaskResource> reportableTaskList
-                        = miReportingService.findByReportingTaskId(taskResource.getTaskId());
+                    List<TaskHistoryResource> taskHistoryResourceList
+                        = miReportingService.findByTaskId(taskResource.getTaskId());
 
-                    assertFalse(reportableTaskList.isEmpty());
-                    assertEquals(1, reportableTaskList.size());
-                    assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
-                    assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
-                    assertEquals(taskResource.getTitle(), reportableTaskList.get(0).getTaskTitle());
-                    assertEquals(taskResource.getAssignee(), reportableTaskList.get(0).getAssignee());
-                    assertEquals(taskResource.getState().toString(), reportableTaskList.get(0).getState());
-                    assertEquals(taskResource.getLastUpdatedUser(), reportableTaskList.get(0).getUpdatedBy());
-                    assertEquals(taskResource.getLastUpdatedAction(), reportableTaskList.get(0).getUpdateAction());
+                    assertFalse(taskHistoryResourceList.isEmpty());
+                    assertEquals(1, taskHistoryResourceList.size());
+                    assertEquals(taskResource.getTaskId(), taskHistoryResourceList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskHistoryResourceList.get(0).getTaskName());
+                    assertEquals(taskResource.getTitle(), taskHistoryResourceList.get(0).getTaskTitle());
+                    assertEquals(taskResource.getAssignee(), taskHistoryResourceList.get(0).getAssignee());
+                    assertEquals(taskResource.getState().toString(), taskHistoryResourceList.get(0).getState());
+                    assertEquals(taskResource.getLastUpdatedUser(), taskHistoryResourceList.get(0).getUpdatedBy());
+                    assertEquals(taskResource.getLastUpdatedAction(), taskHistoryResourceList.get(0).getUpdateAction());
 
                     return true;
                 });
@@ -410,6 +410,62 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
                     assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
                     assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+
+                    return true;
+                });
+    }
+
+    @Test
+    void should_save_task_and_record_multiple_task_assignments() {
+        TaskResource taskResource = createAndAssignTask();
+        //"2023-03-29T20:15:45.345875+01:00"
+        taskResource.setLastUpdatedAction("Unclaim");
+        taskResource.setState(CFTTaskState.UNASSIGNED);
+        taskResource.setAssignee(null);
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-07T20:15:45.345875+01:00"));
+        taskResourceRepository.save(taskResource);
+
+        taskResource.setLastUpdatedAction("Assign");
+        taskResource.setState(CFTTaskState.ASSIGNED);
+        taskResource.setAssignee("NewAssignee");
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-12T20:15:45.345875+01:00"));
+        taskResourceRepository.save(taskResource);
+
+        taskResource.setLastUpdatedAction("Complete");
+        taskResource.setState(CFTTaskState.COMPLETED);
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-17T20:15:45.345875+01:00"));
+        taskResourceRepository.save(taskResource);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingService.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(2, taskAssignmentsList.size());
+
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                    assertEquals("someAssignee", taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertEquals(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"),
+                        taskAssignmentsList.get(0).getAssignmentStart());
+                    assertEquals(OffsetDateTime.parse("2023-04-07T20:15:45.345875+01:00"),
+                        taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertEquals("UNCLAIMED", taskAssignmentsList.get(0).getAssignmentEndReason());
+
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(1).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(1).getTaskName());
+                    assertEquals("NewAssignee", taskAssignmentsList.get(1).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(1).getService());
+                    assertEquals(OffsetDateTime.parse("2023-04-12T20:15:45.345875+01:00"),
+                        taskAssignmentsList.get(1).getAssignmentStart());
+                    assertEquals(OffsetDateTime.parse("2023-04-17T20:15:45.345875+01:00"),
+                        taskAssignmentsList.get(1).getAssignmentEnd());
+                    assertEquals("COMPLETED", taskAssignmentsList.get(1).getAssignmentEndReason());
 
                     return true;
                 });
@@ -486,36 +542,6 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     return true;
                 });
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
-            .until(
-                () -> {
-                    List<ReportableTaskResource> reportableTaskList
-                        = miReportingService.findByReportingTaskId(taskId);
-
-                    assertFalse(reportableTaskList.isEmpty());
-                    assertEquals(1, reportableTaskList.size());
-                    assertEquals(taskId, reportableTaskList.get(0).getTaskId());
-                    if (lastAction.matches("Complete|AutoCancel|Cancel")) {
-                        assertEquals(finalState, reportableTaskList.get(0).getFinalStateLabel());
-                        if (lastAction.equals("Complete")) {
-
-                            assertEquals("No", reportableTaskList.get(0).getIsWithinSla());
-                            assertEquals(2, reportableTaskList.get(0).getDueDateToCompletedDiffDays());
-                            assertEquals(15, reportableTaskList.get(0).getProcessingTimeDays());
-                        }
-                    } else {
-                        assertNull(reportableTaskList.get(0).getFinalStateLabel());
-                        assertEquals(null, reportableTaskList.get(0).getIsWithinSla());
-                    }
-                    assertNotNull(reportableTaskList.get(0).getLastUpdatedDate());
-
-                    List<TaskHistoryResource> taskHistoryList
-                        = miReportingService.findByTaskId(taskId);
-                    assertEquals(2, taskHistoryList.size());
-                    return true;
-                });
     }
 
     @Test

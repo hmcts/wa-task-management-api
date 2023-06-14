@@ -1,7 +1,7 @@
 --
 -- Copies a task record into the history table.
 --
-CREATE OR REPLACE FUNCTION cft_task_db.add_task_history(l_task cft_task_db.tasks, l_is_delete boolean)
+CREATE OR REPLACE FUNCTION cft_task_db.add_task_history(l_task cft_task_db.tasks)
  RETURNS bigint
  LANGUAGE plpgsql
 AS $function$
@@ -43,7 +43,7 @@ create or replace function on_task_insert()
   language plpgsql
 as $function$
 begin
-  perform cft_task_db.add_task_history(new, true);
+  perform cft_task_db.add_task_history(new);
 return new;
 end $function$;
 
@@ -55,7 +55,7 @@ create or replace function on_task_delete()
   language plpgsql
 as $function$
 begin
-  perform cft_task_db.add_task_history(old, true);
+  perform cft_task_db.add_task_history(old);
 return old;
 end $function$;
 

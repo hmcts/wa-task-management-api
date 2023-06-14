@@ -75,8 +75,8 @@ replication:
   username: ${REPLICATION_USERNAME:repl_user}
   password: ${REPLICATION_PASSWORD:repl_password}
 primary:
-  username: ${POSTGRES_USERNAME:repl_user}
-  password: ${POSTGRES_PASSWORD:repl_password}
+  username: ${POSTGRES_USERNAME:wa_user}
+  password: ${POSTGRES_PASSWORD:wa_password}
 
 spring:
   config:
@@ -112,6 +112,9 @@ spring:
     baselineOnMigrate: true
     defaultSchema: ${POSTGRES_NAME:cft_task_db}
     schemas: ${POSTGRES_NAME:cft_task_db}
+    placeholders:
+      dbPrimaryUserName: ${POSTGRES_USERNAME}
+      dbReplicaUserName: ${REPLICATION_USERNAME}
   security:
     oauth2:
       resourceserver:

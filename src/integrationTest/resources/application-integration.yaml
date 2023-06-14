@@ -25,6 +25,9 @@ spring:
     baselineOnMigrate: true
     defaultSchema: cft_task_db
     schemas: cft_task_db
+    placeholders:
+      dbPrimaryUserName: wa_user
+      dbReplicaUserName: repl_user
 
 idam:
   test:
