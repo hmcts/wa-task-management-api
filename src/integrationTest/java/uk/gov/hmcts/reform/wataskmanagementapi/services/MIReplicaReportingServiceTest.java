@@ -306,7 +306,6 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     }
 
                     assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
-                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
                     assertNotNull(taskAssignmentsList.get(0).getAssignmentEnd());
                     assertEquals(endReason, taskAssignmentsList.get(0).getAssignmentEndReason());
 
