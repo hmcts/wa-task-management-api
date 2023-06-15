@@ -372,7 +372,6 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_save_task_and_record_multiple_task_assignments() {
         TaskResource taskResource = createAndAssignTask();
-        //"2023-03-29T20:15:45.345875+01:00"
         taskResource.setLastUpdatedAction("Unclaim");
         taskResource.setState(CFTTaskState.UNASSIGNED);
         taskResource.setAssignee(null);
