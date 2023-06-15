@@ -181,7 +181,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
             .body("reportable_task_list.get(0).due_date_to_completed_diff_time", equalTo(null))
             .body("reportable_task_list.get(0).due_date", notNullValue())
-            .body("reportable_task_list.get(0).last_updated_date", notNullValue());
+            .body("reportable_task_list.get(0).last_updated_date", notNullValue())
+            .body("reportable_task_list.get(0).wait_time", notNullValue())
+            .body("reportable_task_list.get(0).handling_time", equalTo(null))
+            .body("reportable_task_list.get(0).handling_time", equalTo(null))
+            .body("reportable_task_list.get(0).due_date_to_completed_diff_time", equalTo(null));
 
         Response resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
@@ -501,7 +505,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
             .body("reportable_task_list.get(0).due_date_to_completed_diff_days", equalTo(-1))
             .body("reportable_task_list.get(0).due_date", notNullValue())
-            .body("reportable_task_list.get(0).last_updated_date", notNullValue());
+            .body("reportable_task_list.get(0).last_updated_date", notNullValue())
+            .body("reportable_task_list.get(0).wait_time", notNullValue())
+            .body("reportable_task_list.get(0).handling_time", notNullValue())
+            .body("reportable_task_list.get(0).processing_time", notNullValue())
+            .body("reportable_task_list.get(0).due_date_to_completed_diff_time", notNullValue());
 
         resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
