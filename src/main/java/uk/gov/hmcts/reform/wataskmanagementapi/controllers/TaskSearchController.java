@@ -37,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
@@ -118,7 +119,8 @@ public class TaskSearchController extends BaseController {
         }
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        log.info("Search request received '{}'", searchTaskRequest);
+        log.info("Search request received '{}', first_result '{}', max_result '{}'", searchTaskRequest,
+            firstResult, maxResults);
 
         boolean isIndexSearchEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
@@ -127,7 +129,9 @@ public class TaskSearchController extends BaseController {
         );
 
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
-        log.info("Search request mapped to '{}'", searchRequest);
+        log.info("Search request mapped to '{}', first_result '{}', max_result '{}'", searchRequest,
+            Optional.ofNullable(firstResult).orElse(0),
+            Optional.ofNullable(maxResults).orElse(defaultMaxResults));
 
         if (isIndexSearchEnabled) {
             log.info("Search tasks using search_index");
@@ -191,6 +195,12 @@ public class TaskSearchController extends BaseController {
             accessControlResponse.getRoleAssignments(),
             permissionsRequired
         );
+
+        log.info(String.format("POST /search-for-completable - userId: %s, caseId: %s, taskIds: %s",
+                               accessControlResponse.getUserInfo().getUid(),
+                               searchEventAndCase.getCaseId(),
+                               response.getTasks().stream().map(Task::getId).collect(Collectors.toSet())
+        ));
 
         return ResponseEntity
             .ok()
