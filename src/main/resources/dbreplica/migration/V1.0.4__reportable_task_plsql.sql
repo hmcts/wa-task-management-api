@@ -159,7 +159,7 @@ end $function$;
 -- Function to call from triggers whenever a task record is inserted or updated.
 --
 create
-or replace function after_task_insert()
+or replace function cft_task_db.after_task_insert()
   returns trigger
   language plpgsql
 as $function$
@@ -173,7 +173,7 @@ end $function$;
 -- Function to call from triggers whenever a task record is deleted.
 --
 create
-or replace function after_task_delete()
+or replace function cft_task_db.after_task_delete()
   returns trigger
   language plpgsql
 as $function$
@@ -189,7 +189,7 @@ DROP TRIGGER IF EXISTS trg_after_task_insert ON cft_task_db.tasks;
 --
 CREATE TRIGGER trg_after_task_insert
     after insert or update on cft_task_db.tasks
-    for each row when (NEW.case_id is not null) execute function after_task_insert();
+    for each row when (NEW.case_id is not null) execute function cft_task_db.after_task_insert();
 alter table cft_task_db.tasks enable always trigger trg_after_task_insert;
 
 DROP TRIGGER IF EXISTS trg_after_task_delete ON cft_task_db.tasks;
@@ -198,5 +198,5 @@ DROP TRIGGER IF EXISTS trg_after_task_delete ON cft_task_db.tasks;
 --
 CREATE TRIGGER trg_after_task_delete
     after delete on cft_task_db.tasks
-    for each row execute function after_task_delete();
+    for each row execute function cft_task_db.after_task_delete();
 alter table cft_task_db.tasks enable always trigger trg_after_task_delete;
