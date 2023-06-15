@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.annotation.DirtiesContext;
@@ -152,8 +152,11 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         String taskId = UUID.randomUUID().toString();
         TaskResource taskResource = createAndSaveThisTask(taskId, "FirstTask", ASSIGNED, "AutoAssign");
 
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-07T20:15:50.345875+01:00"));
+        taskResourceRepository.save(taskResource);
+
         await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
+            .pollInterval(2, SECONDS)
             .atMost(10, SECONDS)
             .until(
                 () -> {
@@ -166,10 +169,12 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
                     assertEquals(taskResource.getTitle(), reportableTaskList.get(0).getTaskTitle());
                     assertEquals(taskResource.getAssignee(), reportableTaskList.get(0).getAssignee());
-                    assertEquals(taskResource.getLastUpdatedTimestamp(), reportableTaskList.get(0).getUpdated());
                     assertEquals(taskResource.getState().toString(), reportableTaskList.get(0).getState());
                     assertEquals(taskResource.getLastUpdatedUser(), reportableTaskList.get(0).getUpdatedBy());
                     assertEquals(taskResource.getLastUpdatedAction(), reportableTaskList.get(0).getUpdateAction());
+
+                    assertEquals(2, reportableTaskList.get(0).getWaitTimeDays());
+                    assertEquals("2 days 00:00:05", reportableTaskList.get(0).getWaitTime());
 
                     return true;
                 });
@@ -343,6 +348,25 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(2, taskHistoryList.size());
                     return true;
                 });
+
+        if (lastAction.equals("Complete")) {
+            taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-07T20:15:55.345875+01:00"));
+            taskResourceRepository.save(taskResource);
+
+            await().ignoreException(AssertionFailedError.class)
+                .pollInterval(1, SECONDS)
+                .atMost(10, SECONDS)
+                .until(
+                    () -> {
+                        List<ReportableTaskResource> reportableTaskList
+                            = miReportingService.findByReportingTaskId(taskId);
+
+                        assertEquals("00:00:10", reportableTaskList.get(0).getHandlingTime());
+                        assertTrue(reportableTaskList.get(0).getProcessingTime().startsWith("15 days"));
+                        assertEquals("-2 days", reportableTaskList.get(0).getDueDateToCompletedDiffTime());
+                        return true;
+                    });
+        }
     }
 
     @Test
@@ -394,6 +418,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResource.setCreated(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedAction(lastAction);
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-07T20:15:45.345875+01:00"));
         return taskResourceRepository.save(taskResource);
     }
 

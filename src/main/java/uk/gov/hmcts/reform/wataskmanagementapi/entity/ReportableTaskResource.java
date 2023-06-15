@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Date;
 import javax.persistence.Entity;
@@ -14,6 +14,7 @@ import javax.persistence.Table;
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings({"PMD.TooManyFields", "PMD.LinguisticNaming", "PMD.UnusedPrivateField"})
+@EqualsAndHashCode(callSuper = false)
 @Entity(name = "reportableTask")
 @Table(name = "reportable_task")
 public class ReportableTaskResource extends BaseTaskHistoryResource {
@@ -32,10 +33,10 @@ public class ReportableTaskResource extends BaseTaskHistoryResource {
     private Integer numberOfReassignments;
     private Date dueDate;
     private Date lastUpdatedDate;
-    private Duration waitTime;
-    private Duration handlingTime;
-    private Duration processingTime;
-    private Duration dueDateToCompletedDiffTime;
+    private String waitTime;
+    private String handlingTime;
+    private String processingTime;
+    private String dueDateToCompletedDiffTime;
 
     @Override
     public String getTaskTitle() {
