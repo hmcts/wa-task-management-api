@@ -104,7 +104,7 @@ end $function$;
 --
 -- Function to call from triggers whenever a task record is inserted or updated.
 --
-create or replace function cft_task_db.on_task_history_insert()
+create or replace function cft_task_db.task_assignment_after_task_upsert()
   returns trigger
   language plpgsql
 as $function$
@@ -113,8 +113,8 @@ begin
 return new;
 end $function$;
 
-DROP TRIGGER IF EXISTS trg_on_task_history_insert ON cft_task_db.task_history;
+DROP TRIGGER IF EXISTS trg_task_assignment_after_task_upsert ON cft_task_db.tasks;
 --
-CREATE TRIGGER trg_on_task_history_insert after insert on cft_task_db.task_history
-                                                           for each row execute function cft_task_db.on_task_history_insert();
-alter table cft_task_db.task_history enable always trigger trg_on_task_history_insert;
+CREATE TRIGGER trg_task_assignment_after_task_upsert after insert or update on cft_task_db.tasks
+                                        for each row execute function cft_task_db.task_assignment_after_task_upsert();
+alter table cft_task_db.tasks enable always trigger trg_task_assignment_after_task_upsert;

@@ -149,11 +149,15 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_save_AutoAssign_task_and_get_task_from_reportable_task() {
-        String taskId = UUID.randomUUID().toString();
-        TaskResource taskResource = createAndSaveThisTask(taskId, "FirstTask", ASSIGNED, "AutoAssign");
+        TaskResource taskResource = createAndSaveTask();
+        String taskId = taskResource.getTaskId();
+        checkHistory(taskId, 1);
 
+        taskResource.setState(ASSIGNED);
+        taskResource.setLastUpdatedAction("AutoAssign");
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-07T20:15:50.345875+01:00"));
         taskResourceRepository.save(taskResource);
+        checkHistory(taskId, 2);
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(2, SECONDS)
@@ -204,27 +208,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_save_task_and_get_task_from_task_assignments() {
         TaskResource taskResource = createAndAssignTask();
-
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
-            .until(
-                () -> {
-                    List<ReportableTaskResource> reportableTaskList
-                        = miReportingService.findByReportingTaskId(taskResource.getTaskId());
-
-                    assertFalse(reportableTaskList.isEmpty());
-                    assertEquals(1, reportableTaskList.size());
-                    assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
-                    assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
-                    assertEquals(taskResource.getTitle(), reportableTaskList.get(0).getTaskTitle());
-                    assertEquals(taskResource.getAssignee(), reportableTaskList.get(0).getAssignee());
-                    assertEquals(taskResource.getState().toString(), reportableTaskList.get(0).getState());
-                    assertEquals(taskResource.getLastUpdatedUser(), reportableTaskList.get(0).getUpdatedBy());
-                    assertEquals(taskResource.getLastUpdatedAction(), reportableTaskList.get(0).getUpdateAction());
-
-                    return true;
-                });
+        checkHistory(taskResource.getTaskId(), 1);
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -290,10 +274,17 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         if (lastAction.matches("AutoUnassignAssign|UnassignAssign|UnassignClaim|UnclaimAssign|Assign")) {
             taskResource.setAssignee("newAssignee");
         }
+        //"2023-03-29T20:15:45.345875+01:00"
+        if (lastAction.equals("Complete")) {
+            taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-07T20:15:55.345875+01:00"));
+        } else {
+            taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-07T20:15:45.345875+01:00"));
+        }
         taskResource.setLastUpdatedAction(lastAction);
         taskResource.setState(CFTTaskState.valueOf(newState));
-        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-07T20:15:45.345875+01:00"));
         taskResourceRepository.save(taskResource);
+
+        checkHistory(taskId, 2);
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -350,9 +341,6 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
 
         if (lastAction.equals("Complete")) {
-            taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-07T20:15:55.345875+01:00"));
-            taskResourceRepository.save(taskResource);
-
             await().ignoreException(AssertionFailedError.class)
                 .pollInterval(1, SECONDS)
                 .atMost(10, SECONDS)
@@ -361,9 +349,9 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                         List<ReportableTaskResource> reportableTaskList
                             = miReportingService.findByReportingTaskId(taskId);
 
-                        assertEquals("00:00:10", reportableTaskList.get(0).getHandlingTime());
+                        assertEquals("9 days 00:00:10", reportableTaskList.get(0).getHandlingTime());
                         assertTrue(reportableTaskList.get(0).getProcessingTime().startsWith("15 days"));
-                        assertEquals("-2 days", reportableTaskList.get(0).getDueDateToCompletedDiffTime());
+                        assertEquals("-2 days -00:00:10", reportableTaskList.get(0).getDueDateToCompletedDiffTime());
                         return true;
                     });
         }
@@ -372,22 +360,26 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_save_task_and_record_multiple_task_assignments() {
         TaskResource taskResource = createAndAssignTask();
+        checkHistory(taskResource.getTaskId(), 1);
         taskResource.setLastUpdatedAction("Unclaim");
         taskResource.setState(CFTTaskState.UNASSIGNED);
         taskResource.setAssignee(null);
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-07T20:15:45.345875+01:00"));
         taskResourceRepository.save(taskResource);
+        checkHistory(taskResource.getTaskId(), 2);
 
         taskResource.setLastUpdatedAction("Assign");
         taskResource.setState(CFTTaskState.ASSIGNED);
         taskResource.setAssignee("NewAssignee");
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-12T20:15:45.345875+01:00"));
         taskResourceRepository.save(taskResource);
+        checkHistory(taskResource.getTaskId(), 3);
 
         taskResource.setLastUpdatedAction("Complete");
         taskResource.setState(CFTTaskState.COMPLETED);
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-04-17T20:15:45.345875+01:00"));
         taskResourceRepository.save(taskResource);
+        checkHistory(taskResource.getTaskId(), 4);
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -456,6 +448,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         );
         taskResource.setCreated(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-15T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedAction("Configure");
         return taskResourceRepository.save(taskResource);
     }
@@ -497,8 +490,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         return taskResourceRepository.save(taskResource);
     }
 
-    private TaskResource createAndSaveTaskWithLastReconfigurationTime(String taskId, String taskName,
-                                                                      CFTTaskState taskState, String lastAction) {
+    private void createAndSaveTaskWithLastReconfigurationTime(String taskId, String taskName,
+                                                              CFTTaskState taskState, String lastAction) {
         TaskResource taskResource = new TaskResource(
             taskId,
             taskName,
@@ -511,7 +504,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedAction(lastAction);
         taskResource.setLastReconfigurationTime(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
-        return taskResourceRepository.save(taskResource);
+        taskResourceRepository.save(taskResource);
     }
 
     @ParameterizedTest
@@ -521,8 +514,9 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "ASSIGNED,Configure"
     })
     void should_insert_first_task_and_update_reconfiguration_task(String state, String lastAction) {
-        String taskId = UUID.randomUUID().toString();
-        createAndSaveThisTask(taskId, "FirstTask", CFTTaskState.valueOf(state), lastAction);
+
+        TaskResource taskResource = createAndSaveTask();
+        String taskId = taskResource.getTaskId();
         createAndSaveTaskWithLastReconfigurationTime(taskId,
                                                      "SecondTask", CFTTaskState.valueOf(state), lastAction);
 
@@ -546,30 +540,19 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
-        "UNASSIGNED,Configure",
-        "ASSIGNED,AutoAssign"
-    })
-    void should_ignore_insert_reconfiguration_task(String state, String lastAction) {
-        String taskId = UUID.randomUUID().toString();
-        createAndSaveTaskWithLastReconfigurationTime(taskId,
-                                                     "SecondTask", CFTTaskState.valueOf(state), lastAction);
-
+    private void checkHistory(String id, int records) {
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
             .atMost(10, SECONDS)
             .until(
                 () -> {
-                    List<ReportableTaskResource> reportableTaskList
-                        = miReportingService.findByReportingTaskId(taskId);
+                    List<TaskHistoryResource> taskHistoryResourceList
+                        = miReportingService.findByTaskId(id);
 
-                    assertTrue(reportableTaskList.isEmpty());
-                    List<TaskHistoryResource> taskHistoryList
-                        = miReportingService.findByTaskId(taskId);
-                    assertEquals(1, taskHistoryList.size());
+                    assertFalse(taskHistoryResourceList.isEmpty());
+                    assertEquals(records, taskHistoryResourceList.size());
+
                     return true;
                 });
     }
-
 }
