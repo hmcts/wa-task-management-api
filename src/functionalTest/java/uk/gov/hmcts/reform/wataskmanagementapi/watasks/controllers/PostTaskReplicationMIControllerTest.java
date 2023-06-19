@@ -246,7 +246,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
             .body("task_assignments_list.get(1).assignment_end_reason", equalTo(null));
 
-        //common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId);
     }
 
     @Test
