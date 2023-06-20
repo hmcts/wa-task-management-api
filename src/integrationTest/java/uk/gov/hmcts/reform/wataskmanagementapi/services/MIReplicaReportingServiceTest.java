@@ -111,7 +111,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(taskResource.getTaskName(), taskHistoryResourceList.get(0).getTaskName());
                     assertEquals(taskResource.getTitle(), taskHistoryResourceList.get(0).getTaskTitle());
                     assertEquals(taskResource.getAssignee(), taskHistoryResourceList.get(0).getAssignee());
-                    assertEquals(taskResource.getLastUpdatedTimestamp(), taskHistoryResourceList.get(0).getUpdated());
+                    assertTrue(taskResource.getLastUpdatedTimestamp().isEqual(taskHistoryResourceList.get(0).getUpdated()));
                     assertEquals(taskResource.getState().toString(), taskHistoryResourceList.get(0).getState());
                     assertEquals(taskResource.getLastUpdatedUser(), taskHistoryResourceList.get(0).getUpdatedBy());
                     assertEquals(taskResource.getLastUpdatedAction(), taskHistoryResourceList.get(0).getUpdateAction());
@@ -138,7 +138,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
                     assertEquals(taskResource.getTitle(), reportableTaskList.get(0).getTaskTitle());
                     assertEquals(taskResource.getAssignee(), reportableTaskList.get(0).getAssignee());
-                    assertEquals(taskResource.getLastUpdatedTimestamp(), reportableTaskList.get(0).getUpdated());
+                    assertTrue(taskResource.getLastUpdatedTimestamp().isEqual(reportableTaskList.get(0).getUpdated()));
                     assertEquals(taskResource.getState().toString(), reportableTaskList.get(0).getState());
                     assertEquals(taskResource.getLastUpdatedUser(), reportableTaskList.get(0).getUpdatedBy());
                     assertEquals(taskResource.getLastUpdatedAction(), reportableTaskList.get(0).getUpdateAction());
@@ -396,20 +396,20 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
                     assertEquals("someAssignee", taskAssignmentsList.get(0).getAssignee());
                     assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
-                    assertEquals(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"),
-                        taskAssignmentsList.get(0).getAssignmentStart());
-                    assertEquals(OffsetDateTime.parse("2023-04-07T20:15:45.345875+01:00"),
-                        taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertTrue(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00").isEqual(
+                        taskAssignmentsList.get(0).getAssignmentStart()));
+                    assertTrue(OffsetDateTime.parse("2023-04-07T20:15:45.345875+01:00").isEqual(
+                        taskAssignmentsList.get(0).getAssignmentEnd()));
                     assertEquals("UNCLAIMED", taskAssignmentsList.get(0).getAssignmentEndReason());
 
                     assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(1).getTaskId());
                     assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(1).getTaskName());
                     assertEquals("NewAssignee", taskAssignmentsList.get(1).getAssignee());
                     assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(1).getService());
-                    assertEquals(OffsetDateTime.parse("2023-04-12T20:15:45.345875+01:00"),
-                        taskAssignmentsList.get(1).getAssignmentStart());
-                    assertEquals(OffsetDateTime.parse("2023-04-17T20:15:45.345875+01:00"),
-                        taskAssignmentsList.get(1).getAssignmentEnd());
+                    assertTrue(OffsetDateTime.parse("2023-04-12T20:15:45.345875+01:00").isEqual(
+                        taskAssignmentsList.get(1).getAssignmentStart()));
+                    assertTrue(OffsetDateTime.parse("2023-04-17T20:15:45.345875+01:00").isEqual(
+                        taskAssignmentsList.get(1).getAssignmentEnd()));
                     assertEquals("COMPLETED", taskAssignmentsList.get(1).getAssignmentEndReason());
 
                     return true;
