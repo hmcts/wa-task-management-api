@@ -111,7 +111,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(taskResource.getTaskName(), taskHistoryResourceList.get(0).getTaskName());
                     assertEquals(taskResource.getTitle(), taskHistoryResourceList.get(0).getTaskTitle());
                     assertEquals(taskResource.getAssignee(), taskHistoryResourceList.get(0).getAssignee());
-                    assertTrue(taskResource.getLastUpdatedTimestamp().isEqual(taskHistoryResourceList.get(0).getUpdated()));
+                    assertTrue(taskResource.getLastUpdatedTimestamp()
+                        .isEqual(taskHistoryResourceList.get(0).getUpdated()));
                     assertEquals(taskResource.getState().toString(), taskHistoryResourceList.get(0).getState());
                     assertEquals(taskResource.getLastUpdatedUser(), taskHistoryResourceList.get(0).getUpdatedBy());
                     assertEquals(taskResource.getLastUpdatedAction(), taskHistoryResourceList.get(0).getUpdateAction());
