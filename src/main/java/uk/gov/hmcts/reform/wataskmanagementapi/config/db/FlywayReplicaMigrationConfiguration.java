@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config.db;
 
 import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.MigrationVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
@@ -21,34 +20,28 @@ public class FlywayReplicaMigrationConfiguration {
     @Qualifier("replicaDataSource")
     private DataSource replicaDataSource;
 
-    private static final String SCHEMA_NAME = "cft_task_db";
 
     @Bean
     public FlywayMigrationStrategy multiDBMigrateStrategy() {
         return new FlywayMigrationStrategy() {
             @Override
             public void migrate(Flyway flyway) {
-                Flyway flywayBase = Flyway.configure()
-                    .dataSource(dataSource)
-                    .schemas(SCHEMA_NAME)
-                    .defaultSchema(SCHEMA_NAME)
-                    .locations("db/migration")
-                    .baselineOnMigrate(true)
-                    .target(MigrationVersion.LATEST).load();
-
+                Flyway flywayBase = modifyConfigForDataSource(flyway, dataSource,"db/migration");
                 flywayBase.migrate();
 
-                Flyway flywayReplica = Flyway.configure()
-                    .dataSource(replicaDataSource)
-                    .schemas(SCHEMA_NAME)
-                    .defaultSchema(SCHEMA_NAME)
-                    .locations("dbreplica/migration")
-                    .baselineOnMigrate(true)
-                    .target(MigrationVersion.LATEST).load();
-
+                Flyway flywayReplica = modifyConfigForDataSource(flyway, replicaDataSource,
+                    "dbreplica/migration");
+                flywayReplica.repair();
                 flywayReplica.migrate();
 
             }
         };
+    }
+
+    private Flyway modifyConfigForDataSource(Flyway flyway, DataSource dataSource, String location) {
+        return Flyway.configure()
+            .configuration(flyway.getConfiguration())
+            .dataSource(dataSource)
+            .locations(location).load();
     }
 }

@@ -116,7 +116,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     public void user_should_claim_task_and_claim_action_recorded_in_replicate_db() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+            "Process Application");
         initiateTask(taskVariables);
 
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
@@ -359,7 +359,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     public void user_should_claim_task_and_claim_action_recorded_in_reportable_task() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+            "Process Application");
         initiateTask(taskVariables);
 
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
@@ -411,7 +411,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     public void user_should_complete_task_and_complete_action_recorded_in_replica_tables() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+            "Process Application");
         initiateTask(taskVariables);
 
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
@@ -535,7 +535,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     public void user_should_cancel_task_when_role_assignment_verification_passed() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestJudiciary",
-                                                                       "Review Specific Access Request Judiciary");
+            "Review Specific Access Request Judiciary");
 
         common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials2.getHeaders(), "judge");
