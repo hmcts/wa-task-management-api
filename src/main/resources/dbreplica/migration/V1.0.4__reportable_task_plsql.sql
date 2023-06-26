@@ -101,6 +101,16 @@ FETCH NEXT FROM task_history_cursor INTO
               l_updated::DATE)
         returning update_id into l_update_id;
         l_new_task = false;
+
+        RAISE NOTICE 'Insert for action % for task %', l_update_action, l_task_id;
+        RAISE INFO 'INFO Insert l_state %', l_state;
+        RAISE INFO 'INFO Insert Assertreportable_taskLog';
+
+        if (l_update_action ='AutoAssign' and l_state='ASSIGNED') then
+          RAISE NOTICE 'WARNING action AutoAssign and state ASSIGNED';
+        end if;
+
+
     else
         if (l_update_action='Complete') then l_completed_date = l_updated::date; end if;
         if (l_update_action='Complete') then l_completed_date_time = l_updated; end if;
@@ -174,6 +184,9 @@ FETCH NEXT FROM task_history_cursor INTO
               processing_time = l_processing_time,
               due_date_to_completed_diff_time = l_due_date_to_completed_diff_time
         where reportable_task.task_id = l_task_id;
+
+    RAISE INFO 'Update for action % for task %', l_update_action, l_task_id;
+    RAISE NOTICE 'Update for action % for task %', l_update_action, l_task_id;
 
     end if;
 
