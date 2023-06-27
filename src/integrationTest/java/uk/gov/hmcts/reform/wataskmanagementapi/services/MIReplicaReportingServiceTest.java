@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,6 +49,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
  */
 @ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Slf4j
 class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
@@ -77,6 +80,9 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     CFTTaskDatabaseService cftTaskDatabaseService;
     MIReportingService miReportingService;
 
+    JdbcDatabaseContainer container;
+    JdbcDatabaseContainer containerReplica;
+
     @BeforeEach
     void setUp() {
         subscriptionCreator = new SubscriptionCreator("repl_user", "repl_password",
@@ -88,9 +94,15 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
 
-        JdbcDatabaseContainer container = TCExtendedContainerDatabaseDriver.getContainer(primaryJdbcUrl);
-        JdbcDatabaseContainer containerReplica = TCExtendedContainerDatabaseDriver.getContainer(replicaJdbcUrl);
+        container = TCExtendedContainerDatabaseDriver.getContainer(primaryJdbcUrl);
+        containerReplica = TCExtendedContainerDatabaseDriver.getContainer(replicaJdbcUrl);
         Testcontainers.exposeHostPorts(container.getFirstMappedPort(), containerReplica.getFirstMappedPort());
+    }
+
+    @AfterAll
+    void tearDown() {
+        container.stop();
+        containerReplica.stop();
     }
 
     @Test
