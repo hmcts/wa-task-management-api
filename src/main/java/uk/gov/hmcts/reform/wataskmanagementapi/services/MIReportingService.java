@@ -6,8 +6,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskAssignmentsResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
@@ -19,9 +21,12 @@ public class MIReportingService {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MIReportingService.class);
     public static final String MAIN_SLOT_NAME = "main_slot_v1";
 
+    private static final int PUBLICATION_ROW_COUNT_WITHOUT_WORK_TYPES = 1;
+
     private final TaskHistoryResourceRepository taskHistoryRepository;
     private final TaskResourceRepository taskResourceRepository;
     private final ReportableTaskRepository reportableTaskRepository;
+    private final TaskAssignmentsRepository taskAssignmentsRepository;
 
     @Autowired
     private final SubscriptionCreator subscriptionCreator;
@@ -29,10 +34,12 @@ public class MIReportingService {
     public MIReportingService(TaskHistoryResourceRepository tasksHistoryRepository,
                               TaskResourceRepository taskResourceRepository,
                               ReportableTaskRepository reportableTaskRepository,
+                              TaskAssignmentsRepository taskAssignmentsRepository,
                               SubscriptionCreator subscriptionCreator) {
         this.taskHistoryRepository = tasksHistoryRepository;
         this.taskResourceRepository = taskResourceRepository;
         this.reportableTaskRepository = reportableTaskRepository;
+        this.taskAssignmentsRepository = taskAssignmentsRepository;
         this.subscriptionCreator = subscriptionCreator;
     }
 
@@ -44,10 +51,19 @@ public class MIReportingService {
         return reportableTaskRepository.findAllByTaskIdOrderByUpdatedAsc(taskId);
     }
 
+    public List<TaskAssignmentsResource> findByAssignmentsTaskId(String taskId) {
+        return taskAssignmentsRepository.findAllByTaskIdOrderByAssignmentIdAsc(taskId);
+    }
+
     public void logicalReplicationCheck() {
         LOGGER.debug("Postgresql logical replication check executed");
         if (isReplicationSlotPresent()) {
-            if (!isPublicationPresent()) {
+            if (isPublicationPresent()) {
+                if (!isWorkTypesInPublication()) {
+                    addWorkTypesToPublication();
+                    subscriptionCreator.refreshSubscription();
+                }
+            } else {
                 createPublication();
             }
             if (!isSubscriptionPresent()) {
@@ -84,9 +100,23 @@ public class MIReportingService {
         }
     }
 
+    protected boolean isWorkTypesInPublication() {
+        if (taskResourceRepository.countPublicationTables() == PUBLICATION_ROW_COUNT_WITHOUT_WORK_TYPES) {
+            LOGGER.info("Work types not added to publication");
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     private void createPublication() {
         taskResourceRepository.createPublication();
         LOGGER.info("Created publication");
+    }
+
+    private void addWorkTypesToPublication() {
+        taskResourceRepository.addWorkTypesToPublication();
+        LOGGER.info("Added work types to publication");
     }
 
     protected boolean isSubscriptionPresent() {

@@ -12,7 +12,7 @@ public class PostgreExtendedSQLContainerProvider extends JdbcDatabaseContainerPr
 
     private static final String NAME = "postgresql";
 
-    public static final String USER_PARAM = "wa_user";
+    public static final String USER_PARAM = "postgres";
 
     public static final String PASSWORD_PARAM = "postgres";
 
@@ -46,8 +46,8 @@ public class PostgreExtendedSQLContainerProvider extends JdbcDatabaseContainerPr
     private JdbcDatabaseContainer getJdbcDatabaseContainer(JdbcDatabaseContainer jdbcDatabaseContainer) {
         return (JdbcDatabaseContainer) jdbcDatabaseContainer
             .withDatabaseName(databaseName)
-            .withUsername("wa_user")
-            .withPassword("postgres")
+            .withUsername(USER_PARAM)
+            .withPassword(PASSWORD_PARAM)
             .withInitScript(getInitScript(databaseName))
             .withCopyFileToContainer(MountableFile.forClasspathResource("pg_hba.conf"), "/postgresql/conf/conf.d/")
             .withCommand(

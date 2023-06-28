@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.ReportableTaskResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskAssignmentsResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskHistoryResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
@@ -57,6 +58,16 @@ public class MIReportingTestingController {
             log.error("MIReporting endpoint not allowed in '{}' environment.", environment);
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
+    }
+
+    @GetMapping(
+        path = "/task/{task-id}/assignments",
+        produces = APPLICATION_JSON_VALUE
+    )
+    public TaskAssignmentsResponse getTaskAssignments(@PathVariable("task-id") String taskId) {
+        return TaskAssignmentsResponse.builder()
+            .taskAssignmentsList(miReportingService.findByAssignmentsTaskId(taskId))
+            .build();
     }
 
     private boolean isNonProdEnvironment() {
