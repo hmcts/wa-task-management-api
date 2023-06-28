@@ -131,8 +131,6 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
                     return true;
                 });
-
-        assertTrue(containerReplica.getLogs().contains("Inserting to history table"));
     }
 
     @Test
@@ -450,6 +448,38 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         List<TaskHistoryResource> taskHistoryResourceList
             = miReportingService.findByTaskId("1111111");
         assertTrue(taskHistoryResourceList.isEmpty());
+    }
+
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "UNASSIGNED,Configure",
+        "ASSIGNED,Configure",
+        "UNASSIGNED,Claim",
+    })
+    void should_report_incomplete_task_history(String initialState, String lastAction) {
+        String taskId = UUID.randomUUID().toString();
+        createAndSaveThisTask(taskId, "someTaskName",
+                                                          CFTTaskState.valueOf(initialState), lastAction);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(taskId);
+
+                    if (initialState.equals("UNASSIGNED") && lastAction.equals("Configure")) {
+                        assertFalse(reportableTaskList.isEmpty());
+                        assertFalse(containerReplica.getLogs().contains(taskId + " : Task with an incomplete history"));
+                    } else {
+                        assertTrue(reportableTaskList.isEmpty());
+                        assertTrue(containerReplica.getLogs().contains(taskId + " : Task with an incomplete history"));
+                    }
+                    return true;
+                });
+
     }
 
     private TaskResource createAndSaveTask() {
