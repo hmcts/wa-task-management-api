@@ -131,6 +131,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
                     return true;
                 });
+
+        assertTrue(containerReplica.getLogs().contains("Inserting to history table"));
     }
 
     @Test

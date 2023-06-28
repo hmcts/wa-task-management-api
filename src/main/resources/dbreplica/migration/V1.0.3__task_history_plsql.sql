@@ -10,6 +10,9 @@ declare
   l_update_id bigint;
 
 begin
+
+  RAISE INFO 'Inserting to history table';
+
   insert into cft_task_db.task_history
   (task_id, task_name, task_type, due_date_time,
    state, task_system, security_classification,
