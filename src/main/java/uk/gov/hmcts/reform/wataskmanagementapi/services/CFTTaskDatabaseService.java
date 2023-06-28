@@ -72,10 +72,15 @@ public class CFTTaskDatabaseService {
             states, reconfigureRequestTime);
     }
 
+    public List<TaskResource> getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
+        List<String> taskIds, List<CFTTaskState> states, OffsetDateTime retryWindow) {
+        return tasksRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
+            taskIds, states, retryWindow);
+    }
+
     public List<TaskResource> getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
         List<CFTTaskState> states, OffsetDateTime retryWindow) {
-        return tasksRepository.findByStateInAndReconfigureRequestTimeIsLessThan(
-            states, retryWindow);
+        return tasksRepository.findByStateInAndReconfigureRequestTimeIsLessThan(states, retryWindow);
     }
 
     public TaskResource saveTask(TaskResource task) {
@@ -87,7 +92,7 @@ public class CFTTaskDatabaseService {
 
     public void insertAndLock(String taskId, OffsetDateTime dueDate) throws SQLException {
         OffsetDateTime created = OffsetDateTime.now();
-        tasksRepository.insertAndLock(taskId, created, dueDate, dueDate);
+        tasksRepository.insertAndLock(taskId, dueDate, created, dueDate);
     }
 
     public Optional<TaskResource> findTaskBySpecification(Specification<TaskResource> specification) {
@@ -112,7 +117,7 @@ public class CFTTaskDatabaseService {
         Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
         List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
 
-        log.info("Task search for \nfilter signatures {} \nrole signatures {} \nexcluded case ids {}",
+        log.info("Task search for filter signatures {} \nrole signatures {} \nexcluded case ids {}",
             filterSignature, roleSignature, excludeCaseIds);
         List<String> taskIds = tasksRepository.searchTasksIds(firstResult, maxResults, filterSignature, roleSignature,
             excludeCaseIds, searchRequest);

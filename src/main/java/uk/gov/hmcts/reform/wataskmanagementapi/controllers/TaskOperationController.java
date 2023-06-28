@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationService;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -54,7 +54,7 @@ public class TaskOperationController extends BaseController {
     @PostMapping(path = "/operation")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public ResponseEntity<Void> performOperation(@Parameter(hidden = true)
-                                                     @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+                                                 @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @RequestBody TaskOperationRequest taskOperationRequest) {
         log.info("Task operation request received '{}'", taskOperationRequest);
         boolean hasExclusiveAccessRequest =

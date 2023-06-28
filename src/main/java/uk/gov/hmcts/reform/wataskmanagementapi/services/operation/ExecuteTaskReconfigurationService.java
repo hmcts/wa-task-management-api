@@ -9,7 +9,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperation
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskExecuteReconfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
@@ -17,9 +19,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentServic
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED;
 
 @Slf4j
 @Component
@@ -39,16 +44,17 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
     }
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = TaskExecuteReconfigurationException.class)
     @Async
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
+    public TaskOperationResponse performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE)) {
-            executeTasksToReconfigure(taskOperationRequest);
+            return executeTasksToReconfigure(taskOperationRequest);
         }
-        return List.of();
+        return new TaskOperationResponse();
     }
 
-    private void executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
+    private TaskOperationResponse executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
+        log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
         List<TaskResource> taskResources = cftTaskDatabaseService
@@ -65,9 +71,32 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
             taskOperationRequest.getOperation().getMaxTimeLimit());
 
         if (!failedTaskIds.isEmpty()) {
-            executeReconfiguration(failedTaskIds,
+            executeReconfiguration(
+                failedTaskIds,
                 successfulTaskResources,
-                taskOperationRequest.getOperation().getMaxTimeLimit());
+                taskOperationRequest.getOperation().getMaxTimeLimit()
+            );
+            taskOperationRequest.getOperation().getMaxTimeLimit();
+        }
+
+        if (!failedTaskIds.isEmpty()) {
+            configurationFailLog(failedTaskIds, taskOperationRequest.getOperation().getRetryWindowHours());
+        }
+
+        return new TaskOperationResponse(Map.of("successfulTaskResources", successfulTaskResources.size()));
+    }
+
+    private void configurationFailLog(List<String> failedTaskIds, long retryWindowHours) {
+        OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(retryWindowHours);
+
+        List<TaskResource> failedTasksToReport = cftTaskDatabaseService
+            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
+                failedTaskIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), retryWindow);
+
+        if (!failedTasksToReport.isEmpty()) {
+            throw new TaskExecuteReconfigurationException(TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED,
+                                                          failedTasksToReport
+            );
         }
     }
 

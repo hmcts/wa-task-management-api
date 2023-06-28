@@ -4,7 +4,8 @@ public enum TaskOperationType {
     MARK_TO_RECONFIGURE("mark_to_reconfigure"),
     EXECUTE_RECONFIGURE("execute_reconfigure"),
     EXECUTE_RECONFIGURE_FAILURES("execute_reconfigure_failures"),
-    UPDATE_SEARCH_INDEX("update_search_index");
+    UPDATE_SEARCH_INDEX("update_search_index"),
+    CLEANUP_SENSITIVE_LOG_ENTRIES("cleanup_sensitive_log_entries");
 
     private final String value;
 
