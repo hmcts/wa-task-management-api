@@ -26,9 +26,7 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
     private final SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
 
-
     private final ExecutorService sensitiveTaskEventLogsExecutorService;
-
 
     public CFTSensitiveTaskEventLogsDatabaseService(SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository,
                                                     CFTTaskDatabaseService cftTaskDatabaseService,
@@ -69,13 +67,17 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
     public int cleanUpSensitiveLogs(LocalDateTime timeStamp) {
         return sensitiveTaskEventLogsRepository.cleanUpSensitiveLogs(timeStamp);
     }
-
-    private SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
+  
+    public SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
         try {
             return sensitiveTaskEventLogsRepository.save(sensitiveTaskEventLog);
         } catch (IllegalArgumentException e) {
             log.error("Couldn't save SensitiveTaskEventLog for taskId {}", sensitiveTaskEventLog.getTaskId());
             return sensitiveTaskEventLog;
         }
+    }
+
+    public int cleanUpSensitiveLogs(LocalDateTime timeStamp) {
+        return sensitiveTaskEventLogsRepository.cleanUpSensitiveLogs(timeStamp);
     }
 }

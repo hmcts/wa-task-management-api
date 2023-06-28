@@ -153,6 +153,8 @@ public class TaskManagementService {
             taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
         );
 
+        log.info("task resource due date before conversion {}", taskResource.getDueDateTime());
+
         Set<PermissionTypes> permissionsUnionForUser =
             cftTaskMapper.extractUnionOfPermissionsForUser(
                 taskResource.getTaskRoleResources(),
@@ -221,6 +223,9 @@ public class TaskManagementService {
      */
     @Transactional
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
+        log.info("GP for {} and {} is {}", accessControlResponse.getUserInfo().getUid(),
+                 accessControlResponse.getUserInfo().getEmail()
+        );
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
 
@@ -234,11 +239,15 @@ public class TaskManagementService {
 
         String userId = accessControlResponse.getUserInfo().getUid();
         if (taskResource.getAssignee() != null && !userId.equals(taskResource.getAssignee())
-            && !checkUserHasUnassignPermission(accessControlResponse.getRoleAssignments(),
-            taskResource.getTaskRoleResources())) {
-            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+            && !checkUserHasUnassignPermission(
+            accessControlResponse.getRoleAssignments(),
+            taskResource.getTaskRoleResources()
+        )) {
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
+                taskId,
                 accessControlResponse.getRoleAssignments(),
-                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED
+            );
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
@@ -361,10 +370,10 @@ public class TaskManagementService {
                                          Optional<UserInfo> assignee) {
 
         return (currentAssignee.isPresent()
-                || assignee.isPresent())
-               && (currentAssignee.isEmpty()
-                   || assignee.isEmpty()
-                   || !currentAssignee.get().equals(assignee.get().getUid()));
+            || assignee.isPresent())
+            && (currentAssignee.isEmpty()
+            || assignee.isEmpty()
+            || !currentAssignee.get().equals(assignee.get().getUid()));
     }
 
     private PermissionRequirements assignerPermissionRequirement(UserInfo assigner,
@@ -399,7 +408,7 @@ public class TaskManagementService {
                 .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
                 .build();
         } else if (assigner.getUid().equals(currentAssignee)
-                   && !assigner.getUid().equals(assigneeUid)) {
+            && !assigner.getUid().equals(assigneeUid)) {
             //Task is assigned to requester and requester tries to assign it to someone new
             return PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(UNCLAIM_ASSIGN)
@@ -458,12 +467,12 @@ public class TaskManagementService {
 
         if (!taskResource.getTaskRoleResources().stream().anyMatch(permission -> permission.getCancel().equals(true))
             && (taskResource.getAssignee() == null
-                || !userId.equals(taskResource.getAssignee())
-            )
-        ) {
-            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+            || !userId.equals(taskResource.getAssignee()))) {
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
+                taskId,
                 accessControlResponse.getRoleAssignments(),
-                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED
+            );
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
@@ -475,7 +484,7 @@ public class TaskManagementService {
         boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
         log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
-            taskId, previousTaskState, isCftTaskStateExist
+                 taskId, previousTaskState, isCftTaskStateExist
         );
 
         try {
@@ -492,7 +501,7 @@ public class TaskManagementService {
         } catch (TaskCancelException ex) {
             if (isCftTaskStateExist) {
                 log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda.Exception: {}",
-                    taskId, ex.getMessage()
+                         taskId, ex.getMessage()
                 );
                 throw ex;
             }
@@ -501,7 +510,7 @@ public class TaskManagementService {
                 task.setState(CFTTaskState.TERMINATED);
                 cftTaskDatabaseService.saveTask(task);
                 log.info("{} setting CFTTaskState to TERMINATED. previousTaskState : {} ",
-                    taskId, previousTaskState
+                         taskId, previousTaskState
                 );
                 return;
             }

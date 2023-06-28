@@ -88,7 +88,7 @@ class CleanUpSensitiveLogsServiceTest {
     }
 
     @Test
-    void should_log_exception_when_clean_up_sensitive_logs_fails() {
+    void should_throw_exception_when_cannot_connect_to_db_during_clean_up_sensitive_logs() {
         OffsetDateTime timestamp = OffsetDateTime.now();
 
         List<TaskFilter<?>> taskFilters = createTaskFilters(KEY, timestamp);

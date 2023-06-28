@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
@@ -72,5 +74,21 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
         executorService.execute(() -> {
             verify(sensitiveTaskEventLogsRepository, times(1)).save(any(SensitiveTaskEventLog.class));
         });
+    }
+
+    @Test
+    void should_process_and_log_error_when_db_exception_happens() {
+        String taskId = "someTaskId";
+        doThrow(new RuntimeException("some unexpected error"))
+            .when(sensitiveTaskEventLogsRepository).save(any(SensitiveTaskEventLog.class));
+
+        cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
+            taskId,
+            List.of(roleAssignments),
+            ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
+        );
+        assertThatThrownBy(() -> cftSensitiveTaskEventLogsDatabaseService.saveSensitiveTaskEventLog(any(
+            SensitiveTaskEventLog.class)))
+            .isInstanceOf(RuntimeException.class);
     }
 }
