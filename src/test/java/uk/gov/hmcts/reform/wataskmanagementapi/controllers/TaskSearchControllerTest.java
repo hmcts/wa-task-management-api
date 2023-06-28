@@ -219,6 +219,10 @@ class TaskSearchControllerTest {
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "caseId", "eventId", "caseJurisdiction", "caseType");
+        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        GetTasksCompletableResponse<Task> tasksResponse = new GetTasksCompletableResponse<>(true, taskList);
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any())).thenReturn(tasksResponse);
+
         ResponseEntity<GetTasksCompletableResponse<Task>> response =
             taskSearchController.searchWithCriteriaForAutomaticCompletion(IDAM_AUTH_TOKEN, searchEventAndCase);
         assertNotNull(response);
@@ -252,7 +256,12 @@ class TaskSearchControllerTest {
         when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
             .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
-        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        Task task1 = mock(Task.class);
+        when(task1.getId()).thenReturn("taskId1");
+        Task task2 = mock(Task.class);
+        when(task2.getId()).thenReturn("taskId2");
+        List<Task> taskList = List.of(task1, task2);
+
         GetTasksCompletableResponse<Task> tasksResponse = new GetTasksCompletableResponse<>(true, taskList);
         when(cftQueryService.searchForCompletableTasks(any(), any(), any())).thenReturn(tasksResponse);
 

@@ -6,8 +6,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskAssignmentsResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
@@ -24,6 +26,7 @@ public class MIReportingService {
     private final TaskHistoryResourceRepository taskHistoryRepository;
     private final TaskResourceRepository taskResourceRepository;
     private final ReportableTaskRepository reportableTaskRepository;
+    private final TaskAssignmentsRepository taskAssignmentsRepository;
 
     @Autowired
     private final SubscriptionCreator subscriptionCreator;
@@ -31,10 +34,12 @@ public class MIReportingService {
     public MIReportingService(TaskHistoryResourceRepository tasksHistoryRepository,
                               TaskResourceRepository taskResourceRepository,
                               ReportableTaskRepository reportableTaskRepository,
+                              TaskAssignmentsRepository taskAssignmentsRepository,
                               SubscriptionCreator subscriptionCreator) {
         this.taskHistoryRepository = tasksHistoryRepository;
         this.taskResourceRepository = taskResourceRepository;
         this.reportableTaskRepository = reportableTaskRepository;
+        this.taskAssignmentsRepository = taskAssignmentsRepository;
         this.subscriptionCreator = subscriptionCreator;
     }
 
@@ -44,6 +49,10 @@ public class MIReportingService {
 
     public List<ReportableTaskResource> findByReportingTaskId(String taskId) {
         return reportableTaskRepository.findAllByTaskIdOrderByUpdatedAsc(taskId);
+    }
+
+    public List<TaskAssignmentsResource> findByAssignmentsTaskId(String taskId) {
+        return taskAssignmentsRepository.findAllByTaskIdOrderByAssignmentIdAsc(taskId);
     }
 
     public void logicalReplicationCheck() {
