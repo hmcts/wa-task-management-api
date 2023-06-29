@@ -67,7 +67,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         taskId = taskVariables.getTaskId();
 
@@ -91,7 +91,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
     }
 
     @Test
-    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
+    public void should_return_a_200_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
@@ -127,7 +127,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         //after mark to reconfigure
         result = restApiActions.get(

@@ -110,7 +110,8 @@ class UnclaimTaskTest extends CamundaHelpers {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
             cftQueryService,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService
+        );
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
@@ -120,7 +121,8 @@ class UnclaimTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService
+        );
 
 
         taskId = UUID.randomUUID().toString();
