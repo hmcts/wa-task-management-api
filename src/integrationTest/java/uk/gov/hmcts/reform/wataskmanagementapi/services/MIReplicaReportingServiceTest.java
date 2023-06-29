@@ -259,8 +259,15 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     })
     void should_save_task_and_check_task_assignments(String newState, String lastAction, String endReason,
                                                             String finalState) {
-        TaskResource taskResource = createAndAssignTask();
-        String taskId = taskResource.getTaskId();
+        String taskId = UUID.randomUUID().toString();
+        TaskResource taskResource = createAndSaveThisTask(taskId, "someTaskName",
+                              UNASSIGNED, "Configure");
+
+        taskResource.setAssignee("someAssignee");
+        taskResource.setLastUpdatedAction("AutoAssign");
+        taskResource.setState(ASSIGNED);
+        taskResourceRepository.save(taskResource);
+
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
             .atMost(10, SECONDS)
@@ -297,7 +304,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResource.setState(CFTTaskState.valueOf(newState));
         taskResourceRepository.save(taskResource);
 
-        checkHistory(taskId, 2);
+        checkHistory(taskId, 3);
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -349,7 +356,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
                     List<TaskHistoryResource> taskHistoryList
                         = miReportingService.findByTaskId(taskId);
-                    assertEquals(2, taskHistoryList.size());
+                    assertEquals(3, taskHistoryList.size());
                     return true;
                 });
 
@@ -507,12 +514,15 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
             "someTaskType",
             taskState,
             "987654",
-            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+            OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00")
         );
-        taskResource.setCreated(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
-        taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"));
+        taskResource.setCreated(OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"));
+        taskResource.setPriorityDate(OffsetDateTime.parse("2023-03-26T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedAction(lastAction);
-        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-07T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"));
+        taskResource.setJurisdiction("someJurisdiction");
+        taskResource.setLocation("someLocation");
+        taskResource.setRoleCategory("someRoleCategory");
         return taskResourceRepository.save(taskResource);
     }
 

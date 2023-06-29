@@ -107,7 +107,8 @@ FETCH NEXT FROM task_history_cursor INTO
               l_updated::DATE)
         returning update_id into l_update_id;
         l_new_task = false;
-else
+    else
+
         if (l_update_action='Complete') then l_completed_date = l_updated::date; end if;
         if (l_update_action='Complete') then l_completed_date_time = l_updated; end if;
         l_final_state_label =
@@ -115,7 +116,7 @@ else
             when (l_update_action='Complete') then 'COMPLETED'
             when (l_update_action='Cancel') then 'USER_CANCELLED'
             when (l_update_action='AutoCancel') then 'AUTO_CANCELLED'
-end;
+          end;
         if (l_first_assigned_date is null) and (l_assignee is not null) then l_first_assigned_date = l_updated::date; end if;
         if (l_first_assigned_date_time is null) and (l_assignee is not null) then l_first_assigned_date_time = l_updated; end if;
         if (l_state='ASSIGNED') then l_wait_time_days = (l_updated::date - l_created::date); end if;
@@ -125,7 +126,7 @@ end;
             case
                 when (l_update_action='Complete') and (l_updated <= l_due_date_time) then 'Yes'
                 when (l_update_action='Complete') and (l_updated > l_due_date_time) then 'No'
-end;
+            end;
         if (l_update_action in ('AutoUnassignAssign', 'UnassignAssign', 'UnassignClaim', 'UnclaimAssign', 'Assign', 'AutoAssign', 'Claim')) then l_number_of_reassignments = l_number_of_reassignments + 1; end if;
         if (l_update_action='Complete') then l_due_date_to_completed_diff_days = (l_updated::date - l_due_date_time::date); end if;
         if (l_wait_time is null) and (l_state='ASSIGNED') then l_wait_time = (date_trunc('second', l_updated) - date_trunc('second', l_created)); end if;
@@ -133,55 +134,55 @@ end;
         if (l_processing_time is null) and (l_state='COMPLETED') then l_processing_time = (date_trunc('second', l_updated) - date_trunc('second', l_created)); end if;
         if (l_due_date_to_completed_diff_time is null) and (l_state='COMPLETED') then l_due_date_to_completed_diff_time = (date_trunc('second', l_due_date_time) - date_trunc('second', l_updated)); end if;
 
-update cft_task_db.reportable_task
-set   task_name = l_task_name,
-      task_type = l_task_type,
-      due_date_time = l_due_date_time,
-      state = l_state,
-      task_system = l_task_system,
-      security_classification = l_security_classification,
-      title = l_title,
-      major_priority = l_major_priority,
-      minor_priority = l_minor_priority,
-      assignee = l_assignee,
-      auto_assigned = l_auto_assigned,
-      execution_type_code = l_execution_type_code,
-      work_type = l_work_type,
-      role_category = l_role_category,
-      has_warnings = l_has_warnings,
-      assignment_expiry = l_assignment_expiry,
-      case_id = l_case_id,
-      case_type_id = l_case_type_id,
-      case_category = l_case_category,
-      case_name = l_case_name,
-      jurisdiction = l_jurisdiction,
-      region = l_region,
-      location = l_location,
-      business_context = l_business_context,
-      termination_reason = l_termination_reason,
-      updated_by = l_updated_by,
-      updated = l_updated,
-      update_action = l_update_action,
-      due_date = l_due_date_time::date,
-              last_updated_date = l_updated::date,
-              completed_date = l_completed_date::date,
-              completed_date_time = l_completed_date,
-              final_state_label = l_final_state_label,
-              first_assigned_date = l_first_assigned_date,
-              first_assigned_date_time = l_first_assigned_date_time,
-              wait_time_days = l_wait_time_days,
-              handling_time_days = l_handling_time_days,
-              processing_time_days = l_processing_time_days,
-              is_within_sla = l_is_within_sla,
-              number_of_reassignments = case when (l_number_of_reassignments = -1) then 0 else l_number_of_reassignments end,
-              due_date_to_completed_diff_days = l_due_date_to_completed_diff_days,
-              wait_time = l_wait_time,
-              handling_time = l_handling_time,
-              processing_time = l_processing_time,
-              due_date_to_completed_diff_time = l_due_date_to_completed_diff_time
-        where reportable_task.task_id = l_task_id;
+        update cft_task_db.reportable_task
+        set   task_name = l_task_name,
+              task_type = l_task_type,
+              due_date_time = l_due_date_time,
+              state = l_state,
+              task_system = l_task_system,
+              security_classification = l_security_classification,
+              title = l_title,
+              major_priority = l_major_priority,
+              minor_priority = l_minor_priority,
+              assignee = l_assignee,
+              auto_assigned = l_auto_assigned,
+              execution_type_code = l_execution_type_code,
+              work_type = l_work_type,
+              role_category = l_role_category,
+              has_warnings = l_has_warnings,
+              assignment_expiry = l_assignment_expiry,
+              case_id = l_case_id,
+              case_type_id = l_case_type_id,
+              case_category = l_case_category,
+              case_name = l_case_name,
+              jurisdiction = l_jurisdiction,
+              region = l_region,
+              location = l_location,
+              business_context = l_business_context,
+              termination_reason = l_termination_reason,
+              updated_by = l_updated_by,
+              updated = l_updated,
+              update_action = l_update_action,
+              due_date = l_due_date_time::date,
+                      last_updated_date = l_updated::date,
+                      completed_date = l_completed_date::date,
+                      completed_date_time = l_completed_date,
+                      final_state_label = l_final_state_label,
+                      first_assigned_date = l_first_assigned_date,
+                      first_assigned_date_time = l_first_assigned_date_time,
+                      wait_time_days = l_wait_time_days,
+                      handling_time_days = l_handling_time_days,
+                      processing_time_days = l_processing_time_days,
+                      is_within_sla = l_is_within_sla,
+                      number_of_reassignments = case when (l_number_of_reassignments = -1) then 0 else l_number_of_reassignments end,
+                      due_date_to_completed_diff_days = l_due_date_to_completed_diff_days,
+                      wait_time = l_wait_time,
+                      handling_time = l_handling_time,
+                      processing_time = l_processing_time,
+                      due_date_to_completed_diff_time = l_due_date_to_completed_diff_time
+                where reportable_task.task_id = l_task_id;
 
-end if;
+    end if;
 
 END LOOP;
 
