@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperatio
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -22,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 class CleanUpSensitiveLogsServiceTest {
@@ -85,6 +88,31 @@ class CleanUpSensitiveLogsServiceTest {
     }
 
     @Test
+    void should_throw_exception_when_cannot_connect_to_db_during_clean_up_sensitive_logs() {
+        OffsetDateTime timestamp = OffsetDateTime.now();
+
+        List<TaskFilter<?>> taskFilters = createTaskFilters(KEY, timestamp);
+        TaskOperationRequest request = new TaskOperationRequest(
+            TaskOperation.builder()
+                .type(TaskOperationType.CLEANUP_SENSITIVE_LOG_ENTRIES)
+                .runId("")
+                .build(),
+            taskFilters
+        );
+
+        doThrow(new IllegalArgumentException("cleanup exception"))
+            .when(cftSensitiveTaskEventLogsDatabaseService).cleanUpSensitiveLogs(any(LocalDateTime.class));
+
+        TaskOperationResponse taskOperationResponse = cleanUpSensitiveLogsService.performOperation(request);
+
+        assertNotNull(taskOperationResponse);
+
+        String exceptionMessage = (String) taskOperationResponse.getResponseMap().get("exception");
+
+        assertEquals("cleanup exception", exceptionMessage);
+    }
+
+    @Test
     void should_throw_exception_when_invalid_key_provided() {
         OffsetDateTime timestamp = OffsetDateTime.now();
 
@@ -97,8 +125,10 @@ class CleanUpSensitiveLogsServiceTest {
             taskFilters
         );
 
-        assertThrows(NullPointerException.class,
-            () -> cleanUpSensitiveLogsService.performOperation(request));
+        assertThrows(
+            NullPointerException.class,
+            () -> cleanUpSensitiveLogsService.performOperation(request)
+        );
 
     }
 

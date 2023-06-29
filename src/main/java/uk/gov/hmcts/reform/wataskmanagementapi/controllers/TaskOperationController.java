@@ -69,7 +69,7 @@ public class TaskOperationController extends BaseController {
         }
 
         return ResponseEntity
-            .noContent()
+            .ok()
             .cacheControl(CacheControl.noCache())
             .build();
     }

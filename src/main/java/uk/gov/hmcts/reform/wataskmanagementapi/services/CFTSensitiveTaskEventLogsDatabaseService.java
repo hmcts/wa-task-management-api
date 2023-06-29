@@ -26,9 +26,7 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
     private final SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
 
-
     private final ExecutorService sensitiveTaskEventLogsExecutorService;
-
 
     public CFTSensitiveTaskEventLogsDatabaseService(SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository,
                                                     CFTTaskDatabaseService cftTaskDatabaseService,
