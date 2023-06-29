@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperation
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
@@ -18,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProvide
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -42,7 +44,7 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
         this.idamTokenGenerator = idamTokenGenerator;
     }
 
-    protected List<TaskResource> markTasksToReconfigure(List<TaskFilter<?>> taskFilters) {
+    protected TaskOperationResponse markTasksToReconfigure(List<TaskFilter<?>> taskFilters) {
         List<String> caseIds = taskFilters.stream()
             .filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
             .flatMap(filter -> ((MarkTaskToReconfigureTaskFilter) filter).getValues().stream())
@@ -72,16 +74,16 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
             throw new TaskReconfigurationException(TASK_RECONFIGURATION_MARK_TASKS_TO_RECONFIGURE_FAILED, caseIds);
         }
 
-        return successfulTaskResources;
+        return new TaskOperationResponse(Map.of("successfulTaskResources", successfulTaskResources.size()));
     }
 
     @Override
     @Transactional(noRollbackFor = TaskReconfigurationException.class)
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
+    public TaskOperationResponse performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getType().equals(TaskOperationType.MARK_TO_RECONFIGURE)) {
             return markTasksToReconfigure(taskOperationRequest.getTaskFilter());
         }
-        return List.of();
+        return new TaskOperationResponse();
     }
 
     private boolean isReconfigurable(String caseId) {

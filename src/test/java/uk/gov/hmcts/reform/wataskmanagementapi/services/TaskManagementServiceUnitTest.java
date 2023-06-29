@@ -148,7 +148,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttribu
 
 @ExtendWith(MockitoExtension.class)
 @Slf4j
-class TaskManagementServiceTest extends CamundaHelpers {
+class TaskManagementServiceUnitTest extends CamundaHelpers {
 
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
@@ -162,7 +162,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
-    private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
+    CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @Spy
     CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
     @Mock
@@ -220,7 +220,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
             cftQueryService,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService
+        );
 
         taskManagementService = new TaskManagementService(
             camundaService,
@@ -231,7 +232,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService
+        );
 
 
         taskId = UUID.randomUUID().toString();
@@ -269,10 +271,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
             anyString(),
             anyMap()
         )).thenReturn(List.of(new ConfigurationDmnEvaluationResponse(
-                CamundaValue.stringValue("caseName"),
-                CamundaValue.stringValue("Value"),
-                CamundaValue.booleanValue(true)
-            )
+                                  CamundaValue.stringValue("caseName"),
+                                  CamundaValue.stringValue("Value"),
+                                  CamundaValue.booleanValue(true)
+                              )
         ));
         lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
         lenient().when(userInfo.getUid()).thenReturn("IDAM_SYSTEM_USER");
@@ -310,7 +312,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Test
         void getTask_should_succeed_and_return_mapped_task() {
             Task mockedMappedTask = mock(Task.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getRoleAssignments())
                 .thenReturn(singletonList(RoleAssignmentCreator.aRoleAssignment().build()));
             TaskResource taskResource = spy(TaskResource.class);
@@ -414,7 +415,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .map(ILoggingEvent::getFormattedMessage)
                 .collect(Collectors.toList());
             assertTrue(logsList.contains("PersistenceException occurred in updating indexed field of taskId:"
-                                         + taskId));
+                                             + taskId));
         }
     }
 
@@ -711,7 +712,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             GrantType.SPECIFIC,
             RoleCategory.JUDICIAL,
             false,
-            Map.of("workTypes", "hearing_work"));
+            Map.of("workTypes", "hearing_work")
+        );
         RoleAssignment roleAssignment2 = new RoleAssignment(
             ActorIdType.IDAM,
             IDAM_USER_ID,
@@ -721,7 +723,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             GrantType.SPECIFIC,
             RoleCategory.JUDICIAL,
             false,
-            Map.of("workTypes", "hearing_work"));
+            Map.of("workTypes", "hearing_work")
+        );
         List<RoleAssignment> roleAssignmentList = asList(roleAssignment1, roleAssignment2);
 
         TaskResource taskResource = spy(TaskResource.class);
@@ -791,7 +794,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             GrantType.SPECIFIC,
             RoleCategory.JUDICIAL,
             false,
-            Map.of("workTypes", "hearing_work"));
+            Map.of("workTypes", "hearing_work")
+        );
         List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
 
         TaskResource taskResource = spy(TaskResource.class);
@@ -842,7 +846,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
             .hasMessage("Role Assignment Verification: "
-                        + "The request failed the Role Assignment checks performed.");
+                            + "The request failed the Role Assignment checks performed.");
 
         verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
     }
@@ -885,7 +889,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse));
+                                             Optional.of(assigneeAccessControlResponse)
+            );
 
             boolean isTaskAssigned = taskResource.getState().getValue().equals(CFTTaskState.ASSIGNED.getValue());
             assertEquals(SECONDARY_IDAM_USER_ID, taskResource.getAssignee());
@@ -927,7 +932,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: "
-                            + "The user being assigned the Task has failed the Role Assignment checks performed.");
+                                + "The user being assigned the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -958,7 +963,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: "
-                            + "The user assigning the Task has failed the Role Assignment checks performed.");
+                                + "The user assigning the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -1065,7 +1070,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: "
-                            + "The user assigning the Task has failed the Role Assignment checks performed.");
+                                + "The user assigning the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -1100,7 +1105,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse));
+                                             Optional.of(assigneeAccessControlResponse)
+            );
 
             verify(taskResource).setAssignee(IDAM_USER_ID);
             verify(taskResource).setState(CFTTaskState.ASSIGNED);
@@ -1141,7 +1147,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse));
+                                             Optional.of(assigneeAccessControlResponse)
+            );
 
             verify(taskResource).setAssignee(SECONDARY_IDAM_USER_ID);
             verify(taskResource).setState(CFTTaskState.ASSIGNED);
@@ -1190,7 +1197,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse));
+                                             Optional.of(assigneeAccessControlResponse)
+            );
 
             verify(taskResource).setAssignee(SECONDARY_IDAM_USER_ID);
             verify(taskResource).setState(CFTTaskState.ASSIGNED);
@@ -1236,7 +1244,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse));
+                                             Optional.of(assigneeAccessControlResponse)
+            );
 
             verify(taskResource).setAssignee(IDAM_USER_ID);
             verify(taskResource).setState(CFTTaskState.ASSIGNED);
@@ -1285,7 +1294,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse));
+                                             Optional.of(assigneeAccessControlResponse)
+            );
 
             verify(taskResource).setAssignee(IDAM_USER_ID);
             verify(taskResource).setState(CFTTaskState.ASSIGNED);
@@ -1341,7 +1351,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .thenReturn(Optional.of(taskResource));
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse));
+                                             Optional.of(assigneeAccessControlResponse)
+            );
 
             verify(taskResource, never()).setAssignee(any());
             verify(taskResource, never()).setState(any());
@@ -1369,7 +1380,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .thenReturn(Optional.of(taskResource));
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse));
+                                             Optional.of(assigneeAccessControlResponse)
+            );
 
             verify(taskResource, never()).setAssignee(any());
             verify(taskResource, never()).setState(any());
@@ -1415,8 +1427,12 @@ class TaskManagementServiceTest extends CamundaHelpers {
                                                                       String assigner, String taskAction) {
             TaskResource taskResource = spy(TaskResource.class);
 
-            taskManagementService.updateTaskActionAttributesForAssign(taskResource, assigner,
-                Optional.ofNullable(newAssignee), Optional.ofNullable(oldAssignee));
+            taskManagementService.updateTaskActionAttributesForAssign(
+                taskResource,
+                assigner,
+                Optional.ofNullable(newAssignee),
+                Optional.ofNullable(oldAssignee)
+            );
 
             if (taskAction != null) {
                 assertEquals(TaskAction.from(taskAction).get().getValue(), taskResource.getLastUpdatedAction());
@@ -1444,7 +1460,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
-
 
 
             TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -1998,7 +2013,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                                    + "The request failed the Role Assignment checks performed.");
             }
 
             @Test
@@ -2087,7 +2102,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                                    + "The request failed the Role Assignment checks performed.");
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -2222,7 +2237,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                                    + "The request failed the Role Assignment checks performed.");
             }
 
             @Test
@@ -2304,7 +2319,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
                 when(cftQueryService.getTask(any(), anyList(),
-                    any(PermissionRequirements.class))).thenReturn(Optional.of(taskResource));
+                                             any(PermissionRequirements.class)
+                )).thenReturn(Optional.of(taskResource));
 
                 when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
                 when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
@@ -2351,7 +2367,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                                    + "The request failed the Role Assignment checks performed.");
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -2452,7 +2468,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(GenericServerErrorException.class)
                 .hasMessage("Generic Server Error: The action could not be completed "
-                            + "because there was a problem when initiating the task.");
+                                + "because there was a problem when initiating the task.");
         }
 
         @Test
@@ -2464,7 +2480,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(DatabaseConflictException.class)
                 .hasMessage("Database Conflict Error: "
-                            + "The action could not be completed because there was a conflict in the database.");
+                                + "The action could not be completed because there was a conflict in the database.");
         }
 
         @Test
@@ -3084,21 +3100,24 @@ class TaskManagementServiceTest extends CamundaHelpers {
             TaskRolePermissions expectedRolePermission = taskRolePermissions.get(0);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
                 List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, COMPLETE, COMPLETE_OWN,
-                    CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_ASSIGN)
+                        CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_ASSIGN
+                )
             ));
 
             // second index
             expectedRolePermission = taskRolePermissions.get(1);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
                 List.of(MANAGE, CANCEL, EXECUTE, OWN, COMPLETE, COMPLETE_OWN,
-                    CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_CLAIM)
+                        CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_CLAIM
+                )
             ));
 
             // third index
             expectedRolePermission = taskRolePermissions.get(2);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
                 List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, COMPLETE, COMPLETE_OWN,
-                    CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_ASSIGN)
+                        CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_ASSIGN
+                )
             ));
         }
 
