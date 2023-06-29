@@ -456,6 +456,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "UNASSIGNED,Configure",
         "ASSIGNED,Configure",
         "UNASSIGNED,Claim",
+        "UNASSIGNED,AutoAssign"
     })
     void should_report_incomplete_task_history(String initialState, String lastAction) {
         String taskId = UUID.randomUUID().toString();
