@@ -64,6 +64,10 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
         return sensitiveTaskEventLogOutput.get();
     }
 
+    public int cleanUpSensitiveLogs(LocalDateTime timeStamp) {
+        return sensitiveTaskEventLogsRepository.cleanUpSensitiveLogs(timeStamp);
+    }
+
     public SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
         try {
             return sensitiveTaskEventLogsRepository.save(sensitiveTaskEventLog);
@@ -71,9 +75,5 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
             log.error("Couldn't save SensitiveTaskEventLog for taskId {}", sensitiveTaskEventLog.getTaskId());
             return sensitiveTaskEventLog;
         }
-    }
-
-    public int cleanUpSensitiveLogs(LocalDateTime timeStamp) {
-        return sensitiveTaskEventLogsRepository.cleanUpSensitiveLogs(timeStamp);
     }
 }

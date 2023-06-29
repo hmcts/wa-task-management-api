@@ -819,7 +819,8 @@ public class TaskManagementService {
             .findFirst();
 
         if (taskResourceQueryResult.isEmpty()) {
-            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
+                taskId,
                 accessControlResponse.getRoleAssignments(),
                 ROLE_ASSIGNMENT_VERIFICATIONS_FAILED
             );
