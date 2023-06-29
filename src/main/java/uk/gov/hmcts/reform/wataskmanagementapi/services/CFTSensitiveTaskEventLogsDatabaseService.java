@@ -68,7 +68,7 @@ public class CFTSensitiveTaskEventLogsDatabaseService {
         return sensitiveTaskEventLogsRepository.cleanUpSensitiveLogs(timeStamp);
     }
 
-    public SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
+    SensitiveTaskEventLog saveSensitiveTaskEventLog(SensitiveTaskEventLog sensitiveTaskEventLog) {
         try {
             return sensitiveTaskEventLogsRepository.save(sensitiveTaskEventLog);
         } catch (IllegalArgumentException e) {
