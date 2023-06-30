@@ -149,6 +149,8 @@ logging:
     root: INFO
     uk.gov.hmcts.reform.wataskmanagementapi.clients.*: INFO
     org.zalando.logbook: INFO
+    org.testcontainers: INFO
+    com.github.dockerjava: INFO
 
 logbook:
   include: /task/**

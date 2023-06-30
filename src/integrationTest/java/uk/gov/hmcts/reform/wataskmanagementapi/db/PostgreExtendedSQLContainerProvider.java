@@ -51,7 +51,11 @@ public class PostgreExtendedSQLContainerProvider extends JdbcDatabaseContainerPr
             .withInitScript(getInitScript(databaseName))
             .withCopyFileToContainer(MountableFile.forClasspathResource("pg_hba.conf"), "/postgresql/conf/conf.d/")
             .withCommand(
-                "postgres -c max_connections=500 -c wal_level=logical -c hba_file=/postgresql/conf/conf.d/pg_hba.conf");
+                "postgres -c max_connections=500 -c wal_level=logical -c hba_file=/postgresql/conf/conf.d/pg_hba.conf "
+                + "-c log_statement=all "
+                + "-c log_destination=stderr "
+                + "-c log_min_messages=info "
+                + "-c client_min_messages=info");
     }
 
     @NotNull
