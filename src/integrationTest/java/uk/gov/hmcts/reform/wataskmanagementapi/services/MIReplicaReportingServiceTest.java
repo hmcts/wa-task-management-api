@@ -495,6 +495,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     @ParameterizedTest
     @CsvSource(value = {
         "UNASSIGNED,Configure",
+        "ASSIGNED,AutoAssign",
         "ASSIGNED,Configure",
         "UNASSIGNED,Claim",
         "UNASSIGNED,AutoAssign"
@@ -512,7 +513,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     List<ReportableTaskResource> reportableTaskList
                         = miReportingService.findByReportingTaskId(taskId);
 
-                    if (initialState.equals("UNASSIGNED") && lastAction.equals("Configure")) {
+                    if ((initialState.equals("UNASSIGNED") && lastAction.equals("Configure"))
+                        || (initialState.equals("ASSIGNED") && lastAction.equals("AutoAssign"))) {
                         assertFalse(reportableTaskList.isEmpty());
                         assertFalse(containerReplica.getLogs().contains(taskId + " : Task with an incomplete history"));
                     } else {
