@@ -5,7 +5,6 @@ spring:
         maxSize: 1
   datasource:
     driverClassName: uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver
-    url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
     jdbcUrl: jdbc:tc:postgresql:11.4://localhost/cft_task_db
     hikari:
       minimum-idle: 1
@@ -14,7 +13,6 @@ spring:
       maxLifetime: 60000
   datasource-replica:
     driverClassName: uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver
-    url: jdbc:tc:postgresql:11.4://localhost/cft_task_db_replica
     jdbcUrl: jdbc:tc:postgresql:11.4://localhost/cft_task_db_replica
     hikari:
       minimum-idle: 1
@@ -38,6 +36,9 @@ spring:
     baselineOnMigrate: true
     defaultSchema: cft_task_db
     schemas: cft_task_db
+    placeholders:
+      dbPrimaryUserName: wa_user
+      dbReplicaUserName: repl_user
 
 idam:
   test:

@@ -4,11 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType.EXECUTE_RECONFIGURE_FAILURES;
@@ -27,15 +29,15 @@ public class ExecuteTaskReconfigurationFailureService implements TaskOperationPe
     }
 
     @Override
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
+    public TaskOperationResponse performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getType()
             .equals(EXECUTE_RECONFIGURE_FAILURES)) {
             return executeReconfigurationFailLog(taskOperationRequest.getOperation().getRetryWindowHours());
         }
-        return List.of();
+        return new TaskOperationResponse();
     }
 
-    private List<TaskResource> executeReconfigurationFailLog(long retryWindowHours) {
+    private TaskOperationResponse executeReconfigurationFailLog(long retryWindowHours) {
         OffsetDateTime retryWindow = OffsetDateTime.now().minusHours(retryWindowHours);
 
         List<TaskResource> taskResources = cftTaskDatabaseService
@@ -52,6 +54,6 @@ public class ExecuteTaskReconfigurationFailureService implements TaskOperationPe
                                  + ", " + task.getLastReconfigurationTime())
                     .collect(Collectors.joining()));
         }
-        return taskResources;
+        return new TaskOperationResponse(Map.of("successfulTaskResources", taskResources.size()));
     }
 }

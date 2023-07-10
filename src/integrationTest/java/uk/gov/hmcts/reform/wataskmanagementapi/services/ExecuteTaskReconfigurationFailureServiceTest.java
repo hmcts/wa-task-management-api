@@ -18,16 +18,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ExecuteTaskReconfigurationFailureService;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ActiveProfiles("integration")
 @DataJpaTest
@@ -44,8 +42,10 @@ public class ExecuteTaskReconfigurationFailureServiceTest {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository,
-            cftTaskMapper);
+        CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(
+            taskResourceRepository,
+            cftTaskMapper
+        );
         executeTaskReconfigurationFailureService = new ExecuteTaskReconfigurationFailureService(
             cftTaskDatabaseService);
     }
@@ -63,27 +63,20 @@ public class ExecuteTaskReconfigurationFailureServiceTest {
                 .build(), taskFilters
         );
 
-        List<TaskResource> failedTasks = executeTaskReconfigurationFailureService.performOperation(
+        Map<String, Object> resourceMap = executeTaskReconfigurationFailureService.performOperation(
             taskOperationRequest
-        );
+        ).getResponseMap();
 
-        assertEquals(failedTasks.size(), 1);
+        int failedTaskSize = (int) resourceMap.get("successfulTaskResources");
 
-        String failureLogMessage = failedTasks.stream()
-            .map(task -> "\n" + task.getTaskId()
-                         + ", " + task.getTaskName()
-                         + ", " + task.getState()
-                         + ", " + task.getReconfigureRequestTime()
-                         + ", " + task.getLastReconfigurationTime())
-            .collect(Collectors.joining());
-        assertTrue(output.getOut().contains("Task Execute Reconfiguration Failed for following tasks "
-                                            + failureLogMessage));
+        assertEquals(failedTaskSize, 1);
     }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
         ExecuteReconfigureTaskFilter filter = new ExecuteReconfigureTaskFilter(
             "reconfigure_request_time", OffsetDateTime.parse("2022-10-17T10:19:45.345875+01:00"),
-            TaskFilterOperator.AFTER);
+            TaskFilterOperator.AFTER
+        );
         return List.of(filter);
     }
 

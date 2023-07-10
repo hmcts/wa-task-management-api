@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.services;
+package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,21 +12,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ExecuteTaskReconfigurationService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.MarkTaskReconfigurationService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.UpdateSearchIndexService;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskOperationServiceTest {
@@ -37,59 +33,58 @@ public class TaskOperationServiceTest {
     @Mock
     ExecuteTaskReconfigurationService executeTaskReconfigurationService;
     @Mock
-    UpdateSearchIndexService updateSearchIndexService;
+    ExecuteTaskReconfigurationFailureService executeTaskReconfigurationFailureService;
+
     @Mock
-    TaskManagementService taskManagementService;
+    CleanUpSensitiveLogsService cleanUpSensitiveLogsService;
+    @Mock
+    UpdateSearchIndexService updateSearchIndexService;
 
     TaskOperationService taskOperationService;
     List<TaskResource> tasks;
+    TaskOperationResponse taskOperationResponse;
 
     @BeforeEach
     public void setUp() {
-        taskOperationService = new TaskOperationService(taskManagementService,
-            List.of(markTaskReconfigurationService, executeTaskReconfigurationService, updateSearchIndexService));
+        taskOperationService = new TaskOperationService(
+            List.of(markTaskReconfigurationService,
+                    executeTaskReconfigurationService,
+                    updateSearchIndexService,
+                    executeTaskReconfigurationFailureService,
+                    cleanUpSensitiveLogsService)
+        );
 
         tasks = taskResources(false);
+        taskOperationResponse = new TaskOperationResponse(Map.of("successfulTaskResources", tasks.size()));
 
         lenient().when(markTaskReconfigurationService.performOperation(
                 argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.MARK_TO_RECONFIGURE))))
-            .thenReturn(tasks);
+            .thenReturn(taskOperationResponse);
 
         lenient().when(executeTaskReconfigurationService.performOperation(
                 argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE))))
-            .thenReturn(tasks);
+            .thenReturn(taskOperationResponse);
 
         lenient().when(updateSearchIndexService.performOperation(
                 argThat(argument -> argument.getOperation().getType().equals(TaskOperationType.UPDATE_SEARCH_INDEX))))
-            .thenReturn(tasks);
-        lenient().doNothing().when(taskManagementService).updateTaskIndex(anyString());
+            .thenReturn(taskOperationResponse);
+        lenient().when(executeTaskReconfigurationFailureService.performOperation(
+                argThat(argument -> argument.getOperation().getType()
+                    .equals(TaskOperationType.EXECUTE_RECONFIGURE_FAILURES))))
+            .thenReturn(taskOperationResponse);
+        lenient().when(cleanUpSensitiveLogsService.performOperation(
+                argThat(argument -> argument.getOperation().getType()
+                    .equals(TaskOperationType.CLEANUP_SENSITIVE_LOG_ENTRIES))))
+            .thenReturn(taskOperationResponse);
     }
 
     @Test
-    void should_update_task_index_true_when_execute_reconfiguration() {
-        List<TaskResource> updated = taskOperationService.performOperation(
-            taskOperationRequest(TaskOperationType.EXECUTE_RECONFIGURE));
-
-        assertNotNull(updated);
-        tasks.forEach(t -> verify(taskManagementService, times(1)).updateTaskIndex(t.getTaskId()));
-    }
-
-    @Test
-    void should_update_task_index_false_when_mark_reconfiguration() {
-        List<TaskResource> updated = taskOperationService.performOperation(
-            taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE));
-
-        assertNotNull(updated);
-        verify(taskManagementService, never()).updateTaskIndex(anyString());
-    }
-
-    @Test
-    void should_update_task_index_false_when_update_search_index() {
-        List<TaskResource> updated = taskOperationService.performOperation(
-            taskOperationRequest(TaskOperationType.UPDATE_SEARCH_INDEX));
-
-        assertNotNull(updated);
-        verify(taskManagementService, never()).updateTaskIndex(anyString());
+    void should_perform_operation_for_all_operation_type() {
+        Arrays.asList(TaskOperationType.values()).forEach(operationType -> {
+            Map<String, Object> input = taskOperationService.performOperation(
+                taskOperationRequest(operationType)).getResponseMap();
+            assertEquals(2, (int) input.get("successfulTaskResources"));
+        });
     }
 
     private List<TaskResource> taskResources(boolean index) {
@@ -129,4 +124,5 @@ public class TaskOperationServiceTest {
             "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
         return List.of(filter);
     }
+
 }

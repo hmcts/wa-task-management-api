@@ -22,7 +22,7 @@ import javax.persistence.Id;
 @ToString
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "sensitive_task_event_logs")
 @TypeDefs(
     {

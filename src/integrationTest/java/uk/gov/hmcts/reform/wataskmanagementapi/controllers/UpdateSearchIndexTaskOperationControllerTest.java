@@ -77,7 +77,7 @@ class UpdateSearchIndexTaskOperationControllerTest extends SpringBootIntegration
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest()))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId");
