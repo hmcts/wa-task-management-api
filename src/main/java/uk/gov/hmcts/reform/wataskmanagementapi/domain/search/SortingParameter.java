@@ -13,12 +13,13 @@ import lombok.ToString;
 public class SortingParameter {
 
     @Schema(required = true,
+        name = "sort_by",
         allowableValues = "dueDate, due_date, taskTitle, task_title, locationName, location_name, caseCategory, "
                           + "case_category, caseId, case_id, caseName, case_name, nextHearingDate, next_hearing_date",
         description = "Support snake_case and camelCase values",
         example = "due_date")
     private final SortField sortBy;
-    @Schema(required = true, allowableValues = "asc, desc", example = "asc")
+    @Schema(required = true, name = "sort_order", allowableValues = "asc, desc", example = "asc")
     private final SortOrder sortOrder;
 
     public SortingParameter(SortField sortBy, SortOrder sortOrder) {

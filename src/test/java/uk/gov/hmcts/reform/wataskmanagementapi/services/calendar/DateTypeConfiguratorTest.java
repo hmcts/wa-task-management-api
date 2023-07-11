@@ -188,6 +188,7 @@ public class DateTypeConfiguratorTest {
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(dueDate.getValue().getValue()))
+                                   .canReconfigure(CamundaValue.booleanValue(false))
                                    .build(),
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
@@ -213,10 +214,12 @@ public class DateTypeConfiguratorTest {
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("dueDate"))
                                    .value(CamundaValue.stringValue(dueDate.getValue().getValue()))
+                                   .canReconfigure(CamundaValue.booleanValue(false))
                                    .build(),
                                ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
                                    .value(CamundaValue.stringValue(priorityDate.getValue().getValue()))
+                                   .canReconfigure(CamundaValue.booleanValue(false))
                                    .build()
                            )
                 );
@@ -282,21 +285,19 @@ public class DateTypeConfiguratorTest {
                 true,
                 taskAttributes
             );
-            assertThat(dmnEvaluationResponses).hasSize(3)
+            assertThat(dmnEvaluationResponses).hasSize(2)
                 .isEqualTo(List.of(
-                    ConfigurationDmnEvaluationResponse.builder()
-                        .name(CamundaValue.stringValue("calculatedDates"))
-                        .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
-                        .build(),
                     ConfigurationDmnEvaluationResponse.builder()
                         .name(CamundaValue.stringValue("nextHearingDate"))
                         .value(CamundaValue.stringValue(nextHearingDateValue))
+                        .canReconfigure(CamundaValue.booleanValue(true))
                         .build(),
                     ConfigurationDmnEvaluationResponse.builder()
                         .name(CamundaValue.stringValue("dueDate"))
                         .value(CamundaValue.stringValue(taskResourceDueDate
                                                             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                                             + "T18:00"))
+                        .canReconfigure(CamundaValue.booleanValue(true))
                         .build()
                 ));
         }

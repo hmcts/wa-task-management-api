@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -41,9 +42,11 @@ public class TaskRoleResource implements Serializable {
         strategy = "org.hibernate.id.UUIDGenerator"
     )
     @Column(insertable = false, updatable = false, nullable = false)
+    @Schema(name = "task_role_id")
     private UUID taskRoleId;
 
     @EqualsAndHashCode.Include()
+    @Schema(name = "role_name")
     private String roleName;
     @Column(columnDefinition = "boolean default false")
     private Boolean read;
@@ -62,8 +65,10 @@ public class TaskRoleResource implements Serializable {
     @Column(columnDefinition = "boolean default false")
     private Boolean complete;
     @Column(name = "complete_own", columnDefinition = "boolean default false")
+    @Schema(name = "complete_own")
     private Boolean completeOwn;
     @Column(name = "cancel_own", columnDefinition = "boolean default false")
+    @Schema(name = "cancel_own")
     private Boolean cancelOwn;
     @Column(columnDefinition = "boolean default false")
     private Boolean claim;
@@ -74,10 +79,13 @@ public class TaskRoleResource implements Serializable {
     @Column(columnDefinition = "boolean default false")
     private Boolean unassign;
     @Column(name = "unclaim_assign", columnDefinition = "boolean default false")
+    @Schema(name = "unclaim_assign")
     private Boolean unclaimAssign;
     @Column(name = "unassign_claim", columnDefinition = "boolean default false")
+    @Schema(name = "unassign_claim")
     private Boolean unassignClaim;
     @Column(name = "unassign_assign", columnDefinition = "boolean default false")
+    @Schema(name = "unassign_assign")
     private Boolean unassignAssign;
 
     //This string array cannot be converted to List<String> without significant compatibility work
@@ -86,13 +94,17 @@ public class TaskRoleResource implements Serializable {
     @Column(columnDefinition = "text[]")
     private String[] authorizations;
 
+    @Schema(name = "assignment_priority")
     private Integer assignmentPriority;
     @Column(columnDefinition = "boolean default false")
+    @Schema(name = "auto_assignable")
     private Boolean autoAssignable;
+    @Schema(name = "role_category")
     private String roleCategory;
 
     @Column(name = "task_id", nullable = false)
     @EqualsAndHashCode.Include()
+    @Schema(name = "task_id")
     private String taskId;
 
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
@@ -102,6 +114,7 @@ public class TaskRoleResource implements Serializable {
     @JoinColumn(name = "task_id", insertable = false, updatable = false)
     @ManyToOne(targetEntity = TaskResource.class, fetch = FetchType.LAZY)
     @ToString.Exclude
+    @Schema(name = "task_resources")
     private TaskResource taskResource;
 
     protected TaskRoleResource() {

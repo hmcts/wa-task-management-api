@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.util.List;
@@ -28,14 +27,12 @@ import static org.hamcrest.Matchers.equalTo;
 public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-    private TestAuthenticationCredentials assignerCredentials;
-    private TestAuthenticationCredentials assigneeCredentials;
     private String taskId;
 
     @Before
     public void setUp() {
-        assignerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        assigneeCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        assignerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        assigneeCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
     }
 
     @After
@@ -70,7 +67,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         taskId = taskVariables.getTaskId();
 
@@ -94,7 +91,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
     }
 
     @Test
-    public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
+    public void should_return_a_200_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned_for_WA() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
@@ -130,7 +127,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+            .statusCode(HttpStatus.OK.value());
 
         //after mark to reconfigure
         result = restApiActions.get(

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractProviderBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -48,7 +49,6 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            launchDarklyFeatureFlagProvider,
             taskDeletionService
         ));
         if (context != null) {
@@ -65,12 +65,18 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
     private void setInitMockWithoutPrivilegedAccess() {
         doNothing().when(taskManagementService).completeTask(any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(false);
     }
 
     private void setInitMockWithPrivilegedAccess() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(any(), any(), any());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(true);

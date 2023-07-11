@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -76,6 +77,13 @@ public class CaseConfigurationProviderService {
                 taskAttributesString
             );
         log.debug("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
+
+        taskConfigurationDmnResults
+            .forEach(r -> {
+                Objects.requireNonNull(r.getName(), "Configuration name cannot be null");
+                Objects.requireNonNull(r.getName().getValue(), "Configuration name value cannot be null");
+                Objects.requireNonNull(r.getValue(), "Configuration value cannot be null");
+            });
 
         boolean initiationDueDateFound = taskAttributes.containsKey(DUE_DATE.value());
 

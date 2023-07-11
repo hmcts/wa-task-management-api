@@ -13,8 +13,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -45,7 +43,6 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -81,8 +78,6 @@ class TaskActionsControllerTest {
     private SystemDateProvider systemDateProvider;
     @Mock
     private ClientAccessControlService clientAccessControlService;
-    @Mock
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Mock
     private TaskDeletionService taskDeletionService;
@@ -98,7 +93,6 @@ class TaskActionsControllerTest {
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            launchDarklyFeatureFlagProvider,
             taskDeletionService
         );
 
@@ -196,14 +190,6 @@ class TaskActionsControllerTest {
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(mockAccessControlResponse);
 
-        String assignerId = "assignerId";
-        when(mockedUserInfo.getUid()).thenReturn(assignerId);
-        String assignerEmail = "assignerEmail";
-        when(mockedUserInfo.getEmail()).thenReturn(assignerEmail);
-        when(launchDarklyFeatureFlagProvider
-                 .getBooleanValue(FeatureFlag.GRANULAR_PERMISSION_FEATURE, assignerId, assignerEmail))
-            .thenReturn(true);
-
         ResponseEntity<Void> response = taskActionsController.assignTask(
             IDAM_AUTH_TOKEN,
             taskId,
@@ -215,41 +201,6 @@ class TaskActionsControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    }
-
-    @Test
-    void should_fail_and_return_a_204_no_content_when_assigning_task_for_null_assignee_for_non_granular() {
-        AssignTaskRequest assignTaskRequest = new AssignTaskRequest(null);
-
-        AccessControlResponse mockAccessControlResponse =
-            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(mockAccessControlResponse);
-
-        when(accessControlService.getRolesGivenUserId(null, IDAM_AUTH_TOKEN))
-            .thenThrow(new NullPointerException("IdamUserId cannot be null"));
-
-        String assignerId = "assignerId";
-        when(mockedUserInfo.getUid()).thenReturn(assignerId);
-        String assignerEmail = "assignerEmail";
-        when(mockedUserInfo.getEmail()).thenReturn(assignerEmail);
-        when(launchDarklyFeatureFlagProvider
-                 .getBooleanValue(FeatureFlag.GRANULAR_PERMISSION_FEATURE, assignerId, assignerEmail))
-            .thenReturn(false);
-
-        Throwable exception = assertThrows(
-            NullPointerException.class,
-            () -> taskActionsController.assignTask(
-                IDAM_AUTH_TOKEN,
-                taskId,
-                assignTaskRequest
-            )
-        );
-
-        assertEquals("IdamUserId cannot be null", exception.getMessage());
-        verify(taskManagementService, times(0))
-            .assignTask(taskId, mockAccessControlResponse, Optional.empty());
-
     }
 
     @Test

@@ -7,6 +7,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -59,6 +60,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SuppressWarnings("checkstyle:LineLength")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
@@ -115,7 +117,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId0")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId0");
@@ -139,7 +141,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId2")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId2");
@@ -153,7 +155,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId2")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> latestTaskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId2");
@@ -180,7 +182,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId3")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId3");
@@ -204,7 +206,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId4")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId4");
@@ -240,7 +242,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId5")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> latestTaskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId5");
@@ -418,7 +420,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId9")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId9");
@@ -461,7 +463,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId10")))
         ).andExpectAll(
-            status().is(HttpStatus.NO_CONTENT.value())
+            status().is(HttpStatus.OK.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId10");

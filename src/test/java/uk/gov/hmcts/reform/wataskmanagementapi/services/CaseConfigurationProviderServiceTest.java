@@ -647,6 +647,45 @@ class CaseConfigurationProviderServiceTest {
     }
 
     @Test
+    void should_return_value_from_configuration_dmn_when_null_values_exist() {
+        String someCaseId = "someCaseId";
+        Map<String, Object> taskAttributes = Map.of("taskAdditionalProperties", Map.of());
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+
+        List<PermissionsDmnEvaluationResponse> permissions = List.of(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("reviewSpecificAccessRequestJudiciary"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("JUDICIAL"),
+                stringValue("categoryB")
+            )
+        );
+
+        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
+            .thenReturn(permissions);
+
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+            .thenReturn(List.of(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue(null),
+                    stringValue("value1")
+                ),
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties_roleAssignmentId"),
+                    stringValue("roleAssignmentId")
+                )
+            ));
+
+        assertThatThrownBy(() -> caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("Configuration name value cannot be null");
+    }
+
+    @Test
     void should_return_default_value_from_configuration_dmn_when_additional_properties_is_empty() {
         String someCaseId = "someCaseId";
         Map<String, Object> taskAttributes = Map.of("taskAdditionalProperties", Map.of());
@@ -776,7 +815,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(localDateTime + "T18:00")
+                    stringValue(localDateTime + "T18:00"),
+                    booleanValue(false)
                 ));
     }
 
@@ -831,7 +871,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(localDateTime + "T18:00")
+                    stringValue(localDateTime + "T18:00"),
+                    booleanValue(true)
                 ));
     }
 
@@ -908,7 +949,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(expectedDate + "T18:00")
+                    stringValue(expectedDate + "T18:00"),
+                    booleanValue(false)
                 ));
     }
 
@@ -972,7 +1014,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(expectedDate + "T18:00")
+                    stringValue(expectedDate + "T18:00"),
+                    booleanValue(true)
                 ));
     }
 

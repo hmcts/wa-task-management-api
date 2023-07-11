@@ -14,10 +14,12 @@ import lombok.ToString;
 @ToString
 public class Warning {
     @Schema(
+        name = "warning_code",
         description = "A code that distinguishes which Warning is to be applied ")
     private final String warningCode;
 
     @Schema(
+        name = "warning_text",
         description = "Text associated to the warning code that can be shown in the UI")
     private final String warningText;
 

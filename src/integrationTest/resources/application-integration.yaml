@@ -1,9 +1,13 @@
 spring:
   datasource:
     driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
-    url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
+    url: jdbc:tc:postgresql:11.4://localhost/cft_task_db?TC_INITSCRIPT=initDb.sql
+    jdbcUrl: jdbc:tc:postgresql:11.4://localhost/cft_task_db?TC_INITSCRIPT=initDb.sql
     hikari:
       minimum-idle: 1
+      connectionTimeout: 10000
+      idleTimeout: 30000
+      maxLifetime: 60000
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -21,6 +25,9 @@ spring:
     baselineOnMigrate: true
     defaultSchema: cft_task_db
     schemas: cft_task_db
+    placeholders:
+      dbPrimaryUserName: wa_user
+      dbReplicaUserName: repl_user
 
 idam:
   test:

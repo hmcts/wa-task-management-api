@@ -23,19 +23,32 @@ java:
     OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
+    POSTGRES_REPLICA_HOST: "{{ .Release.Name }}-postgresql"
+    POSTGRES_REPLICA_PORT: 5432
     POSTGRES_NAME: "{{ .Values.postgresql.auth.database}}"
+    POSTGRES_REPLICA_NAME: "cft_task_db_replica"
     POSTGRES_USERNAME: "{{ .Values.postgresql.auth.username}}"
     POSTGRES_PASSWORD: "{{ .Values.postgresql.auth.password}}"
+    REPLICATION_USERNAME: "{{ .Values.postgresql.auth.username}}"
+    REPLICATION_PASSWORD: "{{ .Values.postgresql.auth.password}}"
     POSTGRES_CONNECTION_OPTIONS: ""
+    SPRING_PROFILES_ACTIVE: "preview,replica"
   postgresql:
     enabled: true
     auth:
-      username: wa_user
-      password: password
       database: cft_task_db
     primary:
+      persistence:
+        enabled: false
+      extraEnvVars:
+        - name: POSTGRESQL_WAL_LEVEL
+          value: "logical"
+      resources:
+        requests:
+          cpu: 25m
       initdb:
         user: postgres
         scripts:
           init.sql: |
-            ALTER ROLE wa_user WITH SUPERUSER;
+            ALTER ROLE javapostgres WITH SUPERUSER;
+            CREATE DATABASE "cft_task_db_replica" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;

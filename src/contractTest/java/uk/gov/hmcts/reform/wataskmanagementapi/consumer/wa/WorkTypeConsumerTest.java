@@ -64,7 +64,7 @@ public class WorkTypeConsumerTest extends SpringBootContractBaseTest {
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
             .willRespondWith()
             .status(HttpStatus.OK.value())
-            .body(createResponseForGetWorkTypes())
+            .body(createResponseForGetWorkTypesByUserId())
             .toPact();
     }
 
@@ -105,11 +105,87 @@ public class WorkTypeConsumerTest extends SpringBootContractBaseTest {
     private DslPart createResponseForGetWorkTypes() {
         return newJsonBody(
             o -> o
-                .minArrayLike("work_types", 1, 1,
-                    workType -> workType
-                        .stringType("id", "hearing_work")
-                        .stringType("label", "Hearing Work")
+                .array("work_types", workType -> workType
+                    .object((value) -> {
+                        value
+                            .stringType("id", "hearing_work")
+                            .stringType("label", "Hearing Work");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "upper_tribunal")
+                            .stringType("label", "Upper Tribunal");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "routine_work")
+                            .stringType("label", "Routine work");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "decision_making_work")
+                            .stringType("label", "Decision-making work");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "applications")
+                            .stringType("label", "Applications");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "priority")
+                            .stringType("label", "Priority");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "access_requests")
+                            .stringType("label", "Access requests");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "error_management")
+                            .stringType("label", "Error management");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "review_case")
+                            .stringType("label", "Review Case");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "evidence")
+                            .stringType("label", "Evidence");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "follow_up")
+                            .stringType("label", "Follow Up");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "pre_hearing")
+                            .stringType("label", "Pre-Hearing");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "post_hearing")
+                            .stringType("label", "Post-Hearing");
+                    })
                 )
         ).build();
     }
+
+    private DslPart createResponseForGetWorkTypesByUserId() {
+        return newJsonBody(
+            o -> o
+                .array("work_types", workType -> workType
+                    .object((value) -> {
+                        value
+                            .stringType("id", "hearing_work")
+                            .stringType("label", "Hearing Work");
+                    })
+                )
+        ).build();
+    }
+
 }
