@@ -48,10 +48,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static org.springframework.http.ResponseEntity.noContent;
-import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -83,7 +82,8 @@ public class TaskActionsController extends BaseController {
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
         this.clientAccessControlService = clientAccessControlService;
-        this.taskDeletionService = taskDeletionService;    }
+        this.taskDeletionService = taskDeletionService;
+    }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.",
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
