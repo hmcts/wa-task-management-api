@@ -132,7 +132,9 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
                         taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
                         taskResource.setReconfigureRequestTime(null);
                         taskResource.setLastReconfigurationTime(OffsetDateTime.now());
-                        if(!taskResource.getIndexed() && (CFTTaskState.ASSIGNED.equals(taskResource.getState()) || CFTTaskState.UNASSIGNED.equals(taskResource.getState()))) {
+                        if(!taskResource.getIndexed()
+                            && (CFTTaskState.ASSIGNED.equals(taskResource.getState())
+                                || CFTTaskState.UNASSIGNED.equals(taskResource.getState()))) {
                             taskResource.setIndexed(true);
                         }
                         successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
