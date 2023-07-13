@@ -132,11 +132,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
                         taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
                         taskResource.setReconfigureRequestTime(null);
                         taskResource.setLastReconfigurationTime(OffsetDateTime.now());
-                        if (!taskResource.getIndexed()
-                            && (CFTTaskState.ASSIGNED.equals(taskResource.getState())
-                                || CFTTaskState.UNASSIGNED.equals(taskResource.getState()))) {
-                            taskResource.setIndexed(true);
-                        }
+                        resetIndexed(taskResource);
                         successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
                     }
                 } catch (Exception e) {
@@ -147,6 +143,14 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         }
 
         return failedTaskIds;
+    }
+
+    private void resetIndexed(TaskResource taskResource) {
+        if (!taskResource.getIndexed()
+            && (taskResource.getState() == CFTTaskState.ASSIGNED
+                || taskResource.getState() == CFTTaskState.UNASSIGNED)) {
+            taskResource.setIndexed(true);
+        }
     }
 
     private OffsetDateTime getReconfigureRequestTime(List<TaskFilter<?>> taskFilters) {
