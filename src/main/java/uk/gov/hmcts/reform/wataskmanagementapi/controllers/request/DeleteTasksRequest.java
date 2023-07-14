@@ -17,7 +17,7 @@ import java.io.Serializable;
 @ToString
 public class DeleteTasksRequest implements Serializable {
 
-    public static final long serialVersionUID = 432973322;
+    public static final long serialVersionUID = -8353436765920178736L;
 
     private final DeleteCaseTasksAction deleteCaseTasksAction;
 

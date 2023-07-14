@@ -41,6 +41,9 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     String ADD_WORK_TYPES_TO_PUBLICATION = "ALTER PUBLICATION task_publication ADD TABLE {h-schema}work_types;";
 
+    String GET_TASK_ID_BY_CASE_ID = "select c.task_id AS taskid, c.state AS state from {h-schema}tasks c where "
+           + "c.case_id=:caseId";
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
     @Transactional
@@ -63,8 +66,7 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     List<TaskResource> findAllByTaskIdIn(List<String> taskIds, Sort order);
 
-    @Query(value = "select c.task_id AS taskid, c.state AS state from {h-schema}tasks c where c.case_id=:caseId",
-            nativeQuery = true)
+    @Query(value = GET_TASK_ID_BY_CASE_ID, nativeQuery = true)
     List<TaskResourceCaseQueryBuilder> getTaskIdsByCaseId(final @Param("caseId") String caseId);
 
     List<TaskResource> findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(

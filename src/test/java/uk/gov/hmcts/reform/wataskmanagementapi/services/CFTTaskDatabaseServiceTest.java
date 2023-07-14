@@ -36,6 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -400,7 +401,7 @@ class CFTTaskDatabaseServiceTest {
     @Test
     void should_delete_tasks_by_task_ids() {
         final List<String> taskIds = List.of("123", "456");
-        lenient().doNothing().when(taskResourceRepository).deleteAllById(taskIds);
+        doNothing().when(taskResourceRepository).deleteAllById(taskIds);
 
         cftTaskDatabaseService.deleteTasks(taskIds);
 
