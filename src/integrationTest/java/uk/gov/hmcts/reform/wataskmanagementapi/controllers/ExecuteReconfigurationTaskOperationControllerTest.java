@@ -516,6 +516,59 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         );
     }
 
+
+    @Test
+    void should_execute_reconfigure_set_indexed_true() throws Exception {
+        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(configurationDmnResponse(true));
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(permissionsResponse());
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+        Thread.sleep(5000);
+        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        taskResourcesAfter.forEach(task -> {
+                assertNotNull(task.getLastReconfigurationTime());
+                assertNull(task.getReconfigureRequestTime());
+                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                assertTrue(task.getIndexed());
+                assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+            }
+        );
+    }
+
     @Test
     void should_execute_reconfigure_autoassignment_assigned_to_assigned_another_user() throws Exception {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
