@@ -146,13 +146,15 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
     }
 
     private void resetIndexed(TaskResource taskResource) {
-        log.info("indexed attribute for the task (id={}) before change is {} ", taskResource.getTaskId(), taskResource.getIndexed());
+        log.info("indexed attribute for the task (id={}) before change is {} ",
+                 taskResource.getTaskId(), taskResource.getIndexed());
         if (!taskResource.getIndexed()
             && (taskResource.getState() == CFTTaskState.ASSIGNED
                 || taskResource.getState() == CFTTaskState.UNASSIGNED)) {
             taskResource.setIndexed(true);
         }
-        log.info("indexed attribute for the task (id={}) after change is {} ", taskResource.getTaskId(), taskResource.getIndexed());
+        log.info("indexed attribute for the task (id={}) after change is {} ",
+                 taskResource.getTaskId(), taskResource.getIndexed());
     }
 
     private OffsetDateTime getReconfigureRequestTime(List<TaskFilter<?>> taskFilters) {
