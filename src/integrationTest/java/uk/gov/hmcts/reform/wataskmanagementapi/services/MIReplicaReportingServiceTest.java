@@ -161,6 +161,40 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_save_auto_assigned_task_and_get_task_from_reportable_task() {
+        TaskResource taskResource = createAndSaveAndAssignTask();
+        checkHistory(taskResource.getTaskId(), 1);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(taskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), reportableTaskList.get(0).getTaskName());
+                    assertEquals(taskResource.getTitle(), reportableTaskList.get(0).getTaskTitle());
+                    assertEquals(taskResource.getAssignee(), reportableTaskList.get(0).getAssignee());
+                    assertTrue(taskResource.getLastUpdatedTimestamp().isEqual(reportableTaskList.get(0).getUpdated()));
+                    assertEquals(taskResource.getState().toString(), reportableTaskList.get(0).getState());
+                    assertEquals(taskResource.getLastUpdatedUser(), reportableTaskList.get(0).getUpdatedBy());
+                    assertEquals(taskResource.getLastUpdatedAction(), reportableTaskList.get(0).getUpdateAction());
+                    assertEquals(0, reportableTaskList.get(0).getWaitTimeDays());
+                    assertEquals("00:00:00", reportableTaskList.get(0).getWaitTime());
+                    assertTrue(reportableTaskList.get(0).getFirstAssignedDateTime()
+                        .isEqual(reportableTaskList.get(0).getUpdated()));
+                    assertNotNull(reportableTaskList.get(0).getFirstAssignedDate());
+                    assertEquals(0, reportableTaskList.get(0).getNumberOfReassignments());
+
+                    return true;
+                });
+    }
+
+    @Test
     void should_save_AutoAssign_task_and_get_task_from_reportable_task() {
         TaskResource taskResource = createAndSaveTask();
         String taskId = taskResource.getTaskId();
@@ -461,6 +495,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     @ParameterizedTest
     @CsvSource(value = {
         "UNASSIGNED,Configure",
+        "ASSIGNED,AutoAssign",
         "ASSIGNED,Configure",
         "UNASSIGNED,Claim",
         "UNASSIGNED,AutoAssign"
@@ -478,7 +513,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     List<ReportableTaskResource> reportableTaskList
                         = miReportingService.findByReportingTaskId(taskId);
 
-                    if (initialState.equals("UNASSIGNED") && lastAction.equals("Configure")) {
+                    if ((initialState.equals("UNASSIGNED") && lastAction.equals("Configure"))
+                        || (initialState.equals("ASSIGNED") && lastAction.equals("AutoAssign"))) {
                         assertFalse(reportableTaskList.isEmpty());
                         assertFalse(containerReplica.getLogs().contains(taskId + " : Task with an incomplete history"));
                     } else {
@@ -503,6 +539,22 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-15T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedAction("Configure");
+        return taskResourceRepository.save(taskResource);
+    }
+
+    private TaskResource createAndSaveAndAssignTask() {
+        TaskResource taskResource = new TaskResource(
+            UUID.randomUUID().toString(),
+            "someTaskName",
+            "someTaskType",
+            ASSIGNED,
+            "987654",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+        );
+        taskResource.setCreated(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
+        taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-15T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedAction("AutoAssign");
         return taskResourceRepository.save(taskResource);
     }
 
