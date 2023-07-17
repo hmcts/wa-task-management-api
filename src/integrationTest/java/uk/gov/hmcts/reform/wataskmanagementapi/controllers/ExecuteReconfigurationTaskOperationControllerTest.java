@@ -569,6 +569,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                         assertNotNull(task.getLastReconfigurationTime());
                         assertNull(task.getReconfigureRequestTime());
                         assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                        assertEquals(CFTTaskState.UNASSIGNED, task.getState());
                         assertTrue(task.getIndexed());
                         assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
                     });
