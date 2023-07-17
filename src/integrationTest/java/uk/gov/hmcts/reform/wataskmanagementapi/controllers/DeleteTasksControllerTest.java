@@ -2,8 +2,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -23,11 +26,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,6 +42,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@ExtendWith(OutputCaptureExtension.class)
 public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private IdamWebApi idamWebApi;
@@ -68,7 +74,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void shouldDeleteTasksByCaseId() throws Exception {
+    void shouldDeleteTasksByCaseId(final CapturedOutput output) throws Exception {
         final String caseId = "1615817621013640";
 
         final String taskId1 = UUID.randomUUID().toString();
@@ -97,7 +103,10 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                 .andExpectAll(status().isCreated()).andReturn();
 
         final List<TaskResourceCaseQueryBuilder> deletedTasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
+
         assertThat(deletedTasks.size()).isEqualTo(0);
+        assertTrue(output.getOut().contains(String.format("Deleted some UNTERMINATED tasks: %s for caseId: %s",
+                Arrays.asList(taskId1, taskId3), caseId)));
     }
 
     @Test

@@ -16,7 +16,7 @@ public final class InputParamsVerifier {
     public static void verifyCaseId(final String caseRef) {
         if (isEmpty(caseRef)
                 || !compile(DeleteTaskConstants.CASE_ID_REGEX).matcher(caseRef).matches()) {
-            throw new InvalidRequestException(CASEID_DELETE_EXCEPTION_MESSAGE.concat(caseRef));
+            throw new InvalidRequestException(CASEID_DELETE_EXCEPTION_MESSAGE.concat(String.valueOf(caseRef)));
         }
     }
 }

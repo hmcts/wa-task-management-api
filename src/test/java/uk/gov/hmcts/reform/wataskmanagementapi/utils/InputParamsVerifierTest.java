@@ -17,7 +17,7 @@ class InputParamsVerifierTest {
     }
 
     @Test
-    public void shouldNotVerifyCaseRef() {
+    public void shouldNotVerifyCaseRefDueToWrongCaseRefPattern() {
         final String caseRef = "123456";
         try {
             verifyCaseId(caseRef);
@@ -25,6 +25,18 @@ class InputParamsVerifierTest {
         } catch (final InvalidRequestException invalidRequestException) {
             assertThat(invalidRequestException.getMessage())
                     .isEqualTo("Bad Request: ".concat(CASEID_DELETE_EXCEPTION_MESSAGE).concat(caseRef));
+        }
+    }
+
+    @Test
+    public void shouldNotVerifyCaseRefDueToCaseRefNull() {
+        final String caseRef = null;
+        try {
+            verifyCaseId(caseRef);
+            fail("The method should have thrown InvalidRequestException due to invalid caseRef");
+        } catch (final InvalidRequestException invalidRequestException) {
+            assertThat(invalidRequestException.getMessage())
+                    .isEqualTo("Bad Request: ".concat(CASEID_DELETE_EXCEPTION_MESSAGE).concat("null"));
         }
     }
 }

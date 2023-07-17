@@ -49,20 +49,6 @@ public class DeleteTasksByCaseIdControllerTest extends SpringBootFunctionalBaseT
     }
 
     @Test
-    public void should_return_400_when_when_case_id_incorrect() {
-        final DeleteTasksRequest deleteTasksRequest = new DeleteTasksRequest(new DeleteCaseTasksAction(
-                "123"));
-
-        final Response result = restApiActions.post(
-                ENDPOINT_BEING_TESTED,
-                deleteTasksRequest,
-                caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat().statusCode(HttpStatus.BAD_REQUEST.value());
-    }
-
-    @Test
     public void should_return_401_when_when_service_unauthorized() {
         final DeleteTasksRequest deleteTasksRequest = new DeleteTasksRequest(new DeleteCaseTasksAction(
                 "1234567891234567"));
