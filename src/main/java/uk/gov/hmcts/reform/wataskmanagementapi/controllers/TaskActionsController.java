@@ -380,8 +380,6 @@ public class TaskActionsController extends BaseController {
 
         } catch (final InvalidRequestException invalidRequestException) {
             return buildErrorResponseEntityAndLogError(HttpStatus.BAD_REQUEST.value(), invalidRequestException);
-        } catch (final GenericForbiddenException invalidRequestException) {
-            return buildErrorResponseEntityAndLogError(HttpStatus.FORBIDDEN.value(), invalidRequestException);
         } catch (final Exception exception) {
             return buildErrorResponseEntityAndLogError(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception);
         }

@@ -47,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -55,6 +56,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ExtendWith(MockitoExtension.class)
@@ -474,6 +476,23 @@ class TaskActionsControllerTest {
 
         assertEquals(responseEntity.getStatusCode(), BAD_REQUEST);
     }
+
+    @Test
+    void should_return_500_response_for_tasks_deletion() {
+        final DeleteTasksRequest deleteTasksRequest = new DeleteTasksRequest(new DeleteCaseTasksAction(
+                "1234567890123456"));
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+                .thenReturn(true);
+
+        doThrow(new RuntimeException("some exception")).when(taskDeletionService)
+                .deleteTasksByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
+
+        final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
+                SERVICE_AUTHORIZATION_TOKEN);
+
+        assertEquals(responseEntity.getStatusCode(), INTERNAL_SERVER_ERROR);
+    }
+
 
     private NotesRequest addNotes() {
         NoteResource noteResource = new NoteResource(
