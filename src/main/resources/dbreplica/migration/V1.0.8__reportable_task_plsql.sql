@@ -51,6 +51,9 @@ l_handling_time                   INTERVAL;
 l_processing_time                 INTERVAL;
 l_due_date_to_completed_diff_time INTERVAL;
 l_state_label             TEXT;
+l_role_category_label     TEXT;
+l_jurisdiction_label      TEXT;
+l_case_type_label         TEXT;
 
 
 task_history_cursor CURSOR FOR
@@ -78,6 +81,28 @@ FETCH NEXT FROM task_history_cursor INTO
     -- Exit the loop if no more rows are available
     EXIT WHEN NOT FOUND;
 
+    l_role_category_label =
+        case l_role_category IS NOT NULL
+           when (l_role_category='LEGAL_OPERATIONS')  then 'Legal Operations'
+           when (l_role_category='CTSC')  then 'CTSC'
+           when (l_role_category='JUDICIAL')  then 'Judicial'
+           when (l_role_category='ADMINISTRATOR')  then 'Admin'
+           when (l_role_category='ADMIN')  then 'Admin'
+           when (l_role_category='')  then 'Blank values'
+           else l_role_category
+        end;
+
+    l_jurisdiction_label =
+        case l_jurisdiction IS NOT NULL
+           when (l_jurisdiction='PRIVATELAW')  then 'Private Law'
+           when (l_jurisdiction='CIVIL')  then 'Civil'
+           when (l_jurisdiction='IA')  then 'Immigration and Asylum'
+           when (l_jurisdiction='PUBLICLAW')  then 'Public Law'
+           else l_jurisdiction
+        end;
+
+    l_case_type_label = l_case_type_id;
+
     if (l_new_task) then
 
         if ((l_update_action = 'Configure' and l_state = 'UNASSIGNED')
@@ -96,6 +121,17 @@ FETCH NEXT FROM task_history_cursor INTO
             l_number_of_reassignments = 0;
        end if;
 
+       l_state_label =
+           case l_state IS NOT NULL
+               when (l_state='ASSIGNED') then 'Assigned'
+               when (l_state='UNASSIGNED') then 'Unassigned'
+               when (l_state='COMPLETED') then 'Completed'
+               when (l_state='CANCELLED') then 'Cancelled'
+               when (l_state='TERMINATED') then 'Terminated'
+               when (l_state='PENDING_RECONFIGURATION') then 'Pending Reconfiguration'
+               else l_state_label = l_state
+           end;
+
         insert into cft_task_db.reportable_task
             (task_id, task_name, task_type, due_date_time,
              state, task_system, security_classification,
@@ -107,7 +143,8 @@ FETCH NEXT FROM task_history_cursor INTO
              termination_reason, created, updated_by, updated,
              update_action, created_date, due_date, last_updated_date,
              first_assigned_date, first_assigned_date_time, wait_time_days,
-             wait_time, number_of_reassignments)
+             wait_time, number_of_reassignments, state_label,
+             role_category_label, jurisdiction_label, case_type_label)
             values
               (l_task_id, l_task_name, l_task_type, l_due_date_time,
               l_state, l_task_system, l_security_classification,
@@ -119,7 +156,9 @@ FETCH NEXT FROM task_history_cursor INTO
               l_termination_reason, l_created, l_updated_by, l_updated,
               l_update_action, l_created::DATE, l_due_date_time::DATE,
               l_updated::DATE, l_first_assigned_date, l_first_assigned_date_time,
-              l_wait_time_days, l_wait_time, l_number_of_reassignments)
+              l_wait_time_days, l_wait_time, l_number_of_reassignments,
+              l_state_label, l_role_category_label, l_jurisdiction_label,
+              l_case_type_label)
         returning update_id into l_update_id;
         l_new_task = false;
     else
@@ -148,17 +187,16 @@ FETCH NEXT FROM task_history_cursor INTO
         if (l_handling_time is null) and (l_state='COMPLETED') then l_handling_time = (date_trunc('second', l_updated) - date_trunc('second', l_first_assigned_date_time)); end if;
         if (l_processing_time is null) and (l_state='COMPLETED') then l_processing_time = (date_trunc('second', l_updated) - date_trunc('second', l_created)); end if;
         if (l_due_date_to_completed_diff_time is null) and (l_state='COMPLETED') then l_due_date_to_completed_diff_time = (date_trunc('second', l_due_date_time) - date_trunc('second', l_updated)); end if;
-        l_state_label =
-            case
-                when (l_state='ASSIGNED') then 'Assigned'
-                when (l_state='UNASSIGNED') then 'Unassigned'
-                when (l_state='COMPLETED') then 'Completed'
-                when (l_state='CANCELLED') then 'Cancelled'
-                when (l_state='TERMINATED') then 'Terminated'
-                when (l_state='PENDING_RECONFIGURATION') then 'Pending Reconfiguration'
-                else l_state_label = l_state
-            end;
-
+       l_state_label =
+           case l_state IS NOT NULL
+               when (l_state='ASSIGNED') then 'Assigned'
+               when (l_state='UNASSIGNED') then 'Unassigned'
+               when (l_state='COMPLETED') then 'Completed'
+               when (l_state='CANCELLED') then 'Cancelled'
+               when (l_state='TERMINATED') then 'Terminated'
+               when (l_state='PENDING_RECONFIGURATION') then 'Pending Reconfiguration'
+               else l_state_label = l_state
+           end;
 
         update cft_task_db.reportable_task
         set   task_name = l_task_name,
@@ -205,8 +243,11 @@ FETCH NEXT FROM task_history_cursor INTO
                       wait_time = l_wait_time,
                       handling_time = l_handling_time,
                       processing_time = l_processing_time,
-                      due_date_to_completed_diff_time = l_due_date_to_completed_diff_time
-                      state_label = l_state_label
+                      due_date_to_completed_diff_time = l_due_date_to_completed_diff_time,
+                      state_label = l_state_label,
+                      role_category_label = l_role_category_label,
+                      jurisdiction_label = l_jurisdiction_label,
+                      case_type_label = l_case_type_label
                 where reportable_task.task_id = l_task_id;
 
     end if;
