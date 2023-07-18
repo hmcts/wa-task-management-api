@@ -299,7 +299,7 @@ public abstract class SpringBootFunctionalBaseTest {
     private void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties) {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
+        ZonedDateTime dueDate = createdDate.plusDays(10);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         boolean hasWarnings = !testVariables.getWarnings().getValues().isEmpty();
 
