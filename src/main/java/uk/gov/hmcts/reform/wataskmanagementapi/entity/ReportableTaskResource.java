@@ -37,6 +37,9 @@ public class ReportableTaskResource extends BaseTaskHistoryResource {
     private String handlingTime;
     private String processingTime;
     private String dueDateToCompletedDiffTime;
+    private String roleCategoryLabel;
+    private String jurisdictionLabel;
+    private String caseTypeLabel;
 
     @Override
     public String getTaskTitle() {

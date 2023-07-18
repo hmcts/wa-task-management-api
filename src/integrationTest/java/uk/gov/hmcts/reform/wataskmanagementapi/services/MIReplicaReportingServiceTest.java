@@ -160,6 +160,68 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {
+        "LEGAL_OPERATIONS,Legal Operations",
+        "CTSC,CTSC",
+        "JUDICIAL,Judicial",
+        "ADMINISTRATOR,Admin",
+        "ADMIN,Admin",
+        "TEST,TEST",
+        ",Blank values"
+    })
+    void should_save_task_and_get_transformed_role_category_label_from_reportable_task(
+        String taskRoleCategory, String reportableTaskRoleCategoryLabel) {
+        TaskResource taskResource = buildTaskResource();
+        taskResource.setRoleCategory(taskRoleCategory);
+        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(reportableTaskRoleCategoryLabel, reportableTaskList.get(0).getRoleCategoryLabel());
+                    return true;
+                });
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "PRIVATELAW,Private Law",
+        "CIVIL,Civil",
+        "IA,Immigration and Asylum",
+        "PUBLICLAW,Public Law",
+        "TEST,TEST"
+    })
+    void should_save_task_and_get_transformed_jurisdiction_label_from_reportable_task(
+        String taskJurisdiction, String reportableTaskJurisdictionLabel) {
+        TaskResource taskResource = buildTaskResource();
+        taskResource.setJurisdiction(taskJurisdiction);
+        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(reportableTaskJurisdictionLabel, reportableTaskList.get(0).getJurisdictionLabel());
+                    return true;
+                });
+    }
+
     @Test
     void should_save_auto_assigned_task_and_get_task_from_reportable_task() {
         TaskResource taskResource = createAndSaveAndAssignTask();
@@ -384,7 +446,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                         }
                     } else {
                         assertNull(reportableTaskList.get(0).getFinalStateLabel());
-                        assertEquals(null, reportableTaskList.get(0).getIsWithinSla());
+                        assertNull(reportableTaskList.get(0).getIsWithinSla());
                     }
                     assertNotNull(reportableTaskList.get(0).getLastUpdatedDate());
 
@@ -524,6 +586,22 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     return true;
                 });
 
+    }
+
+    private TaskResource buildTaskResource() {
+        TaskResource taskResource = new TaskResource(
+            UUID.randomUUID().toString(),
+            "someTaskName",
+            "someTaskType",
+            UNASSIGNED,
+            "987654",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+        );
+        taskResource.setCreated(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
+        taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-15T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedAction("Configure");
+        return taskResource;
     }
 
     private TaskResource createAndSaveTask() {

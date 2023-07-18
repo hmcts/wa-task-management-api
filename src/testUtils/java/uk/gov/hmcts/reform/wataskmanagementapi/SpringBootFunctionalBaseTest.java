@@ -286,20 +286,18 @@ public abstract class SpringBootFunctionalBaseTest {
     }
 
     private Consumer<Response> defaultInitiationAssert(TestVariables testVariables) {
-        return (result) -> {
-            result.then().assertThat()
-                .statusCode(HttpStatus.OK.value())
-                .and()
-                .contentType(APPLICATION_JSON_VALUE)
-                .body("task.id", equalTo(testVariables.getTaskId()))
-                .body("task.case_id", equalTo(testVariables.getCaseId()));
-        };
+        return (result) -> result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("task.id", equalTo(testVariables.getTaskId()))
+            .body("task.case_id", equalTo(testVariables.getCaseId()));
     }
 
     private void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties) {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
+        ZonedDateTime dueDate = createdDate.plusDays(10);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         boolean hasWarnings = !testVariables.getWarnings().getValues().isEmpty();
 
@@ -338,9 +336,8 @@ public abstract class SpringBootFunctionalBaseTest {
 
         int statusCode = response.getStatusCode();
         switch (statusCode) {
-            case 503:
+            case 503 -> {
                 log.info("Initiation failed due to Database Conflict Error, so handling gracefully, {}", statusCode);
-
                 response.then().assertThat()
                     .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
                     .contentType(APPLICATION_PROBLEM_JSON_VALUE)
@@ -351,13 +348,12 @@ public abstract class SpringBootFunctionalBaseTest {
                     .body("detail", equalTo(
                         "Database Conflict Error: The action could not be completed because "
                             + "there was a conflict in the database."));
-                break;
-            case 201:
-                log.info("task Initiation got successfully with status, {}", statusCode);
-                break;
-            default:
+            }
+            case 201 -> log.info("task Initiation got successfully with status, {}", statusCode);
+            default -> {
                 log.info("task Initiation failed with status, {}", statusCode);
                 throw new RuntimeException("Invalid status received for task initiation " + statusCode);
+            }
         }
     }
 
