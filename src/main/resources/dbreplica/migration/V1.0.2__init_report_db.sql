@@ -136,6 +136,7 @@ create table cft_task_db.reportable_task
     handling_time                   INTERVAL,
     processing_time                 INTERVAL,
     due_date_to_completed_diff_time INTERVAL,
+    state_label             TEXT,
     PRIMARY KEY ( "task_id" )
 );
 
