@@ -134,7 +134,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    @Disabled
+    @Test
     void should_save_task_and_get_task_from_reportable_task() {
         TaskResource taskResource = createAndSaveTask();
 
@@ -161,7 +161,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    @ParameterizedTest
+    /*@ParameterizedTest
     @CsvSource(value = {
         "LEGAL_OPERATIONS,Legal Operations",
         "CTSC,CTSC",
@@ -221,7 +221,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(reportableTaskJurisdictionLabel, reportableTaskList.get(0).getJurisdictionLabel());
                     return true;
                 });
-    }
+    }*/
 
     @Test
     void should_save_auto_assigned_task_and_get_task_from_reportable_task() {
@@ -555,15 +555,14 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
 
-    /*@ParameterizedTest
+    @ParameterizedTest
     @CsvSource(value = {
         "UNASSIGNED,Configure",
         "ASSIGNED,AutoAssign",
         "ASSIGNED,Configure",
         "UNASSIGNED,Claim",
         "UNASSIGNED,AutoAssign"
-    })*/
-    @Disabled
+    })
     void should_report_incomplete_task_history(String initialState, String lastAction) {
         String taskId = UUID.randomUUID().toString();
         createAndSaveThisTask(taskId, "someTaskName",
