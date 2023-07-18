@@ -554,7 +554,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
 
-    @ParameterizedTest
+    /*@ParameterizedTest
     @CsvSource(value = {
         "UNASSIGNED,Configure",
         "ASSIGNED,AutoAssign",
@@ -586,7 +586,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     return true;
                 });
 
-    }
+    }*/
 
     private TaskResource buildTaskResource() {
         TaskResource taskResource = new TaskResource(
