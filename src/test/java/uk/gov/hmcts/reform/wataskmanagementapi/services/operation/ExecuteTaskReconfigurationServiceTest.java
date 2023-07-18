@@ -218,8 +218,13 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
+        assertEquals(false,taskResources.get(0).getIndexed());
+        assertEquals(false,taskResources.get(1).getIndexed());
+
         executeTaskReconfigurationService.performOperation(request);
 
+        assertEquals(CFTTaskState.UNASSIGNED, taskResources.get(0).getState());
+        assertEquals(CFTTaskState.ASSIGNED, taskResources.get(1).getState());
         assertEquals(true,taskResources.get(0).getIndexed());
         assertEquals(true,taskResources.get(1).getIndexed());
 
