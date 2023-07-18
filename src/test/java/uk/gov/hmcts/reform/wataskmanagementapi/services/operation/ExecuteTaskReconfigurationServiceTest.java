@@ -185,6 +185,47 @@ class ExecuteTaskReconfigurationServiceTest {
     }
 
     @Test
+    void should_set_indexed_true() {
+
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
+        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
+        taskResources.get(0).setReconfigureRequestTime(OffsetDateTime.now());
+        taskResources.get(1).setReconfigureRequestTime(OffsetDateTime.now());
+
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(0).getTaskId()))
+            .thenReturn(Optional.of(taskResources.get(0)));
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResources.get(1).getTaskId()))
+            .thenReturn(Optional.of(taskResources.get(1)));
+
+        when(configureTaskService.reconfigureCFTTask(any()))
+            .thenReturn(taskResources.get(0))
+            .thenReturn(taskResources.get(1));
+        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
+            .thenReturn(taskResources.get(0))
+            .thenReturn(taskResources.get(1));
+        when(cftTaskDatabaseService.saveTask(any()))
+            .thenReturn(taskResources.get(0))
+            .thenReturn(taskResources.get(1));
+
+        TaskOperationRequest request = new TaskOperationRequest(
+            TaskOperation.builder()
+                .type(TaskOperationType.EXECUTE_RECONFIGURE)
+                .runId("")
+                .retryWindowHours(1L)
+                .maxTimeLimit(30)
+                .build(), taskFilters
+        );
+
+        executeTaskReconfigurationService.performOperation(request);
+
+        assertEquals(true,taskResources.get(0).getIndexed());
+        assertEquals(true,taskResources.get(1).getIndexed());
+
+    }
+
+    @Test
     void should_retry_and_fail_reconfigure_if_task_is_locked() {
 
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
