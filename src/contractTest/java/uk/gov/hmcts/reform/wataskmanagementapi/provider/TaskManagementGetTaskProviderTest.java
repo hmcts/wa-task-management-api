@@ -65,7 +65,8 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             taskManagementService,
             accessControlService,
             systemDateProvider,
-            clientAccessControlService
+            clientAccessControlService,
+            taskDeletionService
         ));
 
         if (context != null) {

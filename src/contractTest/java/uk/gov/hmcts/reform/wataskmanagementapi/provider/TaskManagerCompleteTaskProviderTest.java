@@ -48,7 +48,8 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
             taskManagementService,
             accessControlService,
             systemDateProvider,
-            clientAccessControlService
+            clientAccessControlService,
+            taskDeletionService
         ));
         if (context != null) {
             context.setTarget(testTarget);

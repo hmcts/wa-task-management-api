@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
@@ -36,9 +37,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskDeletionService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.List;
@@ -51,11 +54,13 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.InputParamsVerifier.verifyCaseId;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.GENERIC_FORBIDDEN_ERROR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEntityBuilder.buildErrorResponseEntityAndLogError;
 
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
-@SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
@@ -64,16 +69,20 @@ public class TaskActionsController extends BaseController {
     private final ClientAccessControlService clientAccessControlService;
     private final SystemDateProvider systemDateProvider;
 
+    private final TaskDeletionService taskDeletionService;
+
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
-                                 ClientAccessControlService clientAccessControlService) {
+                                 ClientAccessControlService clientAccessControlService,
+                                 TaskDeletionService taskDeletionService) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
         this.clientAccessControlService = clientAccessControlService;
+        this.taskDeletionService = taskDeletionService;
     }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.",
@@ -339,6 +348,41 @@ public class TaskActionsController extends BaseController {
             .ok()
             .cacheControl(CacheControl.noCache())
             .body(new GetTaskRolePermissionsResponse(taskRolePermissions));
+    }
+
+
+    @Operation(description = "Deletes all tasks related to a case.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = CREATED),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
+    })
+    @PostMapping(path = "/delete", consumes = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> deleteTasks(
+            @RequestBody final DeleteTasksRequest deleteTasksRequest,
+            @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken) {
+        try {
+            boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
+
+            if (!hasAccess) {
+                return buildErrorResponseEntityAndLogError(HttpStatus.FORBIDDEN.value(),
+                        new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR));
+            }
+
+            verifyCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
+
+            taskDeletionService.deleteTasksByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
+
+            return status(HttpStatus.CREATED.value())
+                    .cacheControl(CacheControl.noCache())
+                    .build();
+
+        } catch (final InvalidRequestException invalidRequestException) {
+            return buildErrorResponseEntityAndLogError(HttpStatus.BAD_REQUEST.value(), invalidRequestException);
+        } catch (final Exception exception) {
+            return buildErrorResponseEntityAndLogError(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception);
+        }
     }
 
     @ExceptionHandler(NoRoleAssignmentsFoundException.class)
