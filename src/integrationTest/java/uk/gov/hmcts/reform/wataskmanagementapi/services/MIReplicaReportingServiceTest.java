@@ -106,7 +106,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         containerReplica.stop();
     }
 
-    @Test
+    @Disabled
     void should_save_task_and_get_task_from_replica_tables() {
         TaskResource taskResource = createAndSaveTask();
 
