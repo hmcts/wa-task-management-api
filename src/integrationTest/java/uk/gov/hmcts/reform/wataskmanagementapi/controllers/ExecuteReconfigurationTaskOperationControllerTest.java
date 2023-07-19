@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -514,6 +515,127 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
             }
         );
+    }
+
+
+    @Test
+    void should_execute_reconfigure_set_indexed_true() throws Exception {
+        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(configurationDmnResponse(true));
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(permissionsResponse());
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+                    taskResourcesAfter.forEach(task -> {
+                        assertNotNull(task.getLastReconfigurationTime());
+                        assertNull(task.getReconfigureRequestTime());
+                        assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                        assertEquals(CFTTaskState.UNASSIGNED, task.getState());
+                        assertTrue(task.getIndexed());
+                        assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+                    });
+                    return true;
+                });
+    }
+
+    @Test
+    void should_execute_reconfigure_set_indexed_assigned_true() throws Exception {
+        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(configurationDmnResponse(true));
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(permissionsResponse());
+        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+                    taskResourcesAfter.forEach(task -> {
+                        assertNotNull(task.getLastReconfigurationTime());
+                        assertNull(task.getReconfigureRequestTime());
+                        assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                        assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                        assertTrue(task.getIndexed());
+                        assertEquals(TaskAction.AUTO_ASSIGN.getValue(), task.getLastUpdatedAction());
+                    });
+                    return true;
+                });
     }
 
     @Test
