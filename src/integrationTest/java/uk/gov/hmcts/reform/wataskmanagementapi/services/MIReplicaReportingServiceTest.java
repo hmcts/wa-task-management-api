@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -51,7 +50,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 @ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
-@Disabled
 class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
@@ -107,7 +105,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         containerReplica.stop();
     }
 
-    @Disabled
+    @Test
     void should_save_task_and_get_task_from_replica_tables() {
         TaskResource taskResource = createAndSaveTask();
 
@@ -135,7 +133,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    @Disabled
+    @Test
     void should_save_task_and_get_task_from_reportable_task() {
         TaskResource taskResource = createAndSaveTask();
 
@@ -556,15 +554,14 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
 
-    //@ParameterizedTest
-    //@CsvSource(value = {
-    //    "UNASSIGNED,Configure",
-    //    "ASSIGNED,AutoAssign",
-    //    "ASSIGNED,Configure",
-    //    "UNASSIGNED,Claim",
-    //    "UNASSIGNED,AutoAssign"
-    //})
-    @Disabled
+    @ParameterizedTest
+    @CsvSource(value = {
+        "UNASSIGNED,Configure",
+        "ASSIGNED,AutoAssign",
+        "ASSIGNED,Configure",
+        "UNASSIGNED,Claim",
+        "UNASSIGNED,AutoAssign"
+    })
     void should_report_incomplete_task_history(String initialState, String lastAction) {
         String taskId = UUID.randomUUID().toString();
         createAndSaveThisTask(taskId, "someTaskName",
