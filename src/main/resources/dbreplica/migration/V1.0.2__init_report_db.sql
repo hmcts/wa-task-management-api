@@ -1,4 +1,4 @@
--- DROP TABLE IF EXISTS "cft_task_db"."tasks" CASCADE;
+DROP TABLE IF EXISTS "cft_task_db"."tasks" CASCADE;
 CREATE TABLE "cft_task_db"."tasks"
 (
   "task_id" Text NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE "cft_task_db"."tasks"
   PRIMARY KEY ( "task_id" )
 );
 
--- drop table if exists task_history cascade;
+drop table if exists task_history cascade;
 create table cft_task_db.task_history
 (
   update_id               SERIAL NOT NULL,
@@ -84,7 +84,7 @@ create table cft_task_db.task_history
 create index task_history_update_id_idx on cft_task_db.task_history (task_id, update_id);
 create index task_history_updated_idx on cft_task_db.task_history (task_id, updated);
 
--- drop table if exists reportable_task cascade;
+drop table if exists reportable_task cascade;
 create table cft_task_db.reportable_task
 (
     update_id               SERIAL NOT NULL,
