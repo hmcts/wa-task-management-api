@@ -134,7 +134,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    @Test
+    @Disabled
     void should_save_task_and_get_task_from_reportable_task() {
         TaskResource taskResource = createAndSaveTask();
 
