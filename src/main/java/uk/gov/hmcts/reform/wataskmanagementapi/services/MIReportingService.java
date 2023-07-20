@@ -69,6 +69,7 @@ public class MIReportingService {
             log.error("WAL LEVEL for primary DB; {}, replicaDB: {}.  These must be set to logical",
                 taskResourceRepository.showWalLevel(),
                 reportableTaskRepository.showWalLevel());
+            return;
         }
 
 

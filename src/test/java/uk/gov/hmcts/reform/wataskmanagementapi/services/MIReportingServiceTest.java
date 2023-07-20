@@ -12,8 +12,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -185,6 +187,73 @@ public class MIReportingServiceTest {
         miReportingService.logicalReplicationCheck();
 
         verify(taskResourceRepository, times(1)).createReplicationSlot();
+    }
+
+    @Test
+    void should_return_if_wal_level_is_not_logical() {
+        TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
+        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
+
+        when(taskResourceRepository.countReplicationSlots()).thenReturn(0);
+        when(taskResourceRepository.showWalLevel()).thenReturn("replica");
+        when(reportableTaskMock.showWalLevel()).thenReturn("replica");
+
+        miReportingService = new MIReportingService(null,
+            taskResourceRepository,
+            reportableTaskMock,
+            taskAssignmentsRepository,
+            mock(SubscriptionCreator.class));
+
+        miReportingService.logicalReplicationCheck();
+
+        verify(taskResourceRepository, times(0)).createReplicationSlot();
+        verify(taskResourceRepository, times(0)).createPublication();
+        verify(taskResourceRepository, times(2)).showWalLevel();
+        verify(reportableTaskMock, times(1)).showWalLevel();
+
+    }
+
+    @Test
+    void should_call_reportable_task_repo_and_return_result() {
+        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
+        TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
+
+        when(reportableTaskMock.findAllByTaskIdOrderByUpdatedAsc(anyString()))
+            .thenReturn(newArrayList());
+
+        miReportingService = new MIReportingService(null,
+            taskResourceRepositoryMock,
+            reportableTaskMock,
+            taskAssignmentsRepository,
+            mock(SubscriptionCreator.class));
+
+        miReportingService.findByReportingTaskId("123");
+
+        verify(reportableTaskMock, times(1)).findAllByTaskIdOrderByUpdatedAsc("123");
+
+    }
+
+    @Test
+    void should_call_task_assignments_repo_and_return_result() {
+
+        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
+        TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
+        TaskAssignmentsRepository taskAssignmentsRepository = mock(TaskAssignmentsRepository.class);
+
+        when(taskAssignmentsRepository.findAllByTaskIdOrderByAssignmentIdAsc(anyString()))
+            .thenReturn(newArrayList());
+
+        miReportingService = new MIReportingService(null,
+            taskResourceRepositoryMock,
+            reportableTaskMock,
+            taskAssignmentsRepository,
+            mock(SubscriptionCreator.class));
+
+        miReportingService.findByAssignmentsTaskId("123");
+
+        verify(taskAssignmentsRepository, times(1)).findAllByTaskIdOrderByAssignmentIdAsc("123");
+
+
     }
 
 }
