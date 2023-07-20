@@ -170,12 +170,12 @@ public class MIReportingServiceTest {
     void given_zero_replication_slot_should_create_replication() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
-        SubscriptionCreator subscriptionCreator = mock(SubscriptionCreator.class);
 
         when(taskResourceRepository.countReplicationSlots()).thenReturn(0);
         when(taskResourceRepository.showWalLevel()).thenReturn("logical");
         when(reportableTaskMock.showWalLevel()).thenReturn("logical");
 
+        SubscriptionCreator subscriptionCreator = mock(SubscriptionCreator.class);
         miReportingService = new MIReportingService(null,
             taskResourceRepository,
             reportableTaskMock,

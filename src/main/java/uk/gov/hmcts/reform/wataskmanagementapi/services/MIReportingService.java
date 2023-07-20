@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -64,8 +63,8 @@ public class MIReportingService {
         Objects.requireNonNull(taskResourceRepository, "Primary Task DB repo is null.");
         Objects.requireNonNull(taskResourceRepository, "Replica Task DB repo is null.");
 
-        if (!taskResourceRepository.showWalLevel().equals(WAL_LEVEL) ||
-            !reportableTaskRepository.showWalLevel().equals(WAL_LEVEL)) {
+        if (!taskResourceRepository.showWalLevel().equals(WAL_LEVEL)
+            || !reportableTaskRepository.showWalLevel().equals(WAL_LEVEL)) {
 
             log.error("WAL LEVEL for primary DB; {}, replicaDB: {}.  These must be set to logical",
                 taskResourceRepository.showWalLevel(),
