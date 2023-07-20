@@ -129,7 +129,7 @@ FETCH NEXT FROM task_history_cursor INTO
                when (l_state='CANCELLED') then 'Cancelled'
                when (l_state='TERMINATED') then 'Terminated'
                when (l_state='PENDING_RECONFIGURATION') then 'Pending Reconfiguration'
-               else l_state_label = l_state
+               else l_state
            end;
 
         insert into cft_task_db.reportable_task
@@ -195,7 +195,7 @@ FETCH NEXT FROM task_history_cursor INTO
                when (l_state='CANCELLED') then 'Cancelled'
                when (l_state='TERMINATED') then 'Terminated'
                when (l_state='PENDING_RECONFIGURATION') then 'Pending Reconfiguration'
-               else l_state_label = l_state
+               else l_state
            end;
 
         update cft_task_db.reportable_task
