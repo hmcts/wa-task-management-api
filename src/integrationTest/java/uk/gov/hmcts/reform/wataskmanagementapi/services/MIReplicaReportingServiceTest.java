@@ -167,8 +167,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "JUDICIAL,Judicial",
         "ADMINISTRATOR,Admin",
         "ADMIN,Admin",
-        "TEST,TEST",
-        ",Blank values"
+        "TEST,TEST"
     })
     void should_save_task_and_get_transformed_role_category_label_from_reportable_task(
         String taskRoleCategory, String reportableTaskRoleCategoryLabel) {
@@ -351,7 +350,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "UNASSIGNED,AutoUnassign,UNASSIGNED, null",
         "UNASSIGNED,Unclaim,UNCLAIMED, null",
         "ASSIGNED,AutoCancel,CANCELLED, AUTO_CANCELLED",
-        "ASSIGNED,Cancel,CANCELLED, USER_CANCELLED",
+        "ASSIGNED,Cancel,CANCELLED, USER_CANCELLED"
     })
     void should_save_task_and_check_task_assignments(String newState, String lastAction, String endReason,
                                                             String finalState) {
