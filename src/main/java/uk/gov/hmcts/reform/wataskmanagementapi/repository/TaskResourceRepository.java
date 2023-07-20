@@ -124,4 +124,10 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     @Query(value = ADD_WORK_TYPES_TO_PUBLICATION, nativeQuery = true)
     Object addWorkTypesToPublication();
 
+
+    String SHOW_WAL_LEVEL =
+        "SHOW wal_level;";
+
+    @Query(value = SHOW_WAL_LEVEL, nativeQuery = true)
+    String showWalLevel();
 }
