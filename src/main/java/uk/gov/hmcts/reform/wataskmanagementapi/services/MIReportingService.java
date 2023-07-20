@@ -15,12 +15,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
 @Profile("replica | preview")
 public class MIReportingService {
     public static final String MAIN_SLOT_NAME = "main_slot_v1";
+    public static final String WAL_LEVEL = "logical";
 
     private static final int PUBLICATION_ROW_COUNT_WITHOUT_WORK_TYPES = 1;
 
@@ -58,7 +60,18 @@ public class MIReportingService {
 
     public void logicalReplicationCheck() {
         log.info("Postgresql logical replication check executed . . .");
-        log.debug("WAL LEVEL for primary DB; {}, replicaDB: {}", taskResourceRepository.showWalLevel(), reportableTaskRepository.showWalLevel());
+
+        Objects.requireNonNull(taskResourceRepository, "Primary Task DB repo is null.");
+        Objects.requireNonNull(taskResourceRepository, "Replica Task DB repo is null.");
+
+        if (!taskResourceRepository.showWalLevel().equals(WAL_LEVEL) ||
+            !reportableTaskRepository.showWalLevel().equals(WAL_LEVEL)) {
+
+            log.error("WAL LEVEL for primary DB; {}, replicaDB: {}.  These must be set to logical",
+                taskResourceRepository.showWalLevel(),
+                reportableTaskRepository.showWalLevel());
+        }
+
 
         if (isReplicationSlotPresent()) {
             if (isPublicationPresent()) {
