@@ -101,7 +101,13 @@ FETCH NEXT FROM task_history_cursor INTO
            else l_jurisdiction
         end;
 
-    l_case_type_label = l_case_type_id;
+    l_case_type_label =
+        case l_case_type_id IS NOT NULL
+           when (l_case_type_id='CIVIL')  then 'Civil'
+           when (l_case_type_id='PRLAPPS')  then 'Private Law'
+           when (l_case_type_id='PUBLICLAW')  then 'Public Law'
+           else l_case_type_id
+        end;
 
     if (l_new_task) then
 
