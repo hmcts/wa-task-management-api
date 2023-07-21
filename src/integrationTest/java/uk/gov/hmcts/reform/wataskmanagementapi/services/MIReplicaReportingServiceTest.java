@@ -195,7 +195,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingService.findByReportingTaskId(savedTaskResource.getTaskId());
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -225,7 +225,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingService.findByReportingTaskId(savedTaskResource.getTaskId());
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -234,6 +234,37 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     return true;
                 });
     }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "CIVIL,Civil",
+        "PRLAPPS,Private Law",
+        "PUBLICLAW,Public Law",
+        "WaCaseType,WaCaseType",
+        "Asylum,Asylum"
+    })
+    void should_save_task_and_get_transformed_case_type_label_from_reportable_task(
+        String taskJurisdiction, String reportableTaskJurisdictionLabel) {
+        TaskResource taskResource = buildTaskResource();
+        taskResource.setJurisdiction(taskJurisdiction);
+        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(reportableTaskJurisdictionLabel, reportableTaskList.get(0).getCaseTypeLabel());
+                    return true;
+                });
+    }
+
 
     @Test
     void should_save_auto_assigned_task_and_get_task_from_reportable_task() {
