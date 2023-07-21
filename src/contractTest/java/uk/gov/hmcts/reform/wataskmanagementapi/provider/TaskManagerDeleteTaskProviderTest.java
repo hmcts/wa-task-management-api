@@ -31,7 +31,7 @@ public class TaskManagerDeleteTaskProviderTest extends SpringBootContractProvide
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new Task ActionsController(
+        testTarget.setControllers(new TaskActionsController(
             taskManagementService,
             accessControlService,
             systemDateProvider,
