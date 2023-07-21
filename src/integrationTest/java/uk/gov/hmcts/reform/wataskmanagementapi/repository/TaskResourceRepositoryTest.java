@@ -30,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -614,6 +615,40 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertEquals(0, taskResult.size());
     }
 
+
+    @Test
+    void given_tasks_exist_when_get_top_5_order_by_lastUpdated_timestamp_asc_then_return_max_5_tasks_ordered() {
+        taskResourceRepository.deleteAll();
+        List<TaskResource> createdTasks = new ArrayList<>(6);
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")));
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:46.345875+01:00")));
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:47.345875+01:00")));
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:48.345875+01:00")));
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:49.345875+01:00")));
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00")));
+
+        taskResourceRepository.saveAll(createdTasks);
+
+        List<TaskResource> results = taskResourceRepository.findTop5ByOrderByLastUpdatedTimestampDesc();
+        assertEquals(5, results.size());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"),
+            results.get(0).getLastUpdatedTimestamp());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:49.345875+01:00"),
+            results.get(1).getLastUpdatedTimestamp());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:48.345875+01:00"),
+            results.get(2).getLastUpdatedTimestamp());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:47.345875+01:00"),
+            results.get(3).getLastUpdatedTimestamp());
+        assertEquals(OffsetDateTime.parse("2021-05-09T20:15:46.345875+01:00"),
+            results.get(4).getLastUpdatedTimestamp());
+    }
+
     private void checkTaskWasSaved(String taskId) {
         assertTrue(taskResourceRepository.getByTaskId(taskId).isPresent());
     }
@@ -626,6 +661,13 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 taskResourceRepository.save(taskToIndex);
             }
         });
+    }
+
+    private TaskResource createTask(String taskId, OffsetDateTime lastUpdated) {
+        TaskResource createdTask = createTask(taskId, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+        createdTask.setLastUpdatedTimestamp(lastUpdated);
+        return createdTask;
     }
 
     private TaskResource createTask(String taskId, String roleName, String jurisdiction, String taskType,

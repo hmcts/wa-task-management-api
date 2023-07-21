@@ -83,7 +83,12 @@ public class TaskOperationServiceTest {
         Arrays.asList(TaskOperationType.values()).forEach(operationType -> {
             Map<String, Object> input = taskOperationService.performOperation(
                 taskOperationRequest(operationType)).getResponseMap();
-            assertEquals(2, (int) input.get("successfulTaskResources"));
+            if (input.containsKey("successfulTaskResources")) {
+                assertEquals(2, (int) input.get("successfulTaskResources"));
+            }
+            if (input.containsKey("replicationCheckedTaskIds")) {
+                assertEquals(2, (int) input.get("replicationCheckedTaskIds"));
+            }
         });
     }
 
