@@ -87,7 +87,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     @BeforeEach
     void setUp() {
         //Logical Replication is a pre-requisite for all tests here
-        miReportingService.logicalReplicationCheck();
+        waitForReplication();
 
         subscriptionCreatorForTest = new SubscriptionCreator(
             TEST_REPLICA_DB_USER,
@@ -111,6 +111,16 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
             container.getFirstMappedPort(),
             containerReplica.getFirstMappedPort());
 
+    }
+
+    private boolean waitForReplication() {
+
+        await().ignoreException(AssertionFailedError.class)
+            .atLeast(1, SECONDS)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(() -> miReportingService.hasReplicationStarted());
+        return true;
     }
 
     @AfterAll
