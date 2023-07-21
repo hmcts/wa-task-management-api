@@ -91,6 +91,11 @@ public class MIReportingService {
         }
     }
 
+    public boolean hasReplicationStarted() {
+        return isReplicationSlotPresent() && isPublicationPresent() && isSubscriptionPresent();
+
+    }
+
     protected boolean isReplicationSlotPresent() {
         int count = taskResourceRepository.countReplicationSlots();
         if (count == 0) {
