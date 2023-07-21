@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -14,12 +14,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
+@Slf4j
 @Profile("replica | preview")
 public class MIReportingService {
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MIReportingService.class);
     public static final String MAIN_SLOT_NAME = "main_slot_v1";
+    public static final String WAL_LEVEL = "logical";
 
     private static final int PUBLICATION_ROW_COUNT_WITHOUT_WORK_TYPES = 1;
 
@@ -56,7 +58,21 @@ public class MIReportingService {
     }
 
     public void logicalReplicationCheck() {
-        LOGGER.debug("Postgresql logical replication check executed");
+        log.info("Postgresql logical replication check executed . . .");
+
+        Objects.requireNonNull(taskResourceRepository, "Primary Task DB repo is null.");
+        Objects.requireNonNull(taskResourceRepository, "Replica Task DB repo is null.");
+
+        if (!taskResourceRepository.showWalLevel().equals(WAL_LEVEL)
+            || !reportableTaskRepository.showWalLevel().equals(WAL_LEVEL)) {
+
+            log.error("WAL LEVEL for primary DB; {}, replicaDB: {}.  These must be set to logical",
+                taskResourceRepository.showWalLevel(),
+                reportableTaskRepository.showWalLevel());
+            return;
+        }
+
+
         if (isReplicationSlotPresent()) {
             if (isPublicationPresent()) {
                 if (!isWorkTypesInPublication()) {
@@ -70,7 +86,7 @@ public class MIReportingService {
                 subscriptionCreator.createSubscription();
             }
         } else {
-            LOGGER.info("Creating logical replication slot");
+            log.info("Creating logical replication slot");
             createReplicationSlot();
         }
     }
@@ -78,7 +94,7 @@ public class MIReportingService {
     protected boolean isReplicationSlotPresent() {
         int count = taskResourceRepository.countReplicationSlots();
         if (count == 0) {
-            LOGGER.info("No logical replication slot present for " + MAIN_SLOT_NAME);
+            log.info("No logical replication slot present for " + MAIN_SLOT_NAME);
             return false;
         } else {
             return true;
@@ -87,13 +103,13 @@ public class MIReportingService {
 
     private void createReplicationSlot() {
         taskResourceRepository.createReplicationSlot();
-        LOGGER.info("Created logical replication slot " + MAIN_SLOT_NAME);
+        log.info("Created logical replication slot " + MAIN_SLOT_NAME);
     }
 
     protected boolean isPublicationPresent() {
         int count = taskResourceRepository.countPublications();
         if (count == 0) {
-            LOGGER.info("No publication present");
+            log.info("No publication present");
             return false;
         } else {
             return true;
@@ -102,7 +118,7 @@ public class MIReportingService {
 
     protected boolean isWorkTypesInPublication() {
         if (taskResourceRepository.countPublicationTables() == PUBLICATION_ROW_COUNT_WITHOUT_WORK_TYPES) {
-            LOGGER.info("Work types not added to publication");
+            log.info("Work types not added to publication");
             return false;
         } else {
             return true;
@@ -111,18 +127,18 @@ public class MIReportingService {
 
     private void createPublication() {
         taskResourceRepository.createPublication();
-        LOGGER.info("Created publication");
+        log.info("Created publication");
     }
 
     private void addWorkTypesToPublication() {
         taskResourceRepository.addWorkTypesToPublication();
-        LOGGER.info("Added work types to publication");
+        log.info("Added work types to publication");
     }
 
     protected boolean isSubscriptionPresent() {
         int count = taskHistoryRepository.countSubscriptions();
         if (count == 0) {
-            LOGGER.info("No subscription present");
+            log.info("No subscription present");
             return false;
         } else {
             return true;

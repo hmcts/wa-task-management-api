@@ -12,8 +12,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -34,7 +36,7 @@ public class MIReportingServiceTest {
         when(taskHistoryResourceRepository.findAllByTaskIdOrderByUpdatedAsc("1111111"))
             .thenReturn(Collections.emptyList());
         miReportingService = new MIReportingService(taskHistoryResourceRepository, null,
-                                                    null, null, null);
+            null, null, null);
 
         List<TaskHistoryResource> taskHistoryResourceList
             = miReportingService.findByTaskId("1111111");
@@ -46,7 +48,7 @@ public class MIReportingServiceTest {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countPublications()).thenReturn(0);
         miReportingService = new MIReportingService(null, taskResourceRepository,
-                                                    null, null, null);
+            null, null, null);
 
         assertFalse(miReportingService.isPublicationPresent());
     }
@@ -56,7 +58,7 @@ public class MIReportingServiceTest {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countPublications()).thenReturn(1);
         miReportingService = new MIReportingService(null, taskResourceRepository,
-                                                    null, null, null);
+            null, null, null);
 
         assertTrue(miReportingService.isPublicationPresent());
     }
@@ -64,9 +66,12 @@ public class MIReportingServiceTest {
     @Test
     void given_no_work_types_in_publication_should_return_false_and_add_them() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
+        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
         when(taskResourceRepository.countReplicationSlots()).thenReturn(1);
         when(taskResourceRepository.countPublications()).thenReturn(1);
         when(taskResourceRepository.countPublicationTables()).thenReturn(1);
+        when(taskResourceRepository.showWalLevel()).thenReturn("logical");
+        when(reportableTaskMock.showWalLevel()).thenReturn("logical");
 
         SubscriptionCreator subscriptionCreator = mock(SubscriptionCreator.class);
 
@@ -74,8 +79,8 @@ public class MIReportingServiceTest {
         when(taskHistoryResourceRepository.countSubscriptions()).thenReturn(1);
 
         miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
-                                                    null, taskAssignmentsRepository,
-                                                    subscriptionCreator);
+            reportableTaskMock, taskAssignmentsRepository,
+            subscriptionCreator);
 
         assertTrue(miReportingService.isPublicationPresent());
         assertFalse(miReportingService.isWorkTypesInPublication());
@@ -93,7 +98,7 @@ public class MIReportingServiceTest {
         when(taskResourceRepository.countPublicationTables()).thenReturn(2);
 
         miReportingService = new MIReportingService(null, taskResourceRepository, null,
-                                                    null, null);
+            null, null);
 
         assertTrue(miReportingService.isPublicationPresent());
         assertTrue(miReportingService.isWorkTypesInPublication());
@@ -104,7 +109,7 @@ public class MIReportingServiceTest {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countReplicationSlots()).thenReturn(0);
         miReportingService = new MIReportingService(null, taskResourceRepository,
-                                                    null, null, null);
+            null, null, null);
 
         assertFalse(miReportingService.isReplicationSlotPresent());
     }
@@ -114,7 +119,7 @@ public class MIReportingServiceTest {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countReplicationSlots()).thenReturn(1);
         miReportingService = new MIReportingService(null, taskResourceRepository,
-                                                    null, null, null);
+            null, null, null);
 
         assertTrue(miReportingService.isReplicationSlotPresent());
     }
@@ -124,7 +129,7 @@ public class MIReportingServiceTest {
         TaskHistoryResourceRepository taskHistoryResourceRepository = mock(TaskHistoryResourceRepository.class);
         when(taskHistoryResourceRepository.countSubscriptions()).thenReturn(0);
         miReportingService = new MIReportingService(taskHistoryResourceRepository, null,
-                                                    null, null, null);
+            null, null, null);
 
         assertFalse(miReportingService.isSubscriptionPresent());
     }
@@ -134,7 +139,7 @@ public class MIReportingServiceTest {
         TaskHistoryResourceRepository taskHistoryResourceRepository = mock(TaskHistoryResourceRepository.class);
         when(taskHistoryResourceRepository.countSubscriptions()).thenReturn(1);
         miReportingService = new MIReportingService(taskHistoryResourceRepository, null,
-                                                    null, null, null);
+            null, null, null);
 
         assertTrue(miReportingService.isSubscriptionPresent());
     }
@@ -142,15 +147,21 @@ public class MIReportingServiceTest {
     @Test
     void given_one_replication_slot_should_create_Pub_sub() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
+        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
         when(taskResourceRepository.countReplicationSlots()).thenReturn(1);
         when(taskResourceRepository.countPublications()).thenReturn(0);
+        when(taskResourceRepository.showWalLevel()).thenReturn("logical");
+        when(reportableTaskMock.showWalLevel()).thenReturn("logical");
         TaskHistoryResourceRepository taskHistoryResourceRepository = mock(TaskHistoryResourceRepository.class);
         when(taskHistoryResourceRepository.countSubscriptions()).thenReturn(0);
         SubscriptionCreator subscriptionCreator = mock(SubscriptionCreator.class);
-        miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
-                                                    reportableTaskRepository,
-                                                    taskAssignmentsRepository,
-                                                    subscriptionCreator);
+
+        miReportingService = new MIReportingService(
+            taskHistoryResourceRepository,
+            taskResourceRepository,
+            reportableTaskMock,
+            taskAssignmentsRepository,
+            subscriptionCreator);
         miReportingService.logicalReplicationCheck();
 
         verify(taskResourceRepository, times(1)).createPublication();
@@ -160,17 +171,89 @@ public class MIReportingServiceTest {
     @Test
     void given_zero_replication_slot_should_create_replication() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
+        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
+
         when(taskResourceRepository.countReplicationSlots()).thenReturn(0);
+        when(taskResourceRepository.showWalLevel()).thenReturn("logical");
+        when(reportableTaskMock.showWalLevel()).thenReturn("logical");
 
         SubscriptionCreator subscriptionCreator = mock(SubscriptionCreator.class);
+        miReportingService = new MIReportingService(null,
+            taskResourceRepository,
+            reportableTaskMock,
+            taskAssignmentsRepository,
+            subscriptionCreator);
 
-        miReportingService = new MIReportingService(null, taskResourceRepository,
-                                                    reportableTaskRepository,
-                                                    taskAssignmentsRepository,
-                                                    subscriptionCreator);
         miReportingService.logicalReplicationCheck();
 
         verify(taskResourceRepository, times(1)).createReplicationSlot();
+    }
+
+    @Test
+    void should_return_if_wal_level_is_not_logical() {
+        TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
+        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
+
+        when(taskResourceRepository.countReplicationSlots()).thenReturn(0);
+        when(taskResourceRepository.showWalLevel()).thenReturn("replica");
+        when(reportableTaskMock.showWalLevel()).thenReturn("replica");
+
+        miReportingService = new MIReportingService(null,
+            taskResourceRepository,
+            reportableTaskMock,
+            taskAssignmentsRepository,
+            mock(SubscriptionCreator.class));
+
+        miReportingService.logicalReplicationCheck();
+
+        verify(taskResourceRepository, times(0)).createReplicationSlot();
+        verify(taskResourceRepository, times(0)).createPublication();
+        verify(taskResourceRepository, times(2)).showWalLevel();
+        verify(reportableTaskMock, times(1)).showWalLevel();
+
+    }
+
+    @Test
+    void should_call_reportable_task_repo_and_return_result() {
+        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
+        TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
+
+        when(reportableTaskMock.findAllByTaskIdOrderByUpdatedAsc(anyString()))
+            .thenReturn(newArrayList());
+
+        miReportingService = new MIReportingService(null,
+            taskResourceRepositoryMock,
+            reportableTaskMock,
+            taskAssignmentsRepository,
+            mock(SubscriptionCreator.class));
+
+        miReportingService.findByReportingTaskId("123");
+
+        verify(reportableTaskMock, times(1)).findAllByTaskIdOrderByUpdatedAsc("123");
+
+    }
+
+    @Test
+    void should_call_task_assignments_repo_and_return_result() {
+
+        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
+        TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
+        TaskAssignmentsRepository taskAssignmentsRepository = mock(TaskAssignmentsRepository.class);
+
+        when(taskAssignmentsRepository.findAllByTaskIdOrderByAssignmentIdAsc(anyString()))
+            .thenReturn(newArrayList());
+
+        miReportingService = new MIReportingService(null,
+            taskResourceRepositoryMock,
+            reportableTaskMock,
+            taskAssignmentsRepository,
+            mock(SubscriptionCreator.class));
+
+        miReportingService.findByAssignmentsTaskId("123");
+
+        verify(taskAssignmentsRepository, times(1)).findAllByTaskIdOrderByAssignmentIdAsc("123");
+
+
     }
 
 }

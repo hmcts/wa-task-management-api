@@ -44,6 +44,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     String GET_TASK_ID_BY_CASE_ID = "select c.task_id AS taskid, c.state AS state from {h-schema}tasks c where "
            + "c.case_id=:caseId";
 
+    String SHOW_WAL_LEVEL = "SHOW wal_level;";
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
     @Transactional
@@ -124,4 +126,6 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     @Query(value = ADD_WORK_TYPES_TO_PUBLICATION, nativeQuery = true)
     Object addWorkTypesToPublication();
 
+    @Query(value = SHOW_WAL_LEVEL, nativeQuery = true)
+    String showWalLevel();
 }
