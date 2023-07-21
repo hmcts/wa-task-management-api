@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.Subscriptio
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskAssignmentsResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
@@ -246,9 +247,9 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     })
     @Disabled
     void should_save_task_and_get_transformed_case_type_label_from_reportable_task(
-        String taskJurisdiction, String reportableTaskJurisdictionLabel) {
+        String taskCaseTypeId, String reportableTaskCaseTypeLabel) {
         TaskResource taskResource = buildTaskResource();
-        taskResource.setJurisdiction(taskJurisdiction);
+        taskResource.setCaseTypeId(taskCaseTypeId);
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
 
         await().ignoreException(AssertionFailedError.class)
@@ -262,7 +263,41 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
                     assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
-                    assertEquals(reportableTaskJurisdictionLabel, reportableTaskList.get(0).getCaseTypeLabel());
+                    assertEquals(reportableTaskCaseTypeLabel, reportableTaskList.get(0).getCaseTypeLabel());
+                    return true;
+                });
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "ASSIGNED,AutoAssign,Assigned",
+        "UNASSIGNED,Configure,Unassigned",
+        "COMPLETED,AutoAssign,Completed",
+        "CANCELLED,Configure,Cancelled",
+        "TERMINATED,AutoAssign,Terminated",
+        "PENDING_RECONFIGURATION,Configure,Pending Reconfiguration",
+        "TEST,Configure,TEST"
+    })
+    @Disabled
+    void should_save_task_and_get_transformed_state_label_from_reportable_task(
+        String taskState, String lastUpdatedAction, String reportableTaskStateLabel) {
+        TaskResource taskResource = buildTaskResource();
+        taskResource.setState(CFTTaskState.valueOf(taskState));
+        taskResource.setLastUpdatedAction(lastUpdatedAction);
+        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(reportableTaskStateLabel, reportableTaskList.get(0).getStateLabel());
                     return true;
                 });
     }
