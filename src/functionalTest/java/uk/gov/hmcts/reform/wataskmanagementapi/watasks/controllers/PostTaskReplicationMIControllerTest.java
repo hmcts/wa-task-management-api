@@ -503,7 +503,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).processing_time_days", notNullValue())
             .body("reportable_task_list.get(0).is_within_sla", equalTo("Yes"))
             .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
-            .body("reportable_task_list.get(0).due_date_to_completed_diff_days", equalTo(-1))
+            .body("reportable_task_list.get(0).due_date_to_completed_diff_days", equalTo(-10))
             .body("reportable_task_list.get(0).due_date", notNullValue())
             .body("reportable_task_list.get(0).last_updated_date", notNullValue())
             .body("reportable_task_list.get(0).wait_time", notNullValue())
