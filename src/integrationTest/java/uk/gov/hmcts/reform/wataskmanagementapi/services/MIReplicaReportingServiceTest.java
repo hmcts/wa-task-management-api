@@ -243,7 +243,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "PRLAPPS,Private Law",
         "PUBLICLAW,Public Law",
         "WaCaseType,WaCaseType",
-        "Asylum,Asylum"
+        "Asylum,Asylum",
+        "TEST,TEST"
     })
     @Disabled
     void should_save_task_and_get_transformed_case_type_label_from_reportable_task(
@@ -301,7 +302,6 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     return true;
                 });
     }
-
 
     @Test
     void should_save_auto_assigned_task_and_get_task_from_reportable_task() {
