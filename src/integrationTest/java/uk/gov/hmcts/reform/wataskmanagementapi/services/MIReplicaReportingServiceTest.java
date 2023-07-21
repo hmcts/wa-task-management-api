@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -255,7 +254,6 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "Asylum,Asylum",
         "TEST,TEST"
     })
-    @Disabled
     void should_save_task_and_get_transformed_case_type_label_from_reportable_task(
         String taskCaseTypeId, String reportableTaskCaseTypeLabel) {
         TaskResource taskResource = buildTaskResource();
@@ -290,7 +288,6 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "PENDING_RECONFIGURATION,Configure,Pending Reconfiguration",
         "TEST,Configure,TEST"
     })
-    @Disabled
     void should_save_task_and_get_transformed_state_label_from_reportable_task(
         String taskState, String lastUpdatedAction, String reportableTaskStateLabel) {
         TaskResource taskResource = buildTaskResource();
