@@ -272,6 +272,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     @CsvSource(value = {
         "ASSIGNED,AutoAssign,Assigned",
         "UNASSIGNED,Configure,Unassigned",
+        "ASSIGNED,Configure,Assigned",
+        "UNASSIGNED,AutoAssign,Unassigned",
         "COMPLETED,AutoAssign,Completed",
         "CANCELLED,Configure,Cancelled",
         "TERMINATED,AutoAssign,Terminated",

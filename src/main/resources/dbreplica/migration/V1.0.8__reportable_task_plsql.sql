@@ -83,22 +83,22 @@ FETCH NEXT FROM task_history_cursor INTO
 
     l_role_category_label =
         case l_role_category IS NOT NULL
-           when (l_role_category='LEGAL_OPERATIONS')  then 'Legal Operations'
-           when (l_role_category='CTSC')  then 'CTSC'
-           when (l_role_category='JUDICIAL')  then 'Judicial'
-           when (l_role_category='ADMINISTRATOR')  then 'Admin'
-           when (l_role_category='ADMIN')  then 'Admin'
-           when (l_role_category='')  then 'Blank values'
-           else l_role_category
+            when (l_role_category='LEGAL_OPERATIONS')  then 'Legal Operations'
+            when (l_role_category='CTSC')  then 'CTSC'
+            when (l_role_category='JUDICIAL')  then 'Judicial'
+            when (l_role_category='ADMINISTRATOR')  then 'Admin'
+            when (l_role_category='ADMIN')  then 'Admin'
+            when (l_role_category='')  then 'Blank values'
+            else l_role_category
         end;
 
     l_jurisdiction_label =
         case l_jurisdiction IS NOT NULL
-           when (l_jurisdiction='PRIVATELAW')  then 'Private Law'
-           when (l_jurisdiction='CIVIL')  then 'Civil'
-           when (l_jurisdiction='IA')  then 'Immigration and Asylum'
-           when (l_jurisdiction='PUBLICLAW')  then 'Public Law'
-           else l_jurisdiction
+            when (l_jurisdiction='PRIVATELAW')  then 'Private Law'
+            when (l_jurisdiction='CIVIL')  then 'Civil'
+            when (l_jurisdiction='IA')  then 'Immigration and Asylum'
+            when (l_jurisdiction='PUBLICLAW')  then 'Public Law'
+            else l_jurisdiction
         end;
 
     l_case_type_label =
@@ -107,6 +107,17 @@ FETCH NEXT FROM task_history_cursor INTO
            when (l_case_type_id='PRLAPPS')  then 'Private Law'
            when (l_case_type_id='PUBLICLAW')  then 'Public Law'
            else l_case_type_id
+        end;
+
+    l_state_label =
+        case l_state IS NOT NULL
+            when (l_state='ASSIGNED') then 'Assigned'
+            when (l_state='UNASSIGNED') then 'Unassigned'
+            when (l_state='COMPLETED') then 'Completed'
+            when (l_state='CANCELLED') then 'Cancelled'
+            when (l_state='TERMINATED') then 'Terminated'
+            when (l_state='PENDING_RECONFIGURATION') then 'Pending Reconfiguration'
+            else l_state
         end;
 
     if (l_new_task) then
@@ -126,17 +137,6 @@ FETCH NEXT FROM task_history_cursor INTO
             l_wait_time = 0;
             l_number_of_reassignments = 0;
        end if;
-
-       l_state_label =
-           case l_state IS NOT NULL
-               when (l_state='ASSIGNED') then 'Assigned'
-               when (l_state='UNASSIGNED') then 'Unassigned'
-               when (l_state='COMPLETED') then 'Completed'
-               when (l_state='CANCELLED') then 'Cancelled'
-               when (l_state='TERMINATED') then 'Terminated'
-               when (l_state='PENDING_RECONFIGURATION') then 'Pending Reconfiguration'
-               else l_state
-           end;
 
         insert into cft_task_db.reportable_task
             (task_id, task_name, task_type, due_date_time,
@@ -193,16 +193,6 @@ FETCH NEXT FROM task_history_cursor INTO
         if (l_handling_time is null) and (l_state='COMPLETED') then l_handling_time = (date_trunc('second', l_updated) - date_trunc('second', l_first_assigned_date_time)); end if;
         if (l_processing_time is null) and (l_state='COMPLETED') then l_processing_time = (date_trunc('second', l_updated) - date_trunc('second', l_created)); end if;
         if (l_due_date_to_completed_diff_time is null) and (l_state='COMPLETED') then l_due_date_to_completed_diff_time = (date_trunc('second', l_due_date_time) - date_trunc('second', l_updated)); end if;
-       l_state_label =
-           case l_state IS NOT NULL
-               when (l_state='ASSIGNED') then 'Assigned'
-               when (l_state='UNASSIGNED') then 'Unassigned'
-               when (l_state='COMPLETED') then 'Completed'
-               when (l_state='CANCELLED') then 'Cancelled'
-               when (l_state='TERMINATED') then 'Terminated'
-               when (l_state='PENDING_RECONFIGURATION') then 'Pending Reconfiguration'
-               else l_state
-           end;
 
         update cft_task_db.reportable_task
         set   task_name = l_task_name,
