@@ -236,14 +236,14 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    /*@ParameterizedTest
+    @ParameterizedTest
     @CsvSource(value = {
         "CIVIL,Civil",
         "PRLAPPS,Private Law",
         "PUBLICLAW,Public Law",
         "WaCaseType,WaCaseType",
         "Asylum,Asylum"
-    })*/
+    })
     @Disabled
     void should_save_task_and_get_transformed_case_type_label_from_reportable_task(
         String taskJurisdiction, String reportableTaskJurisdictionLabel) {
