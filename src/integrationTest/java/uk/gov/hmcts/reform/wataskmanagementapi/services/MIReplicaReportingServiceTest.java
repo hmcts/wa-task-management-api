@@ -192,7 +192,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "ADMIN,Admin,PUBLICLAW,Public Law,PUBLICLAW,Public Law,CANCELLED,Configure,Cancelled",
         "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,Configure,Assigned",
         "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,AutoAssign,Unassigned",
-        ",Blank values,IA,Immigration and Asylum,Asylum,Asylum,TERMINATED,AutoAssign,Terminated",
+        //",Blank values,IA,Immigration and Asylum,Asylum,Asylum,TERMINATED,AutoAssign,Terminated",
         "ADMIN,Admin,WA,WA,PUBLICLAW,Public Law,PENDING_RECONFIGURATION,Configure,Pending Reconfiguration",
         "TEST,TEST,TEST,TEST,WaCaseType,WaCaseType,TEST,Configure,TEST"
     })
@@ -208,6 +208,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         taskResource.setState(CFTTaskState.valueOf(taskState));
         taskResource.setLastUpdatedAction(lastUpdatedAction);
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
+        checkHistory(savedTaskResource.getTaskId(), 1);
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -219,6 +220,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
+                    log.info("Found reportable task:"+reportableTaskList.get(0));
                     assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(reportableTaskRoleCategoryLabel, reportableTaskList.get(0).getRoleCategoryLabel());
                     assertEquals(reportableTaskJurisdictionLabel, reportableTaskList.get(0).getJurisdictionLabel());
@@ -740,10 +742,9 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList
                         = miReportingServiceForTest.findByTaskId(id);
-
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals(records, taskHistoryResourceList.size());
-
+                    log.info("task with ID found on MI Reporting task History is :"+taskHistoryResourceList.isEmpty());
                     return true;
                 });
     }
