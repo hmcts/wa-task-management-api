@@ -184,6 +184,52 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {
+        "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,AutoAssign,Assigned",
+        "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
+        "JUDICIAL,Judicial,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
+        "ADMIN,Admin,PUBLICLAW,Public Law,PUBLICLAW,Public Law,UNASSIGNED,Configure,Unassigned",
+        "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,AutoAssign,Assigned",
+        "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
+        ",Blank values,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
+        "ADMIN,Admin,WA,WA,PUBLICLAW,Public Law,PENDING_RECONFIGURATION,UNASSIGNED,Configure,Unassigned",
+        "TEST,TEST,TEST,TEST,WaCaseType,WaCaseType,ASSIGNED,AutoAssign,Assigned"
+    })
+    void should_save_task_and_get_transformed_labels_from_reportable_task(
+        String taskRoleCategory, String reportableTaskRoleCategoryLabel,
+        String taskJurisdiction, String reportableTaskJurisdictionLabel,
+        String taskCaseTypeId, String reportableTaskCaseTypeLabel,
+        String taskState, String lastUpdatedAction, String reportableTaskStateLabel) {
+        TaskResource taskResource = buildTaskResource(4,10);
+        taskResource.setRoleCategory(taskRoleCategory);
+        taskResource.setJurisdiction(taskJurisdiction);
+        taskResource.setCaseTypeId(taskCaseTypeId);
+        taskResource.setState(CFTTaskState.valueOf(taskState));
+        taskResource.setLastUpdatedAction(lastUpdatedAction);
+        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
+        checkHistory(savedTaskResource.getTaskId(), 1);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    log.info("Found reportable task:{}",reportableTaskList.get(0));
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(reportableTaskRoleCategoryLabel, reportableTaskList.get(0).getRoleCategoryLabel());
+                    assertEquals(reportableTaskJurisdictionLabel, reportableTaskList.get(0).getJurisdictionLabel());
+                    assertEquals(reportableTaskCaseTypeLabel, reportableTaskList.get(0).getCaseTypeLabel());
+                    assertEquals(reportableTaskStateLabel, reportableTaskList.get(0).getStateLabel());
+                    return true;
+                });
+    }
+
     @Test
     void should_save_auto_assigned_task_and_get_task_from_reportable_task() {
         TaskResource taskResource = createAndSaveAndAssignTask();
@@ -550,6 +596,22 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     }
 
+    private TaskResource buildTaskResource(int daysUntilDue, int daysUntilPriority) {
+        TaskResource taskResource = new TaskResource(
+            UUID.randomUUID().toString(),
+            "someTaskName",
+            "someTaskType",
+            UNASSIGNED,
+            "987654",
+            OffsetDateTime.now().plusDays(daysUntilDue)
+        );
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setPriorityDate(OffsetDateTime.now().plusDays(daysUntilPriority));
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+        taskResource.setLastUpdatedAction("Configure");
+        return taskResource;
+    }
+
     private TaskResource createAndSaveTask() {
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
@@ -683,7 +745,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals(records, taskHistoryResourceList.size());
-
+                    log.info("task with ID found on MI Reporting task History is :{}",
+                             taskHistoryResourceList.isEmpty());
                     return true;
                 });
     }
