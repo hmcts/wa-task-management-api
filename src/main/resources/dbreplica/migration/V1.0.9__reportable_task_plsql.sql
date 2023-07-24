@@ -86,7 +86,6 @@ FETCH NEXT FROM task_history_cursor INTO
             when (l_role_category='LEGAL_OPERATIONS')  then 'Legal Operations'
             when (l_role_category='CTSC')  then 'CTSC'
             when (l_role_category='JUDICIAL')  then 'Judicial'
-            when (l_role_category='ADMINISTRATOR')  then 'Admin'
             when (l_role_category='ADMIN')  then 'Admin'
             when (l_role_category='')  then 'Blank values'
             else l_role_category

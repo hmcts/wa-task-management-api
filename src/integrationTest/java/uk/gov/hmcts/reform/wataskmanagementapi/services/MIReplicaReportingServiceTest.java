@@ -186,111 +186,25 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "LEGAL_OPERATIONS,Legal Operations",
-        "CTSC,CTSC",
-        "JUDICIAL,Judicial",
-        "ADMINISTRATOR,Admin",
-        "ADMIN,Admin",
-        "TEST,TEST"
+        "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,AutoAssign,Assigned",
+        "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
+        "JUDICIAL,Judicial,IA,Immigration and Asylum,Asylum,Asylum,COMPLETED,AutoAssign,Completed",
+        "ADMIN,Admin,PUBLICLAW,Public Law,PUBLICLAW,Public Law,CANCELLED,Configure,Cancelled",
+        "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,Configure,Assigned",
+        "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,AutoAssign,Unassigned",
+        ",Blank values,IA,Immigration and Asylum,Asylum,Asylum,TERMINATED,AutoAssign,Terminated",
+        "ADMIN,Admin,WA,WA,PUBLICLAW,Public Law,PENDING_RECONFIGURATION,Configure,Pending Reconfiguration",
+        "TEST,TEST,TEST,TEST,WaCaseType,WaCaseType,TEST,Configure,TEST"
     })
-    void should_save_task_and_get_transformed_role_category_label_from_reportable_task(
-        String taskRoleCategory, String reportableTaskRoleCategoryLabel) {
-        TaskResource taskResource = buildTaskResource();
-        taskResource.setRoleCategory(taskRoleCategory);
-        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
-
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
-            .until(
-                () -> {
-                    List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
-
-                    assertFalse(reportableTaskList.isEmpty());
-                    assertEquals(1, reportableTaskList.size());
-                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
-                    assertEquals(reportableTaskRoleCategoryLabel, reportableTaskList.get(0).getRoleCategoryLabel());
-                    return true;
-                });
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {
-        "PRIVATELAW,Private Law",
-        "CIVIL,Civil",
-        "IA,Immigration and Asylum",
-        "PUBLICLAW,Public Law",
-        "TEST,TEST"
-    })
-    void should_save_task_and_get_transformed_jurisdiction_label_from_reportable_task(
-        String taskJurisdiction, String reportableTaskJurisdictionLabel) {
-        TaskResource taskResource = buildTaskResource();
-        taskResource.setJurisdiction(taskJurisdiction);
-        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
-
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
-            .until(
-                () -> {
-                    List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
-
-                    assertFalse(reportableTaskList.isEmpty());
-                    assertEquals(1, reportableTaskList.size());
-                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
-                    assertEquals(reportableTaskJurisdictionLabel, reportableTaskList.get(0).getJurisdictionLabel());
-                    return true;
-                });
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {
-        "CIVIL,Civil",
-        "PRLAPPS,Private Law",
-        "PUBLICLAW,Public Law",
-        "WaCaseType,WaCaseType",
-        "Asylum,Asylum",
-        "TEST,TEST"
-    })
-    void should_save_task_and_get_transformed_case_type_label_from_reportable_task(
-        String taskCaseTypeId, String reportableTaskCaseTypeLabel) {
-        TaskResource taskResource = buildTaskResource();
-        taskResource.setCaseTypeId(taskCaseTypeId);
-        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
-
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
-            .until(
-                () -> {
-                    List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
-
-                    assertFalse(reportableTaskList.isEmpty());
-                    assertEquals(1, reportableTaskList.size());
-                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
-                    assertEquals(reportableTaskCaseTypeLabel, reportableTaskList.get(0).getCaseTypeLabel());
-                    return true;
-                });
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {
-        "ASSIGNED,AutoAssign,Assigned",
-        "UNASSIGNED,Configure,Unassigned",
-        "ASSIGNED,Configure,Assigned",
-        "UNASSIGNED,AutoAssign,Unassigned",
-        "COMPLETED,AutoAssign,Completed",
-        "CANCELLED,Configure,Cancelled",
-        "TERMINATED,AutoAssign,Terminated",
-        "PENDING_RECONFIGURATION,Configure,Pending Reconfiguration",
-        "TEST,Configure,TEST"
-    })
-    void should_save_task_and_get_transformed_state_label_from_reportable_task(
+    void should_save_task_and_get_transformed_labels_from_reportable_task(
+        String taskRoleCategory, String reportableTaskRoleCategoryLabel,
+        String taskJurisdiction, String reportableTaskJurisdictionLabel,
+        String taskCaseTypeId, String reportableTaskCaseTypeLabel,
         String taskState, String lastUpdatedAction, String reportableTaskStateLabel) {
-        TaskResource taskResource = buildTaskResource();
+        TaskResource taskResource = buildTaskResource(4,10);
+        taskResource.setRoleCategory(taskRoleCategory);
+        taskResource.setJurisdiction(taskJurisdiction);
+        taskResource.setCaseTypeId(taskCaseTypeId);
         taskResource.setState(CFTTaskState.valueOf(taskState));
         taskResource.setLastUpdatedAction(lastUpdatedAction);
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
@@ -306,6 +220,9 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
                     assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(reportableTaskRoleCategoryLabel, reportableTaskList.get(0).getRoleCategoryLabel());
+                    assertEquals(reportableTaskJurisdictionLabel, reportableTaskList.get(0).getJurisdictionLabel());
+                    assertEquals(reportableTaskCaseTypeLabel, reportableTaskList.get(0).getCaseTypeLabel());
                     assertEquals(reportableTaskStateLabel, reportableTaskList.get(0).getStateLabel());
                     return true;
                 });
@@ -677,18 +594,18 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
     }
 
-    private TaskResource buildTaskResource() {
+    private TaskResource buildTaskResource(int daysUntilDue, int daysUntilPriority) {
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
             "someTaskName",
             "someTaskType",
             UNASSIGNED,
             "987654",
-            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+            OffsetDateTime.now().plusDays(daysUntilDue)
         );
-        taskResource.setCreated(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
-        taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-15T20:15:45.345875+01:00"));
-        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setPriorityDate(OffsetDateTime.now().plusDays(daysUntilPriority));
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
         taskResource.setLastUpdatedAction("Configure");
         return taskResource;
     }
