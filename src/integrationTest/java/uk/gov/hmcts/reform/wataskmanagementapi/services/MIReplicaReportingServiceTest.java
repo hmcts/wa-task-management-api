@@ -220,7 +220,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
-                    log.info("Found reportable task:"+reportableTaskList.get(0));
+                    log.info("Found reportable task:{}",reportableTaskList.get(0));
                     assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(reportableTaskRoleCategoryLabel, reportableTaskList.get(0).getRoleCategoryLabel());
                     assertEquals(reportableTaskJurisdictionLabel, reportableTaskList.get(0).getJurisdictionLabel());
@@ -744,7 +744,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                         = miReportingServiceForTest.findByTaskId(id);
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals(records, taskHistoryResourceList.size());
-                    log.info("task with ID found on MI Reporting task History is :"+taskHistoryResourceList.isEmpty());
+                    log.info("task with ID found on MI Reporting task History is :{}",taskHistoryResourceList.isEmpty());
                     return true;
                 });
     }
