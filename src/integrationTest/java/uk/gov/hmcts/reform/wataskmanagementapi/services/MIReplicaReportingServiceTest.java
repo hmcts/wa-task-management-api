@@ -185,18 +185,17 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    @Disabled
-    /*@CsvSource(value = {
+    @ParameterizedTest
+    @CsvSource(value = {
         "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,AutoAssign,Assigned",
         "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
         "JUDICIAL,Judicial,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
         "ADMIN,Admin,PUBLICLAW,Public Law,PUBLICLAW,Public Law,UNASSIGNED,Configure,Unassigned",
         "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,AutoAssign,Assigned",
         "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
-        ",Blank values,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
         "ADMIN,Admin,WA,WA,PUBLICLAW,Public Law,PENDING_RECONFIGURATION,UNASSIGNED,Configure,Unassigned",
         "TEST,TEST,TEST,TEST,WaCaseType,WaCaseType,ASSIGNED,AutoAssign,Assigned"
-    })*/
+    })
     void should_save_task_and_get_transformed_labels_from_reportable_task(
         String taskRoleCategory, String reportableTaskRoleCategoryLabel,
         String taskJurisdiction, String reportableTaskJurisdictionLabel,
