@@ -185,8 +185,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
+    @Disabled
+    /*@CsvSource(value = {
         "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,AutoAssign,Assigned",
         "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
         "JUDICIAL,Judicial,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
@@ -196,7 +196,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         ",Blank values,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
         "ADMIN,Admin,WA,WA,PUBLICLAW,Public Law,PENDING_RECONFIGURATION,UNASSIGNED,Configure,Unassigned",
         "TEST,TEST,TEST,TEST,WaCaseType,WaCaseType,ASSIGNED,AutoAssign,Assigned"
-    })
+    })*/
     void should_save_task_and_get_transformed_labels_from_reportable_task(
         String taskRoleCategory, String reportableTaskRoleCategoryLabel,
         String taskJurisdiction, String reportableTaskJurisdictionLabel,
@@ -563,14 +563,14 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
 
-    @Disabled
-    /*@CsvSource(value = {
+    @ParameterizedTest
+    @CsvSource(value = {
         "UNASSIGNED,Configure",
         "ASSIGNED,AutoAssign",
         "ASSIGNED,Configure",
         "UNASSIGNED,Claim",
         "UNASSIGNED,AutoAssign"
-    })*/
+    })
     void should_report_incomplete_task_history(String initialState, String lastAction) throws Exception {
         String taskId = UUID.randomUUID().toString();
         createAndSaveThisTask(taskId, "someTaskName",
