@@ -227,7 +227,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 });
     }
 
-    /*@ParameterizedTest
+    @ParameterizedTest
     @CsvSource(value = {
         "ASSIGNED,AutoAssign,Assigned",
         "UNASSIGNED,Configure,Unassigned",
@@ -263,7 +263,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(reportableTaskStateLabel, reportableTaskList.get(0).getStateLabel());
                     return true;
                 });
-    }*/
+    }
 
     @Test
     void should_save_auto_assigned_task_and_get_task_from_reportable_task() {
