@@ -744,7 +744,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                         = miReportingServiceForTest.findByTaskId(id);
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals(records, taskHistoryResourceList.size());
-                    log.info("task with ID found on MI Reporting task History is :{}",taskHistoryResourceList.isEmpty());
+                    log.info("task with ID found on MI Reporting task History is :{}",
+                             taskHistoryResourceList.isEmpty());
                     return true;
                 });
     }
