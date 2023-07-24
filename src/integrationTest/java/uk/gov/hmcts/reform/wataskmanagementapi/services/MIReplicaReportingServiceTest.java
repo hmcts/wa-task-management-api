@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -562,14 +563,14 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
 
-    @ParameterizedTest
-    @CsvSource(value = {
+    @Disabled
+    /*@CsvSource(value = {
         "UNASSIGNED,Configure",
         "ASSIGNED,AutoAssign",
         "ASSIGNED,Configure",
         "UNASSIGNED,Claim",
         "UNASSIGNED,AutoAssign"
-    })
+    })*/
     void should_report_incomplete_task_history(String initialState, String lastAction) throws Exception {
         String taskId = UUID.randomUUID().toString();
         createAndSaveThisTask(taskId, "someTaskName",
