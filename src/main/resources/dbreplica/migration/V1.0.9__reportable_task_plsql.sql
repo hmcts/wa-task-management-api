@@ -102,6 +102,7 @@ FETCH NEXT FROM task_history_cursor INTO
 
     l_case_type_label =
         case l_case_type_id IS NOT NULL
+           when (l_case_type_id='Asylum')  then 'Asylum'
            when (l_case_type_id='CIVIL')  then 'Civil'
            when (l_case_type_id='PRLAPPS')  then 'Private Law'
            when (l_case_type_id='PUBLICLAW')  then 'Public Law'
