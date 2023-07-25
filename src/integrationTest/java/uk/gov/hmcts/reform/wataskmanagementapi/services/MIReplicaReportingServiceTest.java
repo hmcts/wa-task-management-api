@@ -235,7 +235,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "CANCELLED,Configure,Cancelled",
         "TERMINATED,AutoAssign,Terminated",
         "PENDING_RECONFIGURATION,Configure,Pending Reconfiguration",
-        "TEST,Configure,TEST"
+        "PENDING_AUTO_ASSIGN,Configure,PENDING_AUTO_ASSIGN"
     })
     void should_save_task_and_get_transformed_state_label_from_reportable_task(
         String taskState, String lastUpdatedAction, String reportableTaskStateLabel) {
