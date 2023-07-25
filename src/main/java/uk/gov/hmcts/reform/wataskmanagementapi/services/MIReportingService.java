@@ -49,6 +49,10 @@ public class MIReportingService {
         return taskHistoryRepository.findAllByTaskIdOrderByUpdatedAsc(taskId);
     }
 
+    public List<TaskHistoryResource> findByTaskIdOrderByLatestUpdate(String taskId) {
+        return taskHistoryRepository.findAllByTaskIdOrderByUpdatedDesc(taskId);
+    }
+
     public List<ReportableTaskResource> findByReportingTaskId(String taskId) {
         return reportableTaskRepository.findAllByTaskIdOrderByUpdatedAsc(taskId);
     }

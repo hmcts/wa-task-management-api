@@ -72,7 +72,7 @@ public class ReplicationCheckerTest {
         TaskHistoryResource history = new TaskHistoryResource("1",
             OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "claim", "someuser");
         when(cftTaskDatabaseService.findLastFiveUpdatedTasks()).thenReturn(List.of(resource));
-        when(miReportingService.findByTaskId("1")).thenReturn(List.of(history));
+        when(miReportingService.findByTaskIdOrderByLatestUpdate("1")).thenReturn(List.of(history));
 
         Map<String, Object> resourceMap = replicationChecker.performOperation(request).getResponseMap();
         List<?> tasks = (List<?>) resourceMap.get("replicationCheckedTaskIds");
@@ -86,7 +86,7 @@ public class ReplicationCheckerTest {
             .pollInterval(1, SECONDS)
             .atMost(20, SECONDS)
             .until(() -> {
-                verify(miReportingService, times(1)).findByTaskId("1");
+                verify(miReportingService, times(1)).findByTaskIdOrderByLatestUpdate("1");
                 return true;
             });
 
@@ -99,7 +99,7 @@ public class ReplicationCheckerTest {
         TaskHistoryResource history = new TaskHistoryResource("1",
             OffsetDateTime.parse("2021-05-09T20:15:30.345875+01:00"), "claim", "someuser");
         when(cftTaskDatabaseService.findLastFiveUpdatedTasks()).thenReturn(List.of(resource));
-        when(miReportingService.findByTaskId("1")).thenReturn(List.of(history));
+        when(miReportingService.findByTaskIdOrderByLatestUpdate("1")).thenReturn(List.of(history));
 
         Map<String, Object> resourceMap = replicationChecker.performOperation(request).getResponseMap();
         List<?> tasks = (List<?>) resourceMap.get("replicationCheckedTaskIds");
@@ -113,7 +113,7 @@ public class ReplicationCheckerTest {
             .pollInterval(1, SECONDS)
             .atMost(20, SECONDS)
             .until(() -> {
-                verify(miReportingService, atLeast(2)).findByTaskId("1");
+                verify(miReportingService, atLeast(2)).findByTaskIdOrderByLatestUpdate("1");
                 return true;
             });
 
@@ -126,7 +126,7 @@ public class ReplicationCheckerTest {
         TaskHistoryResource history = new TaskHistoryResource("1",
             OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "assign", "someuser");
         when(cftTaskDatabaseService.findLastFiveUpdatedTasks()).thenReturn(List.of(resource));
-        when(miReportingService.findByTaskId("1")).thenReturn(List.of(history));
+        when(miReportingService.findByTaskIdOrderByLatestUpdate("1")).thenReturn(List.of(history));
 
         Map<String, Object> resourceMap = replicationChecker.performOperation(request).getResponseMap();
         List<?> tasks = (List<?>) resourceMap.get("replicationCheckedTaskIds");
@@ -140,7 +140,7 @@ public class ReplicationCheckerTest {
             .pollInterval(1, SECONDS)
             .atMost(20, SECONDS)
             .until(() -> {
-                verify(miReportingService, atLeast(2)).findByTaskId("1");
+                verify(miReportingService, atLeast(2)).findByTaskIdOrderByLatestUpdate("1");
                 return true;
             });
 
@@ -153,7 +153,7 @@ public class ReplicationCheckerTest {
         TaskHistoryResource history = new TaskHistoryResource("1",
             OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "claim", "seconduser");
         when(cftTaskDatabaseService.findLastFiveUpdatedTasks()).thenReturn(List.of(resource));
-        when(miReportingService.findByTaskId("1")).thenReturn(List.of(history));
+        when(miReportingService.findByTaskIdOrderByLatestUpdate("1")).thenReturn(List.of(history));
 
         Map<String, Object> resourceMap = replicationChecker.performOperation(request).getResponseMap();
         List<?> tasks = (List<?>) resourceMap.get("replicationCheckedTaskIds");
@@ -167,7 +167,7 @@ public class ReplicationCheckerTest {
             .pollInterval(1, SECONDS)
             .atMost(20, SECONDS)
             .until(() -> {
-                verify(miReportingService, atLeast(2)).findByTaskId("1");
+                verify(miReportingService, atLeast(2)).findByTaskIdOrderByLatestUpdate("1");
                 return true;
             });
 
@@ -184,8 +184,8 @@ public class ReplicationCheckerTest {
         TaskHistoryResource history1 = new TaskHistoryResource("2",
             OffsetDateTime.parse("2021-05-09T20:15:30.345875+01:00"), "assign", "seconduser");
         when(cftTaskDatabaseService.findLastFiveUpdatedTasks()).thenReturn(List.of(resource, resource1));
-        when(miReportingService.findByTaskId("1")).thenReturn(List.of(history));
-        when(miReportingService.findByTaskId("2")).thenReturn(List.of(history1));
+        when(miReportingService.findByTaskIdOrderByLatestUpdate("1")).thenReturn(List.of(history));
+        when(miReportingService.findByTaskIdOrderByLatestUpdate("2")).thenReturn(List.of(history1));
 
         Map<String, Object> resourceMap = replicationChecker.performOperation(request).getResponseMap();
         List<?> tasks = (List<?>) resourceMap.get("replicationCheckedTaskIds");
@@ -199,8 +199,8 @@ public class ReplicationCheckerTest {
             .pollInterval(1, SECONDS)
             .atMost(20, SECONDS)
             .until(() -> {
-                verify(miReportingService, times(1)).findByTaskId("1");
-                verify(miReportingService, times(1)).findByTaskId("2");
+                verify(miReportingService, times(1)).findByTaskIdOrderByLatestUpdate("1");
+                verify(miReportingService, times(1)).findByTaskIdOrderByLatestUpdate("2");
                 return true;
             });
 
@@ -219,9 +219,9 @@ public class ReplicationCheckerTest {
         TaskHistoryResource history1 = new TaskHistoryResource("2",
             OffsetDateTime.parse("2021-05-09T20:15:30.345875+01:00"), "assign", "seconduser");
         when(cftTaskDatabaseService.findLastFiveUpdatedTasks()).thenReturn(List.of(resource, resource1, resource2));
-        when(miReportingService.findByTaskId("1")).thenReturn(List.of(history));
-        when(miReportingService.findByTaskId("2")).thenReturn(List.of(history1));
-        when(miReportingService.findByTaskId("3")).thenReturn(List.of());
+        when(miReportingService.findByTaskIdOrderByLatestUpdate("1")).thenReturn(List.of(history));
+        when(miReportingService.findByTaskIdOrderByLatestUpdate("2")).thenReturn(List.of(history1));
+        when(miReportingService.findByTaskIdOrderByLatestUpdate("3")).thenReturn(List.of());
 
         Map<String, Object> resourceMap = replicationChecker.performOperation(request).getResponseMap();
         List<?> tasks = (List<?>) resourceMap.get("replicationCheckedTaskIds");
@@ -235,9 +235,9 @@ public class ReplicationCheckerTest {
             .pollInterval(1, SECONDS)
             .atMost(20, SECONDS)
             .until(() -> {
-                verify(miReportingService, times(1)).findByTaskId("1");
-                verify(miReportingService, times(1)).findByTaskId("2");
-                verify(miReportingService, atLeast(2)).findByTaskId("3");
+                verify(miReportingService, times(1)).findByTaskIdOrderByLatestUpdate("1");
+                verify(miReportingService, times(1)).findByTaskIdOrderByLatestUpdate("2");
+                verify(miReportingService, atLeast(2)).findByTaskIdOrderByLatestUpdate("3");
                 return true;
             });
     }

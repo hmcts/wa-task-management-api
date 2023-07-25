@@ -58,7 +58,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
 
     @Autowired
-    private TaskResourceRepository taskResourceRepository;
+    protected TaskResourceRepository taskResourceRepository;
 
     @Autowired
     private TaskHistoryResourceRepository taskHistoryResourceRepository;
@@ -73,7 +73,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     @Value("${spring.datasource-replica.jdbcUrl}")
     private String replicaJdbcUrl;
 
-    private MIReportingService miReportingServiceForTest;
+    protected MIReportingService miReportingServiceForTest;
 
     private SubscriptionCreator subscriptionCreatorForTest;
 

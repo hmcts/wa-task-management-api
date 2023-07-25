@@ -1,34 +1,20 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
-import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ReplicationChecker;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.sql.DataSource;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -38,63 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 
 @ActiveProfiles("replica")
-public class ReplicationCheckerTest extends SpringBootIntegrationBaseTest {
-
-    @Autowired
-    TaskResourceRepository taskResourceRepository;
-
-    @Autowired
-    DataSource dataSource;
-
-    @Autowired
-    TaskHistoryResourceRepository taskHistoryResourceRepository;
-    @Autowired
-    ReportableTaskRepository reportableTaskRepository;
-    @Autowired
-    TaskAssignmentsRepository taskAssignmentsRepository;
-
-    SubscriptionCreator subscriptionCreator;
-
-    @Autowired
-    TCExtendedContainerDatabaseDriver tcDriver;
+public class ReplicationCheckerTest extends MIReplicaReportingServiceTest {
 
     @Autowired
     ReplicationChecker replicationChecker;
-
-    @Value("${spring.datasource.jdbcUrl}")
-    private String primaryJdbcUrl;
-
-
-    @Value("${spring.datasource-replica.jdbcUrl}")
-    private String replicaJdbcUrl;
-
-    CFTTaskDatabaseService cftTaskDatabaseService;
-    MIReportingService miReportingService;
-
-    JdbcDatabaseContainer container;
-    JdbcDatabaseContainer containerReplica;
-
-    @BeforeEach
-    void setUp() {
-        subscriptionCreator = new SubscriptionCreator("repl_user", "repl_password",
-            "wa_user", "wa_password");
-        miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,
-            reportableTaskRepository,
-            taskAssignmentsRepository,
-            subscriptionCreator);
-        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
-
-        container = TCExtendedContainerDatabaseDriver.getContainer(primaryJdbcUrl);
-        containerReplica = TCExtendedContainerDatabaseDriver.getContainer(replicaJdbcUrl);
-        Testcontainers.exposeHostPorts(container.getFirstMappedPort(), containerReplica.getFirstMappedPort());
-    }
-
-    @AfterAll
-    void tearDown() {
-        container.stop();
-        containerReplica.stop();
-    }
 
     @Test
     void should_save_task_and_get_task_from_replica_tables() {
@@ -106,7 +39,7 @@ public class ReplicationCheckerTest extends SpringBootIntegrationBaseTest {
             .until(
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList
-                        = miReportingService.findByTaskId(taskResource.getTaskId());
+                        = miReportingServiceForTest.findByTaskId(taskResource.getTaskId());
 
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals(1, taskHistoryResourceList.size());

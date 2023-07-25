@@ -28,7 +28,7 @@ import static org.awaitility.Awaitility.await;
 @Component
 @Profile("replica | preview")
 public class ReplicationChecker implements TaskOperationPerformService {
-    private static final String TASK_REPLICATION_ERROR = "TASK_REPLICATION_ERROR: Task replication not fount for [{}]";
+    private static final String TASK_REPLICATION_ERROR = "TASK_REPLICATION_ERROR: Task replication not found for [{}]";
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final MIReportingService miReportingService;
 
@@ -96,7 +96,8 @@ public class ReplicationChecker implements TaskOperationPerformService {
 
     private Callable<Boolean> checkTaskHistory(TaskResource task) {
         return () -> {
-            List<TaskHistoryResource> taskHistoryItems = miReportingService.findByTaskId(task.getTaskId());
+            List<TaskHistoryResource> taskHistoryItems =
+                miReportingService.findByTaskIdOrderByLatestUpdate(task.getTaskId());
             return taskHistoryItems.stream().anyMatch(h -> h.getUpdated().equals(task.getLastUpdatedTimestamp())
                                                        && h.getUpdateAction().equals(task.getLastUpdatedAction())
                                                        && h.getUpdatedBy().equals(task.getLastUpdatedUser()));
