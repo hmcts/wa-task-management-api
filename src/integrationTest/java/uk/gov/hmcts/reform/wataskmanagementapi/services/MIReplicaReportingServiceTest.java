@@ -1,25 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.opentest4j.AssertionFailedError;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskAssignmentsResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
@@ -48,86 +37,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 @ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
-class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
+class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
-    private static final String TEST_REPLICA_DB_USER = "repl_user";
-    private static final String TEST_REPLICA_DB_PASS = "repl_user";
-
-    private static final String TEST_PRIMARY_DB_USER = "wa_user";
-    private static final String TEST_PRIMARY_DB_PASS = "wa_password";
-
-
-    @Autowired
-    protected TaskResourceRepository taskResourceRepository;
-
-    @Autowired
-    private TaskHistoryResourceRepository taskHistoryResourceRepository;
-    @Autowired
-    private ReportableTaskRepository reportableTaskRepository;
-    @Autowired
-    private TaskAssignmentsRepository taskAssignmentsRepository;
-
-    @Value("${spring.datasource.jdbcUrl}")
-    private String primaryJdbcUrl;
-
-    @Value("${spring.datasource-replica.jdbcUrl}")
-    private String replicaJdbcUrl;
-
-    protected MIReportingService miReportingServiceForTest;
-
-    private SubscriptionCreator subscriptionCreatorForTest;
-
-    @Autowired
-    private MIReportingService miReportingService;
-
-
-    JdbcDatabaseContainer container;
-    JdbcDatabaseContainer containerReplica;
-
-    @BeforeEach
-    void setUp() {
-        //Logical Replication is a pre-requisite for all tests here
-        waitForReplication();
-
-        subscriptionCreatorForTest = new SubscriptionCreator(
-            TEST_REPLICA_DB_USER,
-            TEST_REPLICA_DB_PASS,
-            TEST_PRIMARY_DB_USER,
-            TEST_PRIMARY_DB_PASS);
-
-        miReportingServiceForTest = new MIReportingService(
-            taskHistoryResourceRepository,
-            taskResourceRepository,
-            reportableTaskRepository,
-            taskAssignmentsRepository,
-            subscriptionCreatorForTest);
-
-        container = TCExtendedContainerDatabaseDriver.getContainer(primaryJdbcUrl);
-        containerReplica = TCExtendedContainerDatabaseDriver.getContainer(replicaJdbcUrl);
-
-        Testcontainers.exposeHostPorts(container.getFirstMappedPort(), containerReplica.getFirstMappedPort());
-
-        log.info("Primary DB port: {}, Replica DB port: {}",
-            container.getFirstMappedPort(),
-            containerReplica.getFirstMappedPort());
-
-    }
-
-    private boolean waitForReplication() {
-
-        await().ignoreException(AssertionFailedError.class)
-            .atLeast(1, SECONDS)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
-            .until(() -> miReportingService.hasReplicationStarted());
-        return true;
-    }
-
-    @AfterAll
-    void tearDown() {
-        container.stop();
-        containerReplica.stop();
-    }
 
     @Test
     void should_save_task_and_get_task_from_replica_tables() {

@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
@@ -24,7 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 
 @ActiveProfiles("replica")
-public class ReplicationCheckerTest extends MIReplicaReportingServiceTest {
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class ReplicationCheckerTest extends ReplicaBaseTest {
 
     @Autowired
     ReplicationChecker replicationChecker;
