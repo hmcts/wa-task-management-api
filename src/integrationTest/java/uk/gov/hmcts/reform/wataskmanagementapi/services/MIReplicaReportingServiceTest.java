@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -191,10 +190,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
         "JUDICIAL,Judicial,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
         "ADMIN,Admin,PUBLICLAW,Public Law,PUBLICLAW,Public Law,UNASSIGNED,Configure,Unassigned",
-        "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,AutoAssign,Assigned",
-        "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
-        "ADMIN,Admin,WA,WA,PUBLICLAW,Public Law,UNASSIGNED,Configure,Unassigned",
-        "TEST,TEST,TEST,TEST,WaCaseType,WaCaseType,ASSIGNED,AutoAssign,Assigned"
+        ",,WA,WA,WaCaseType,WaCaseType,ASSIGNED,AutoAssign,Assigned",
+        "TEST,TEST,TEST,TEST,TEST,TEST,UNASSIGNED,Configure,Unassigned"
     })
     void should_save_task_and_get_transformed_labels_from_reportable_task(
         String taskRoleCategory, String reportableTaskRoleCategoryLabel,
@@ -225,6 +222,44 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(reportableTaskRoleCategoryLabel, reportableTaskList.get(0).getRoleCategoryLabel());
                     assertEquals(reportableTaskJurisdictionLabel, reportableTaskList.get(0).getJurisdictionLabel());
                     assertEquals(reportableTaskCaseTypeLabel, reportableTaskList.get(0).getCaseTypeLabel());
+                    assertEquals(reportableTaskStateLabel, reportableTaskList.get(0).getStateLabel());
+                    return true;
+                });
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "ASSIGNED,AutoAssign,Assigned",
+        "UNASSIGNED,Configure,Unassigned",
+        "COMPLETED,AutoAssign,Completed",
+        "CANCELLED,Configure,Cancelled",
+        "TERMINATED,AutoAssign,Terminated",
+        "PENDING_RECONFIGURATION,Configure,Pending Reconfiguration",
+        "TEST,Configure,TEST"
+    })
+    void should_save_task_and_get_transformed_state_label_from_reportable_task(
+        String taskState, String lastUpdatedAction, String reportableTaskStateLabel) {
+        TaskResource taskResource = createAndSaveTask();
+        String taskId = taskResource.getTaskId();
+        checkHistory(taskId, 1);
+
+        taskResource.setState(CFTTaskState.valueOf(taskState));
+        taskResource.setLastUpdatedAction(lastUpdatedAction);
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
+        checkHistory(taskId, 2);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(reportableTaskStateLabel, reportableTaskList.get(0).getStateLabel());
                     return true;
                 });
