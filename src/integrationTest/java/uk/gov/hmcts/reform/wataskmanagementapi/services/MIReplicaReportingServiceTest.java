@@ -193,7 +193,7 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
         "ADMIN,Admin,PUBLICLAW,Public Law,PUBLICLAW,Public Law,UNASSIGNED,Configure,Unassigned",
         "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,AutoAssign,Assigned",
         "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
-        "ADMIN,Admin,WA,WA,PUBLICLAW,Public Law,PENDING_RECONFIGURATION,Configure,Pending Reconfiguration",
+        "ADMIN,Admin,WA,WA,PUBLICLAW,Public Law,UNASSIGNED,Configure,Unassigned",
         "TEST,TEST,TEST,TEST,WaCaseType,WaCaseType,ASSIGNED,AutoAssign,Assigned"
     })
     void should_save_task_and_get_transformed_labels_from_reportable_task(
