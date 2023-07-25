@@ -31,7 +31,6 @@ public class FlywayReplicaMigrationConfiguration {
 
                 Flyway flywayReplica = modifyConfigForDataSource(flyway, replicaDataSource,
                     "dbreplica/migration");
-                flywayReplica.repair();
                 flywayReplica.migrate();
 
             }
