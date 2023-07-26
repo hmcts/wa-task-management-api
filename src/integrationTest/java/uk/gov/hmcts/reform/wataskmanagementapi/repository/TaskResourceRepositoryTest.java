@@ -637,11 +637,16 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
         List<TaskResource> results = taskResourceRepository.findTop5ByOrderByLastUpdatedTimestampDesc();
         assertEquals(5, results.size());
-        assertTrue(results.get(0).getLastUpdatedTimestamp().isEqual(OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00")));
-        assertTrue(results.get(1).getLastUpdatedTimestamp().isEqual(OffsetDateTime.parse("2021-05-09T20:15:49.345875+01:00")));
-        assertTrue(results.get(2).getLastUpdatedTimestamp().isEqual(OffsetDateTime.parse("2021-05-09T20:15:48.345875+01:00")));
-        assertTrue(results.get(3).getLastUpdatedTimestamp().isEqual(OffsetDateTime.parse("2021-05-09T20:15:47.345875+01:00")));
-        assertTrue(results.get(4).getLastUpdatedTimestamp().isEqual(OffsetDateTime.parse("2021-05-09T20:15:46.345875+01:00")));
+        assertTrue(results.get(0).getLastUpdatedTimestamp()
+            .isEqual(OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00")));
+        assertTrue(results.get(1).getLastUpdatedTimestamp()
+            .isEqual(OffsetDateTime.parse("2021-05-09T20:15:49.345875+01:00")));
+        assertTrue(results.get(2).getLastUpdatedTimestamp()
+            .isEqual(OffsetDateTime.parse("2021-05-09T20:15:48.345875+01:00")));
+        assertTrue(results.get(3).getLastUpdatedTimestamp()
+            .isEqual(OffsetDateTime.parse("2021-05-09T20:15:47.345875+01:00")));
+        assertTrue(results.get(4).getLastUpdatedTimestamp()
+            .isEqual(OffsetDateTime.parse("2021-05-09T20:15:46.345875+01:00")));
 
     }
 
