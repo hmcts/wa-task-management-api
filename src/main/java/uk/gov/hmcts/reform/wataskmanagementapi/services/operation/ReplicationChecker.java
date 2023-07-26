@@ -80,7 +80,7 @@ public class ReplicationChecker implements TaskOperationPerformService {
     private void waitForCheckCompletion(List<Future<?>> checks) {
         while (!checks.isEmpty()) {
             Optional<Future<?>> future = checks.stream().findAny();
-            if (future.get().isDone()) {
+            if (future.isPresent() && future.get().isDone()) {
                 checks.remove(future.get());
             }
         }
