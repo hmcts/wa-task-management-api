@@ -1,0 +1,21 @@
+ ALTER TABLE task_history ADD COLUMN description Text;
+ ALTER TABLE task_history ADD COLUMN notes JSONB;
+ ALTER TABLE task_history ADD COLUMN region_name Text;
+ ALTER TABLE task_history ADD COLUMN location_name Text;
+ ALTER TABLE task_history ADD COLUMN additional_properties JSONB;
+ ALTER TABLE task_history ADD COLUMN reconfigure_request_time Timestamp Without Time Zone;
+ ALTER TABLE task_history ADD COLUMN next_hearing_id Text;
+ ALTER TABLE task_history ADD COLUMN next_hearing_date Timestamp Without Time Zone;
+ ALTER TABLE task_history ADD COLUMN priority_date Timestamp Without Time Zone NOT NULL;
+ ALTER TABLE task_history ADD COLUMN last_reconfiguration_time Timestamp Without Time Zone;
+
+ ALTER TABLE reportable_task ADD COLUMN description Text;
+ ALTER TABLE reportable_task ADD COLUMN notes JSONB;
+ ALTER TABLE reportable_task ADD COLUMN region_name Text;
+ ALTER TABLE reportable_task ADD COLUMN location_name Text;
+ ALTER TABLE reportable_task ADD COLUMN additional_properties JSONB;
+ ALTER TABLE reportable_task ADD COLUMN reconfigure_request_time Timestamp Without Time Zone;
+ ALTER TABLE reportable_task ADD COLUMN next_hearing_id Text;
+ ALTER TABLE reportable_task ADD COLUMN next_hearing_date Timestamp Without Time Zone;
+ ALTER TABLE reportable_task ADD COLUMN priority_date Timestamp Without Time Zone NOT NULL;
+ ALTER TABLE reportable_task ADD COLUMN last_reconfiguration_time Timestamp Without Time Zone;
