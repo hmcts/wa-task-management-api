@@ -21,50 +21,50 @@ public abstract class BaseTaskHistoryResource {
 
     @Id
     @EqualsAndHashCode.Include()
-    private String updateId;
+    protected String updateId;
 
     @EqualsAndHashCode.Include()
-    private String taskId;
-    private String taskName;
-    private String taskType;
+    protected String taskId;
+    protected String taskName;
+    protected String taskType;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
-    private OffsetDateTime dueDateTime;
+    protected OffsetDateTime dueDateTime;
 
-    private String state;
-    private String taskSystem;
-    private String securityClassification;
-    private String title;
-    private Integer majorPriority;
-    private Integer minorPriority;
-    private String assignee;
-    private Boolean autoAssigned = false;
-    private String executionTypeCode;
-    private String workType;
-    private String roleCategory;
-    private Boolean hasWarnings = false;
+    protected String state;
+    protected String taskSystem;
+    protected String securityClassification;
+    protected String title;
+    protected Integer majorPriority;
+    protected Integer minorPriority;
+    protected String assignee;
+    protected Boolean autoAssigned = false;
+    protected String executionTypeCode;
+    protected String workType;
+    protected String roleCategory;
+    protected Boolean hasWarnings = false;
 
     @EqualsAndHashCode.Include()
-    private String caseId;
-    private String caseTypeId;
-    private String caseName;
-    private String caseCategory;
-    private String jurisdiction;
-    private String region;
-    private String location;
-    private String businessContext;
-    private String terminationReason;
+    protected String caseId;
+    protected String caseTypeId;
+    protected String caseName;
+    protected String caseCategory;
+    protected String jurisdiction;
+    protected String region;
+    protected String location;
+    protected String businessContext;
+    protected String terminationReason;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
-    private OffsetDateTime assignmentExpiry;
+    protected OffsetDateTime assignmentExpiry;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
-    private OffsetDateTime created;
-    private String updatedBy;
+    protected OffsetDateTime created;
+    protected String updatedBy;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
-    private OffsetDateTime updated;
-    private String updateAction;
+    protected OffsetDateTime updated;
+    protected String updateAction;
 
     //abstract class must have abstract method
     protected abstract String getTaskTitle();
