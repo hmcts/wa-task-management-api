@@ -308,6 +308,16 @@ public class TaskResource implements Serializable {
         this.taskRoleResources = taskRoleResources;
     }
 
+    public TaskResource(String taskId,
+                        OffsetDateTime lastUpdatedTimestamp,
+                        String lastUpdatedAction,
+                        String lastUpdatedUser) {
+        this.taskId = taskId;
+        this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+        this.lastUpdatedAction = lastUpdatedAction;
+        this.lastUpdatedUser = lastUpdatedUser;
+    }
+
     @SuppressWarnings("squid:S00107")
     public TaskResource(String taskId,
                         String taskName,
