@@ -217,14 +217,16 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList
                         = miReportingServiceForTest.findByTaskId(savedTaskResource.getTaskId());
-                    log.info("Operation {} and taskHistoryResourceList size {}", operation, taskHistoryResourceList.size());
+                    log.info("Operation {} and taskHistoryResourceList size {}", operation,
+                             taskHistoryResourceList.size());
 
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals("UPDATE".equals(operation) ? 2 : 1, taskHistoryResourceList.size());
                     TaskHistoryResource taskHistoryResource = "UPDATE".equals(operation)
                         ? taskHistoryResourceList.get(1) : taskHistoryResourceList.get(0);
 
-                    log.info("Operation {} and taskHistoryResource for review {}", operation, taskHistoryResource.toString());
+                    log.info("Operation {} and taskHistoryResource for review {}", operation,
+                             taskHistoryResource.toString());
 
                     assertEquals(savedTaskResource.getTaskId(), taskHistoryResource.getTaskId());
                     assertEquals(savedTaskResource.getDescription(), taskHistoryResource.getDescription());
@@ -253,12 +255,14 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
                         = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
-                    log.info("Operation {} and reportableTaskList size {}", operation, reportableTaskList.size());
+                    log.info("Operation {} and reportableTaskList size {}", operation,
+                             reportableTaskList.size());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
 
-                    log.info("Operation {} and reportableTask {}", operation, reportableTaskList.get(0).toString());
+                    log.info("Operation {} and reportableTask {}", operation,
+                             reportableTaskList.get(0).toString());
 
                     assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(savedTaskResource.getDescription(), reportableTaskList.get(0).getDescription());
