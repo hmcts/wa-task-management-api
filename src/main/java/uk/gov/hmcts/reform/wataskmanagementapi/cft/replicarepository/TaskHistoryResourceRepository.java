@@ -18,6 +18,8 @@ public interface TaskHistoryResourceRepository
 
     List<TaskHistoryResource> findAllByTaskIdOrderByUpdatedAsc(String taskId);
 
+    List<TaskHistoryResource> findAllByTaskIdOrderByUpdatedDesc(String taskId);
+
     List<TaskHistoryResource> getByCaseId(String caseId);
 
     @Query(value = CHECK_SUBSCRIPTION, nativeQuery = true)

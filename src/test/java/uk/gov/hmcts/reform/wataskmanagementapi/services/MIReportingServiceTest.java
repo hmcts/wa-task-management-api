@@ -44,6 +44,19 @@ class MIReportingServiceTest {
     }
 
     @Test
+    void given_unknown_task_id_get_empty_list_for_descending_order() {
+        TaskHistoryResourceRepository taskHistoryResourceRepository = mock(TaskHistoryResourceRepository.class);
+        when(taskHistoryResourceRepository.findAllByTaskIdOrderByUpdatedDesc("1111111"))
+            .thenReturn(Collections.emptyList());
+        miReportingService = new MIReportingService(taskHistoryResourceRepository, null,
+            null, null, null);
+
+        List<TaskHistoryResource> taskHistoryResourceList
+            = miReportingService.findByTaskIdOrderByLatestUpdate("1111111");
+        assertTrue(taskHistoryResourceList.isEmpty());
+    }
+
+    @Test
     void given_zero_publications_should_return_false() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         when(taskResourceRepository.countPublications()).thenReturn(0);

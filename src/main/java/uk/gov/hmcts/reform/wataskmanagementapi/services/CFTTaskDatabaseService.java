@@ -156,6 +156,10 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findByIndexedFalseAndStateIn(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
     }
 
+    public List<TaskResource> findLastFiveUpdatedTasks() {
+        return tasksRepository.findTop5ByOrderByLastUpdatedTimestampDesc();
+    }
+
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
         return roleAssignments.stream()
             .filter(ra -> ra.getGrantType() == GrantType.EXCLUDED)
