@@ -676,10 +676,11 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             "someTaskType",
             UNASSIGNED,
             "987654",
-            OffsetDateTime.now().plusDays(daysUntilDue)
+            OffsetDateTime.now().plusDays(daysUntilDue).withHour(10).withMinute(0).withSecond(0).withNano(0)
         );
         taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setPriorityDate(OffsetDateTime.now().plusDays(daysUntilPriority));
+        taskResource.setPriorityDate(
+            OffsetDateTime.now().plusDays(daysUntilPriority).withHour(10).withMinute(0).withSecond(0).withNano(0));
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
         taskResource.setLastUpdatedAction("Configure");
         return taskResource;
@@ -705,10 +706,13 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             "key3", "value3",
             "key4", "value4"
         ));
-        taskResource.setReconfigureRequestTime(OffsetDateTime.now().plusDays(1));
-        taskResource.setLastReconfigurationTime(OffsetDateTime.now().plusDays(1));
+        taskResource.setReconfigureRequestTime(
+            OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0));
+        taskResource.setLastReconfigurationTime(
+            OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0));
         taskResource.setNextHearingId("W-CA-1234");
-        taskResource.setNextHearingDate(OffsetDateTime.now().plusDays(2));
+        taskResource.setNextHearingDate(
+            OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0).withSecond(0).withNano(0));
     }
 
     private TaskResource createAndSaveTask() {
