@@ -25,7 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource.JSONB;
 @TypeDefs(
     {
         @TypeDef(
-            name = TaskResource.JSONB,
+            name = JSONB,
             typeClass = JsonType.class
         )
     }

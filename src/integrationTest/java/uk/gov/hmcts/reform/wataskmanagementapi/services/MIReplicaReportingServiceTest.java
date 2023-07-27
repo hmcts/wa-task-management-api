@@ -219,13 +219,15 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
 
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals("UPDATE".equals(operation) ? 2 : 1, taskHistoryResourceList.size());
-                    TaskHistoryResource taskHistoryResource = "UPDATE".equals(operation) ? taskHistoryResourceList.get(1) : taskHistoryResourceList.get(0);
+                    TaskHistoryResource taskHistoryResource = "UPDATE".equals(operation)
+                        ? taskHistoryResourceList.get(1) : taskHistoryResourceList.get(0);
                     assertEquals(savedTaskResource.getTaskId(), taskHistoryResource.getTaskId());
                     assertEquals(savedTaskResource.getDescription(), taskHistoryResource.getDescription());
                     assertEquals(savedTaskResource.getNotes().size(), taskHistoryResource.getNotes().size());
                     assertEquals(savedTaskResource.getRegionName(), taskHistoryResource.getRegionName());
                     assertEquals(savedTaskResource.getLocationName(), taskHistoryResource.getLocationName());
-                    assertEquals(savedTaskResource.getAdditionalProperties().size(), taskHistoryResource.getAdditionalProperties().size());
+                    assertEquals(savedTaskResource.getAdditionalProperties().size(),
+                                    taskHistoryResource.getAdditionalProperties().size());
                     assertTrue(savedTaskResource.getReconfigureRequestTime()
                                    .isEqual(taskHistoryResource.getReconfigureRequestTime()));
                     assertTrue(savedTaskResource.getLastReconfigurationTime()
@@ -254,7 +256,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
                     assertEquals(savedTaskResource.getNotes().size(), reportableTaskList.get(0).getNotes().size());
                     assertEquals(savedTaskResource.getRegionName(), reportableTaskList.get(0).getRegionName());
                     assertEquals(savedTaskResource.getLocationName(), reportableTaskList.get(0).getLocationName());
-                    assertEquals(savedTaskResource.getAdditionalProperties().size(), reportableTaskList.get(0).getAdditionalProperties().size());
+                    assertEquals(savedTaskResource.getAdditionalProperties().size(),
+                                 reportableTaskList.get(0).getAdditionalProperties().size());
                     assertTrue(savedTaskResource.getReconfigureRequestTime()
                                    .isEqual(reportableTaskList.get(0).getReconfigureRequestTime()));
                     assertTrue(savedTaskResource.getLastReconfigurationTime()
@@ -733,7 +736,8 @@ class MIReplicaReportingServiceTest extends SpringBootIntegrationBaseTest {
     }
 
     private void addMissingParameters(TaskResource taskResource) {
-        taskResource.setDescription("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/trigger/decideAnApplication)");
+        taskResource.setDescription(
+            "[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/trigger/decideAnApplication)");
         List<NoteResource> notesList = new ArrayList<>();
         final NoteResource noteResource = new NoteResource(
             "someCode",
