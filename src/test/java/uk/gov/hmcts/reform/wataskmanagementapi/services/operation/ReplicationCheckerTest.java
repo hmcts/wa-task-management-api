@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
@@ -20,12 +22,15 @@ import java.util.Map;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(OutputCaptureExtension.class)
 public class ReplicationCheckerTest {
 
     @Mock
@@ -51,6 +56,16 @@ public class ReplicationCheckerTest {
         List<?> notReplicated = (List<?>) resourceMap.get("notReplicatedTaskIds");
         assertEquals(0, notReplicated.size());
         verify(cftTaskDatabaseService, times(1)).findLastFiveUpdatedTasks();
+    }
+
+    @Test
+    void should_return_empty_response_for_other_operation_type() {
+        Map<String, Object> resourceMap = replicationChecker.performOperation(new TaskOperationRequest(
+            TaskOperation.builder()
+                .type(TaskOperationType.UPDATE_SEARCH_INDEX).build(),
+            List.of())).getResponseMap();
+        assertNull(resourceMap);
+        verify(cftTaskDatabaseService, times(0)).findLastFiveUpdatedTasks();
     }
 
     @Test
@@ -93,7 +108,8 @@ public class ReplicationCheckerTest {
     }
 
     @Test
-    void should_process_replication_checker_operation_for_not_found_history_timestamp_mismatch() {
+    void should_process_replication_checker_operation_for_not_found_history_timestamp_mismatch(
+        CapturedOutput capturedOutput) {
         TaskResource resource = new TaskResource("1",
             OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "claim", "someuser");
         TaskHistoryResource history = new TaskHistoryResource("1",
@@ -117,10 +133,15 @@ public class ReplicationCheckerTest {
                 return true;
             });
 
+        assertTrue(capturedOutput.getOut().contains("TASK_REPLICATION_ERROR: Task replication not found for "
+                                                    + "[taskId: 1, "
+                                                    + "lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
+                                                    + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"));
     }
 
     @Test
-    void should_process_replication_checker_operation_for_not_found_history_action_mismatch() {
+    void should_process_replication_checker_operation_for_not_found_history_action_mismatch(
+        CapturedOutput capturedOutput) {
         TaskResource resource = new TaskResource("1",
             OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "claim", "someuser");
         TaskHistoryResource history = new TaskHistoryResource("1",
@@ -144,10 +165,15 @@ public class ReplicationCheckerTest {
                 return true;
             });
 
+        assertTrue(capturedOutput.getOut().contains("TASK_REPLICATION_ERROR: Task replication not found for "
+                                                    + "[taskId: 1, "
+                                                    + "lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
+                                                    + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"));
     }
 
     @Test
-    void should_process_replication_checker_operation_for_not_found_history_user_mismatch() {
+    void should_process_replication_checker_operation_for_not_found_history_user_mismatch(
+        CapturedOutput capturedOutput) {
         TaskResource resource = new TaskResource("1",
             OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "claim", "someuser");
         TaskHistoryResource history = new TaskHistoryResource("1",
@@ -171,6 +197,10 @@ public class ReplicationCheckerTest {
                 return true;
             });
 
+        assertTrue(capturedOutput.getOut().contains("TASK_REPLICATION_ERROR: Task replication not found for "
+                                                    + "[taskId: 1, "
+                                                    + "lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
+                                                    + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"));
     }
 
     @Test
@@ -207,7 +237,8 @@ public class ReplicationCheckerTest {
     }
 
     @Test
-    void should_process_replication_checker_operation_for_not_found_history_multiple_tasks() {
+    void should_process_replication_checker_operation_for_not_found_history_multiple_tasks(
+        CapturedOutput capturedOutput) {
         TaskResource resource = new TaskResource("1", OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"),
             "claim", "someuser");
         TaskResource resource1 = new TaskResource("2", OffsetDateTime.parse("2021-05-09T20:15:30.345875+01:00"),
@@ -240,6 +271,11 @@ public class ReplicationCheckerTest {
                 verify(miReportingService, atLeast(2)).findByTaskIdOrderByLatestUpdate("3");
                 return true;
             });
+
+        assertTrue(capturedOutput.getOut().contains("TASK_REPLICATION_ERROR: Task replication not found for "
+                                                    + "[taskId: 3, "
+                                                    + "lastUpdatedTimestamp: 2021-05-09T20:15:20.345875+01:00, "
+                                                    + "lastUpdatedAction: assign, lastUpdatedUser: seconduser]"));
     }
 
 }
