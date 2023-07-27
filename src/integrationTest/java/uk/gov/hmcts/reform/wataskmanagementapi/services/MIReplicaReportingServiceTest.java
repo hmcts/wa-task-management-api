@@ -140,19 +140,45 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                              taskHistoryResource.toString());
 
                     assertEquals(savedTaskResource.getTaskId(), taskHistoryResource.getTaskId());
+                    log.info("savedTaskResource description {} and taskHistoryResource description {}",
+                             savedTaskResource.getDescription(), taskHistoryResource.getDescription());
                     assertEquals(savedTaskResource.getDescription(), taskHistoryResource.getDescription());
+                    log.info("savedTaskResource notes size {} and taskHistoryResource notes size {}",
+                             savedTaskResource.getNotes().size(), taskHistoryResource.getNotes().size());
                     assertEquals(savedTaskResource.getNotes().size(), taskHistoryResource.getNotes().size());
+                    log.info("savedTaskResource regionName {} and taskHistoryResource regionName {}",
+                             savedTaskResource.getRegionName(), taskHistoryResource.getRegionName());
                     assertEquals(savedTaskResource.getRegionName(), taskHistoryResource.getRegionName());
+                    log.info("savedTaskResource locationName {} and taskHistoryResource locationName {}",
+                             savedTaskResource.getLocationName(), taskHistoryResource.getLocationName());
                     assertEquals(savedTaskResource.getLocationName(), taskHistoryResource.getLocationName());
+                    log.info("savedTaskResource props size {} and taskHistoryResource props size {}",
+                             savedTaskResource.getAdditionalProperties().size(),
+                             taskHistoryResource.getAdditionalProperties().size());
                     assertEquals(savedTaskResource.getAdditionalProperties().size(),
                                     taskHistoryResource.getAdditionalProperties().size());
+                    log.info("savedTaskResource reconf request time {} and taskHistoryResource reconf req time {}",
+                             savedTaskResource.getReconfigureRequestTime(),
+                             taskHistoryResource.getReconfigureRequestTime());
                     assertTrue(savedTaskResource.getReconfigureRequestTime()
                                    .isEqual(taskHistoryResource.getReconfigureRequestTime()));
+                    log.info("savedTaskResource last reconf time {} and taskHistoryResource last reconf time {}",
+                             savedTaskResource.getLastReconfigurationTime(),
+                             taskHistoryResource.getLastReconfigurationTime());
                     assertTrue(savedTaskResource.getLastReconfigurationTime()
                                    .isEqual(taskHistoryResource.getLastReconfigurationTime()));
+                    log.info("savedTaskResource next hearing id {} and taskHistoryResource next hearing id {}",
+                             savedTaskResource.getNextHearingId(),
+                             taskHistoryResource.getNextHearingId());
                     assertEquals(savedTaskResource.getNextHearingId(), taskHistoryResource.getNextHearingId());
+                    log.info("savedTaskResource next hearing date {} and taskHistoryResource next hearing date {}",
+                             savedTaskResource.getNextHearingDate(),
+                             taskHistoryResource.getNextHearingDate());
                     assertTrue(savedTaskResource.getNextHearingDate()
                                    .isEqual(taskHistoryResource.getNextHearingDate()));
+                    log.info("savedTaskResource priority date {} and taskHistoryResource priority date {}",
+                             savedTaskResource.getPriorityDate(),
+                             taskHistoryResource.getPriorityDate());
                     assertTrue(savedTaskResource.getPriorityDate()
                                    .isEqual(taskHistoryResource.getPriorityDate()));
 
