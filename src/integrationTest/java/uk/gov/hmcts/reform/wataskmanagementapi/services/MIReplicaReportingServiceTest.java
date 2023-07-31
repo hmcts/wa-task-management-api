@@ -139,21 +139,38 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(savedTaskResource.getTaskId(), taskHistoryResource.getTaskId());
                     assertEquals(savedTaskResource.getDescription(), taskHistoryResource.getDescription(),
                                  "Discription should match");
+                    log.info("Discription should match : {}, {}" ,
+                             savedTaskResource.getDescription(), taskHistoryResource.getDescription());
                     assertEquals(savedTaskResource.getRegionName(), taskHistoryResource.getRegionName(),
                                  "RegionName should match");
+                    log.info("RegionName should match : {}, {} " ,
+                             savedTaskResource.getRegionName(), taskHistoryResource.getRegionName());
                     assertEquals(savedTaskResource.getLocationName(), taskHistoryResource.getLocationName(),
                                  "LocationName should match");
+                    log.info("LocationName should match : {}, {} " ,
+                             savedTaskResource.getLocationName(), taskHistoryResource.getLocationName());
                     assertEquals(savedTaskResource.getNotes(), taskHistoryResource.getNotes(),
                                  "Notes should match");
+                    log.info("Notes should match : {}, {} " ,
+                             savedTaskResource.getNotes(), taskHistoryResource.getNotes());
                     assertEquals(savedTaskResource.getAdditionalProperties(),
                                    taskHistoryResource.getAdditionalProperties(),
                                  "Additional Properties should match");
+                    log.info("Additional Properties should match : {}, {} " ,
+                             savedTaskResource.getAdditionalProperties(),
+                             taskHistoryResource.getAdditionalProperties());
                     assertEquals(savedTaskResource.getReconfigureRequestTime(),
                                    taskHistoryResource.getReconfigureRequestTime(),
                                    "Reconfiguration Request Time should match");
+                    log.info("Reconfiguration Request Time should match : {}, {} " ,
+                             savedTaskResource.getReconfigureRequestTime(),
+                             taskHistoryResource.getReconfigureRequestTime());
                     assertEquals(savedTaskResource.getLastReconfigurationTime(),
                                    taskHistoryResource.getLastReconfigurationTime(),
                                  "Last Reconfiguration Time should match");
+                    log.info("Last Reconfiguration Time should match : {}, {} " ,
+                             savedTaskResource.getLastReconfigurationTime(),
+                             taskHistoryResource.getLastReconfigurationTime());
                     assertEquals(savedTaskResource.getNextHearingId(), taskHistoryResource.getNextHearingId(),
                                  "NextHearingID should match");
                     assertEquals(savedTaskResource.getNextHearingDate(),
