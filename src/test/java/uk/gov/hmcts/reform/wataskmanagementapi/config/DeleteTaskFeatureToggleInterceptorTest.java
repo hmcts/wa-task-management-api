@@ -8,9 +8,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static com.microsoft.applicationinsights.core.dependencies.http.HttpStatus.SC_SERVICE_UNAVAILABLE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,7 +28,7 @@ class DeleteTaskFeatureToggleInterceptorTest {
     private DeleteTaskFeatureToggleInterceptor deleteTaskFeatureToggleInterceptor;
 
     @Test
-    void shouldReturnTrueWhenDeleteTaskEndpointIsEnabled() {
+    void shouldReturnTrueWhenDeleteTaskEndpointIsEnabled() throws IOException {
         final HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
         final HttpServletResponse httpServletResponse = new MockHttpServletResponse();
         final Object object = mock(Object.class);
@@ -42,7 +44,7 @@ class DeleteTaskFeatureToggleInterceptorTest {
     }
 
     @Test
-    void shouldReturnFalseWhenDeleteTaskEndpointIsDisabled() {
+    void shouldReturnFalseWhenDeleteTaskEndpointIsDisabled() throws IOException {
         final HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
         final HttpServletResponse httpServletResponse = new MockHttpServletResponse();
         final Object object = mock(Object.class);
@@ -54,6 +56,7 @@ class DeleteTaskFeatureToggleInterceptorTest {
         final boolean isValidRequest = deleteTaskFeatureToggleInterceptor
                 .preHandle(httpServletRequest, httpServletResponse, object);
 
+        assertThat(httpServletResponse.getStatus()).isEqualTo(SC_SERVICE_UNAVAILABLE);
         assertThat(isValidRequest).isEqualTo(false);
     }
 }
