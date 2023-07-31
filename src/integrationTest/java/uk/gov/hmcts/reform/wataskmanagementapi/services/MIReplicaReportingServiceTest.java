@@ -137,21 +137,31 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     TaskHistoryResource taskHistoryResource = "UPDATE".equals(operation)
                         ? taskHistoryResourceList.get(1) : taskHistoryResourceList.get(0);
                     assertEquals(savedTaskResource.getTaskId(), taskHistoryResource.getTaskId());
-                    assertEquals(savedTaskResource.getDescription(), taskHistoryResource.getDescription());
-                    assertEquals(savedTaskResource.getRegionName(), taskHistoryResource.getRegionName());
-                    assertEquals(savedTaskResource.getLocationName(), taskHistoryResource.getLocationName());
-                    assertEquals(savedTaskResource.getNotes(), taskHistoryResource.getNotes());
+                    assertEquals(savedTaskResource.getDescription(), taskHistoryResource.getDescription(),
+                                 "Discription should match");
+                    assertEquals(savedTaskResource.getRegionName(), taskHistoryResource.getRegionName(),
+                                 "RegionName should match");
+                    assertEquals(savedTaskResource.getLocationName(), taskHistoryResource.getLocationName(),
+                                 "LocationName should match");
+                    assertEquals(savedTaskResource.getNotes(), taskHistoryResource.getNotes(),
+                                 "Notes should match");
                     assertEquals(savedTaskResource.getAdditionalProperties(),
-                                   taskHistoryResource.getAdditionalProperties());
+                                   taskHistoryResource.getAdditionalProperties(),
+                                 "Additional Properties should match");
                     assertEquals(savedTaskResource.getReconfigureRequestTime(),
-                                   taskHistoryResource.getReconfigureRequestTime());
+                                   taskHistoryResource.getReconfigureRequestTime(),
+                                   "Reconfiguration Request Time should match");
                     assertEquals(savedTaskResource.getLastReconfigurationTime(),
-                                   taskHistoryResource.getLastReconfigurationTime());
-                    assertEquals(savedTaskResource.getNextHearingId(), taskHistoryResource.getNextHearingId());
+                                   taskHistoryResource.getLastReconfigurationTime(),
+                                 "Last Reconfiguration Time should match");
+                    assertEquals(savedTaskResource.getNextHearingId(), taskHistoryResource.getNextHearingId(),
+                                 "NextHearingID should match");
                     assertEquals(savedTaskResource.getNextHearingDate(),
-                                   taskHistoryResource.getNextHearingDate());
+                                   taskHistoryResource.getNextHearingDate(),
+                                 "Next Hearing Data should Match");
                     assertEquals(savedTaskResource.getPriorityDate(),
-                                   taskHistoryResource.getPriorityDate());
+                                   taskHistoryResource.getPriorityDate(),
+                                 "Get Priority Date should match");
 
                     return true;
                 });
@@ -163,9 +173,14 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
                         = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+                    log.info("Operation {} and reportableTaskList size {}", operation,
+                             reportableTaskList.size());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
+
+                    log.info("Operation {} and reportableTask {}", operation,
+                             reportableTaskList.get(0).toString());
 
                     assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(savedTaskResource.getDescription(), reportableTaskList.get(0).getDescription());
