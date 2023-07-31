@@ -100,10 +100,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "ADD",
-        "UPDATE"
+        "ADD, false",
+        "UPDATE, false",
+        "ADD, true",
+        "UPDATE, true"
     })
-    void should_save_task_and_get_task_from_replica_tables_with_new_columns(String operation) {
+    void should_save_task_and_get_task_from_replica_tables_with_new_columns(String operation, boolean required) {
         TaskResource taskResource;
         if ("UPDATE".equals(operation)) {
             taskResource = createAndSaveTask();
@@ -116,7 +118,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             taskResource = buildTaskResource(3,5);
         }
 
-        addMissingParameters(taskResource);
+        addMissingParameters(taskResource, required);
 
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
         log.info("Operation {} and saved taskResource", operation);
@@ -136,20 +138,20 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                         ? taskHistoryResourceList.get(1) : taskHistoryResourceList.get(0);
                     assertEquals(savedTaskResource.getTaskId(), taskHistoryResource.getTaskId());
                     assertEquals(savedTaskResource.getDescription(), taskHistoryResource.getDescription());
-                    assertEquals(savedTaskResource.getNotes().size(), taskHistoryResource.getNotes().size());
                     assertEquals(savedTaskResource.getRegionName(), taskHistoryResource.getRegionName());
                     assertEquals(savedTaskResource.getLocationName(), taskHistoryResource.getLocationName());
-                    assertEquals(savedTaskResource.getAdditionalProperties().size(),
-                                    taskHistoryResource.getAdditionalProperties().size());
-                    assertTrue(savedTaskResource.getReconfigureRequestTime()
-                                   .isEqual(taskHistoryResource.getReconfigureRequestTime()));
-                    assertTrue(savedTaskResource.getLastReconfigurationTime()
-                                   .isEqual(taskHistoryResource.getLastReconfigurationTime()));
+                    assertEquals(savedTaskResource.getNotes(), taskHistoryResource.getNotes());
+                    assertEquals(savedTaskResource.getAdditionalProperties(),
+                                   taskHistoryResource.getAdditionalProperties());
+                    assertEquals(savedTaskResource.getReconfigureRequestTime(),
+                                   taskHistoryResource.getReconfigureRequestTime());
+                    assertEquals(savedTaskResource.getLastReconfigurationTime(),
+                                   taskHistoryResource.getLastReconfigurationTime());
                     assertEquals(savedTaskResource.getNextHearingId(), taskHistoryResource.getNextHearingId());
-                    assertTrue(savedTaskResource.getNextHearingDate()
-                                   .isEqual(taskHistoryResource.getNextHearingDate()));
-                    assertTrue(savedTaskResource.getPriorityDate()
-                                   .isEqual(taskHistoryResource.getPriorityDate()));
+                    assertEquals(savedTaskResource.getNextHearingDate(),
+                                   taskHistoryResource.getNextHearingDate());
+                    assertEquals(savedTaskResource.getPriorityDate(),
+                                   taskHistoryResource.getPriorityDate());
 
                     return true;
                 });
@@ -167,20 +169,20 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
                     assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(savedTaskResource.getDescription(), reportableTaskList.get(0).getDescription());
-                    assertEquals(savedTaskResource.getNotes().size(), reportableTaskList.get(0).getNotes().size());
                     assertEquals(savedTaskResource.getRegionName(), reportableTaskList.get(0).getRegionName());
                     assertEquals(savedTaskResource.getLocationName(), reportableTaskList.get(0).getLocationName());
-                    assertEquals(savedTaskResource.getAdditionalProperties().size(),
-                                 reportableTaskList.get(0).getAdditionalProperties().size());
-                    assertTrue(savedTaskResource.getReconfigureRequestTime()
-                                   .isEqual(reportableTaskList.get(0).getReconfigureRequestTime()));
-                    assertTrue(savedTaskResource.getLastReconfigurationTime()
-                                   .isEqual(reportableTaskList.get(0).getLastReconfigurationTime()));
+                    assertEquals(savedTaskResource.getNotes(), reportableTaskList.get(0).getNotes());
+                    assertEquals(savedTaskResource.getAdditionalProperties(),
+                                 reportableTaskList.get(0).getAdditionalProperties());
+                    assertEquals(savedTaskResource.getReconfigureRequestTime(),
+                                   reportableTaskList.get(0).getReconfigureRequestTime());
+                    assertEquals(savedTaskResource.getLastReconfigurationTime(),
+                                   reportableTaskList.get(0).getLastReconfigurationTime());
                     assertEquals(savedTaskResource.getNextHearingId(), reportableTaskList.get(0).getNextHearingId());
-                    assertTrue(savedTaskResource.getNextHearingDate()
-                                   .isEqual(reportableTaskList.get(0).getNextHearingDate()));
-                    assertTrue(savedTaskResource.getPriorityDate()
-                                   .isEqual(reportableTaskList.get(0).getPriorityDate()));
+                    assertEquals(savedTaskResource.getNextHearingDate(),
+                                   reportableTaskList.get(0).getNextHearingDate());
+                    assertEquals(savedTaskResource.getPriorityDate(),
+                                   reportableTaskList.get(0).getPriorityDate());
 
                     return true;
                 });
@@ -650,9 +652,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         return taskResource;
     }
 
-    private void addMissingParameters(TaskResource taskResource) {
-        taskResource.setDescription(
-            "[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/trigger/decideAnApplication)");
+    private void addMissingParameters(TaskResource taskResource, boolean required) {
+        taskResource.setDescription(required ?
+            "[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/trigger/decideAnApplication)": null);
         List<NoteResource> notesList = new ArrayList<>();
         final NoteResource noteResource = new NoteResource(
             "someCode",
@@ -661,22 +663,22 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             "someContent"
         );
         notesList.add(noteResource);
-        taskResource.setNotes(notesList);
-        taskResource.setRegion("Wales");
-        taskResource.setLocationName("Cardiff");
-        taskResource.setAdditionalProperties(Map.of(
+        taskResource.setNotes(required ? notesList : null);
+        taskResource.setRegion(required ? "Wales" : null);
+        taskResource.setLocationName(required ? "Cardiff" : null);
+        taskResource.setAdditionalProperties(required ? Map.of(
             "key1", "value1",
             "key2", "value2",
             "key3", "value3",
             "key4", "value4"
-        ));
-        taskResource.setReconfigureRequestTime(
-            OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0));
-        taskResource.setLastReconfigurationTime(
-            OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0));
-        taskResource.setNextHearingId("W-CA-1234");
-        taskResource.setNextHearingDate(
-            OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0).withSecond(0).withNano(0));
+        ) : null);
+        taskResource.setReconfigureRequestTime(required ?
+            OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0) : null);
+        taskResource.setLastReconfigurationTime(required ?
+            OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0) : null);
+        taskResource.setNextHearingId(required ? "W-CA-1234" : null);
+        taskResource.setNextHearingDate(required ?
+            OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0).withSecond(0).withNano(0) :  null);
     }
 
     private TaskResource createAndSaveTask() {
