@@ -653,8 +653,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     }
 
     private void addMissingParameters(TaskResource taskResource, boolean required) {
-        taskResource.setDescription(required ?
-            "[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/trigger/decideAnApplication)": null);
+        taskResource.setDescription(required
+            ? "[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/trigger/decideAnApplication)" : null);
         List<NoteResource> notesList = new ArrayList<>();
         final NoteResource noteResource = new NoteResource(
             "someCode",
@@ -672,13 +672,13 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             "key3", "value3",
             "key4", "value4"
         ) : null);
-        taskResource.setReconfigureRequestTime(required ?
-            OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0) : null);
-        taskResource.setLastReconfigurationTime(required ?
-            OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0) : null);
+        taskResource.setReconfigureRequestTime(required
+            ? OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0) : null);
+        taskResource.setLastReconfigurationTime(required
+            ? OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0) : null);
         taskResource.setNextHearingId(required ? "W-CA-1234" : null);
-        taskResource.setNextHearingDate(required ?
-            OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0).withSecond(0).withNano(0) :  null);
+        taskResource.setNextHearingDate(required
+            ? OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0).withSecond(0).withNano(0) :  null);
     }
 
     private TaskResource createAndSaveTask() {
