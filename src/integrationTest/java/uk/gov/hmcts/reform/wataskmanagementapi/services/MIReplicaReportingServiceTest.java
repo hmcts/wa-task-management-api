@@ -108,7 +108,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     void should_save_task_and_get_task_from_replica_tables_with_new_columns(String operation, boolean required) {
         TaskResource taskResource;
         if ("UPDATE".equals(operation)) {
-            taskResource = createAndSaveTask();
+            taskResource = buildTaskResource(3,5);
+            taskResource = taskResourceRepository.save(taskResource);
             checkHistory(taskResource.getTaskId(), 1);
             log.info("Operation UPDATE and Check History Done with 1 record");
             taskResource.setState(CFTTaskState.COMPLETED);
