@@ -94,7 +94,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         assertThat(tasks.get(1).getTaskId()).isEqualTo(taskId2);
         assertThat(tasks.get(2).getTaskId()).isEqualTo(taskId3);
 
-
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
 
@@ -116,6 +116,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void shouldReturnBadResponseError() throws Exception {
         final String caseId = "123";
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
         mockMvc.perform(
@@ -131,6 +133,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void shouldReturnForbiddenResponseError() throws Exception {
         final String caseId = "1615817621013640";
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(false);
         mockMvc.perform(
