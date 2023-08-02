@@ -9,6 +9,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskAssignmentsResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
@@ -16,7 +17,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -90,6 +93,129 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(taskResource.getState().toString(), reportableTaskList.get(0).getState());
                     assertEquals(taskResource.getLastUpdatedUser(), reportableTaskList.get(0).getUpdatedBy());
                     assertEquals(taskResource.getLastUpdatedAction(), reportableTaskList.get(0).getUpdateAction());
+
+                    return true;
+                });
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "ADD, false",
+        "UPDATE, false",
+        "ADD, true",
+        "UPDATE, true"
+    })
+    void should_save_task_and_get_task_from_replica_tables_with_new_columns(String operation, boolean required) {
+        TaskResource taskResource;
+        if ("UPDATE".equals(operation)) {
+            taskResource = buildTaskResource(3,5);
+            taskResource = taskResourceRepository.save(taskResource);
+            checkHistory(taskResource.getTaskId(), 1);
+            log.info("Operation UPDATE and Check History Done with 1 record");
+            taskResource.setState(CFTTaskState.COMPLETED);
+            taskResource.setLastUpdatedAction("AutoAssign");
+            taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+        } else {
+            taskResource = buildTaskResource(3,5);
+        }
+
+        addMissingParameters(taskResource, required);
+
+        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
+        log.info("Operation {} and saved taskResource", operation);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskHistoryResource> taskHistoryResourceList
+                        = miReportingServiceForTest.findByTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(taskHistoryResourceList.isEmpty());
+                    assertEquals("UPDATE".equals(operation) ? 2 : 1, taskHistoryResourceList.size());
+
+                    TaskHistoryResource taskHistoryResource = "UPDATE".equals(operation)
+                        ? taskHistoryResourceList.get(1) : taskHistoryResourceList.get(0);
+                    assertEquals(savedTaskResource.getTaskId(), taskHistoryResource.getTaskId());
+                    assertEquals(savedTaskResource.getDescription(), taskHistoryResource.getDescription(),
+                                 "Discription should match");
+                    log.info("Discription should match : {}, {}",
+                             savedTaskResource.getDescription(), taskHistoryResource.getDescription());
+                    assertEquals(savedTaskResource.getRegionName(), taskHistoryResource.getRegionName(),
+                                 "RegionName should match");
+                    log.info("RegionName should match : {}, {} ",
+                             savedTaskResource.getRegionName(), taskHistoryResource.getRegionName());
+                    assertEquals(savedTaskResource.getLocationName(), taskHistoryResource.getLocationName(),
+                                 "LocationName should match");
+                    log.info("LocationName should match : {}, {} ",
+                             savedTaskResource.getLocationName(), taskHistoryResource.getLocationName());
+                    assertEquals(savedTaskResource.getNotes(), taskHistoryResource.getNotes(),
+                                 "Notes should match");
+                    log.info("Notes should match : {}, {} ",
+                             savedTaskResource.getNotes(), taskHistoryResource.getNotes());
+                    assertEquals(savedTaskResource.getAdditionalProperties(),
+                                   taskHistoryResource.getAdditionalProperties(),
+                                 "Additional Properties should match");
+                    log.info("Additional Properties should match : {}, {} ",
+                             savedTaskResource.getAdditionalProperties(),
+                             taskHistoryResource.getAdditionalProperties());
+                    assertEquals(savedTaskResource.getReconfigureRequestTime(),
+                                   taskHistoryResource.getReconfigureRequestTime(),
+                                   "Reconfiguration Request Time should match");
+                    log.info("Reconfiguration Request Time should match : {}, {} ",
+                             savedTaskResource.getReconfigureRequestTime(),
+                             taskHistoryResource.getReconfigureRequestTime());
+                    assertEquals(savedTaskResource.getLastReconfigurationTime(),
+                                   taskHistoryResource.getLastReconfigurationTime(),
+                                 "Last Reconfiguration Time should match");
+                    log.info("Last Reconfiguration Time should match : {}, {} ",
+                             savedTaskResource.getLastReconfigurationTime(),
+                             taskHistoryResource.getLastReconfigurationTime());
+                    assertEquals(savedTaskResource.getNextHearingId(), taskHistoryResource.getNextHearingId(),
+                                 "NextHearingID should match");
+                    assertEquals(savedTaskResource.getNextHearingDate(),
+                                   taskHistoryResource.getNextHearingDate(),
+                                 "Next Hearing Data should Match");
+                    assertEquals(savedTaskResource.getPriorityDate(),
+                                   taskHistoryResource.getPriorityDate(),
+                                 "Get Priority Date should match");
+
+                    return true;
+                });
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+                    log.info("Operation {} and reportableTaskList size {}", operation,
+                             reportableTaskList.size());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+
+                    log.info("Operation {} and reportableTask {}", operation,
+                             reportableTaskList.get(0).toString());
+
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(savedTaskResource.getDescription(), reportableTaskList.get(0).getDescription());
+                    assertEquals(savedTaskResource.getRegionName(), reportableTaskList.get(0).getRegionName());
+                    assertEquals(savedTaskResource.getLocationName(), reportableTaskList.get(0).getLocationName());
+                    assertEquals(savedTaskResource.getNotes(), reportableTaskList.get(0).getNotes());
+                    assertEquals(savedTaskResource.getAdditionalProperties(),
+                                 reportableTaskList.get(0).getAdditionalProperties());
+                    assertEquals(savedTaskResource.getReconfigureRequestTime(),
+                                   reportableTaskList.get(0).getReconfigureRequestTime());
+                    assertEquals(savedTaskResource.getLastReconfigurationTime(),
+                                   reportableTaskList.get(0).getLastReconfigurationTime());
+                    assertEquals(savedTaskResource.getNextHearingId(), reportableTaskList.get(0).getNextHearingId());
+                    assertEquals(savedTaskResource.getNextHearingDate(),
+                                   reportableTaskList.get(0).getNextHearingDate());
+                    assertEquals(savedTaskResource.getPriorityDate(),
+                                   reportableTaskList.get(0).getPriorityDate());
 
                     return true;
                 });
@@ -549,13 +675,43 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             "someTaskType",
             UNASSIGNED,
             "987654",
-            OffsetDateTime.now().plusDays(daysUntilDue)
+            OffsetDateTime.now().plusDays(daysUntilDue).withHour(10).withMinute(0).withSecond(0).withNano(0)
         );
         taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setPriorityDate(OffsetDateTime.now().plusDays(daysUntilPriority));
+        taskResource.setPriorityDate(
+            OffsetDateTime.now().plusDays(daysUntilPriority).withHour(10).withMinute(0).withSecond(0).withNano(0));
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
         taskResource.setLastUpdatedAction("Configure");
         return taskResource;
+    }
+
+    private void addMissingParameters(TaskResource taskResource, boolean required) {
+        taskResource.setDescription(required
+            ? "[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/trigger/decideAnApplication)" : null);
+        List<NoteResource> notesList = new ArrayList<>();
+        final NoteResource noteResource = new NoteResource(
+            "someCode",
+            "noteTypeVal",
+            "userVal",
+            "someContent"
+        );
+        notesList.add(noteResource);
+        taskResource.setNotes(required ? notesList : null);
+        taskResource.setRegion(required ? "Wales" : null);
+        taskResource.setLocationName(required ? "Cardiff" : null);
+        taskResource.setAdditionalProperties(required ? Map.of(
+            "key1", "value1",
+            "key2", "value2",
+            "key3", "value3",
+            "key4", "value4"
+        ) : null);
+        taskResource.setReconfigureRequestTime(required
+            ? OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0) : null);
+        taskResource.setLastReconfigurationTime(required
+            ? OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0) : null);
+        taskResource.setNextHearingId(required ? "W-CA-1234" : null);
+        taskResource.setNextHearingDate(required
+            ? OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0).withSecond(0).withNano(0) :  null);
     }
 
     private TaskResource createAndSaveTask() {
