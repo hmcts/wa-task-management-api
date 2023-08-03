@@ -107,12 +107,7 @@ module "wa_task_management_api_database_flexible_replica" {
       name : var.postgresql_database_name
     }
   ]
-  pgsql_server_configuration = [
-    {
-      name  = "wal_level"
-      value = "logical"
-    }
-  ]
+  
   pgsql_version      = 14
   common_tags        = local.common_tags
 

@@ -84,7 +84,7 @@ class MIReportingServiceTest {
         when(taskResourceRepository.countPublications()).thenReturn(1);
         when(taskResourceRepository.countPublicationTables()).thenReturn(1);
         when(taskResourceRepository.showWalLevel()).thenReturn("logical");
-        when(reportableTaskMock.showWalLevel()).thenReturn("logical");
+        when(reportableTaskMock.showWalLevel()).thenReturn("replica");
 
         SubscriptionCreator subscriptionCreator = mock(SubscriptionCreator.class);
 
@@ -164,7 +164,7 @@ class MIReportingServiceTest {
         when(taskResourceRepository.countReplicationSlots()).thenReturn(1);
         when(taskResourceRepository.countPublications()).thenReturn(0);
         when(taskResourceRepository.showWalLevel()).thenReturn("logical");
-        when(reportableTaskMock.showWalLevel()).thenReturn("logical");
+        when(reportableTaskMock.showWalLevel()).thenReturn("replica");
         TaskHistoryResourceRepository taskHistoryResourceRepository = mock(TaskHistoryResourceRepository.class);
         when(taskHistoryResourceRepository.countSubscriptions()).thenReturn(0);
         SubscriptionCreator subscriptionCreator = mock(SubscriptionCreator.class);
@@ -188,7 +188,7 @@ class MIReportingServiceTest {
 
         when(taskResourceRepository.countReplicationSlots()).thenReturn(0);
         when(taskResourceRepository.showWalLevel()).thenReturn("logical");
-        when(reportableTaskMock.showWalLevel()).thenReturn("logical");
+        when(reportableTaskMock.showWalLevel()).thenReturn("replica");
 
         SubscriptionCreator subscriptionCreator = mock(SubscriptionCreator.class);
         miReportingService = new MIReportingService(null,
@@ -203,13 +203,12 @@ class MIReportingServiceTest {
     }
 
     @Test
-    void should_return_if_wal_level_is_not_logical() {
+    void should_return_if_primary_wal_level_is_not_logical() {
         TaskResourceRepository taskResourceRepository = mock(TaskResourceRepository.class);
         ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
 
         when(taskResourceRepository.countReplicationSlots()).thenReturn(0);
         when(taskResourceRepository.showWalLevel()).thenReturn("replica");
-        when(reportableTaskMock.showWalLevel()).thenReturn("replica");
 
         miReportingService = new MIReportingService(null,
             taskResourceRepository,
@@ -222,7 +221,6 @@ class MIReportingServiceTest {
         verify(taskResourceRepository, times(0)).createReplicationSlot();
         verify(taskResourceRepository, times(0)).createPublication();
         verify(taskResourceRepository, times(2)).showWalLevel();
-        verify(reportableTaskMock, times(1)).showWalLevel();
 
     }
 
