@@ -67,12 +67,9 @@ public class MIReportingService {
         Objects.requireNonNull(taskResourceRepository, "Primary Task DB repo is null.");
         Objects.requireNonNull(taskResourceRepository, "Replica Task DB repo is null.");
 
-        if (!taskResourceRepository.showWalLevel().equals(WAL_LEVEL)
-            || !reportableTaskRepository.showWalLevel().equals(WAL_LEVEL)) {
-
-            log.error("WAL LEVEL for primary DB; {}, replicaDB: {}.  These must be set to logical",
-                taskResourceRepository.showWalLevel(),
-                reportableTaskRepository.showWalLevel());
+        if (!taskResourceRepository.showWalLevel().equals(WAL_LEVEL)) {
+            log.error("WAL LEVEL for primaryDB: {}. This must be set to logical for replication to work.",
+                taskResourceRepository.showWalLevel());
             return;
         }
 
