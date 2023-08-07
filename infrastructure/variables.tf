@@ -52,3 +52,11 @@ variable "business_area" {
 variable jenkins_AAD_objectId {}
 
 variable aks_subscription_id {}
+
+variable "enable_alerts" {
+  default = false
+}
+
+variable "application_name" {
+  default = "wa-task-management"
+}

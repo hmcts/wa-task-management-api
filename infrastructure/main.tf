@@ -24,6 +24,11 @@ data "azurerm_key_vault_secret" "s2s_secret" {
   name         = "microservicekey-wa-task-management-api"
 }
 
+data "azurerm_key_vault_secret" "wa-support-email" {
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+  name         = "wa-support-email"
+}
+
 resource "azurerm_key_vault_secret" "s2s_secret_task_management_api" {
   name         = "s2s-secret-task-management-api"
   value        = data.azurerm_key_vault_secret.s2s_secret.value
@@ -107,7 +112,7 @@ module "wa_task_management_api_database_flexible_replica" {
       name : var.postgresql_database_name
     }
   ]
-  
+
   pgsql_version      = 14
   common_tags        = local.common_tags
 
