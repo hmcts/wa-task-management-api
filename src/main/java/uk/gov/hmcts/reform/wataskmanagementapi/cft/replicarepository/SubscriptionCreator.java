@@ -32,8 +32,9 @@ public class SubscriptionCreator {
     String replicaPassword;
     String primaryUser;
     String primaryPassword;
-    private static final String REFRESH_SUBSCRIPTION = "ALTER SUBSCRIPTION task_subscription REFRESH PUBLICATION;";
+    String primaryClusterHostName;
 
+    private static final String REFRESH_SUBSCRIPTION = "ALTER SUBSCRIPTION task_subscription REFRESH PUBLICATION;";
     private static final String AND_PASSWORD = "&password=";
     private static final String AND_USER = "?user=";
 
@@ -41,11 +42,13 @@ public class SubscriptionCreator {
     public SubscriptionCreator(@Value("${replication.username}") String replicaUser,
                                @Value("${replication.password}") String replicaPassword,
                                @Value("${primary.username}") String primaryUser,
-                               @Value("${primary.password}") String primaryPassword) {
+                               @Value("${primary.password}") String primaryPassword,
+                               @Value("${primary.cluster-host-name}") String primaryClusterHostName){
         this.replicaUser = replicaUser;
         this.replicaPassword = replicaPassword;
         this.primaryUser = primaryUser;
         this.primaryPassword = primaryPassword;
+        this.primaryClusterHostName = primaryClusterHostName;
     }
 
     public void createSubscription() {
@@ -91,6 +94,12 @@ public class SubscriptionCreator {
             subscriptionUrl = "postgresql://" + "cft_task_db" + ":" + "5432" + "/" + dbName
                 + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
         }
+        //to support mac max v1 v2 chips with random db ports
+        if ("ccd-shared-database".equals(host)) {
+            //the below primaryClusterHostName is minikube ip
+            subscriptionUrl = "postgresql://" + primaryClusterHostName + ":" + port + "/" + dbName
+                + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
+        }
 
         log.info("subscriptionUrl = " + subscriptionUrl
             .substring(0, subscriptionUrl.length() - primaryPassword.length()));
@@ -100,7 +109,6 @@ public class SubscriptionCreator {
 
         sendToDatabase(replicaUrl,sql);
     }
-
 
     private void sendToDatabase(String replicaUrl, String sql) {
         try (Connection subscriptionConn = DriverManager.getConnection(replicaUrl);

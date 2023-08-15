@@ -617,7 +617,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResourceRepository mocktaskResourceRepository = mock(TaskResourceRepository.class);
         when(mocktaskResourceRepository.countPublications()).thenReturn(0);
         subscriptionCreatorForTest = new SubscriptionCreator(TEST_REPLICA_DB_USER, TEST_REPLICA_DB_PASS,
-            TEST_PRIMARY_DB_USER, TEST_PRIMARY_DB_PASS);
+            TEST_PRIMARY_DB_USER, TEST_PRIMARY_DB_PASS, TEST_PRIMARY_CLUSTER_HOST);
         MIReportingService service = new MIReportingService(null, mocktaskResourceRepository,
             reportableTaskRepository,
             taskAssignmentsRepository,

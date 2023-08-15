@@ -77,6 +77,7 @@ replication:
 primary:
   username: ${POSTGRES_USERNAME:wa_user}
   password: ${POSTGRES_PASSWORD:wa_password}
+  cluster-host-name: ${POSTGRES_CLUSTER_HOST:192.168.49.2}
 
 spring:
   config:

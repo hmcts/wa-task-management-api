@@ -26,7 +26,7 @@ public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
 
     protected static final String TEST_PRIMARY_DB_USER = "wa_user";
     protected static final String TEST_PRIMARY_DB_PASS = "wa_password";
-
+    protected static final String TEST_PRIMARY_CLUSTER_HOST = "cft_task_db";
 
     @Autowired
     protected TaskResourceRepository taskResourceRepository;
@@ -64,7 +64,8 @@ public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
             TEST_REPLICA_DB_USER,
             TEST_REPLICA_DB_PASS,
             TEST_PRIMARY_DB_USER,
-            TEST_PRIMARY_DB_PASS);
+            TEST_PRIMARY_DB_PASS,
+            TEST_PRIMARY_CLUSTER_HOST);
 
         miReportingServiceForTest = new MIReportingService(
             taskHistoryResourceRepository,
