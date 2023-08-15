@@ -43,7 +43,7 @@ public class SubscriptionCreator {
                                @Value("${replication.password}") String replicaPassword,
                                @Value("${primary.username}") String primaryUser,
                                @Value("${primary.password}") String primaryPassword,
-                               @Value("${primary.cluster-host-name}") String primaryClusterHostName){
+                               @Value("${primary.cluster-host-name}") String primaryClusterHostName) {
         this.replicaUser = replicaUser;
         this.replicaPassword = replicaPassword;
         this.primaryUser = primaryUser;
