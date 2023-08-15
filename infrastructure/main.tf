@@ -239,18 +239,21 @@ resource "azurerm_key_vault_secret" "POSTGRES-USER-FLEXIBLE-REPLICA-2" {
   name         = "${var.postgres_db_component_name}-POSTGRES-USER-FLEXIBLE-REPLICA-2"
   value        = module.wa_task_management_api_database_flexible_replica_2.username
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+  depends_on = [module.wa_task_management_api_database_flexible_replica_2]
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS-FLEXIBLE-REPLICA-2" {
   name         = "${var.postgres_db_component_name}-POSTGRES-PASS-FLEXIBLE-REPLICA-2"
   value        = module.wa_task_management_api_database_flexible_replica_2.password
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+  depends_on = [module.wa_task_management_api_database_flexible_replica_2]
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST-FLEXIBLE-REPLICA-2" {
   name         = "${var.postgres_db_component_name}-POSTGRES-HOST-FLEXIBLE-REPLICA-2"
   value        = module.wa_task_management_api_database_flexible_replica_2.fqdn
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+  depends_on = [module.wa_task_management_api_database_flexible_replica_2]
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT-FLEXIBLE-REPLICA-2" {
