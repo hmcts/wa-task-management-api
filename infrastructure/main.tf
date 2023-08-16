@@ -236,30 +236,35 @@ resource "azurerm_key_vault_secret" "POSTGRES_DATABASE-FLEXIBLE-REPLICA" {
 
 //replica-2
 resource "azurerm_key_vault_secret" "POSTGRES-USER-FLEXIBLE-REPLICA-2" {
+  count = var.env == "aat" ? 1 : 0
   name         = "${var.postgres_db_component_name}-POSTGRES-USER-FLEXIBLE-REPLICA-2"
-  value        = module.wa_task_management_api_database_flexible_replica.username
+  value        = module.wa_task_management_api_database_flexible_replica_2[0].username
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS-FLEXIBLE-REPLICA-2" {
+  count = var.env == "aat" ? 1 : 0
   name         = "${var.postgres_db_component_name}-POSTGRES-PASS-FLEXIBLE-REPLICA-2"
-  value        = module.wa_task_management_api_database_flexible_replica.password
+  value        = module.wa_task_management_api_database_flexible_replica_2[0].password
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST-FLEXIBLE-REPLICA-2" {
+  count = var.env == "aat" ? 1 : 0
   name         = "${var.postgres_db_component_name}-POSTGRES-HOST-FLEXIBLE-REPLICA-2"
-  value        = module.wa_task_management_api_database_flexible_replica.fqdn
+  value        = module.wa_task_management_api_database_flexible_replica_2[0].fqdn
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT-FLEXIBLE-REPLICA-2" {
+  count = var.env == "aat" ? 1 : 0
   name         = "${var.postgres_db_component_name}-POSTGRES-PORT-FLEXIBLE-REPLICA-2"
   value        = "5432"
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE-FLEXIBLE-REPLICA-2" {
+  count = var.env == "aat" ? 1 : 0
   name         = "${var.postgres_db_component_name}-POSTGRES-DATABASE-FLEXIBLE-REPLICA-2"
   value        = "cft_task_db"
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
