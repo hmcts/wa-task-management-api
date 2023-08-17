@@ -91,13 +91,7 @@ public class SubscriptionCreator {
                 + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
         } else {
             //this is hard coded for integration test locally
-            subscriptionUrl = "postgresql://" + "cft_task_db" + ":" + "5432" + "/" + dbName
-                + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
-        }
-        //to support mac max v1 v2 chips with random db ports
-        if ("ccd-shared-database".equals(host)) {
-            //the below primaryClusterHostName is minikube ip
-            subscriptionUrl = "postgresql://" + primaryClusterHostName + ":" + port + "/" + dbName
+            subscriptionUrl = primaryClusterHostName + "/" + dbName
                 + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
         }
 

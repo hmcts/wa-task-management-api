@@ -26,7 +26,7 @@ public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
 
     protected static final String TEST_PRIMARY_DB_USER = "wa_user";
     protected static final String TEST_PRIMARY_DB_PASS = "wa_password";
-    protected static final String TEST_PRIMARY_CLUSTER_HOST = "cft_task_db";
+    protected static final String TEST_PRIMARY_CLUSTER_HOST = "postgresql://cft_task_db:5432";
 
     @Autowired
     protected TaskResourceRepository taskResourceRepository;
@@ -57,8 +57,6 @@ public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
-        //Logical Replication is a pre-requisite for all tests here
-        waitForReplication();
 
         subscriptionCreatorForTest = new SubscriptionCreator(
             TEST_REPLICA_DB_USER,
@@ -82,6 +80,9 @@ public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
         log.info("Primary DB port: {}, Replica DB port: {}",
             container.getFirstMappedPort(),
             containerReplica.getFirstMappedPort());
+
+        //Logical Replication is a pre-requisite for all tests here
+        waitForReplication();
 
     }
 
