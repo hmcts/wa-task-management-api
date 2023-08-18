@@ -137,6 +137,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     /*@Test
+    As role is not set for this User while calling getUserInfo().getUid() will give NullPointerException.
     void shouldReturnForbiddenResponseError() throws Exception {
         final String caseId = "1615817621013640";
 
