@@ -140,6 +140,11 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void shouldReturnForbiddenResponseError() throws Exception {
         final String caseId = "1615817621013640";
+        final String taskId1 = UUID.randomUUID().toString();
+        insertDummyTaskInDb(taskId1, caseId, UNASSIGNED);
+
+        final List<TaskResourceCaseQueryBuilder> tasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
+        assertThat(tasks.get(0).getTaskId()).isEqualTo(taskId1);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
         when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
