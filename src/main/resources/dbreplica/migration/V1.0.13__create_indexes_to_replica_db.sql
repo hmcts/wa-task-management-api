@@ -1,6 +1,5 @@
 -- tasks indexes
 
-CREATE INDEX idx_t_task_id ON cft_task_db.tasks (task_id);
 CREATE INDEX idx_t_task_id ON cft_task_db.tasks (state);
 
 -- task_history indexes
