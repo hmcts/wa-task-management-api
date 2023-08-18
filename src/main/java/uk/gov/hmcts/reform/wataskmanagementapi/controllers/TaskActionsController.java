@@ -361,9 +361,14 @@ public class TaskActionsController extends BaseController {
     @PostMapping(path = "/delete", consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> deleteTasks(
             @RequestBody final DeleteTasksRequest deleteTasksRequest,
-            @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken) {
+            @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+            @RequestHeader(AUTHORIZATION) String authToken) {
         try {
-            boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
+            AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+            LOG.info("Task Action: Delete task request for user {}",
+                     accessControlResponse.getUserInfo().getUid());
+
+            boolean hasAccess = clientAccessControlService.hasPrivilegedAccess(serviceAuthToken,accessControlResponse);
 
             if (!hasAccess) {
                 return buildErrorResponseEntityAndLogError(HttpStatus.FORBIDDEN.value(),

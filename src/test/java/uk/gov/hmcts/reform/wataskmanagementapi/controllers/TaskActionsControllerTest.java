@@ -440,55 +440,71 @@ class TaskActionsControllerTest {
 
     @Test
     void should_return_201_response_for_tasks_deletion() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
         final DeleteTasksRequest deleteTasksRequest =
                 new DeleteTasksRequest(new DeleteCaseTasksAction("1234567890123456"));
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN,mockAccessControlResponse))
                 .thenReturn(true);
 
 
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
-                SERVICE_AUTHORIZATION_TOKEN);
+                SERVICE_AUTHORIZATION_TOKEN,IDAM_AUTH_TOKEN);
 
         assertEquals(responseEntity.getStatusCode(),HttpStatus.CREATED);
     }
 
     @Test
     void should_return_403_response_for_tasks_deletion() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
         final DeleteTasksRequest deleteTasksRequest =
                 new DeleteTasksRequest(new DeleteCaseTasksAction("1234567890123456"));
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN,mockAccessControlResponse))
                 .thenReturn(false);
 
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
-                SERVICE_AUTHORIZATION_TOKEN);
+                SERVICE_AUTHORIZATION_TOKEN,IDAM_AUTH_TOKEN);
 
         assertEquals(responseEntity.getStatusCode(),HttpStatus.FORBIDDEN);
     }
 
     @Test
     void should_return_400_response_for_tasks_deletion() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
         final DeleteTasksRequest deleteTasksRequest = new DeleteTasksRequest(new DeleteCaseTasksAction("123"));
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN,mockAccessControlResponse))
                 .thenReturn(true);
 
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
-                SERVICE_AUTHORIZATION_TOKEN);
+                SERVICE_AUTHORIZATION_TOKEN,IDAM_AUTH_TOKEN);
 
         assertEquals(responseEntity.getStatusCode(), BAD_REQUEST);
     }
 
     @Test
     void should_return_500_response_for_tasks_deletion() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
         final DeleteTasksRequest deleteTasksRequest = new DeleteTasksRequest(new DeleteCaseTasksAction(
                 "1234567890123456"));
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN,mockAccessControlResponse))
                 .thenReturn(true);
 
         doThrow(new RuntimeException("some exception")).when(taskDeletionService)
                 .deleteTasksByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
 
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
-                SERVICE_AUTHORIZATION_TOKEN);
+                SERVICE_AUTHORIZATION_TOKEN,IDAM_AUTH_TOKEN);
 
         assertEquals(responseEntity.getStatusCode(), INTERNAL_SERVER_ERROR);
     }

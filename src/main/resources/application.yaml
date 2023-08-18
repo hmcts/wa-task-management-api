@@ -12,8 +12,8 @@ management:
         include: health, info, prometheus
 
 config:
-  privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
-  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler,wa_workflow_api,ccd_case_disposer}
+  privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp,ccd-case-disposer,ccd_case_disposer}
+  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler,wa_workflow_api}
   allowedJurisdictions: ${ALLOWED_JURISDICTIONS:ia,wa,sscs,civil,publiclaw,privatelaw,employment}
   allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,care_supervision_epo,prlapps,et_englandwales,et_englandwales_listings,et_englandwales_multiple,et_scotland,et_scotland_listings,et_scotland_multiple,et_admin}
   search:
@@ -87,9 +87,9 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     driverClassName: org.postgresql.Driver
-    jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
-    username: ${POSTGRES_USERNAME:postgres}
-    password: ${POSTGRES_PASSWORD:}
+    jdbcUrl: jdbc:postgresql://cft-task-postgres-db-aat.postgres.database.azure.com:5432/cft_task_db
+    username: postgres
+    password: vQ2nnSbHXROjVfJZ9Ok4
   datasource-replica:
     driverClassName: org.postgresql.Driver
     jdbcUrl: jdbc:postgresql://${POSTGRES_REPLICA_HOST:ccd-shared-database-replica}:${POSTGRES_REPLICA_PORT:5433}/${POSTGRES_REPLICA_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
