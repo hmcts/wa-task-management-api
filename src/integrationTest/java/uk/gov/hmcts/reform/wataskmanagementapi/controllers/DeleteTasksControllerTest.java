@@ -48,8 +48,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TER
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.*;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @ExtendWith(OutputCaptureExtension.class)
 public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
@@ -132,12 +134,13 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                 Arrays.asList(taskId1, taskId3), caseId)));
     }
 
-    /*As role is not set for this User while calling getUserInfo().getUid() will give NullPointerException.
     @Test
     void shouldReturnBadResponseError() throws Exception {
         final String caseId = "123";
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, null));
         when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
             .thenReturn(true);
         mockMvc.perform(
@@ -149,16 +152,11 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
                 .andReturn();
-    }*/
+    }
 
     @Test
     void shouldReturnForbiddenResponseError() throws Exception {
         final String caseId = "1615817621013640";
-        final String taskId1 = UUID.randomUUID().toString();
-        insertDummyTaskInDb(taskId1, caseId, UNASSIGNED);
-
-        final List<TaskResourceCaseQueryBuilder> tasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
-        assertThat(tasks.get(0).getTaskId()).isEqualTo(taskId1);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
         when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
