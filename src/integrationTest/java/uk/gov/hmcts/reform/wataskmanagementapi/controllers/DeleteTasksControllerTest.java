@@ -41,6 +41,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
@@ -106,6 +107,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
                                         caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpectAll(status().isCreated()).andReturn();
 
@@ -128,6 +130,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
                                         caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
                 .andReturn();
@@ -145,6 +148,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
                                         caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isForbidden())
                 .andReturn();
@@ -160,6 +164,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
                                         caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn();
