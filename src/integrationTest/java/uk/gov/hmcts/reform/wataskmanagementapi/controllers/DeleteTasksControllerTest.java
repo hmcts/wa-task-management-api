@@ -115,6 +115,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         assertThat(tasks.get(2).getTaskId()).isEqualTo(taskId3);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, null));
         when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
             .thenReturn(true);
 
