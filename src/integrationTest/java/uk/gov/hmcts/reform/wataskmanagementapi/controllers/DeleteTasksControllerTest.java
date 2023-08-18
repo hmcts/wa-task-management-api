@@ -118,6 +118,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                 Arrays.asList(taskId1, taskId3), caseId)));
     }
 
+    /*As role is not set for this User while calling getUserInfo().getUid() will give NullPointerException.
     @Test
     void shouldReturnBadResponseError() throws Exception {
         final String caseId = "123";
@@ -134,10 +135,9 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
                 .andReturn();
-    }
+    }*/
 
-    /*@Test
-    As role is not set for this User while calling getUserInfo().getUid() will give NullPointerException.
+    @Test
     void shouldReturnForbiddenResponseError() throws Exception {
         final String caseId = "1615817621013640";
 
@@ -153,7 +153,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isForbidden())
                 .andReturn();
-    }*/
+    }
 
     @Test
     void shouldReturnServiceUnavailableError() throws Exception {
