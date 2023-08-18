@@ -35,6 +35,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -67,8 +68,10 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
+
         when(authTokenGenerator.generate())
                 .thenReturn(IDAM_AUTHORIZATION_TOKEN);
+
         mockServices = new ServiceMocks(
                 idamWebApi,
                 serviceAuthorisationApi,
@@ -95,8 +98,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         assertThat(tasks.get(2).getTaskId()).isEqualTo(taskId3);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-                .thenReturn(true);
+        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+            .thenReturn(true);
 
         mockMvc.perform(
                         post("/task/delete")
@@ -118,8 +121,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         final String caseId = "123";
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-                .thenReturn(true);
+        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+            .thenReturn(true);
         mockMvc.perform(
                         post("/task/delete")
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
@@ -135,8 +138,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         final String caseId = "1615817621013640";
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-                .thenReturn(false);
+        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+            .thenReturn(false);
         mockMvc.perform(
                         post("/task/delete")
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
