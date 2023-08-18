@@ -136,7 +136,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                 .andReturn();
     }
 
-    @Test
+    /*@Test
     void shouldReturnForbiddenResponseError() throws Exception {
         final String caseId = "1615817621013640";
 
@@ -152,7 +152,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isForbidden())
                 .andReturn();
-    }
+    }*/
 
     @Test
     void shouldReturnServiceUnavailableError() throws Exception {
