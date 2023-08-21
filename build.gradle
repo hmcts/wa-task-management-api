@@ -421,6 +421,7 @@ task runAndPublishConsumerPactTests(type: Test) {
   logger.lifecycle("Runs pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
+  include "uk/gov/hmcts/reform/wataskmanagementapi/consumer/**"
 }
 
 runAndPublishConsumerPactTests.finalizedBy pactPublish
@@ -434,10 +435,11 @@ pact {
     tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
     version = project.pacticipantVersion
   }
+
 }
 
 task contract(type: Test) {
-  description = "Runs the consumer Pact tests"
+  description = "Runs the Pact tests"
   group = 'Verification'
   useJUnitPlatform()
   testClassesDirs = sourceSets.contractTest.output.classesDirs
@@ -445,10 +447,15 @@ task contract(type: Test) {
 }
 
 task runProviderPactVerification(type: Test) {
+  useJUnitPlatform()
   logger.lifecycle("Runs provider pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
-  systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
+  include "uk/gov/hmcts/reform/wataskmanagementapi/provider/**"
+  if (project.hasProperty('pact.verifier.publishResults')) {
+    logger.lifecycle("Publish tasks: " + project.property('pact.verifier.publishResults'))
+    systemProperty 'pact.verifier.publishResults', project.property('pact.verifier.publishResults')
+  }
   systemProperty 'pact.provider.version', project.pacticipantVersion
 }
 
