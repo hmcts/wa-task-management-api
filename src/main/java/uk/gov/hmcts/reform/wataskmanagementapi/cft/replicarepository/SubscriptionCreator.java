@@ -32,7 +32,7 @@ public class SubscriptionCreator {
     String replicaPassword;
     String primaryUser;
     String primaryPassword;
-    String primaryClusterHostName;
+    String primaryPublicationUrl;
 
     private static final String REFRESH_SUBSCRIPTION = "ALTER SUBSCRIPTION task_subscription REFRESH PUBLICATION;";
     private static final String AND_PASSWORD = "&password=";
@@ -43,12 +43,12 @@ public class SubscriptionCreator {
                                @Value("${replication.password}") String replicaPassword,
                                @Value("${primary.username}") String primaryUser,
                                @Value("${primary.password}") String primaryPassword,
-                               @Value("${primary.cluster-host-name}") String primaryClusterHostName) {
+                               @Value("${primary.publicationUrl}") String primaryPublicationUrl) {
         this.replicaUser = replicaUser;
         this.replicaPassword = replicaPassword;
         this.primaryUser = primaryUser;
         this.primaryPassword = primaryPassword;
-        this.primaryClusterHostName = primaryClusterHostName;
+        this.primaryPublicationUrl = primaryPublicationUrl;
     }
 
     public void createSubscription() {
@@ -91,7 +91,7 @@ public class SubscriptionCreator {
                 + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
         } else {
             //this is hard coded for integration test locally
-            subscriptionUrl = primaryClusterHostName + "/" + dbName
+            subscriptionUrl = primaryPublicationUrl + "/" + dbName
                 + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
         }
 

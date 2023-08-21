@@ -40,7 +40,7 @@ spring:
       dbPrimaryUserName: wa_user
       dbReplicaUserName: repl_user
 primary:
-  cluster-host-name: postgresql://cft_task_db:5432
+  publicationUrl: postgresql://cft_task_db:5432
 
 idam:
   test:

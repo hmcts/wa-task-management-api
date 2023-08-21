@@ -1,0 +1,2 @@
+primary:
+  publicationUrl: postgresql://${POSTGRES_CLUSTER_HOST:192.168.49.2}:${POSTGRES_PORT:5432}
