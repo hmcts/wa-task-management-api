@@ -8,12 +8,15 @@ import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import io.restassured.http.ContentType;
 import net.serenitybdd.rest.SerenityRest;
+import org.apache.http.auth.AUTH;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
+
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @PactTestFor(providerName = "wa_task_management_api_delete_task_by_id", port = "8991")
 @ContextConfiguration(classes = {CamundaConsumerApplication.class})
@@ -32,6 +35,7 @@ public class TaskManagerDeleteTaskConsumerTest extends SpringBootContractBaseTes
             .method(HttpMethod.POST.toString())
             .body(deleteTaskWithRequest(), String.valueOf(ContentType.JSON))
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .willRespondWith()
             .status(HttpStatus.CREATED.value())
             .toPact();
