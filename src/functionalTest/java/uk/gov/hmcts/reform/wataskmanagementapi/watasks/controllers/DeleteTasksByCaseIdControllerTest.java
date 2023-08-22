@@ -34,6 +34,7 @@ public class DeleteTasksByCaseIdControllerTest extends SpringBootFunctionalBaseT
     @Test
     public void should_return_201_when_task_deleted() {
         final TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         initiateTask(taskVariables);
 
         final DeleteTasksRequest deleteTasksRequest = new DeleteTasksRequest(new DeleteCaseTasksAction(
