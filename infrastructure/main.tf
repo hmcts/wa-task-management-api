@@ -95,7 +95,7 @@ module "wa_task_management_api_database_flexible_replica" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=RWA-2648-read-non-default-schema"
   product            = var.product
   component          = var.component
   name               = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
@@ -104,10 +104,11 @@ module "wa_task_management_api_database_flexible_replica" {
   env                = var.env
   pgsql_databases = [
     {
-      name : var.postgresql_database_name
+      name        : var.postgresql_database_name
+      schema_name : var.postgres_replica_db_schema
     }
   ]
-  
+
   pgsql_version      = 14
   common_tags        = local.common_tags
 
@@ -134,7 +135,7 @@ module "wa_task_management_api_database_flexible_replica_2" {
       name : var.postgresql_database_name
     }
   ]
-  
+
   pgsql_version      = 14
   common_tags        = local.common_tags
 
