@@ -38,6 +38,7 @@ public class SubscriptionCreator {
     private static final String REFRESH_SUBSCRIPTION = "ALTER SUBSCRIPTION task_subscription REFRESH PUBLICATION;";
     private static final String AND_PASSWORD = "&password=";
     private static final String AND_USER = "?user=";
+    public static final String LOCAL_ARM_ARCH = "local-arm-arch";
 
 
     public SubscriptionCreator(@Value("${replication.username}") String replicaUser,
@@ -90,7 +91,7 @@ public class SubscriptionCreator {
         log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - replicaPassword.length()));
 
         String subscriptionUrl;
-        if ("arm".equals(environment)) {
+        if (LOCAL_ARM_ARCH.equals(environment)) {
             //this is for integration tests and mac chips
             subscriptionUrl = replicaSubscriptionUrl + "/" + dbName
                 + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;

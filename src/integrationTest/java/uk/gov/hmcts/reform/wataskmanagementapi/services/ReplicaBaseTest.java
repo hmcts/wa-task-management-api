@@ -27,7 +27,7 @@ public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
     protected static final String TEST_PRIMARY_DB_USER = "wa_user";
     protected static final String TEST_PRIMARY_DB_PASS = "wa_password";
     protected static final String TEST_PUBLICATION_URL = "postgresql://cft_task_db:5432";
-    protected static final String ENVIRONMENT = "arm";
+    protected static final String ENVIRONMENT = "local-arm-arch";
 
     @Autowired
     protected TaskResourceRepository taskResourceRepository;
