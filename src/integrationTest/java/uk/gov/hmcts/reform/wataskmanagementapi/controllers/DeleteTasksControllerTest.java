@@ -68,9 +68,6 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
     @BeforeEach
     void setUp() {
 
-        when(authTokenGenerator.generate())
-                .thenReturn(IDAM_AUTHORIZATION_TOKEN);
-
         mockServices = new ServiceMocks(
                 idamWebApi,
                 serviceAuthorisationApi,
@@ -97,7 +94,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         assertThat(tasks.get(2).getTaskId()).isEqualTo(taskId3);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
-        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, any()))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
         mockMvc.perform(
