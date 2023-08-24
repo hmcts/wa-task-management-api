@@ -46,6 +46,20 @@ public class ClientAccessControlService {
         return privilegedAccessClients.contains(serviceName);
     }
 
+    /**
+     * Extracts client id from service authorization token and returns if client is whitelisted as exclusiveClient.
+     *
+     * @param serviceAuthToken the service authorization token.
+     * @return whether a client has been whitelisted in config.hasPrivilegedAccess property.
+     */
+    public boolean hasPrivilegedAccess(String serviceAuthToken) {
+        Objects.requireNonNull(serviceAuthToken, "ServiceAuthorization must not be null");
+
+        String serviceName = serviceAuthTokenValidator.getServiceName(serviceAuthToken);
+
+        return privilegedAccessClients.contains(serviceName);
+    }
+
 
     /**
      * Extracts client id from service authorization token and returns if client is whitelisted as exclusiveClient.

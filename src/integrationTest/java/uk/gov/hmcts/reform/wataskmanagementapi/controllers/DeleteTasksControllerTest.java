@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -12,9 +11,6 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceCaseQueryBuilder;
@@ -39,18 +35,13 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @ExtendWith(OutputCaptureExtension.class)
@@ -69,10 +60,6 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @MockBean
-    private AccessControlService accessControlService;
-    @Mock
-    private UserInfo mockedUserInfo;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
@@ -83,11 +70,6 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
 
         when(authTokenGenerator.generate())
                 .thenReturn(IDAM_AUTHORIZATION_TOKEN);
-
-        lenient().when(mockedUserInfo.getUid())
-            .thenReturn(IDAM_USER_ID);
-        lenient().when(mockedUserInfo.getEmail())
-            .thenReturn(IDAM_USER_EMAIL);
 
         mockServices = new ServiceMocks(
                 idamWebApi,
@@ -115,9 +97,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         assertThat(tasks.get(2).getTaskId()).isEqualTo(taskId3);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, null));
-        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, any()))
             .thenReturn(true);
 
         mockMvc.perform(
@@ -125,7 +105,6 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
                                         caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpectAll(status().isCreated()).andReturn();
 
@@ -141,16 +120,13 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         final String caseId = "123";
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, null));
-        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
         mockMvc.perform(
                         post("/task/delete")
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
                                         caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
                 .andReturn();
@@ -161,16 +137,13 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         final String caseId = "1615817621013640";
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, null));
-        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(false);
         mockMvc.perform(
                         post("/task/delete")
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
                                         caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isForbidden())
                 .andReturn();
@@ -186,7 +159,6 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
                                         caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn();
