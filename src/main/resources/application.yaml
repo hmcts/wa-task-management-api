@@ -74,7 +74,7 @@ springdoc:
 replication:
   username: ${REPLICATION_USERNAME:repl_user}
   password: ${REPLICATION_PASSWORD:repl_password}
-  subscriptionUrl: postgresql://${POSTGRES_CLUSTER_HOST:192.168.49.2}:${POSTGRES_PORT:5432}
+  subscriptionUrl: postgresql://${POSTGRES_CLUSTER_HOST:localhost}:${POSTGRES_PORT:5432}
 primary:
   username: ${POSTGRES_USERNAME:wa_user}
   password: ${POSTGRES_PASSWORD:wa_password}
