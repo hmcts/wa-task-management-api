@@ -47,7 +47,7 @@ public class ClientAccessControlService {
     }
 
     /**
-     * Extracts client id from service authorization token and returns if client is whitelisted as exclusiveClient.
+     * Extracts client id from service authorization token and returns if client is whitelisted as PrivilegedAccess.
      *
      * @param serviceAuthToken the service authorization token.
      * @return whether a client has been whitelisted in config.hasPrivilegedAccess property.
