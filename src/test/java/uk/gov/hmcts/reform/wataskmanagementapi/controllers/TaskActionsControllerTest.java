@@ -440,9 +440,10 @@ class TaskActionsControllerTest {
 
     @Test
     void should_return_201_response_for_tasks_deletion() {
+
         final DeleteTasksRequest deleteTasksRequest =
                 new DeleteTasksRequest(new DeleteCaseTasksAction("1234567890123456"));
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
 
 
@@ -454,9 +455,10 @@ class TaskActionsControllerTest {
 
     @Test
     void should_return_403_response_for_tasks_deletion() {
+
         final DeleteTasksRequest deleteTasksRequest =
                 new DeleteTasksRequest(new DeleteCaseTasksAction("1234567890123456"));
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(false);
 
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
@@ -467,8 +469,9 @@ class TaskActionsControllerTest {
 
     @Test
     void should_return_400_response_for_tasks_deletion() {
+
         final DeleteTasksRequest deleteTasksRequest = new DeleteTasksRequest(new DeleteCaseTasksAction("123"));
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
 
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
@@ -479,9 +482,10 @@ class TaskActionsControllerTest {
 
     @Test
     void should_return_500_response_for_tasks_deletion() {
+
         final DeleteTasksRequest deleteTasksRequest = new DeleteTasksRequest(new DeleteCaseTasksAction(
                 "1234567890123456"));
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
 
         doThrow(new RuntimeException("some exception")).when(taskDeletionService)

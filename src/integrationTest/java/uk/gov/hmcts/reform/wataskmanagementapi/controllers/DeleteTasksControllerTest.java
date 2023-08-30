@@ -41,7 +41,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @ExtendWith(OutputCaptureExtension.class)
@@ -67,8 +66,7 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
-        when(authTokenGenerator.generate())
-                .thenReturn(IDAM_AUTHORIZATION_TOKEN);
+
         mockServices = new ServiceMocks(
                 idamWebApi,
                 serviceAuthorisationApi,
@@ -95,8 +93,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         assertThat(tasks.get(2).getTaskId()).isEqualTo(taskId3);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-                .thenReturn(true);
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
 
         mockMvc.perform(
                         post("/task/delete")
@@ -118,8 +116,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         final String caseId = "123";
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-                .thenReturn(true);
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
         mockMvc.perform(
                         post("/task/delete")
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
@@ -135,8 +133,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
         final String caseId = "1615817621013640";
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-                .thenReturn(false);
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(false);
         mockMvc.perform(
                         post("/task/delete")
                                 .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
