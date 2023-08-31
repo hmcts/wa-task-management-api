@@ -52,6 +52,6 @@ public class TaskManagerDeleteTaskProviderTest extends SpringBootContractProvide
         doNothing().when(taskDeletionService).deleteTasksByCaseId(any());
         UserInfo userInfo = mock((UserInfo.class));
         when(userInfo.getUid()).thenReturn("someUserId");
-        when(clientAccessControlService.hasExclusiveAccess(any())).thenReturn(true);
+        when(clientAccessControlService.hasPrivilegedAccess(any())).thenReturn(true);
     }
 }
