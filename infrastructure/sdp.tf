@@ -43,7 +43,7 @@ module "sdp_db_user" {
     azurerm.sdp_vault = azurerm.sdp_vault
   }
 
-  source = "git@github.com:hmcts/terraform-module-sdp-db-user?ref=master"
+  source = "git@github.com:hmcts/terraform-module-sdp-db-user?ref=explciitly-set-provider"
   env    = local.sdp_environment
 
   server_name       = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
