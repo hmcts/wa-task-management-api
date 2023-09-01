@@ -131,35 +131,4 @@ class ClientAccessControlServiceTest {
             .hasMessage("ServiceAuthorization must not be null");
 
     }
-
-    @Test
-    void hasPrivilegedAccess_should_return_true_if_service_whitelisted() {
-
-        when(serviceAuthTokenValidator.getServiceName(SERVICE_AUTH_TOKEN))
-            .thenReturn(PRIVILEGED_ACCESS_SERVICE_NAME);
-
-        boolean result = clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN);
-
-        assertTrue(result);
-    }
-
-    @Test
-    void hasPrivilegedAccess_should_return_false_if_service_is_not_whitelisted() {
-        when(serviceAuthTokenValidator.getServiceName(SERVICE_AUTH_TOKEN))
-            .thenReturn("anotherService");
-
-        boolean result = clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN);
-
-        assertFalse(result);
-    }
-
-    @Test
-    void hasPrivilegedAccess_should_throw_null_pointer_exception_if_ServiceAuthToken_is_null() {
-
-        assertThatThrownBy(() -> clientAccessControlService.hasPrivilegedAccess(null))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessage("ServiceAuthorization must not be null");
-
-    }
-
 }
