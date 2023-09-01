@@ -58,4 +58,8 @@ module "sdp_db_user" {
   ]
 
   common_tags = local.common_tags
+
+  depends_on = [
+    module.wa_task_management_api_database_flexible_replica
+  ]
 }
