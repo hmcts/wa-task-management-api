@@ -288,7 +288,7 @@ def versions = [
   sonarPitest   : '0.5',
   pactVersion   : '4.3.4',
   logbook       : '2.6.2',
-  tomcat        : '9.0.75',
+  tomcat        : '9.0.80',
   testcontainers: '1.17.6'
 ]
 
