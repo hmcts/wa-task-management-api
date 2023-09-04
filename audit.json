@@ -143,5 +143,5 @@
   "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
   "10054_Cookie Without SameSite Attribute_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
   "10049_Non-Storable Content_http://wa-task-management-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
-  "10112_Session Management Response Identified_http://wa-task-management-api-aat.service.core-compute-aat.internal/v2/api-docs_GET\",\"detail\":\"Session": "ignore"
+  "10112_Session Management Response Identified_http://wa-task-management-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore"
 }
