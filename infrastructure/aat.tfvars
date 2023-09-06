@@ -1,0 +1,1 @@
+autoShutdown = true

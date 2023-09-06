@@ -52,3 +52,8 @@ variable "business_area" {
 variable jenkins_AAD_objectId {}
 
 variable aks_subscription_id {}
+
+variable "autoShutdown" {
+  type = bool
+  default = false
+}

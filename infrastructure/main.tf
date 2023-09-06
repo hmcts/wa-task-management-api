@@ -33,6 +33,7 @@ resource "azurerm_key_vault_secret" "s2s_secret_task_management_api" {
 locals {
   computed_tags = {
     lastUpdated = timestamp()
+    autoShutdown = var.autoShutdown
   }
   common_tags = merge(var.common_tags, local.computed_tags)
 }
