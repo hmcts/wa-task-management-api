@@ -65,6 +65,15 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
     ```bash
       ./gradlew clean bootRun
     ```
+   - Before running the wa-task-management-application with the above command, If you want to run the application with profile replication make sure to set the spring-profile with the below command
+     ```
+     export SPRING_PROFILES_ACTIVE=replica;
+     ```
+     And if you are running minikube with mac m1, m2 chips with ARM Architecture make sure to set the environment with the below command
+     ```
+     export environment=local-arm-arch
+     ```
+
 - In order to test if the application is up, you can call its health endpoint:
 
     ```bash

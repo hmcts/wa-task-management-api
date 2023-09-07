@@ -32,20 +32,28 @@ public class SubscriptionCreator {
     String replicaPassword;
     String primaryUser;
     String primaryPassword;
-    private static final String REFRESH_SUBSCRIPTION = "ALTER SUBSCRIPTION task_subscription REFRESH PUBLICATION;";
+    String replicaSubscriptionUrl;
+    String environment;
 
+    private static final String REFRESH_SUBSCRIPTION = "ALTER SUBSCRIPTION task_subscription REFRESH PUBLICATION;";
     private static final String AND_PASSWORD = "&password=";
     private static final String AND_USER = "?user=";
+    public static final String LOCAL_ARM_ARCH = "local-arm-arch";
 
 
     public SubscriptionCreator(@Value("${replication.username}") String replicaUser,
                                @Value("${replication.password}") String replicaPassword,
                                @Value("${primary.username}") String primaryUser,
-                               @Value("${primary.password}") String primaryPassword) {
+                               @Value("${primary.password}") String primaryPassword,
+                               @Value("${replication.subscriptionUrl}") String replicaSubscriptionUrl,
+                               @Value("${environment}") String environment) {
+
         this.replicaUser = replicaUser;
         this.replicaPassword = replicaPassword;
         this.primaryUser = primaryUser;
         this.primaryPassword = primaryPassword;
+        this.replicaSubscriptionUrl = replicaSubscriptionUrl;
+        this.environment = environment;
     }
 
     public void createSubscription() {
@@ -54,6 +62,7 @@ public class SubscriptionCreator {
 
             log.info("Primary datasource URL: " + connection.getMetaData().getURL());
             log.info("Replica datasource URL: " + connection2.getMetaData().getURL());
+            log.info("environment: " + environment);
 
             Properties properties = Driver.parseURL(connection.getMetaData().getURL(), null);
             Properties replicaProperties = Driver.parseURL(connection2.getMetaData().getURL(), null);
@@ -82,13 +91,12 @@ public class SubscriptionCreator {
         log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - replicaPassword.length()));
 
         String subscriptionUrl;
-        if ("5432".equals(port)) {
-            //hard coded host for local environment, will need fixing when we move to remote environments
-            subscriptionUrl = "postgresql://" + host + ":" + port + "/" + dbName
+        if (LOCAL_ARM_ARCH.equals(environment)) {
+            //this is for integration tests and mac chips
+            subscriptionUrl = replicaSubscriptionUrl + "/" + dbName
                 + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
         } else {
-            //this is hard coded for integration test locally
-            subscriptionUrl = "postgresql://" + "cft_task_db" + ":" + "5432" + "/" + dbName
+            subscriptionUrl = "postgresql://" + host + ":" + port + "/" + dbName
                 + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
         }
 
@@ -100,7 +108,6 @@ public class SubscriptionCreator {
 
         sendToDatabase(replicaUrl,sql);
     }
-
 
     private void sendToDatabase(String replicaUrl, String sql) {
         try (Connection subscriptionConn = DriverManager.getConnection(replicaUrl);

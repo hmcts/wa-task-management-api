@@ -39,6 +39,8 @@ spring:
     placeholders:
       dbPrimaryUserName: wa_user
       dbReplicaUserName: repl_user
+replication:
+  subscriptionUrl: postgresql://cft_task_db:5432
 
 idam:
   test:
