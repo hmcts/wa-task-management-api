@@ -106,6 +106,10 @@ module "wa_task_management_api_database_flexible_replica" {
     {
       name        : var.postgresql_database_name
       schema_name : var.postgres_replica_db_schema
+    },
+    {
+      name        : "tempdb"
+      schema_name : "tempschema"
     }
   ]
 
