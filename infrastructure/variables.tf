@@ -49,6 +49,11 @@ variable "business_area" {
   default = "cft"
 }
 
+variable "postgres_replica_db_schema" {
+  default = "cft_task_db"
+}
+
+
 variable jenkins_AAD_objectId {}
 
 variable aks_subscription_id {}
