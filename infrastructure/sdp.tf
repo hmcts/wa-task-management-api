@@ -10,6 +10,7 @@ locals {
     sandbox  = "sbox"
     aat      = "dev"
     perftest = "test"
+    demo     = "dev"
   }
 
   sdp_environment = lookup(local.sdp_cft_environments_map, var.env, var.env)
@@ -36,7 +37,7 @@ locals {
   }
 }
 
-//Only adding read user for the replica created by module wa_task_management_api_database_flexible_replica
+//Only adding read user for the replica created by module wa_task_management_api_database_flexible_replica. Server name has environment suffix due to duplicate mapping to dev.
 module "sdp_db_user" {
 
   providers = {
@@ -46,7 +47,7 @@ module "sdp_db_user" {
   source = "git@github.com:hmcts/terraform-module-sdp-db-user?ref=master"
   env    = local.sdp_environment
 
-  server_name       = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
+  server_name       = "${var.postgres_db_component_name}-postgres-db-flexible-replica-${var.env}"
   server_fqdn       = module.wa_task_management_api_database_flexible_replica.fqdn
   server_admin_user = module.wa_task_management_api_database_flexible_replica.username
   server_admin_pass = module.wa_task_management_api_database_flexible_replica.password
