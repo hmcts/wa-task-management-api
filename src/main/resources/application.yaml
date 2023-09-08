@@ -116,6 +116,7 @@ spring:
     placeholders:
       dbPrimaryUserName: ${POSTGRES_USERNAME}
       dbReplicaUserName: ${REPLICATION_USERNAME}
+      dbReaderUserName: ${DB_READER_USERNAME:postgres}
   security:
     oauth2:
       resourceserver:
