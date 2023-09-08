@@ -47,7 +47,7 @@ module "sdp_db_user" {
   source = "git@github.com:hmcts/terraform-module-sdp-db-user?ref=master"
   env    = local.sdp_environment
 
-  server_name       = "${var.postgres_db_component_name}-postgres-db-flexible-replica-${var.env}"
+  server_name       = var.env == "demo" ? "${var.postgres_db_component_name}-postgres-db-flexible-replica-${var.env}" : "${var.postgres_db_component_name}-postgres-db-flexible-replica"
   server_fqdn       = module.wa_task_management_api_database_flexible_replica.fqdn
   server_admin_user = module.wa_task_management_api_database_flexible_replica.username
   server_admin_pass = module.wa_task_management_api_database_flexible_replica.password
