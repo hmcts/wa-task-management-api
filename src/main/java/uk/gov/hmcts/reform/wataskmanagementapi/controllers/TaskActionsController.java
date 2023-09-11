@@ -363,7 +363,7 @@ public class TaskActionsController extends BaseController {
             @RequestBody final DeleteTasksRequest deleteTasksRequest,
             @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken) {
         try {
-            boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
+            boolean hasAccess = clientAccessControlService.hasPrivilegedAccess(serviceAuthToken);
 
             if (!hasAccess) {
                 return buildErrorResponseEntityAndLogError(HttpStatus.FORBIDDEN.value(),

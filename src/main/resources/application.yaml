@@ -12,8 +12,8 @@ management:
         include: health, info, prometheus
 
 config:
-  privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
-  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler,wa_workflow_api,ccd_case_disposer}
+  privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp,ccd_case_disposer}
+  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler,wa_workflow_api}
   allowedJurisdictions: ${ALLOWED_JURISDICTIONS:ia,wa,sscs,civil,publiclaw,privatelaw,employment}
   allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,care_supervision_epo,prlapps,et_englandwales,et_englandwales_listings,et_englandwales_multiple,et_scotland,et_scotland_listings,et_scotland_multiple,et_admin}
   search:
@@ -74,6 +74,7 @@ springdoc:
 replication:
   username: ${REPLICATION_USERNAME:repl_user}
   password: ${REPLICATION_PASSWORD:repl_password}
+  subscriptionUrl: postgresql://${POSTGRES_CLUSTER_HOST:localhost}:${POSTGRES_PORT:5432}
 primary:
   username: ${POSTGRES_USERNAME:wa_user}
   password: ${POSTGRES_PASSWORD:wa_password}
@@ -115,6 +116,7 @@ spring:
     placeholders:
       dbPrimaryUserName: ${POSTGRES_USERNAME}
       dbReplicaUserName: ${REPLICATION_USERNAME}
+      dbReaderUserName: ${DB_READER_USERNAME:postgres}
   security:
     oauth2:
       resourceserver:
