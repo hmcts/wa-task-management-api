@@ -3,7 +3,7 @@
   "prHourlyLimit": 1,
   "prConcurrentLimit": 1,
   "schedule": ["before 8am and after 6pm"],
-  "extends": ["config:base"],
+  "extends": ["local>hmcts/.github:renovate-config"],
   "labels": ["dependencies"],
   "helmv3": {
     "bumpVersion": "patch"
