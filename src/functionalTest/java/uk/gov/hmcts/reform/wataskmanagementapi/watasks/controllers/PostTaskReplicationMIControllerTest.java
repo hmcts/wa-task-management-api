@@ -475,6 +475,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         );
 
         JsonPath claimJsonPathEvaluator = resultReportable.jsonPath();
+        assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).created"))
+                       .isBefore(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
 
         resultReportable.prettyPrint();
         resultReportable.then().assertThat()
@@ -631,6 +633,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         );
 
         JsonPath claimJsonPathEvaluator = resultReportable.jsonPath();
+        assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).created"))
+                       .isBefore(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
 
         resultReportable.prettyPrint();
         resultReportable.then().assertThat()
@@ -784,6 +788,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         );
 
         JsonPath claimJsonPathEvaluator = resultReportable.jsonPath();
+        assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).created"))
+                       .isBefore(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
 
         resultReportable.prettyPrint();
         resultReportable.then().assertThat()
