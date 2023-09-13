@@ -61,3 +61,4 @@ java:
     CALENDAR_CACHE_TIMEOUT_DURATION: 24
     CALENDAR_CACHE_TIMEOUT_TIMEUNIT: HOURS
     ENVIRONMENT: "{{ .Values.global.environment }}"
+    DB_READER_USERNAME: "DTS CFT DB Access Reader"
