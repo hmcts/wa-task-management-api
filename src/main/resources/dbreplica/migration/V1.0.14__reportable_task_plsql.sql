@@ -221,16 +221,19 @@ FETCH NEXT FROM task_history_cursor INTO
             else l_rt_final_state_label
           end;
 
-        if (l_rt_first_assigned_date is null) and (l_assignee is not null) then
+        if (l_rt_first_assigned_date is null) and (l_assignee is not null) and (l_assignee <> '') then
           l_rt_first_assigned_date = l_updated::date;
         end if;
 
-        if (l_rt_first_assigned_date_time is null) and (l_assignee is not null) then
+        if (l_rt_first_assigned_date_time is null) and (l_assignee is not null) and (l_assignee <> '') then
           l_rt_first_assigned_date_time = l_updated;
         end if;
 
-        if (l_state='ASSIGNED') then
+        if (l_state='ASSIGNED' and (l_rt_wait_time_days is null)) then
           l_rt_wait_time_days = (l_updated::date - l_created::date);
+        end if;
+
+        if (l_state='ASSIGNED' and (l_rt_wait_time is null)) then
           l_rt_wait_time = (date_trunc('second', l_updated) - date_trunc('second', l_created));
         end if;
 

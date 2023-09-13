@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
@@ -11,10 +12,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Termi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
+import java.time.OffsetDateTime;
+
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBaseTest {
@@ -145,6 +151,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             caseworkerCredentials.getHeaders()
         );
 
+        JsonPath configureJsonPathEvaluator = resultTaskReportable.jsonPath();
+
+        assertTrue(OffsetDateTime.parse(configureJsonPathEvaluator.get("reportable_task_list.get(0).created"))
+                       .isBefore(OffsetDateTime.parse(configureJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
+
         resultTaskReportable.prettyPrint();
         resultTaskReportable.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -197,6 +208,17 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             taskId,
             caseworkerCredentials.getHeaders()
         );
+
+        JsonPath claimJsonPathEvaluator = resultReportable.jsonPath();
+
+        assertTrue(OffsetDateTime.parse(configureJsonPathEvaluator.get("reportable_task_list.get(0).created"))
+                       .isEqual(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).created"))));
+        assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).created"))
+                       .isBefore(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
+        assertTrue(OffsetDateTime.parse(configureJsonPathEvaluator.get("reportable_task_list.get(0).updated"))
+                       .isBefore(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
+        assertNotEquals(configureJsonPathEvaluator.get("reportable_task_list.get(0).updated_by").toString(),
+                        claimJsonPathEvaluator.get("reportable_task_list.get(0).updated_by").toString());
 
         resultReportable.prettyPrint();
         resultReportable.then().assertThat()
@@ -263,6 +285,10 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             taskId,
             caseworkerCredentials.getHeaders()
         );
+
+        JsonPath claimJsonPathEvaluator = resultReportable.jsonPath();
+        assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).created"))
+                       .isBefore(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
 
         resultReportable.prettyPrint();
         resultReportable.then().assertThat()
@@ -390,6 +416,24 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             taskId,
             caseworkerCredentials.getHeaders()
         );
+
+        JsonPath reClaimJsonPathEvaluator = resultReport.jsonPath();
+
+        assertTrue(OffsetDateTime.parse(reClaimJsonPathEvaluator.get("reportable_task_list.get(0).created"))
+                       .isBefore(OffsetDateTime.parse(reClaimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
+        assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))
+                       .isBefore(OffsetDateTime.parse(reClaimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).created").toString(),
+                     reClaimJsonPathEvaluator.get("reportable_task_list.get(0).created").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString(),
+                     reClaimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
+                     reClaimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString(),
+                     reClaimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString(),
+                     reClaimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString());
+
         resultReport.prettyPrint();
         resultReport.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -424,6 +468,42 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             HttpStatus.NO_CONTENT
         );
 
+        Response resultReportable = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        JsonPath claimJsonPathEvaluator = resultReportable.jsonPath();
+
+        resultReportable.prettyPrint();
+        resultReportable.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("ASSIGNED"))
+            .body("reportable_task_list.get(0).assignee", notNullValue())
+            .body("reportable_task_list.get(0).updated_by", notNullValue())
+            .body("reportable_task_list.get(0).updated", notNullValue())
+            .body("reportable_task_list.get(0).update_action", equalTo("Claim"))
+            .body("reportable_task_list.get(0).created_date", notNullValue())
+            .body("reportable_task_list.get(0).due_date", notNullValue())
+            .body("reportable_task_list.get(0).last_updated_date", notNullValue())
+            .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
+            .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
+            .body("reportable_task_list.get(0).wait_time_days", equalTo(0))
+            .body("reportable_task_list.get(0).wait_time", notNullValue())
+            .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+            .body("reportable_task_list.get(0).completed_date", equalTo(null))
+            .body("reportable_task_list.get(0).completed_date_time", equalTo(null))
+            .body("reportable_task_list.get(0).final_state_label", equalTo(null))
+            .body("reportable_task_list.get(0).handling_time_days", equalTo(null))
+            .body("reportable_task_list.get(0).handling_time", equalTo(null))
+            .body("reportable_task_list.get(0).processing_time_days", equalTo(null))
+            .body("reportable_task_list.get(0).processing_time", equalTo(null))
+            .body("reportable_task_list.get(0).is_within_sla", equalTo(null))
+            .body("reportable_task_list.get(0).due_date_to_completed_diff_days", equalTo(null))
+            .body("reportable_task_list.get(0).due_date_to_completed_diff_time", equalTo(null));
+
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo("cancelled")
         );
@@ -457,14 +537,31 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_history_list.get(3).updated", notNullValue())
             .body("task_history_list.get(3).update_action", equalTo("AutoCancel"));
 
-        Response resultReportable = restApiActions.get(
+        Response resultDeleteReportable = restApiActions.get(
             ENDPOINT_BEING_TESTED_REPORTABLE,
             taskId,
             caseworkerCredentials.getHeaders()
         );
 
-        resultReportable.prettyPrint();
-        resultReportable.then().assertThat()
+        JsonPath deleteJsonPathEvaluator = resultDeleteReportable.jsonPath();
+
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).created").toString(),
+                     deleteJsonPathEvaluator.get("reportable_task_list.get(0).created").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString(),
+                     deleteJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
+                     deleteJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString(),
+                     deleteJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString(),
+                     deleteJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString());
+        assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).created"))
+                       .isEqual(OffsetDateTime.parse(deleteJsonPathEvaluator.get("reportable_task_list.get(0).created"))));
+        assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))
+                       .isBefore(OffsetDateTime.parse(deleteJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
+
+        resultDeleteReportable.prettyPrint();
+        resultDeleteReportable.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("reportable_task_list.size()", equalTo(1))
             .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
@@ -511,7 +608,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     }
 
 
-
     @Test
     public void user_should_claim_complete_task_and_complete_action_recorded_in_replica_tables() {
 
@@ -533,6 +629,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             taskId,
             caseworkerCredentials.getHeaders()
         );
+
+        JsonPath claimJsonPathEvaluator = resultReportable.jsonPath();
 
         resultReportable.prettyPrint();
         resultReportable.then().assertThat()
@@ -599,6 +697,21 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             taskId,
             caseworkerCredentials.getHeaders()
         );
+
+        JsonPath completeJsonPathEvaluator = resultCompleteReport.jsonPath();
+
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).created").toString(),
+                     completeJsonPathEvaluator.get("reportable_task_list.get(0).created").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString(),
+                     completeJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
+                     completeJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString(),
+                     completeJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString(),
+                     completeJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString());
+        assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))
+                       .isBefore(OffsetDateTime.parse(completeJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
 
         resultCompleteReport.prettyPrint();
         resultCompleteReport.then().assertThat()
@@ -670,6 +783,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             caseworkerCredentials.getHeaders()
         );
 
+        JsonPath claimJsonPathEvaluator = resultReportable.jsonPath();
+
         resultReportable.prettyPrint();
         resultReportable.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -735,6 +850,21 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             taskId,
             caseworkerCredentials.getHeaders()
         );
+
+        JsonPath completeJsonPathEvaluator = resultCompleteReport.jsonPath();
+
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).created").toString(),
+                     completeJsonPathEvaluator.get("reportable_task_list.get(0).created").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString(),
+                     completeJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
+                     completeJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString(),
+                     completeJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString(),
+                     completeJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString());
+        assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))
+                       .isBefore(OffsetDateTime.parse(completeJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
 
         resultCompleteReport.prettyPrint();
         resultCompleteReport.then().assertThat()
@@ -816,14 +946,49 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_history_list.get(4).updated_by", notNullValue())
             .body("task_history_list.get(4).updated", notNullValue());
 
-        resultReportable = restApiActions.get(
+        Response resultTerminateReportable = restApiActions.get(
             ENDPOINT_BEING_TESTED_REPORTABLE,
             taskId,
             caseworkerCredentials.getHeaders()
         );
 
-        resultReportable.prettyPrint();
-        resultReportable.then().assertThat()
+        JsonPath terminateJsonPathEvaluator = resultTerminateReportable.jsonPath();
+
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).created").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).created").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString());
+        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString());
+        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).completed_date_time").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).completed_date_time").toString());
+        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).completed_date").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).completed_date").toString());
+        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time_days").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).handling_time_days").toString());
+        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString());
+        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).processing_time_days").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).processing_time_days").toString());
+        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).processing_time").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).processing_time").toString());
+        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).is_within_sla").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).is_within_sla").toString());
+        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).number_of_reassignments").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).number_of_reassignments").toString());
+        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_days").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_days").toString());
+        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_time").toString(),
+                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_time").toString());
+        assertTrue(OffsetDateTime.parse(completeJsonPathEvaluator.get("reportable_task_list.get(0).updated"))
+                       .isBefore(OffsetDateTime.parse(terminateJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
+
+        resultTerminateReportable.prettyPrint();
+        resultTerminateReportable.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("reportable_task_list.size()", equalTo(1))
             .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
