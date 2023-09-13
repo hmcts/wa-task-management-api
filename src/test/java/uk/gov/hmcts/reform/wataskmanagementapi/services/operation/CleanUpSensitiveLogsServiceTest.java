@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
+import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessResourceFailureException;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.CleanupSensitiveLogsTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
@@ -15,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperatio
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -100,7 +103,7 @@ class CleanUpSensitiveLogsServiceTest {
             taskFilters
         );
 
-        doThrow(new IllegalArgumentException("cleanup exception"))
+        doThrow(new DataAccessResourceFailureException("cleanup exception"))
             .when(cftSensitiveTaskEventLogsDatabaseService).cleanUpSensitiveLogs(any(LocalDateTime.class));
 
         TaskOperationResponse taskOperationResponse = cleanUpSensitiveLogsService.performOperation(request);
