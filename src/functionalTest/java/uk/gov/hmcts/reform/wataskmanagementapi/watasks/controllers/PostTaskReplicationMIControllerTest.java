@@ -823,9 +823,9 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                                                     DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay();
         int handlingTimeSeconds = LocalTime.parse(completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString(),
                                                   DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay();
-        assertTrue( waitTimeSeconds > 1);
+        assertTrue(waitTimeSeconds > 1);
         assertTrue(processingTimeSeconds > 1);
-        assertEquals( handlingTimeSeconds, processingTimeSeconds - waitTimeSeconds);
+        assertEquals(handlingTimeSeconds, processingTimeSeconds - waitTimeSeconds);
 
         resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
