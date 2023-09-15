@@ -22,7 +22,10 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBaseTest {
@@ -175,7 +178,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0));
 
         Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
-            .untilAsserted(() ->  assertNotNull(taskId) );
+            .untilAsserted(() ->  assertNotNull(taskId));
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -241,7 +244,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         assertNotEquals(configureJsonPathEvaluator.get("reportable_task_list.get(0).updated_by").toString(),
                         claimJsonPathEvaluator.get("reportable_task_list.get(0).updated_by").toString());
         assertTrue(LocalTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
-                                   DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay() > 1 );
+                                   DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay() > 1);
 
         common.cleanUpTask(taskId);
     }
@@ -257,7 +260,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
         String taskId = taskVariables.getTaskId();
         Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
-            .untilAsserted(() ->  assertNotNull(taskId) );
+            .untilAsserted(() ->  assertNotNull(taskId));
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -330,7 +333,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).created"))
                        .isBefore(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
         assertTrue(LocalTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
-                                   DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay() > 1 );
+                                   DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay() > 1);
 
         Response resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
@@ -499,7 +502,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString(),
                      reClaimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString());
         assertTrue(LocalTime.parse(reClaimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
-                                   DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay() > 1 );
+                                   DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay() > 1);
 
         common.cleanUpTask(taskId);
     }
@@ -681,7 +684,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
         String taskId = taskVariables.getTaskId();
         Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
-            .untilAsserted(() ->  assertNotNull(taskId) );
+            .untilAsserted(() ->  assertNotNull(taskId));
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -723,7 +726,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).created"))
                        .isBefore(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
         assertTrue(LocalTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
-                                   DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay() > 1 );
+                                   DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay() > 1);
 
         Response resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
@@ -744,7 +747,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(0).task_name", equalTo("Process Application"));
 
         Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
-            .untilAsserted(() ->  assertNotNull(taskId) );
+            .untilAsserted(() ->  assertNotNull(taskId));
 
         Response resultComplete = restApiActions.post(
             ENDPOINT_BEING_TESTED_COMPLETE,
@@ -820,9 +823,9 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                                                     DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay();
         int handlingTimeSeconds = LocalTime.parse(completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString(),
                                                   DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay();
-        assertTrue( waitTimeSeconds > 1 );
-        assertTrue(processingTimeSeconds > 1 );
-        assertEquals( handlingTimeSeconds, processingTimeSeconds - waitTimeSeconds );
+        assertTrue( waitTimeSeconds > 1);
+        assertTrue(processingTimeSeconds > 1);
+        assertEquals( handlingTimeSeconds, processingTimeSeconds - waitTimeSeconds);
 
         resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
