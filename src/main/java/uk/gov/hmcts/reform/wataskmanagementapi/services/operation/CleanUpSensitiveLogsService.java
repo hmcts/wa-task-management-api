@@ -48,7 +48,7 @@ public class CleanUpSensitiveLogsService implements TaskOperationPerformService 
 
             return new TaskOperationResponse(Map.of("deletedRows", deletedRows));
 
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             log.error("{} request: {}", CLEANUP_SENSITIVE_LOG_ENTRIES.name(), e);
             return new TaskOperationResponse(Map.of("exception", e.getMessage()));
         }
