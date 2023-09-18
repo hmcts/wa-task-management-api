@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessResourceFailureException;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.CleanupSensitiveLogsTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
@@ -100,7 +101,7 @@ class CleanUpSensitiveLogsServiceTest {
             taskFilters
         );
 
-        doThrow(new IllegalArgumentException("cleanup exception"))
+        doThrow(new DataAccessResourceFailureException("cleanup exception"))
             .when(cftSensitiveTaskEventLogsDatabaseService).cleanUpSensitiveLogs(any(LocalDateTime.class));
 
         TaskOperationResponse taskOperationResponse = cleanUpSensitiveLogsService.performOperation(request);
