@@ -590,7 +590,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_history_list.get(3).assignee", notNullValue())
             .body("task_history_list.get(3).updated_by", notNullValue())
             .body("task_history_list.get(3).updated", notNullValue())
-            .body("task_history_list.get(3).update_action", equalTo("AutoCancel"));
+            .body("task_history_list.get(3).update_action", equalTo("AutoCancel"))
+            .body("task_history_list.get(3).termination_reason", equalTo("cancelled"));
 
         Response resultDeleteReportable = restApiActions.get(
             ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -614,6 +615,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
             .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
             .body("reportable_task_list.get(0).final_state_label", equalTo("AUTO_CANCELLED"))
+            .body("reportable_task_list.get(0).termination_reason", equalTo("cancelled"))
             .body("reportable_task_list.get(0).wait_time_days", equalTo(0))
             .body("reportable_task_list.get(0).wait_time", notNullValue())
             .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
