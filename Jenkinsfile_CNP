@@ -99,7 +99,6 @@ withPipeline(type, product, component) {
     }
 
     onPR() {
-        enableCleanupOfHelmReleaseOnSuccess()
         enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
     }
 
