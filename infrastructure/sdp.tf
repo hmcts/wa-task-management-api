@@ -59,7 +59,7 @@ module "sdp_db_user" {
   ]
 
   database_schemas = {
-    var.postgresql_database_name = [var.postgresql_database_name]
+    cft_task_db = ["cft_task_db"]
   }
 
   common_tags = local.common_tags
