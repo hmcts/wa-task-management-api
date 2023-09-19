@@ -58,6 +58,10 @@ module "sdp_db_user" {
     }
   ]
 
+  database_schemas = {
+    var.postgresql_database_name = [var.postgresql_database_name]
+  }
+
   common_tags = local.common_tags
 
   depends_on = [
