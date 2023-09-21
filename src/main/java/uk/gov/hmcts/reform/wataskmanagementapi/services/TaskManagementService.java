@@ -875,7 +875,7 @@ public class TaskManagementService {
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
-        } catch (FeignException e) {
+        } catch (FeignException.BadRequest e) {
             log.error("Error when initiating task(id={})", taskId, e);
             throw e;
         } catch (Exception e) {
