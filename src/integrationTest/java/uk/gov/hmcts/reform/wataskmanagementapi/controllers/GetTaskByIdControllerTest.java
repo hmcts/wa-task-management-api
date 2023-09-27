@@ -577,14 +577,14 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .content(asJsonString(initiateTaskRequest)))
             //.andDo(print())
             .andExpectAll(
-                status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()),
+                status().isBadGateway(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type")
-                    .value("https://github.com/hmcts/wa-task-management-api/problem/generic-server-error"),
-                jsonPath("$.title").value("Generic Server Error"),
-                jsonPath("$.status").value(500),
-                jsonPath("$.detail").value("Generic Server Error: The action could not be "
-                                           + "completed because there was a problem when initiating the task.")
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
+                jsonPath("$.title").value("Downstream Dependency Error"),
+                jsonPath("$.status").value(502),
+                jsonPath("$.detail").value(
+                    "Downstream dependency did not respond as expected and the request could not be completed."
+                        + " Message from downstream system: [401 Unauthorized] during [GET] to [http://ccd-data-store-api-aat.service.core-compute-aat.internal/cases/getTaskCaseId3] [CcdDataServiceApi#getCase(String,String,String)]: []")
             );
 
         //second initiate call
@@ -596,14 +596,14 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .content(asJsonString(initiateTaskRequest)))
             //.andDo(print())
             .andExpectAll(
-                status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()),
+                status().isBadGateway(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type")
-                    .value("https://github.com/hmcts/wa-task-management-api/problem/generic-server-error"),
-                jsonPath("$.title").value("Generic Server Error"),
-                jsonPath("$.status").value(500),
-                jsonPath("$.detail").value("Generic Server Error: The action could not be "
-                                           + "completed because there was a problem when initiating the task.")
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
+                jsonPath("$.title").value("Downstream Dependency Error"),
+                jsonPath("$.status").value(502),
+                jsonPath("$.detail").value(
+                    "Downstream dependency did not respond as expected and the request could not be completed."
+                        + " Message from downstream system: [401 Unauthorized] during [GET] to [http://ccd-data-store-api-aat.service.core-compute-aat.internal/cases/getTaskCaseId3] [CcdDataServiceApi#getCase(String,String,String)]: []")
             );
 
         //retrieve task
