@@ -305,7 +305,8 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status")
                 .value(502),
             jsonPath("$.detail")
-                .value("Downstream dependency did not respond as expected and the request could not be completed.")
+                .value("Downstream dependency did not respond as expected and the request could not be completed."
+                           + " Message from downstream system: null")
         );
 
     }
