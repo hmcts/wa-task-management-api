@@ -373,7 +373,14 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             .andDo(print())
             .andExpectAll(
                 status().isBadGateway(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
+                jsonPath("$.title").value("Downstream Dependency Error"),
+                jsonPath("$.status").value(502),
+                jsonPath("$.detail").value(
+                "Downstream dependency did not respond as expected and the request could not be completed."
+                    + " Message from downstream system: Downstream Dependency Error")
+
             );
     }
 
