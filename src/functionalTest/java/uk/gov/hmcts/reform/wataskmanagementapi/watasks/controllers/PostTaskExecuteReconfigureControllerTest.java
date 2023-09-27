@@ -35,6 +35,8 @@ import java.util.function.Consumer;
 import static java.lang.Thread.sleep;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
@@ -351,8 +353,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    public void should_recalculate_next_hearing_date_using_interval_calculation_when_executed_for_reconfigure()
-        throws InterruptedException {
+    public void should_recalculate_next_hearing_date_using_interval_calculation_when_executed_for_reconfigure() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "functionalTestTask1",
@@ -434,31 +435,37 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
 
-        Thread.sleep(3000L);
-
         taskId = taskVariables.getTaskId();
 
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            assigneeCredentials.getHeaders()
-        );
+        await().ignoreException(Exception.class)
+            .pollInterval(5, SECONDS)
+            .atMost(60, SECONDS)
+            .until(() -> {
 
-        result.prettyPrint();
+                Response taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("assigned"))
-            .body("task.reconfigure_request_time", nullValue())
-            .body("task.last_reconfiguration_time", notNullValue())
-            .body("task.due_date", notNullValue())
-            .body("task.due_date", equalTo(formatDate(2023, 1, 17, 18)))
-            .body("task.priority_date", notNullValue())
-            .body("task.priority_date", equalTo(formatDate(2022, 12, 2, 16)))
-            .body("task.next_hearing_date", notNullValue())
-            .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 2, 16)));
+                taskResult.prettyPrint();
+
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.reconfigure_request_time", nullValue())
+                    .body("task.last_reconfiguration_time", notNullValue())
+                    .body("task.due_date", notNullValue())
+                    .body("task.due_date", equalTo(formatDate(2023, 1, 17, 18)))
+                    .body("task.priority_date", notNullValue())
+                    .body("task.priority_date", equalTo(formatDate(2022, 12, 2, 16)))
+                    .body("task.next_hearing_date", notNullValue())
+                    .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 2, 16)));
+
+                return true;
+            });
 
         common.cleanUpTask(taskId);
     }
