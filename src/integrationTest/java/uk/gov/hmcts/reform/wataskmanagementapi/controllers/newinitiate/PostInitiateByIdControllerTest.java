@@ -342,7 +342,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
 
         FeignException exception = new FeignException.BadRequest(
-            "Downstream Dependency Error",
+            "Incorrect CCD CaseId Format.",
             request,
             null,
             null);
@@ -379,7 +379,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.status").value(502),
                 jsonPath("$.detail").value(
                 "Downstream dependency did not respond as expected and the request could not be completed."
-                    + " Message from downstream system: Downstream Dependency Error")
+                    + " Message from downstream system: Incorrect CCD CaseId Format.")
 
             );
     }
