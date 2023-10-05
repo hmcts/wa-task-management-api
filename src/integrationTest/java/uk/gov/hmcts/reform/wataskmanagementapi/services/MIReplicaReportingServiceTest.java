@@ -17,9 +17,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.sql.Array;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -844,7 +844,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     }
 
     @Test
-    void should_test() {
+    void should_test_procedure_call_mark_report_tasks_for_refresh() {
 
         TaskResource taskResource = createAndSaveTask();
         String taskId = taskResource.getTaskId();
@@ -871,18 +871,6 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         assertTrue(result);
 
-        /*await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
-            .until(
-                () -> {
-                   Optional<ReplicationTaskResource> optionalTaskResource
-                        = miReportingServiceForTest.findReplicationTaskByTaskId(taskId);
-
-                    assertTrue(optionalTaskResource.isPresent());
-                    assertNotNull(optionalTaskResource.get().getReportRefreshRequestTime());
-                    return true;
-                });*/
     }
 
     private void checkHistory(String id, int records) {
@@ -904,24 +892,25 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     private boolean callMarkReportTasksForRefresh(TaskResource taskResource) {
 
-        String runFunction = "{ call cft_task_db.mark_report_tasks_for_refresh( ?,?,?,?,?,? ) }";
+        String runFunction = " call cft_task_db.mark_report_tasks_for_refresh( ?,?,?,?,?,? ) ";
 
         try (Connection conn = DriverManager.getConnection(
              containerReplica.getJdbcUrl(), containerReplica.getUsername(), containerReplica.getPassword());
-             CallableStatement callableStatement = conn.prepareCall(runFunction)) {
+             PreparedStatement preparedStatement = conn.prepareStatement(runFunction)) {
 
             Array taskIds = conn.createArrayOf("TEXT", new String[] {taskResource.getTaskId()});
             Array caseIds = conn.createArrayOf("TEXT", new String[] {taskResource.getCaseId()});
             Array states = conn.createArrayOf("TEXT", new String[] {taskResource.getState().getValue()});
 
-            callableStatement.setArray(1, taskIds);
-            callableStatement.setArray(2, caseIds);
-            callableStatement.setString(3, taskResource.getJurisdiction());
-            callableStatement.setString(4, taskResource.getCaseTypeId());
-            callableStatement.setArray(5, states);
-            callableStatement.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
+            preparedStatement.setArray(1, taskIds);
+            preparedStatement.setArray(2, caseIds);
+            preparedStatement.setString(3, taskResource.getJurisdiction());
+            preparedStatement.setString(4, taskResource.getCaseTypeId());
+            preparedStatement.setArray(5, states);
+            preparedStatement.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
 
-            callableStatement.executeUpdate();
+            return preparedStatement.execute();
+
         } catch (SQLException e) {
             log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
                          e.getSQLState(), e.getMessage());
@@ -931,6 +920,5 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                       e.getCause(), e.getMessage());
             return false;
         }
-        return true;
     }
 }
