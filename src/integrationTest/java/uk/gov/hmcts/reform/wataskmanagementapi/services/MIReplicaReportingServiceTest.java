@@ -902,7 +902,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
-    private boolean callMarkReportTasksForRefresh(TaskResource taskResource){
+    private boolean callMarkReportTasksForRefresh(TaskResource taskResource) {
 
         String runFunction = "{ call cft_task_db.mark_report_tasks_for_refresh( ?,?,?,?,?,? ) }";
 
