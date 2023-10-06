@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -16,18 +17,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
-import java.sql.Array;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -867,10 +861,13 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     return true;
                 });
 
-        boolean result = callMarkReportTasksForRefresh(taskResource);
+        List<Timestamp> taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskResource);
+        taskRefreshTimestamps.forEach(Assertions::assertNull);
 
-        assertTrue(result);
+        callMarkReportTasksForRefresh(taskResource);
 
+        taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskResource);
+        taskRefreshTimestamps.forEach(Assertions::assertNotNull);
     }
 
     private void checkHistory(String id, int records) {
@@ -890,7 +887,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
-    private boolean callMarkReportTasksForRefresh(TaskResource taskResource) {
+    private void callMarkReportTasksForRefresh(TaskResource taskResource) {
 
         String runFunction = " call cft_task_db.mark_report_tasks_for_refresh( ?,?,?,?,?,? ) ";
 
@@ -909,16 +906,43 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             preparedStatement.setArray(5, states);
             preparedStatement.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
 
-            return preparedStatement.execute();
+            preparedStatement.execute();
 
         } catch (SQLException e) {
             log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
                          e.getSQLState(), e.getMessage());
-            return false;
         } catch (Exception e) {
             log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
                       e.getCause(), e.getMessage());
-            return false;
+        }
+    }
+
+    private List<Timestamp> callGetReportRefreshRequestTimes(TaskResource taskResource) {
+
+        String runFunction = "{ ? = call cft_task_db.get_report_refresh_request_times( ? ) }";
+
+        try (Connection conn = DriverManager.getConnection(
+            containerReplica.getJdbcUrl(), containerReplica.getUsername(), containerReplica.getPassword());
+             CallableStatement callableStatement = conn.prepareCall(runFunction)) {
+
+            Array taskIds = conn.createArrayOf("TEXT", new String[] {taskResource.getTaskId()});
+
+            callableStatement.registerOutParameter(1, Types.ARRAY);
+            callableStatement.setArray(2, taskIds);
+
+            callableStatement.execute();
+            Array reportRefreshRequestTimes = callableStatement.getArray(1);
+            log.info(reportRefreshRequestTimes.toString());
+            return Stream.of((Timestamp) reportRefreshRequestTimes).toList();
+
+        } catch (SQLException e) {
+            log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
+                      e.getSQLState(), e.getMessage());
+            return Collections.emptyList();
+        } catch (Exception e) {
+            log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
+                      e.getCause(), e.getMessage());
+            return Collections.emptyList();
         }
     }
 }
