@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -58,6 +61,7 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -100,7 +104,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     private UserInfo mockedUserInfo;
     @MockBean
     private IdamService idamService;
-    @Mock
+    @MockBean
     CcdDataServiceApi ccdDataServiceApi;
     @MockBean
     private ClientAccessControlService clientAccessControlService;
@@ -577,14 +581,14 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .content(asJsonString(initiateTaskRequest)))
             //.andDo(print())
             .andExpectAll(
-                status().isBadGateway(),
+                status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
-                jsonPath("$.title").value("Downstream Dependency Error"),
-                jsonPath("$.status").value(502),
-                jsonPath("$.detail").value(
-                    "Downstream dependency did not respond as expected and the request could not be completed."
-                        + " Message from downstream system: [401 Unauthorized] during [GET] to [http://ccd-data-store-api-aat.service.core-compute-aat.internal/cases/getTaskCaseId3] [CcdDataServiceApi#getCase(String,String,String)]: []")
+                jsonPath("$.type")
+                    .value("https://github.com/hmcts/wa-task-management-api/problem/generic-server-error"),
+                jsonPath("$.title").value("Generic Server Error"),
+                jsonPath("$.status").value(500),
+                jsonPath("$.detail").value("Generic Server Error: The action could not be "
+                                               + "completed because there was a problem when initiating the task.")
             );
 
         //second initiate call
@@ -596,14 +600,14 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .content(asJsonString(initiateTaskRequest)))
             //.andDo(print())
             .andExpectAll(
-                status().isBadGateway(),
+                status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/downstream-dependency-error"),
-                jsonPath("$.title").value("Downstream Dependency Error"),
-                jsonPath("$.status").value(502),
-                jsonPath("$.detail").value(
-                    "Downstream dependency did not respond as expected and the request could not be completed."
-                        + " Message from downstream system: [401 Unauthorized] during [GET] to [http://ccd-data-store-api-aat.service.core-compute-aat.internal/cases/getTaskCaseId3] [CcdDataServiceApi#getCase(String,String,String)]: []")
+                jsonPath("$.type")
+                    .value("https://github.com/hmcts/wa-task-management-api/problem/generic-server-error"),
+                jsonPath("$.title").value("Generic Server Error"),
+                jsonPath("$.status").value(500),
+                jsonPath("$.detail").value("Generic Server Error: The action could not be "
+                                               + "completed because there was a problem when initiating the task.")
             );
 
         //retrieve task
