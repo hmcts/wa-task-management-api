@@ -40,6 +40,6 @@ begin
                     end);
 
     execute concat($$ update cft_task_db.tasks set report_refresh_request_time = current_timestamp
-                     where $$, l_query_filter) using l_before_time, l_state_list, jurisdiction, case_type, list_of_task_ids, list_of_case_ids;
+                     where $$, l_query_filter) using l_before_time, list_of_states, jurisdiction, case_type, list_of_task_ids, list_of_case_ids;
 
 end $procedure$;
