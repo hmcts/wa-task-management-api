@@ -10,7 +10,6 @@ AS $procedure$
 
 declare
 l_before_time              TIMESTAMP;
-l_state_list               text[];
 l_query_filter             text;
 
 begin
