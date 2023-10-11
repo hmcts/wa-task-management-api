@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import feign.FeignException;
-import feign.Request;
-import feign.RequestTemplate;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -61,7 +59,6 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
