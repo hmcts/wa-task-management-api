@@ -34,9 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -761,7 +759,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
             addMissingParameters(taskResource, true);
             if ("TERMINATED".equals(taskState)) {
-                taskResource.setTerminationReason("Completed");
+                taskResource.setTerminationReason("completed");
             }
 
             taskResource = taskResourceRepository.save(taskResource);
@@ -931,7 +929,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         List<String> taskIds = tasks.stream().map(TaskResource::getTaskId).toList();
         List<String> caseIds = tasks.stream().map(TaskResource::getCaseId).toList();
-        Set<String> taskStates =   tasks.stream().map(x -> x.getState().getValue()).collect(Collectors.toSet());
+        List<String> taskStates =   tasks.stream().map(x -> x.getState().getValue()).toList();
 
         List<Timestamp> taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskIds);
         taskRefreshTimestamps.forEach(Assertions::assertNull);
@@ -955,7 +953,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                   null, List.of("DUMMY", "TEST"), markBeforeTime);
                 } else {
                     callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
-                                                  null, taskStates.stream().toList(), markBeforeTime);
+                                                  null, taskStates, markBeforeTime);
                 }
             }
             case "TaskIdTests" -> {
@@ -992,17 +990,17 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             case "MarkByAllParamsTests" -> {
                 if ("matchPartialRecordsByAllParams".equals(testName)) {
                     callMarkReportTasksForRefresh(caseIds, taskIds, "TEST",
-                                                  "TESTAPPS", taskStates.stream().toList(), markBeforeTime);
+                                                  "TESTAPPS", taskStates, markBeforeTime);
                 } else if ("matchNoRecordsByInvalidParams".equals(testName)) {
                     callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
                                             "TESTAPPS", Collections.singletonList("DUMMY"), markBeforeTime);
                 } else {
                     callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
-                                                  "WAAPPS", taskStates.stream().toList(), markBeforeTime);
+                                                  "WAAPPS", taskStates, markBeforeTime);
                 }
             }
             default -> callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
-                                                     "WAAPPS", taskStates.stream().toList(), markBeforeTime);
+                                                     "WAAPPS", taskStates, markBeforeTime);
         }
         taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskIds);
         Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
@@ -1076,9 +1074,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", waCaseId, UUID.randomUUID(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(12), waCaseTypeId, waJurisdiction),
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, UUID.randomUUID(), unassignedStatus,
-                                  OffsetDateTime.now().minusDays(11), testCaseTypeId, testJurisdiction),
-                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, UUID.randomUUID(), unassignedStatus,
-                                  OffsetDateTime.now().minusDays(23), testCaseTypeId, testJurisdiction)),
+                                  OffsetDateTime.now().minusDays(11), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(21).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 0L),
 

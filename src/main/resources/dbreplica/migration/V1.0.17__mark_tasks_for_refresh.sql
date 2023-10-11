@@ -21,15 +21,11 @@ begin
     l_before_time := date_trunc('second', before_time);
   end if;
 
-  if array_length(list_of_states, 1) > 0 then
-    l_state_list :=  list_of_states;
-  else
-    l_state_list := array['TERMINATED'];
-  end if;
-
   l_query_filter := concat_ws(' and ',
                     'created < $1',
-                    'state = ANY($2)',
+                    case when array_length(list_of_states, 1) > 0 then
+                    'state = ANY($2)'
+                    end,
                     case when (jurisdiction is not null) and (jurisdiction <> '') then
                     'jurisdiction = $3'
                     end,
