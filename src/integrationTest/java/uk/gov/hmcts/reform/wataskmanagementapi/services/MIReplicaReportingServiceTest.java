@@ -1045,9 +1045,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 OffsetDateTime.now().minusDays(26).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L),
 
-            /*
-             The 4'th Argument markBeforeTime is used for the filtering criteria
-             */
+            // The 4'th Argument markBeforeTime is used as filtering criteria
             Arguments.arguments(
                 "MarkBeforeTimeTests",
                 "matchAllRecords",
@@ -1059,9 +1057,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 OffsetDateTime.now().minusDays(17).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L),
 
-             /*
-             The 4'th Argument markBeforeTime is used for the filtering criteria
-             */
+            // The 4'th Argument markBeforeTime is used as filtering criteria
             Arguments.arguments(
                 "MarkBeforeTimeTests",
                 "matchPartialRecords",
@@ -1073,9 +1069,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 OffsetDateTime.now().minusDays(14).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 1L),
 
-             /*
-             The 4'th Argument markBeforeTime is used for the filtering criteria
-             */
+            // The 4'th Argument markBeforeTime is used as filtering criteria
             Arguments.arguments(
                 "MarkBeforeTimeTests",
                 "noneMatchedRecords",
