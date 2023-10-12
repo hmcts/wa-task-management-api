@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.util.HashMap;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -185,6 +188,15 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         final List<String> roleNames = singletonList("tribunal-caseworker");
         List<RoleAssignment> allTestRoles = mockServices.createTestRoleAssignments(roleNames);
 
+        Request request = Request.create(Request.HttpMethod.POST, "url",
+                                         new HashMap<>(), null, new RequestTemplate());
+
+        FeignException exception = new FeignException.BadGateway(
+            "Camunda is down.",
+            request,
+            null,
+            null);
+
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
 
@@ -193,7 +205,7 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
             anyString(),
             anyString(),
             anyBoolean()
-        )).thenThrow(FeignException.FeignServerException.class);
+        )).thenThrow(exception);
 
         mockMvc.perform(
             get(ENDPOINT_PATH + "?jurisdiction=some_jurisdiction")
@@ -211,7 +223,7 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
                 .value(502),
             jsonPath("$.detail")
                 .value("Downstream dependency did not respond as expected and the request could not be completed."
-                           + " Message from downstream system: null")
+                           + " Message from downstream system: Camunda is down.")
         );
     }
 

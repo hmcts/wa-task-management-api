@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -135,8 +137,18 @@ public class ServiceMocks {
     }
 
     public void throwFeignExceptionForIdam() throws FeignException.FeignServerException {
+
+        Request request = Request.create(Request.HttpMethod.POST, "url",
+                                         new HashMap<>(), null, new RequestTemplate());
+
+        FeignException exception = new FeignException.BadGateway(
+            "IDAM is down.",
+            request,
+            null,
+            null);
+
         lenient().when(idamWebApi.userInfo(eq(IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION)))
-            .thenThrow(FeignException.FeignServerException.class);
+            .thenThrow(exception);
     }
 
     public void mockVariables() {

@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -288,8 +290,17 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
         mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
+        Request request = Request.create(Request.HttpMethod.POST, "url",
+                                         new HashMap<>(), null, new RequestTemplate());
+
+        FeignException exception = new FeignException.Unauthorized(
+            "The user is unauthorised.",
+            request,
+            null,
+            null);
+
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
-            .thenThrow(FeignException.Unauthorized.class);
+            .thenThrow(exception);
 
         mockMvc.perform(
             get(ENDPOINT_PATH + "?filter-by-user=true")
@@ -306,7 +317,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                 .value(502),
             jsonPath("$.detail")
                 .value("Downstream dependency did not respond as expected and the request could not be completed."
-                           + " Message from downstream system: null")
+                           + " Message from downstream system: The user is unauthorised.")
         );
 
     }
