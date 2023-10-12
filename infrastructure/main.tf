@@ -37,22 +37,6 @@ locals {
   common_tags = merge(var.common_tags, local.computed_tags)
 }
 
-//Create Database
-module "wa_task_management_api_database" {
-  source             = "git@github.com:hmcts/cnp-module-postgres?ref=master"
-  product            = var.product
-  name               = "${var.postgres_db_component_name}-postgres-db"
-  location           = var.location
-  env                = var.env
-  database_name      = var.postgresql_database_name
-  postgresql_user    = var.postgresql_user
-  postgresql_version = "11"
-  common_tags        = local.common_tags
-  subscription       = var.subscription
-  sku_capacity       = var.database_sku_capacity
-  sku_name           = var.database_sku_name
-}
-
 //New Azure Flexible database
 module "wa_task_management_api_database_flexible" {
   providers = {
@@ -107,7 +91,7 @@ module "wa_task_management_api_database_flexible_replica" {
       name : var.postgresql_database_name
     }
   ]
-  
+
   pgsql_version      = 14
   common_tags        = local.common_tags
 
@@ -115,63 +99,6 @@ module "wa_task_management_api_database_flexible_replica" {
 
 }
 
-//New Azure Flexible database replica2
-module "wa_task_management_api_database_flexible_replica_2" {
-  count = var.env == "aat" ? 1 : 0
-  providers = {
-    azurerm.postgres_network = azurerm.postgres_network
-  }
-
-  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
-  product            = var.product
-  component          = var.component
-  name               = "${var.postgres_db_component_name}-postgres-db-flexible-replica-2"
-  location           = var.location
-  business_area      = var.business_area
-  env                = var.env
-  pgsql_databases = [
-    {
-      name : var.postgresql_database_name
-    }
-  ]
-  
-  pgsql_version      = 14
-  common_tags        = local.common_tags
-
-  admin_user_object_id = var.jenkins_AAD_objectId
-
-}
-
-//Save secrets in vault
-resource "azurerm_key_vault_secret" "POSTGRES-USER" {
-  name         = "${var.postgres_db_component_name}-POSTGRES-USER"
-  value        = module.wa_task_management_api_database.user_name
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
-  name         = "${var.postgres_db_component_name}-POSTGRES-PASS"
-  value        = module.wa_task_management_api_database.postgresql_password
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
-  name         = "${var.postgres_db_component_name}-POSTGRES-HOST"
-  value        = module.wa_task_management_api_database.host_name
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
-  name         = "${var.postgres_db_component_name}-POSTGRES-PORT"
-  value        = module.wa_task_management_api_database.postgresql_listen_port
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
-  name         = "${var.postgres_db_component_name}-POSTGRES-DATABASE"
-  value        = module.wa_task_management_api_database.postgresql_database
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
 //flexible server
 resource "azurerm_key_vault_secret" "POSTGRES-USER-FLEXIBLE" {
   name         = "${var.postgres_db_component_name}-POSTGRES-USER-FLEXIBLE"
@@ -233,40 +160,3 @@ resource "azurerm_key_vault_secret" "POSTGRES_DATABASE-FLEXIBLE-REPLICA" {
   value        = "cft_task_db"
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
-
-//replica-2
-resource "azurerm_key_vault_secret" "POSTGRES-USER-FLEXIBLE-REPLICA-2" {
-  count = var.env == "aat" ? 1 : 0
-  name         = "${var.postgres_db_component_name}-POSTGRES-USER-FLEXIBLE-REPLICA-2"
-  value        = module.wa_task_management_api_database_flexible_replica_2[0].username
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES-PASS-FLEXIBLE-REPLICA-2" {
-  count = var.env == "aat" ? 1 : 0
-  name         = "${var.postgres_db_component_name}-POSTGRES-PASS-FLEXIBLE-REPLICA-2"
-  value        = module.wa_task_management_api_database_flexible_replica_2[0].password
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES_HOST-FLEXIBLE-REPLICA-2" {
-  count = var.env == "aat" ? 1 : 0
-  name         = "${var.postgres_db_component_name}-POSTGRES-HOST-FLEXIBLE-REPLICA-2"
-  value        = module.wa_task_management_api_database_flexible_replica_2[0].fqdn
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES_PORT-FLEXIBLE-REPLICA-2" {
-  count = var.env == "aat" ? 1 : 0
-  name         = "${var.postgres_db_component_name}-POSTGRES-PORT-FLEXIBLE-REPLICA-2"
-  value        = "5432"
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES_DATABASE-FLEXIBLE-REPLICA-2" {
-  count = var.env == "aat" ? 1 : 0
-  name         = "${var.postgres_db_component_name}-POSTGRES-DATABASE-FLEXIBLE-REPLICA-2"
-  value        = "cft_task_db"
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
-
