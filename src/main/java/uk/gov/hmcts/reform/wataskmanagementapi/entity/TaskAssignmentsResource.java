@@ -38,4 +38,8 @@ public class TaskAssignmentsResource {
     private String roleCategory;
     private String taskName;
     private String assignmentEndReason;
+
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime reportRefreshTime;
+
 }
