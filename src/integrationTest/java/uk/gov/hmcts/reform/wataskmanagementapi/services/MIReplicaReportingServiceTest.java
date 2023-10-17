@@ -1330,7 +1330,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         "5, 5, 20, 5",
         "7, 2, 5, 6"
     })
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_test_refresh_report_tasks(Integer taskResourcesToCreate, Integer batchSize,
                                                  Integer maxRowsToProcess, Integer expectedProcessed) {
         List<TaskResource> tasks = new ArrayList<>();
