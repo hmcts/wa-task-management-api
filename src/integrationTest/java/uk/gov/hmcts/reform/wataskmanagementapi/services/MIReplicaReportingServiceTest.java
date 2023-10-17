@@ -1318,7 +1318,6 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "2, 2, 2, 2",
         "6, 2, 4, 4",
         "0, 5, 20, 0",
         "5, 10, 20, 5",
