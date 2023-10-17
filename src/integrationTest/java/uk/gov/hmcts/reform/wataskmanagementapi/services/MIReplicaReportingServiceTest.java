@@ -1375,7 +1375,17 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         callRefreshReportTasks(batchSize, maxRowsToProcess);
 
-        callGetReportRefreshRequestTimes(taskIds);
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<Timestamp> taskRefreshTimestampList = callGetReportRefreshRequestTimes(taskIds);
+                    long countNotRefreshed = taskRefreshTimestampList.stream().map(Objects::nonNull).count();
+                    Assertions.assertEquals(expectedProcessed, taskResourcesToCreate - (int) countNotRefreshed,
+                                            String.format("Should refresh %s tasks:", expectedProcessed));
+                    return true;
+                });
 
         AtomicInteger reportableTasksRefreshedCount = new AtomicInteger();
         AtomicInteger taskAssignmentsRefreshedCount = new AtomicInteger();
@@ -1426,6 +1436,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     }
 
     private void callRefreshReportTasks(Integer batchSize, Integer refreshRecordsCount) {
+        log.info(String.format("callRefreshReportTasks with batchSize : %s and maxRecordsCount : %s",
+                               batchSize, refreshRecordsCount));
+
         String runFunction = " call cft_task_db.refresh_report_tasks( ?, ? ) ";
 
         try (Connection conn = DriverManager.getConnection(
