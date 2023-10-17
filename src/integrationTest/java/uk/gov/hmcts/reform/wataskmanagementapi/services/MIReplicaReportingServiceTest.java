@@ -1417,7 +1417,6 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     }
 
-
     private void checkHistory(String id, int records) {
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -1433,30 +1432,6 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                              taskHistoryResourceList.isEmpty());
                     return true;
                 });
-    }
-
-    private void callRefreshReportTasks(Integer batchSize, Integer refreshRecordsCount) {
-        log.info(String.format("callRefreshReportTasks with batchSize : %s and maxRecordsCount : %s",
-                               batchSize, refreshRecordsCount));
-
-        String runFunction = " call cft_task_db.refresh_report_tasks( ?, ? ) ";
-
-        try (Connection conn = DriverManager.getConnection(
-            containerReplica.getJdbcUrl(), containerReplica.getUsername(), containerReplica.getPassword());
-             PreparedStatement preparedStatement = conn.prepareStatement(runFunction)) {
-
-            preparedStatement.setInt(1, Objects.isNull(batchSize) ? null : batchSize);
-            preparedStatement.setInt(2, Objects.isNull(refreshRecordsCount) ? null : refreshRecordsCount);
-            preparedStatement.execute();
-
-        } catch (SQLException e) {
-            log.error("Procedure call refresh_report_tasks failed with SQL State : {}, {} ",
-                      e.getSQLState(), e.getMessage());
-        } catch (Exception e) {
-            log.error("Procedure call refresh_report_tasks failed with SQL State : {}, {} ",
-                      e.getCause(), e.getMessage());
-        }
-
     }
 
     private void callMarkReportTasksForRefresh(List<String> caseIdList, List<String> taskIdList, String jurisdiction,
@@ -1488,6 +1463,36 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         } catch (Exception e) {
             log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
                       e.getCause(), e.getMessage());
+        }
+    }
+
+    private List<Timestamp> callGetReportRefreshRequestTimes(List<String> taskIdList) {
+
+        String runFunction = "{ ? = call cft_task_db.get_report_refresh_request_times( ? ) }";
+
+        try (Connection conn = DriverManager.getConnection(
+            containerReplica.getJdbcUrl(), containerReplica.getUsername(), containerReplica.getPassword());
+             CallableStatement callableStatement = conn.prepareCall(runFunction)) {
+
+            Array taskIds = conn.createArrayOf("TEXT", taskIdList.toArray());
+
+            callableStatement.registerOutParameter(1, Types.ARRAY);
+            callableStatement.setArray(2, taskIds);
+
+            callableStatement.execute();
+            Array reportRefreshRequestTimes = callableStatement.getArray(1);
+            log.info(reportRefreshRequestTimes.toString());
+            Timestamp[] stringReportRequestTimes = (Timestamp[])reportRefreshRequestTimes.getArray();
+            return Arrays.stream(stringReportRequestTimes).filter(Objects::nonNull).toList();
+
+        } catch (SQLException e) {
+            log.error("Procedure call callGetReportRefreshRequestTimes failed with SQL State : {}, {} ",
+                      e.getSQLState(), e.getMessage());
+            return Collections.emptyList();
+        } catch (Exception e) {
+            log.error("Procedure call callGetReportRefreshRequestTimes failed with SQL State : {}, {} ",
+                      e.getCause(), e.getMessage());
+            return Collections.emptyList();
         }
     }
 
