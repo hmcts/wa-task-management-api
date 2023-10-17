@@ -28,7 +28,10 @@ begin
          l_records_to_process := max_rows_to_process;
       end if;
 
-      select div(l_records_to_process,max_batch_size)+1 INTO STRICT l_batches;
+      select div(l_records_to_process,max_batch_size) INTO STRICT l_batches;
+      if (mod(l_records_to_process,max_batch_size) > 0) then
+          l_batches = l_batches + 1;
+      end if;
 
       FOR counter IN 1..l_batches
       LOOP

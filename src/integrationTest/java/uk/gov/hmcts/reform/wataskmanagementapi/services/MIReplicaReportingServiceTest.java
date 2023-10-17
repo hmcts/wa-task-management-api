@@ -1318,6 +1318,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
+        "0, 0, 0, 0",
+        "2, 2, 2, 2",
         "6, 2, 4, 4",
         "0, 5, 20, 0",
         "5, 10, 20, 5",
@@ -1325,8 +1327,10 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         "5, -1, 20, 5",
         "7, 2, 0, 7",
         "5, 2, -2, 5",
-        "5, 5, 20, 5"
+        "5, 5, 20, 5",
+        "7, 2, 5, 6"
     })
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void should_test_refresh_report_tasks(Integer taskResourcesToCreate, Integer batchSize,
                                                  Integer maxRowsToProcess, Integer expectedProcessed) {
         List<TaskResource> tasks = new ArrayList<>();
@@ -1375,8 +1379,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         callRefreshReportTasks(batchSize, maxRowsToProcess);
 
         await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(30, SECONDS)
             .until(
                 () -> {
                     List<Timestamp> taskRefreshTimestampList = callGetReportRefreshRequestTimes(taskIds);
