@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -1314,6 +1316,97 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         );
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {
+        "2, 2, 2, 2",
+        "6, 2, 4, 4",
+        "0, 5, 20, 0",
+        "5, 10, 20, 5",
+        "2, 0, 20, 2",
+        "5, -1, 20, 5",
+        "7, 2, 0, 7",
+        "5, 2, -2, 5",
+        "5, 5, 20, 5"
+    })
+    public void should_test_refresh_report_tasks(Integer taskResourcesToCreate, Integer batchSize,
+                                                 Integer maxRowsToProcess, Integer expectedProcessed) {
+        List<TaskResource> tasks = new ArrayList<>();
+        IntStream.range(0, taskResourcesToCreate).forEach( x ->  {
+            TaskResource taskResource = createAndAssignTask();
+            log.info(taskResource.toString());
+            tasks.add(taskResource);
+        });
+
+        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    ReportableTaskResource reportableTaskResource = reportableTaskList.get(0);
+                    assertEquals(task.getTaskId(), reportableTaskResource.getTaskId());
+                    assertEquals(task.getState().getValue(), reportableTaskResource.getState());
+
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(task.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+
+                    return true;
+                }));
+
+        List<String> taskIds = tasks.stream().map(TaskResource::getTaskId).toList();
+
+        List<Timestamp> taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskIds);
+        taskRefreshTimestamps.forEach(Assertions::assertNull);
+
+        callMarkReportTasksForRefresh(null, null, null,
+                                      null, null, OffsetDateTime.now());
+
+        taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskIds);
+        long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
+        Assertions.assertEquals(taskResourcesToCreate,
+                                (int) count, String.format("Should mark all %s tasks:", taskResourcesToCreate));
+
+        callRefreshReportTasks(batchSize, maxRowsToProcess);
+
+        callGetReportRefreshRequestTimes(taskIds);
+
+        AtomicInteger reportableTasksRefreshedCount = new AtomicInteger();
+        AtomicInteger taskAssignmentsRefreshedCount = new AtomicInteger();
+
+        taskIds.forEach(x -> {
+                List<ReportableTaskResource> reportableTaskList
+                    = miReportingServiceForTest.findByReportingTaskId(x);
+
+                assertFalse(reportableTaskList.isEmpty());
+                assertEquals(1, reportableTaskList.size());
+                assertEquals(x, reportableTaskList.get(0).getTaskId());
+                if(reportableTaskList.get(0).getReportRefreshTime() != null){
+                    reportableTasksRefreshedCount.getAndIncrement();
+                }
+
+                List<TaskAssignmentsResource> taskAssignmentsList
+                    = miReportingServiceForTest.findByAssignmentsTaskId(x);
+
+                assertFalse(taskAssignmentsList.isEmpty());
+                assertEquals(1, taskAssignmentsList.size());
+                assertEquals(x, taskAssignmentsList.get(0).getTaskId());
+                if(taskAssignmentsList.get(0).getReportRefreshTime() != null){
+                    taskAssignmentsRefreshedCount.getAndIncrement();
+                }
+        });
+
+        assertEquals(expectedProcessed, reportableTasksRefreshedCount.get());
+        assertEquals(expectedProcessed, taskAssignmentsRefreshedCount.get());
+
+    }
+
 
     private void checkHistory(String id, int records) {
         await().ignoreException(AssertionFailedError.class)
@@ -1330,6 +1423,27 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                              taskHistoryResourceList.isEmpty());
                     return true;
                 });
+    }
+
+    private void callRefreshReportTasks(Integer batchSize, Integer refreshRecordsCount) {
+        String runFunction = " call cft_task_db.refresh_report_tasks( ?, ? ) ";
+
+        try (Connection conn = DriverManager.getConnection(
+            containerReplica.getJdbcUrl(), containerReplica.getUsername(), containerReplica.getPassword());
+             PreparedStatement preparedStatement = conn.prepareStatement(runFunction)) {
+
+            preparedStatement.setInt(1, Objects.isNull(batchSize) ? null : batchSize);
+            preparedStatement.setInt(2, Objects.isNull(refreshRecordsCount) ? null : refreshRecordsCount);
+            preparedStatement.execute();
+
+        } catch (SQLException e) {
+            log.error("Procedure call refresh_report_tasks failed with SQL State : {}, {} ",
+                      e.getSQLState(), e.getMessage());
+        } catch (Exception e) {
+            log.error("Procedure call refresh_report_tasks failed with SQL State : {}, {} ",
+                      e.getCause(), e.getMessage());
+        }
+
     }
 
     private void callMarkReportTasksForRefresh(List<String> caseIdList, List<String> taskIdList, String jurisdiction,
