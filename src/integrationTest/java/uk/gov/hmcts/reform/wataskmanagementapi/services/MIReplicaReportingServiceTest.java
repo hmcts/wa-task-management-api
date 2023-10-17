@@ -1331,7 +1331,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     public void should_test_refresh_report_tasks(Integer taskResourcesToCreate, Integer batchSize,
                                                  Integer maxRowsToProcess, Integer expectedProcessed) {
         List<TaskResource> tasks = new ArrayList<>();
-        IntStream.range(0, taskResourcesToCreate).forEach( x ->  {
+        IntStream.range(0, taskResourcesToCreate).forEach(x -> {
             TaskResource taskResource = createAndAssignTask();
             log.info(taskResource.toString());
             tasks.add(taskResource);
@@ -1381,25 +1381,25 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         AtomicInteger taskAssignmentsRefreshedCount = new AtomicInteger();
 
         taskIds.forEach(x -> {
-                List<ReportableTaskResource> reportableTaskList
-                    = miReportingServiceForTest.findByReportingTaskId(x);
+            List<ReportableTaskResource> reportableTaskList
+                = miReportingServiceForTest.findByReportingTaskId(x);
 
-                assertFalse(reportableTaskList.isEmpty());
-                assertEquals(1, reportableTaskList.size());
-                assertEquals(x, reportableTaskList.get(0).getTaskId());
-                if(reportableTaskList.get(0).getReportRefreshTime() != null){
-                    reportableTasksRefreshedCount.getAndIncrement();
-                }
+            assertFalse(reportableTaskList.isEmpty());
+            assertEquals(1, reportableTaskList.size());
+            assertEquals(x, reportableTaskList.get(0).getTaskId());
+            if (reportableTaskList.get(0).getReportRefreshTime() != null) {
+                reportableTasksRefreshedCount.getAndIncrement();
+            }
 
-                List<TaskAssignmentsResource> taskAssignmentsList
-                    = miReportingServiceForTest.findByAssignmentsTaskId(x);
+            List<TaskAssignmentsResource> taskAssignmentsList
+                = miReportingServiceForTest.findByAssignmentsTaskId(x);
 
-                assertFalse(taskAssignmentsList.isEmpty());
-                assertEquals(1, taskAssignmentsList.size());
-                assertEquals(x, taskAssignmentsList.get(0).getTaskId());
-                if(taskAssignmentsList.get(0).getReportRefreshTime() != null){
-                    taskAssignmentsRefreshedCount.getAndIncrement();
-                }
+            assertFalse(taskAssignmentsList.isEmpty());
+            assertEquals(1, taskAssignmentsList.size());
+            assertEquals(x, taskAssignmentsList.get(0).getTaskId());
+            if (taskAssignmentsList.get(0).getReportRefreshTime() != null) {
+                taskAssignmentsRefreshedCount.getAndIncrement();
+            }
         });
 
         assertEquals(expectedProcessed, reportableTasksRefreshedCount.get());
