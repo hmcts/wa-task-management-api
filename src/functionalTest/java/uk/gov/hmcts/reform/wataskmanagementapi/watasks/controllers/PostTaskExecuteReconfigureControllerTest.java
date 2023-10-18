@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import static java.lang.Thread.sleep;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -140,24 +139,30 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
-        sleep(3000L);
+
         taskId = taskVariables.getTaskId();
 
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            assigneeCredentials.getHeaders()
-        );
+        await().ignoreException(Exception.class)
+            .pollInterval(5, SECONDS)
+            .atMost(60, SECONDS)
+            .until(() -> {
+                Response taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
 
-        result.prettyPrint();
+                taskResult.prettyPrint();
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("assigned"))
-            .body("task.reconfigure_request_time", nullValue())
-            .body("task.last_reconfiguration_time", notNullValue());
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.reconfigure_request_time", nullValue())
+                    .body("task.last_reconfiguration_time", notNullValue());
+                return true;
+            });
 
         //no unprocessed reconfiguration records so no error should report
         result = restApiActions.post(
@@ -237,34 +242,39 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         // execute reconfigure process is not performed on current task
         // retry window is set 0 hours, so 1 unprocessed reconfiguration record to report
-        sleep(10000);
-        result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskOperationRequestForExecuteReconfiguration(
-                TaskOperationType.EXECUTE_RECONFIGURE_FAILURES,
-                OffsetDateTime.now().minus(Duration.ofDays(1))
-            ),
-            assigneeCredentials.getHeaders()
-        );
+        await().ignoreException(Exception.class)
+            .pollInterval(5, SECONDS)
+            .atMost(60, SECONDS)
+            .until(() -> {
+                Response taskResult = restApiActions.post(
+                    ENDPOINT_BEING_TESTED,
+                    taskOperationRequestForExecuteReconfiguration(
+                        TaskOperationType.EXECUTE_RECONFIGURE_FAILURES,
+                        OffsetDateTime.now().minus(Duration.ofDays(1))
+                    ),
+                    assigneeCredentials.getHeaders()
+                );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value()); //Default max results
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value()); //Default max results
 
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            assigneeCredentials.getHeaders()
-        );
+                taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
 
-        result.prettyPrint();
+                taskResult.prettyPrint();
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("assigned"))
-            .body("task.reconfigure_request_time", notNullValue())
-            .body("task.last_reconfiguration_time", nullValue());
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.reconfigure_request_time", notNullValue())
+                    .body("task.last_reconfiguration_time", nullValue());
+                return true;
+            });
 
         common.cleanUpTask(taskId);
     }
@@ -325,29 +335,34 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
 
-        sleep(3000L);
         taskId = taskVariables.getTaskId();
 
-        result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            assigneeCredentials.getHeaders()
-        );
+        await().ignoreException(Exception.class)
+            .pollInterval(5, SECONDS)
+            .atMost(60, SECONDS)
+            .until(() -> {
+                Response taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
 
-        result.prettyPrint();
+                taskResult.prettyPrint();
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", is("assigned"))
-            .body("task.reconfigure_request_time", nullValue())
-            .body("task.last_reconfiguration_time", notNullValue())
-            .body("task.due_date", notNullValue())
-            .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25,
-                    20, 00, 0, 0)
-                .atZone(ZoneId.systemDefault()).toOffsetDateTime()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.reconfigure_request_time", nullValue())
+                    .body("task.last_reconfiguration_time", notNullValue())
+                    .body("task.due_date", notNullValue())
+                    .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25,
+                                                                    20, 00, 0, 0)
+                                                       .atZone(ZoneId.systemDefault()).toOffsetDateTime()
+                                                       .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
+                return true;
+            });
 
         common.cleanUpTask(taskId);
     }
