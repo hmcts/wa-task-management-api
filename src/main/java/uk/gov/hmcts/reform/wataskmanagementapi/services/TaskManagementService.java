@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -874,6 +875,9 @@ public class TaskManagementService {
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
+        } catch (FeignException e) {
+            log.error("Error when initiating task(id={})", taskId, e);
+            throw e;
         } catch (Exception e) {
             log.error("Error when initiating task(id={})", taskId, e);
             throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);
