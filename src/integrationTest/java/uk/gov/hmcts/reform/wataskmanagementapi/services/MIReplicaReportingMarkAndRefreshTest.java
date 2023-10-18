@@ -38,8 +38,9 @@ public class MIReplicaReportingMarkAndRefreshTest extends ReplicaBaseTest {
         "2, 1, 1"
     })
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void should_test_refresh_report_tasks_for_positive_scenarios(Integer taskResourcesToCreate, Integer maxRowsToProcess,
-                                                 Integer expectedProcessed) {
+    public void should_test_refresh_report_tasks_for_positive_scenarios(Integer taskResourcesToCreate,
+                                                                        Integer maxRowsToProcess,
+                                                                        Integer expectedProcessed) {
         processReportingRecords(taskResourcesToCreate, maxRowsToProcess, expectedProcessed);
 
     }
@@ -51,13 +52,15 @@ public class MIReplicaReportingMarkAndRefreshTest extends ReplicaBaseTest {
         "1, -2, 1"
     })
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void should_test_refresh_report_tasks_for_negative_scenarios(Integer taskResourcesToCreate, Integer maxRowsToProcess,
-                                                 Integer expectedProcessed) {
+    public void should_test_refresh_report_tasks_for_negative_scenarios(Integer taskResourcesToCreate,
+                                                                        Integer maxRowsToProcess,
+                                                                        Integer expectedProcessed) {
         processReportingRecords(taskResourcesToCreate, maxRowsToProcess, expectedProcessed);
 
     }
 
-    private void processReportingRecords(Integer taskResourcesToCreate, Integer maxRowsToProcess, Integer expectedProcessed) {
+    private void processReportingRecords(Integer taskResourcesToCreate, Integer maxRowsToProcess,
+                                         Integer expectedProcessed) {
         List<TaskResource> tasks = new ArrayList<>();
         IntStream.range(0, taskResourcesToCreate).forEach(x -> {
             TaskResource taskResource = createAndAssignTask();
