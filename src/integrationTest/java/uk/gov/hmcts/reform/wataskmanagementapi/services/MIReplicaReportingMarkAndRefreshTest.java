@@ -33,16 +33,31 @@ public class MIReplicaReportingMarkAndRefreshTest extends ReplicaBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "0, 2, 0",
         "1, 1, 1",
-        "1, 0, 1",
-        "1, -2, 1",
         "1, 2, 1",
         "2, 1, 1"
     })
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void should_test_refresh_report_tasks(Integer taskResourcesToCreate, Integer maxRowsToProcess,
+    public void should_test_refresh_report_tasks_for_positive_scenarios(Integer taskResourcesToCreate, Integer maxRowsToProcess,
                                                  Integer expectedProcessed) {
+        processReportingRecords(taskResourcesToCreate, maxRowsToProcess, expectedProcessed);
+
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "0, 2, 0",
+        "1, 0, 1",
+        "1, -2, 1"
+    })
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void should_test_refresh_report_tasks_for_negative_scenarios(Integer taskResourcesToCreate, Integer maxRowsToProcess,
+                                                 Integer expectedProcessed) {
+        processReportingRecords(taskResourcesToCreate, maxRowsToProcess, expectedProcessed);
+
+    }
+
+    private void processReportingRecords(Integer taskResourcesToCreate, Integer maxRowsToProcess, Integer expectedProcessed) {
         List<TaskResource> tasks = new ArrayList<>();
         IntStream.range(0, taskResourcesToCreate).forEach(x -> {
             TaskResource taskResource = createAndAssignTask();
@@ -127,7 +142,6 @@ public class MIReplicaReportingMarkAndRefreshTest extends ReplicaBaseTest {
 
         assertEquals(expectedProcessed, reportableTasksRefreshedCount.get());
         assertEquals(expectedProcessed, taskAssignmentsRefreshedCount.get());
-
     }
 
     private TaskResource createAndAssignTask() {
