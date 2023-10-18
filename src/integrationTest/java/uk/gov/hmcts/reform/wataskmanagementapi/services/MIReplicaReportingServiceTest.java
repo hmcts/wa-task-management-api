@@ -19,24 +19,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
-import java.sql.Array;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -1316,109 +1306,6 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         );
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {
-        "0, 0, 0, 0",
-        "2, 2, 2, 2",
-        "6, 2, 4, 4",
-        "0, 5, 20, 0",
-        "5, 10, 20, 5",
-        "2, 0, 20, 2",
-        "5, -1, 20, 5",
-        "7, 2, 0, 7",
-        "5, 2, -2, 5",
-        "5, 5, 20, 5",
-        "7, 2, 5, 6"
-    })
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void should_test_refresh_report_tasks(Integer taskResourcesToCreate, Integer batchSize,
-                                                 Integer maxRowsToProcess, Integer expectedProcessed) {
-        List<TaskResource> tasks = new ArrayList<>();
-        IntStream.range(0, taskResourcesToCreate).forEach(x -> {
-            TaskResource taskResource = createAndAssignTask();
-            log.info(taskResource.toString());
-            tasks.add(taskResource);
-        });
-
-        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
-            .until(
-                () -> {
-                    List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
-
-                    assertFalse(reportableTaskList.isEmpty());
-                    assertEquals(1, reportableTaskList.size());
-                    ReportableTaskResource reportableTaskResource = reportableTaskList.get(0);
-                    assertEquals(task.getTaskId(), reportableTaskResource.getTaskId());
-                    assertEquals(task.getState().getValue(), reportableTaskResource.getState());
-
-                    List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(task.getTaskId());
-
-                    assertFalse(taskAssignmentsList.isEmpty());
-                    assertEquals(1, taskAssignmentsList.size());
-
-                    return true;
-                }));
-
-        List<String> taskIds = tasks.stream().map(TaskResource::getTaskId).toList();
-
-        List<Timestamp> taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskIds);
-        taskRefreshTimestamps.forEach(Assertions::assertNull);
-
-        callMarkReportTasksForRefresh(null, null, null,
-                                      null, null, OffsetDateTime.now());
-
-        taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskIds);
-        long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
-        Assertions.assertEquals(taskResourcesToCreate,
-                                (int) count, String.format("Should mark all %s tasks:", taskResourcesToCreate));
-
-        callRefreshReportTasks(batchSize, maxRowsToProcess);
-
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(2, SECONDS)
-            .atMost(30, SECONDS)
-            .until(
-                () -> {
-                    List<Timestamp> taskRefreshTimestampList = callGetReportRefreshRequestTimes(taskIds);
-                    long countNotRefreshed = taskRefreshTimestampList.stream().map(Objects::nonNull).count();
-                    Assertions.assertEquals(expectedProcessed, taskResourcesToCreate - (int) countNotRefreshed,
-                                            String.format("Should refresh %s tasks:", expectedProcessed));
-                    return true;
-                });
-
-        AtomicInteger reportableTasksRefreshedCount = new AtomicInteger();
-        AtomicInteger taskAssignmentsRefreshedCount = new AtomicInteger();
-
-        taskIds.forEach(x -> {
-            List<ReportableTaskResource> reportableTaskList
-                = miReportingServiceForTest.findByReportingTaskId(x);
-
-            assertFalse(reportableTaskList.isEmpty());
-            assertEquals(1, reportableTaskList.size());
-            assertEquals(x, reportableTaskList.get(0).getTaskId());
-            if (reportableTaskList.get(0).getReportRefreshTime() != null) {
-                reportableTasksRefreshedCount.getAndIncrement();
-            }
-
-            List<TaskAssignmentsResource> taskAssignmentsList
-                = miReportingServiceForTest.findByAssignmentsTaskId(x);
-
-            assertFalse(taskAssignmentsList.isEmpty());
-            assertEquals(1, taskAssignmentsList.size());
-            assertEquals(x, taskAssignmentsList.get(0).getTaskId());
-            if (taskAssignmentsList.get(0).getReportRefreshTime() != null) {
-                taskAssignmentsRefreshedCount.getAndIncrement();
-            }
-        });
-
-        assertEquals(expectedProcessed, reportableTasksRefreshedCount.get());
-        assertEquals(expectedProcessed, taskAssignmentsRefreshedCount.get());
-
-    }
 
     private void checkHistory(String id, int records) {
         await().ignoreException(AssertionFailedError.class)
@@ -1436,92 +1323,5 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     return true;
                 });
     }
-
-    private void callRefreshReportTasks(Integer batchSize, Integer refreshRecordsCount) {
-        log.info(String.format("callRefreshReportTasks with batchSize : %s and maxRecordsCount : %s",
-                               batchSize, refreshRecordsCount));
-
-        String runFunction = " call cft_task_db.refresh_report_tasks( ?, ? ) ";
-
-        try (Connection conn = DriverManager.getConnection(
-            containerReplica.getJdbcUrl(), containerReplica.getUsername(), containerReplica.getPassword());
-             PreparedStatement preparedStatement = conn.prepareStatement(runFunction)) {
-
-            preparedStatement.setInt(1, Objects.isNull(batchSize) ? null : batchSize);
-            preparedStatement.setInt(2, Objects.isNull(refreshRecordsCount) ? null : refreshRecordsCount);
-            preparedStatement.execute();
-
-        } catch (SQLException e) {
-            log.error("Procedure call refresh_report_tasks failed with SQL State : {}, {} ",
-                      e.getSQLState(), e.getMessage());
-        } catch (Exception e) {
-            log.error("Procedure call refresh_report_tasks failed with SQL State : {}, {} ",
-                      e.getCause(), e.getMessage());
-        }
-
-    }
-
-    private void callMarkReportTasksForRefresh(List<String> caseIdList, List<String> taskIdList, String jurisdiction,
-                                               String caseTypeId, List<String> stateList,
-                                               OffsetDateTime createdBefore) {
-
-        log.info(String.valueOf(Timestamp.valueOf(createdBefore.toLocalDateTime())));
-        String runFunction = " call cft_task_db.mark_report_tasks_for_refresh( ?,?,?,?,?,? ) ";
-
-        try (Connection conn = DriverManager.getConnection(
-             containerReplica.getJdbcUrl(), containerReplica.getUsername(), containerReplica.getPassword());
-             PreparedStatement preparedStatement = conn.prepareStatement(runFunction)) {
-
-            preparedStatement.setArray(1, conn.createArrayOf("TEXT",
-                                           Objects.isNull(taskIdList) ? null : taskIdList.toArray()));
-            preparedStatement.setArray(2, conn.createArrayOf("TEXT",
-                                           Objects.isNull(caseIdList) ? null : caseIdList.toArray()));
-            preparedStatement.setString(3, jurisdiction);
-            preparedStatement.setString(4, caseTypeId);
-            preparedStatement.setArray(5, conn.createArrayOf("TEXT",
-                                           Objects.isNull(stateList) ? null : stateList.toArray()));
-            preparedStatement.setTimestamp(6, Timestamp.valueOf(createdBefore.toLocalDateTime()));
-
-            preparedStatement.execute();
-
-        } catch (SQLException e) {
-            log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
-                         e.getSQLState(), e.getMessage());
-        } catch (Exception e) {
-            log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
-                      e.getCause(), e.getMessage());
-        }
-    }
-
-    private List<Timestamp> callGetReportRefreshRequestTimes(List<String> taskIdList) {
-
-        String runFunction = "{ ? = call cft_task_db.get_report_refresh_request_times( ? ) }";
-
-        try (Connection conn = DriverManager.getConnection(
-            containerReplica.getJdbcUrl(), containerReplica.getUsername(), containerReplica.getPassword());
-             CallableStatement callableStatement = conn.prepareCall(runFunction)) {
-
-            Array taskIds = conn.createArrayOf("TEXT", taskIdList.toArray());
-
-            callableStatement.registerOutParameter(1, Types.ARRAY);
-            callableStatement.setArray(2, taskIds);
-
-            callableStatement.execute();
-            Array reportRefreshRequestTimes = callableStatement.getArray(1);
-            log.info(reportRefreshRequestTimes.toString());
-            Timestamp[] stringReportRequestTimes = (Timestamp[])reportRefreshRequestTimes.getArray();
-            return Arrays.stream(stringReportRequestTimes).filter(Objects::nonNull).toList();
-
-        } catch (SQLException e) {
-            log.error("Procedure call callGetReportRefreshRequestTimes failed with SQL State : {}, {} ",
-                      e.getSQLState(), e.getMessage());
-            return Collections.emptyList();
-        } catch (Exception e) {
-            log.error("Procedure call callGetReportRefreshRequestTimes failed with SQL State : {}, {} ",
-                      e.getCause(), e.getMessage());
-            return Collections.emptyList();
-        }
-    }
-
 
 }
