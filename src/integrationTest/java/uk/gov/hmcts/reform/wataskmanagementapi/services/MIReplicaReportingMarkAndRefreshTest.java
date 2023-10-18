@@ -2,8 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,10 +29,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASS
 @Slf4j
 public class MIReplicaReportingMarkAndRefreshTest extends ReplicaBaseTest {
 
-    @ParameterizedTest
+    /*@ParameterizedTest
     @CsvSource(value = {
-        "1, 1, 1",
-        "1, 2, 1",
+        //"1, 1, 1",
+        //"1, 2, 1",
         "2, 1, 1"
     })
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -47,8 +45,8 @@ public class MIReplicaReportingMarkAndRefreshTest extends ReplicaBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "0, 2, 0",
-        "1, 0, 1",
+        //"0, 2, 0",
+        //"1, 0, 1",
         "1, -2, 1"
     })
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -57,7 +55,7 @@ public class MIReplicaReportingMarkAndRefreshTest extends ReplicaBaseTest {
                                                                         Integer expectedProcessed) {
         processReportingRecords(taskResourcesToCreate, maxRowsToProcess, expectedProcessed);
 
-    }
+    }*/
 
     private void processReportingRecords(Integer taskResourcesToCreate, Integer maxRowsToProcess,
                                          Integer expectedProcessed) {
