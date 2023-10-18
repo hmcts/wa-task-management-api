@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -602,6 +605,9 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     @Test
     void should_return_status_code_502_when_camunda_service_is_down() throws Exception {
 
+        Request request = Request.create(Request.HttpMethod.POST, "url",
+                                         new HashMap<>(), null, new RequestTemplate());
+
         searchEventAndCase = new SearchEventAndCase(
             "some-caseId",
             "some-eventId",
@@ -610,7 +616,13 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         );
         mockServices.mockServiceAPIs();
 
-        doThrow(FeignException.BadGateway.class)
+        FeignException exception = new FeignException.BadGateway(
+            "Camunda is down.",
+            request,
+            null,
+            null);
+
+        doThrow(exception)
             .when(camundaServiceApi)
             .evaluateDMN(any(), any(), any(), any());
 
@@ -639,7 +651,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 jsonPath("$.status").value(502),
                 jsonPath("$.detail").value(
                     "Downstream dependency did not respond as expected "
-                        + "and the request could not be completed.")
+                        + "and the request could not be completed. Message from downstream system: Camunda is down.")
             );
 
         verify(camundaServiceApi, times(1))

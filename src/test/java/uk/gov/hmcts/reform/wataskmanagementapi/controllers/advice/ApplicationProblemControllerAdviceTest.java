@@ -101,7 +101,9 @@ class ApplicationProblemControllerAdviceTest {
             response.getBody().getType()
         );
         assertEquals("Downstream Dependency Error", response.getBody().getTitle());
-        assertEquals(ErrorMessages.DOWNSTREAM_DEPENDENCY_ERROR.getDetail(), response.getBody().getDetail());
+        assertEquals(ErrorMessages.DOWNSTREAM_DEPENDENCY_ERROR.getDetail()
+                         + " Message from downstream system: Downstream Dependency Error",
+                     response.getBody().getDetail());
         assertEquals(BAD_GATEWAY, response.getBody().getStatus());
     }
 
