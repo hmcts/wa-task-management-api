@@ -1332,7 +1332,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         //"1, 2, 1",
         "2, 1, 1"
     })
-    //@DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void should_test_refresh_report_tasks_for_positive_scenarios(Integer taskResourcesToCreate,
                                                                         Integer maxRowsToProcess,
                                                                         Integer expectedProcessed) {
@@ -1346,7 +1346,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         //"1, 0, 1",
         "1, -2, 1"
     })
-    //@DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void should_test_refresh_report_tasks_for_negative_scenarios(Integer taskResourcesToCreate,
                                                                         Integer maxRowsToProcess,
                                                                         Integer expectedProcessed) {
