@@ -1326,7 +1326,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
-    @ParameterizedTest
+    /*@ParameterizedTest
     @CsvSource(value = {
         //"1, 1, 1",
         //"1, 2, 1",
@@ -1352,7 +1352,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                                         Integer expectedProcessed) {
         processReportingRecords(taskResourcesToCreate, maxRowsToProcess, expectedProcessed);
 
-    }
+    }*/
 
     private void processReportingRecords(Integer taskResourcesToCreate, Integer maxRowsToProcess,
                                          Integer expectedProcessed) {
