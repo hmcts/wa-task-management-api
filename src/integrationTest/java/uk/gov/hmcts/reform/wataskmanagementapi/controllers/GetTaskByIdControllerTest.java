@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -100,7 +101,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     private UserInfo mockedUserInfo;
     @MockBean
     private IdamService idamService;
-    @Mock
+    @MockBean
     CcdDataServiceApi ccdDataServiceApi;
     @MockBean
     private ClientAccessControlService clientAccessControlService;
@@ -584,7 +585,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.title").value("Generic Server Error"),
                 jsonPath("$.status").value(500),
                 jsonPath("$.detail").value("Generic Server Error: The action could not be "
-                                           + "completed because there was a problem when initiating the task.")
+                                               + "completed because there was a problem when initiating the task.")
             );
 
         //second initiate call
@@ -603,7 +604,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.title").value("Generic Server Error"),
                 jsonPath("$.status").value(500),
                 jsonPath("$.detail").value("Generic Server Error: The action could not be "
-                                           + "completed because there was a problem when initiating the task.")
+                                               + "completed because there was a problem when initiating the task.")
             );
 
         //retrieve task
