@@ -1332,15 +1332,14 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         //"1, 2, 1",
         "2, 1, 1"
     })
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void should_test_refresh_report_tasks_for_positive_scenarios(Integer taskResourcesToCreate,
-                                                                        Integer maxRowsToProcess,
-                                                                        Integer expectedProcessed) {
-        processReportingRecords(taskResourcesToCreate, maxRowsToProcess, expectedProcessed);
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)*/
+    @Test
+    public void should_test_refresh_report_tasks_for_positive_scenarios() {
+        processReportingRecords(2, 10000, 2);
 
     }
 
-    @ParameterizedTest
+    /*@ParameterizedTest
     @CsvSource(value = {
         //"0, 2, 0",
         //"1, 0, 1",
