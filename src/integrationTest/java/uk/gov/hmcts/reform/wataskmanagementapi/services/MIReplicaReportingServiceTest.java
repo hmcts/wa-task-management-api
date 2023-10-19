@@ -1326,32 +1326,18 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
-    /*@ParameterizedTest
+    @ParameterizedTest
     @CsvSource(value = {
-        //"1, 1, 1",
-        //"1, 2, 1",
-        "2, 1, 1"
+        "2, 10000, 2",
+        "2, -20, 2",
+        "2, 0, 2"
     })
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)*/
-    @Test
-    public void should_test_refresh_report_tasks_for_positive_scenarios() {
-        processReportingRecords(2, 10000, 2);
-
-    }
-
-    /*@ParameterizedTest
-    @CsvSource(value = {
-        //"0, 2, 0",
-        //"1, 0, 1",
-        "1, -2, 1"
-    })
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void should_test_refresh_report_tasks_for_negative_scenarios(Integer taskResourcesToCreate,
-                                                                        Integer maxRowsToProcess,
-                                                                        Integer expectedProcessed) {
+    public void should_test_refresh_report_tasks(Integer taskResourcesToCreate,
+                                                 Integer maxRowsToProcess,
+                                                 Integer expectedProcessed) {
         processReportingRecords(taskResourcesToCreate, maxRowsToProcess, expectedProcessed);
 
-    }*/
+    }
 
     private void processReportingRecords(Integer taskResourcesToCreate, Integer maxRowsToProcess,
                                          Integer expectedProcessed) {
@@ -1390,7 +1376,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         List<Timestamp> taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskIds);
         taskRefreshTimestamps.forEach(Assertions::assertNull);
 
-        callMarkReportTasksForRefresh(null, null, null,
+        callMarkReportTasksForRefresh(null, taskIds, null,
                                       null, null, OffsetDateTime.now());
 
         taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskIds);
