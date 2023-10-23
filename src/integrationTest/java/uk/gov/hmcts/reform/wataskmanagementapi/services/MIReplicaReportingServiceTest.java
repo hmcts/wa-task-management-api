@@ -894,9 +894,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @Test
     public void should_test_mark_functionality_and_ignore_already_marked() {
-        TaskResource t1 = createAndSaveTask( "1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
+        TaskResource t1 = createAndSaveTask("1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
             OffsetDateTime.now().minusDays(20), "wa-ct", "wa-jd");
-        TaskResource t2 = createAndSaveTask( "1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
+        TaskResource t2 = createAndSaveTask("1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
                                              OffsetDateTime.now().minusDays(1), "wa-ct", "wa-jd");
         List<TaskResource> tasks = Arrays.asList(t1, t2);
         tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
