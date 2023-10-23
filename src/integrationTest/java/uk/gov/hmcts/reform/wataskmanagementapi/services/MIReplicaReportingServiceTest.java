@@ -892,6 +892,50 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
+    @Test
+    public void should_test_mark_functionality_and_ignore_already_marked() {
+        TaskResource t1 = createAndSaveTask( "1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
+            OffsetDateTime.now().minusDays(20), "wa-ct", "wa-jd");
+        TaskResource t2 = createAndSaveTask( "1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
+                                             OffsetDateTime.now().minusDays(1), "wa-ct", "wa-jd");
+        List<TaskResource> tasks = Arrays.asList(t1, t2);
+        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(task.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(task.getState().getValue(), reportableTaskList.get(0).getState());
+
+                    return true;
+                }));
+
+        // Mark only task1
+        callMarkReportTasksForRefresh(null, Collections.singletonList(t1.getTaskId()), null,
+                                          null, null, OffsetDateTime.now());
+
+        List<Timestamp> taskRefreshTimestamps =
+            callGetReportRefreshRequestTimes(Arrays.asList(t1.getTaskId(), t2.getTaskId()));
+        Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
+        Assertions.assertEquals(1, count);
+
+        // Mark filters to select both the tasks
+        callMarkReportTasksForRefresh(null, null, null,
+                                      null, null, OffsetDateTime.now());
+
+        taskRefreshTimestamps =
+            callGetReportRefreshRequestTimes(Arrays.asList(t1.getTaskId(), t2.getTaskId()));
+        count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
+        Assertions.assertEquals(2, count);
+        // verify marked times of both the tasks are different
+        Assertions.assertNotEquals(taskRefreshTimestamps.get(0), taskRefreshTimestamps.get(1));
+    }
+
     @ParameterizedTest
     @MethodSource("markTasksForRefreshArgsProvider")
     public void should_test_procedure_call_mark_report_tasks_for_refresh(final String testCategory,
