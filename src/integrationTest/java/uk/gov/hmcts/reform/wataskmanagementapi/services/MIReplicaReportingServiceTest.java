@@ -24,6 +24,7 @@ import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -909,21 +910,24 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     return true;
                 }));
 
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
+                                                           containerReplica.getUsername(),
+                                                           containerReplica.getPassword());
         // Mark only task1
-        callMarkReportTasksForRefresh(null, Collections.singletonList(t1.getTaskId()), null,
+        miReplicaDBDao.callMarkReportTasksForRefresh(null, Collections.singletonList(t1.getTaskId()), null,
                                           null, null, OffsetDateTime.now());
 
         List<Timestamp> taskRefreshTimestamps =
-            callGetReportRefreshRequestTimes(Arrays.asList(t1.getTaskId(), t2.getTaskId()));
+            miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(Arrays.asList(t1.getTaskId(), t2.getTaskId()));
         Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
         Assertions.assertEquals(1, count);
 
         // Mark filters to select both the tasks
-        callMarkReportTasksForRefresh(null, null, null,
+        miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
                                       null, null, OffsetDateTime.now());
 
         taskRefreshTimestamps =
-            callGetReportRefreshRequestTimes(Arrays.asList(t1.getTaskId(), t2.getTaskId()));
+            miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(Arrays.asList(t1.getTaskId(), t2.getTaskId()));
         count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
         Assertions.assertEquals(2, count);
         // verify marked times of both the tasks are different
@@ -936,7 +940,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                        final String testName,
                                        final Stream<String> taskParamsStream,
                                        final OffsetDateTime markBeforeTime,
-                                       final Long expectedMarked) throws Exception {
+                                       final Long expectedMarked) {
         List<TaskResource> tasks = new ArrayList<>();
         taskParamsStream.forEach(taskParamsString -> {
             String[] taskParams = taskParamsString.split(",");
@@ -1386,7 +1390,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     })
     public void should_test_refresh_report_tasks(Integer taskResourcesToCreate,
                                                  Integer maxRowsToProcess,
-                                                 Integer expectedProcessed) throws Exception {
+                                                 Integer expectedProcessed) {
         List<TaskResource> tasks = new ArrayList<>();
         IntStream.range(0, taskResourcesToCreate).forEach(x -> {
             TaskResource taskResource = createAndAssignTask();
