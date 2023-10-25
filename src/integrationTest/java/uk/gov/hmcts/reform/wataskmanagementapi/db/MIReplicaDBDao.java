@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.db;
 
 import lombok.extern.slf4j.Slf4j;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ReplicationException;
 
 import java.sql.Array;
 import java.sql.CallableStatement;
@@ -31,7 +32,7 @@ public class MIReplicaDBDao {
 
     public void callMarkReportTasksForRefresh(List<String> caseIdList, List<String> taskIdList, String jurisdiction,
                                               String caseTypeId, List<String> stateList,
-                                              OffsetDateTime createdBefore) throws Exception {
+                                              OffsetDateTime createdBefore) {
 
         log.info(String.valueOf(Timestamp.valueOf(createdBefore.toLocalDateTime())));
         String runFunction = " call cft_task_db.mark_report_tasks_for_refresh( ?,?,?,?,?,? ) ";
@@ -60,15 +61,15 @@ public class MIReplicaDBDao {
         } catch (SQLException e) {
             log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
                       e.getSQLState(), e.getMessage());
-            throw e;
+            throw new ReplicationException("An error occurred while executing mark_report_tasks_for_refresh", e);
         } catch (Exception e) {
             log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
                       e.getCause(), e.getMessage());
-            throw e;
+            throw new ReplicationException("An error occurred while executing mark_report_tasks_for_refresh", e);
         }
     }
 
-    public List<Timestamp> callGetReplicaTaskRequestRefreshTimes(List<String> taskIdList) throws Exception {
+    public List<Timestamp> callGetReplicaTaskRequestRefreshTimes(List<String> taskIdList) {
 
         String runFunction = "{ ? = call cft_task_db.get_report_refresh_request_times( ? ) }";
 
@@ -89,15 +90,15 @@ public class MIReplicaDBDao {
         } catch (SQLException e) {
             log.error("Procedure call callGetReplicaTaskRequestRefreshTimes failed with SQL State : {}, {} ",
                       e.getSQLState(), e.getMessage());
-            throw e;
+            throw new ReplicationException("An error occurred while executing get_report_refresh_request_times", e);
         } catch (Exception e) {
             log.error("Procedure call callGetReplicaTaskRequestRefreshTimes failed with SQL State : {}, {} ",
                       e.getCause(), e.getMessage());
-            throw e;
+            throw new ReplicationException("An error occurred while executing get_report_refresh_request_times", e);
         }
     }
 
-    public void callRefreshReportTasks(int refreshRecordsCount) throws Exception {
+    public void callRefreshReportTasks(int refreshRecordsCount) {
         log.info(String.format("callRefreshReportTasks with maxRecordsCount : %s", refreshRecordsCount));
 
         String runFunction = " call cft_task_db.refresh_report_tasks( ? ) ";
@@ -111,11 +112,11 @@ public class MIReplicaDBDao {
         } catch (SQLException e) {
             log.error("Procedure call refresh_report_tasks failed with SQL State : {}, {} ",
                       e.getSQLState(), e.getMessage());
-            throw e;
+            throw new ReplicationException("An error occurred while executing refresh_report_tasks", e);
         } catch (Exception e) {
             log.error("Procedure call refresh_report_tasks failed with SQL State : {}, {} ",
                       e.getCause(), e.getMessage());
-            throw e;
+            throw new ReplicationException("An error occurred while executing refresh_report_tasks", e);
         }
 
     }
