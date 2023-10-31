@@ -24,6 +24,7 @@ import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -886,13 +887,60 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
+    @Test
+    public void should_test_mark_functionality_and_ignore_already_marked() {
+        TaskResource t1 = createAndSaveTask("1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
+            OffsetDateTime.now().minusDays(20), "wa-ct", "wa-jd");
+        TaskResource t2 = createAndSaveTask("1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
+                                             OffsetDateTime.now().minusDays(1), "wa-ct", "wa-jd");
+        List<TaskResource> tasks = Arrays.asList(t1, t2);
+        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(task.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(task.getState().getValue(), reportableTaskList.get(0).getState());
+
+                    return true;
+                }));
+
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
+                                                           containerReplica.getUsername(),
+                                                           containerReplica.getPassword());
+        // Mark only task1
+        miReplicaDBDao.callMarkReportTasksForRefresh(null, Collections.singletonList(t1.getTaskId()), null,
+                                          null, null, OffsetDateTime.now());
+
+        List<Timestamp> taskRefreshTimestamps =
+            miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(Arrays.asList(t1.getTaskId(), t2.getTaskId()));
+        Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
+        Assertions.assertEquals(1, count);
+
+        // Mark filters to select both the tasks
+        miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
+                                      null, null, OffsetDateTime.now());
+
+        taskRefreshTimestamps =
+            miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(Arrays.asList(t1.getTaskId(), t2.getTaskId()));
+        count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
+        Assertions.assertEquals(2, count);
+        // verify marked times of both the tasks are different
+        Assertions.assertNotEquals(taskRefreshTimestamps.get(0), taskRefreshTimestamps.get(1));
+    }
+
     @ParameterizedTest
     @MethodSource("markTasksForRefreshArgsProvider")
     public void should_test_procedure_call_mark_report_tasks_for_refresh(final String testCategory,
                                        final String testName,
                                        final Stream<String> taskParamsStream,
                                        final OffsetDateTime markBeforeTime,
-                                       final Long expectedMarked) throws Exception {
+                                       final Long expectedMarked) {
         List<TaskResource> tasks = new ArrayList<>();
         taskParamsStream.forEach(taskParamsString -> {
             String[] taskParams = taskParamsString.split(",");
@@ -1342,7 +1390,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     })
     public void should_test_refresh_report_tasks(Integer taskResourcesToCreate,
                                                  Integer maxRowsToProcess,
-                                                 Integer expectedProcessed) throws Exception {
+                                                 Integer expectedProcessed) {
         List<TaskResource> tasks = new ArrayList<>();
         IntStream.range(0, taskResourcesToCreate).forEach(x -> {
             TaskResource taskResource = createAndAssignTask();
