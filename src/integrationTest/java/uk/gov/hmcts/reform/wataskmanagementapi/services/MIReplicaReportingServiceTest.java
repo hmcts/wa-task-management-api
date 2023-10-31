@@ -12,6 +12,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
+import uk.gov.hmcts.reform.wataskmanagementapi.db.MIReplicaDBDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskAssignmentsResource;
@@ -19,22 +20,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
-import java.sql.Array;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -192,8 +188,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(savedTaskResource.getNextHearingDate(),
                                    taskHistoryResource.getNextHearingDate(),
                                  "Next Hearing Data should Match");
-                    assertEquals(savedTaskResource.getPriorityDate(),
-                                   taskHistoryResource.getPriorityDate(),
+                    assertEquals(savedTaskResource.getPriorityDate().atZoneSameInstant(ZoneId.of("Z")),
+                                   taskHistoryResource.getPriorityDate().atZoneSameInstant(ZoneId.of("Z")),
                                  "Get Priority Date should match");
 
                     return true;
@@ -229,8 +225,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(savedTaskResource.getNextHearingId(), reportableTaskList.get(0).getNextHearingId());
                     assertEquals(savedTaskResource.getNextHearingDate(),
                                    reportableTaskList.get(0).getNextHearingDate());
-                    assertEquals(savedTaskResource.getPriorityDate(),
-                                   reportableTaskList.get(0).getPriorityDate());
+                    assertEquals(savedTaskResource.getPriorityDate().atZoneSameInstant(ZoneId.of("Z")),
+                               reportableTaskList.get(0).getPriorityDate().atZoneSameInstant(ZoneId.of("Z")));
 
                     return true;
                 });
@@ -895,7 +891,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     public void should_test_procedure_call_mark_report_tasks_for_refresh(final String testCategory,
                                        final String testName,
                                        final Stream<String> taskParamsStream,
-                                       final OffsetDateTime markBeforeTime, final Long expectedMarked) {
+                                       final OffsetDateTime markBeforeTime,
+                                       final Long expectedMarked) throws Exception {
         List<TaskResource> tasks = new ArrayList<>();
         taskParamsStream.forEach(taskParamsString -> {
             String[] taskParams = taskParamsString.split(",");
@@ -931,78 +928,83 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         List<String> caseIds = tasks.stream().map(TaskResource::getCaseId).toList();
         List<String> taskStates =   tasks.stream().map(x -> x.getState().getValue()).toList();
 
-        List<Timestamp> taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskIds);
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
+                                                           containerReplica.getUsername(),
+                                                           containerReplica.getPassword());
+
+        List<Timestamp> taskRefreshTimestamps = miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
         taskRefreshTimestamps.forEach(Assertions::assertNull);
 
         switch (testCategory) {
             case "ProcTestsWithDefaultNulls" ->
-                callMarkReportTasksForRefresh(null, null, null,
+                miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
                                               null, null, markBeforeTime);
             case "ProcTestsWithDefaultEmpty" ->
-                callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), "",
+                miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), "",
                                               "", Collections.emptyList(), markBeforeTime);
             case "MarkBeforeTimeTests" ->
-                callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
+                miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
                                               null, Collections.emptyList(), markBeforeTime);
             case "TaskStateTests" -> {
                 if ("matchPartialRecordsByMultipleStatuses".equals(testName)) {
-                    callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
                                                   null, List.of("COMPLETED", "TERMINATED"), markBeforeTime);
                 } else if ("matchNoRecordsByInvalidStatuses".equals(testName)) {
-                    callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
                                                   null, List.of("DUMMY", "TEST"), markBeforeTime);
                 } else {
-                    callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
                                                   null, taskStates, markBeforeTime);
                 }
             }
             case "TaskIdTests" -> {
                 if ("matchPartialRecordsByMultipleTaskIds".equals(testName)) {
-                    callMarkReportTasksForRefresh(Collections.emptyList(), taskIds.subList(0, 2), null,
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), taskIds.subList(0, 2), null,
                                                   null, Collections.emptyList(), markBeforeTime);
                 } else if ("matchNoRecordsByInvalidTaskIds".equals(testName)) {
-                    callMarkReportTasksForRefresh(Collections.emptyList(),
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(),
                                                   Collections.singletonList("alsdjf-aldsj-dummy"), null,
                                                   null, Collections.emptyList(), markBeforeTime);
                 } else {
-                    callMarkReportTasksForRefresh(Collections.emptyList(), taskIds, null,
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), taskIds, null,
                                                   null, Collections.emptyList(), markBeforeTime);
                 }
             }
             case "CaseIdTests" -> {
                 if ("matchPartialRecordsByMultipleCaseIds".equals(testName)) {
-                    callMarkReportTasksForRefresh(caseIds.subList(0, 2), Collections.emptyList(), null,
+                    miReplicaDBDao.callMarkReportTasksForRefresh(caseIds.subList(0, 2), Collections.emptyList(), null,
                                                   null, Collections.emptyList(), markBeforeTime);
                 } else if ("matchNoRecordsByInvalidCaseIds".equals(testName)) {
-                    callMarkReportTasksForRefresh(Collections.singletonList("9999999"), Collections.emptyList(), null,
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.singletonList("9999999"),
+                                                  Collections.emptyList(), null,
                                                   null, Collections.emptyList(), markBeforeTime);
                 } else {
-                    callMarkReportTasksForRefresh(caseIds, Collections.emptyList(), null,
+                    miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, Collections.emptyList(), null,
                                                   null, Collections.emptyList(), markBeforeTime);
                 }
             }
             case "MarkByJurisdictionTests" ->
-                callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), "WA",
+                miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), "WA",
                                               "", Collections.emptyList(), markBeforeTime);
             case "MarkByCaseTypeIdTests" ->
-                callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
+                miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
                                               "WAAPPS", Collections.emptyList(), markBeforeTime);
             case "MarkByAllParamsTests" -> {
                 if ("matchPartialRecordsByAllParams".equals(testName)) {
-                    callMarkReportTasksForRefresh(caseIds, taskIds, "TEST",
+                    miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "TEST",
                                                   "TESTAPPS", taskStates, markBeforeTime);
                 } else if ("matchNoRecordsByInvalidParams".equals(testName)) {
-                    callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
+                    miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
                                             "TESTAPPS", Collections.singletonList("DUMMY"), markBeforeTime);
                 } else {
-                    callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
+                    miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
                                                   "WAAPPS", taskStates, markBeforeTime);
                 }
             }
-            default -> callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
+            default -> miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
                                                      "WAAPPS", taskStates, markBeforeTime);
         }
-        taskRefreshTimestamps = callGetReportRefreshRequestTimes(taskIds);
+        taskRefreshTimestamps = miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
         Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
         Assertions.assertEquals(expectedMarked, count, String.format("%s-%s:", testCategory, testName));
     }
@@ -1332,65 +1334,103 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
-    private void callMarkReportTasksForRefresh(List<String> caseIdList, List<String> taskIdList, String jurisdiction,
-                                               String caseTypeId, List<String> stateList,
-                                               OffsetDateTime createdBefore) {
+    @ParameterizedTest
+    @CsvSource(value = {
+        "2, 10000, 2",
+        "2, -20, 2",
+        "2, 0, 2"
+    })
+    public void should_test_refresh_report_tasks(Integer taskResourcesToCreate,
+                                                 Integer maxRowsToProcess,
+                                                 Integer expectedProcessed) throws Exception {
+        List<TaskResource> tasks = new ArrayList<>();
+        IntStream.range(0, taskResourcesToCreate).forEach(x -> {
+            TaskResource taskResource = createAndAssignTask();
+            log.info(taskResource.toString());
+            tasks.add(taskResource);
+        });
 
-        log.info(String.valueOf(Timestamp.valueOf(createdBefore.toLocalDateTime())));
-        String runFunction = " call cft_task_db.mark_report_tasks_for_refresh( ?,?,?,?,?,? ) ";
+        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
+            .pollInterval(3, SECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
 
-        try (Connection conn = DriverManager.getConnection(
-             containerReplica.getJdbcUrl(), containerReplica.getUsername(), containerReplica.getPassword());
-             PreparedStatement preparedStatement = conn.prepareStatement(runFunction)) {
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    ReportableTaskResource reportableTaskResource = reportableTaskList.get(0);
+                    assertEquals(task.getTaskId(), reportableTaskResource.getTaskId());
+                    assertEquals(task.getState().getValue(), reportableTaskResource.getState());
 
-            preparedStatement.setArray(1, conn.createArrayOf("TEXT",
-                                           Objects.isNull(taskIdList) ? null : taskIdList.toArray()));
-            preparedStatement.setArray(2, conn.createArrayOf("TEXT",
-                                           Objects.isNull(caseIdList) ? null : caseIdList.toArray()));
-            preparedStatement.setString(3, jurisdiction);
-            preparedStatement.setString(4, caseTypeId);
-            preparedStatement.setArray(5, conn.createArrayOf("TEXT",
-                                           Objects.isNull(stateList) ? null : stateList.toArray()));
-            preparedStatement.setTimestamp(6, Timestamp.valueOf(createdBefore.toLocalDateTime()));
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(task.getTaskId());
 
-            preparedStatement.execute();
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
 
-        } catch (SQLException e) {
-            log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
-                         e.getSQLState(), e.getMessage());
-        } catch (Exception e) {
-            log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
-                      e.getCause(), e.getMessage());
-        }
+                    return true;
+                }));
+
+        List<String> taskIds = tasks.stream().map(TaskResource::getTaskId).toList();
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
+                                                             containerReplica.getUsername(),
+                                                             containerReplica.getPassword());
+
+        List<Timestamp> taskRefreshTimestamps = miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
+        taskRefreshTimestamps.forEach(Assertions::assertNull);
+
+        miReplicaDBDao.callMarkReportTasksForRefresh(null, taskIds, null,
+                                      null, null, OffsetDateTime.now());
+
+        taskRefreshTimestamps = miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
+        long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
+        Assertions.assertEquals(taskResourcesToCreate,
+                                (int) count, String.format("Should mark all %s tasks:", taskResourcesToCreate));
+
+        miReplicaDBDao.callRefreshReportTasks(maxRowsToProcess);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(5, SECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    List<Timestamp> taskRefreshTimestampList =
+                        miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
+                    long countNotRefreshed = taskRefreshTimestampList.stream().map(Objects::nonNull).count();
+                    Assertions.assertEquals(expectedProcessed, taskResourcesToCreate - (int) countNotRefreshed,
+                                            String.format("Should refresh %s tasks:", expectedProcessed));
+                    return true;
+                });
+
+        AtomicInteger reportableTasksRefreshedCount = new AtomicInteger();
+        AtomicInteger taskAssignmentsRefreshedCount = new AtomicInteger();
+
+        taskIds.forEach(x -> {
+            List<ReportableTaskResource> reportableTaskList
+                = miReportingServiceForTest.findByReportingTaskId(x);
+
+            assertFalse(reportableTaskList.isEmpty());
+            assertEquals(1, reportableTaskList.size());
+            assertEquals(x, reportableTaskList.get(0).getTaskId());
+            if (reportableTaskList.get(0).getReportRefreshTime() != null) {
+                reportableTasksRefreshedCount.getAndIncrement();
+            }
+
+            List<TaskAssignmentsResource> taskAssignmentsList
+                = miReportingServiceForTest.findByAssignmentsTaskId(x);
+
+            assertFalse(taskAssignmentsList.isEmpty());
+            assertEquals(1, taskAssignmentsList.size());
+            assertEquals(x, taskAssignmentsList.get(0).getTaskId());
+            if (taskAssignmentsList.get(0).getReportRefreshTime() != null) {
+                taskAssignmentsRefreshedCount.getAndIncrement();
+            }
+        });
+
+        assertEquals(expectedProcessed, reportableTasksRefreshedCount.get());
+        assertEquals(expectedProcessed, taskAssignmentsRefreshedCount.get());
     }
 
-    private List<Timestamp> callGetReportRefreshRequestTimes(List<String> taskIdList) {
-
-        String runFunction = "{ ? = call cft_task_db.get_report_refresh_request_times( ? ) }";
-
-        try (Connection conn = DriverManager.getConnection(
-            containerReplica.getJdbcUrl(), containerReplica.getUsername(), containerReplica.getPassword());
-             CallableStatement callableStatement = conn.prepareCall(runFunction)) {
-
-            Array taskIds = conn.createArrayOf("TEXT", taskIdList.toArray());
-
-            callableStatement.registerOutParameter(1, Types.ARRAY);
-            callableStatement.setArray(2, taskIds);
-
-            callableStatement.execute();
-            Array reportRefreshRequestTimes = callableStatement.getArray(1);
-            log.info(reportRefreshRequestTimes.toString());
-            Timestamp[] stringReportRequestTimes = (Timestamp[])reportRefreshRequestTimes.getArray();
-            return Arrays.stream(stringReportRequestTimes).filter(Objects::nonNull).toList();
-
-        } catch (SQLException e) {
-            log.error("Procedure call callGetReportRefreshRequestTimes failed with SQL State : {}, {} ",
-                      e.getSQLState(), e.getMessage());
-            return Collections.emptyList();
-        } catch (Exception e) {
-            log.error("Procedure call callGetReportRefreshRequestTimes failed with SQL State : {}, {} ",
-                      e.getCause(), e.getMessage());
-            return Collections.emptyList();
-        }
-    }
 }
