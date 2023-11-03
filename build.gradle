@@ -392,7 +392,6 @@ dependencies {
 // https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark
   testCompileOnly group: 'com.vladsch.flexmark', name: 'flexmark-all', version: '0.64.8'
 
-
   //Pact contract testing
   contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pactVersion
   contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit', version: versions.pactVersion
