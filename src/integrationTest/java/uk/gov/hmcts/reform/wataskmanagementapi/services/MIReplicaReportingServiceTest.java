@@ -24,6 +24,7 @@ import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -884,6 +885,71 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(2, taskHistoryList.size());
                     return true;
                 });
+    }
+
+    @Test
+    public void should_test_mark_functionality_with_refresh() {
+        TaskResource t1 = createAndSaveTask("1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
+            OffsetDateTime.now().minusDays(20), "wa-ct", "wa-jd");
+        TaskResource t2 = createAndSaveTask("1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
+                                             OffsetDateTime.now().minusDays(1), "wa-ct", "wa-jd");
+        List<TaskResource> tasks = Arrays.asList(t1, t2);
+        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(task.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(task.getState().getValue(), reportableTaskList.get(0).getState());
+
+                    return true;
+                }));
+
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
+                                                           containerReplica.getUsername(),
+                                                           containerReplica.getPassword());
+
+        // Mark filters to select both the tasks
+        miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
+                                      null, null, OffsetDateTime.now());
+
+        List<Timestamp>  taskRefreshTimestamps =
+            miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(Arrays.asList(t1.getTaskId(), t2.getTaskId()));
+        Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
+        Assertions.assertEquals(2, count);
+        // verify marked times of both the tasks are different
+        Assertions.assertEquals(taskRefreshTimestamps.get(0), taskRefreshTimestamps.get(1));
+
+        Timestamp taskRequestRefreshTime = taskRefreshTimestamps.get(0);
+
+        tasks.forEach(x -> {
+            List<ReportableTaskResource> reportableTaskList
+                = miReportingServiceForTest.findByReportingTaskId(x.getTaskId());
+
+            assertFalse(reportableTaskList.isEmpty());
+            assertEquals(1, reportableTaskList.size());
+            assertEquals(x.getTaskId(), reportableTaskList.get(0).getTaskId());
+            if (reportableTaskList.get(0).getReportRefreshTime() != null) {
+                Timestamp reportRefreshTime = Timestamp.valueOf(reportableTaskList.get(0).getReportRefreshTime().toLocalDateTime());
+                assertTrue(reportRefreshTime.after(taskRequestRefreshTime));
+            }
+
+            List<TaskAssignmentsResource> taskAssignmentsList
+                = miReportingServiceForTest.findByAssignmentsTaskId(x.getTaskId());
+
+            assertFalse(taskAssignmentsList.isEmpty());
+            assertEquals(1, taskAssignmentsList.size());
+            assertEquals(x.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+            if (taskAssignmentsList.get(0).getReportRefreshTime() != null) {
+                Timestamp reportRefreshTime = Timestamp.valueOf(taskAssignmentsList.get(0).getReportRefreshTime().toLocalDateTime());
+                assertTrue(reportRefreshTime.after(taskRequestRefreshTime));
+            }
+        });
     }
 
     @ParameterizedTest
