@@ -935,7 +935,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             assertEquals(1, reportableTaskList.size());
             assertEquals(x.getTaskId(), reportableTaskList.get(0).getTaskId());
             if (reportableTaskList.get(0).getReportRefreshTime() != null) {
-                Timestamp reportRefreshTime = Timestamp.valueOf(reportableTaskList.get(0).getReportRefreshTime().toLocalDateTime());
+                Timestamp reportRefreshTime =
+                    Timestamp.valueOf(reportableTaskList.get(0).getReportRefreshTime().toLocalDateTime());
                 assertTrue(reportRefreshTime.after(taskRequestRefreshTime));
             }
 
@@ -946,7 +947,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             assertEquals(1, taskAssignmentsList.size());
             assertEquals(x.getTaskId(), taskAssignmentsList.get(0).getTaskId());
             if (taskAssignmentsList.get(0).getReportRefreshTime() != null) {
-                Timestamp reportRefreshTime = Timestamp.valueOf(taskAssignmentsList.get(0).getReportRefreshTime().toLocalDateTime());
+                Timestamp reportRefreshTime =
+                    Timestamp.valueOf(taskAssignmentsList.get(0).getReportRefreshTime().toLocalDateTime());
                 assertTrue(reportRefreshTime.after(taskRequestRefreshTime));
             }
         });
