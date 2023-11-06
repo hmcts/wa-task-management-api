@@ -55,6 +55,10 @@ begin
                  assignment_end_reason = l_end_reason,
                  report_refresh_time = current_timestamp
             where task_id = l_task_id and assignment_end is null and assignment_start < l_updated;
+    else
+        update cft_task_db.task_assignments
+                    set  report_refresh_time = current_timestamp
+        where task_id = l_task_id;
     end if;
 
 return l_update_id;

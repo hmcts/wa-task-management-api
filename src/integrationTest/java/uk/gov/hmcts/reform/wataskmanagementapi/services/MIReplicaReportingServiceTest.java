@@ -21,10 +21,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -889,69 +892,94 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @Test
     public void should_test_mark_functionality_with_refresh() {
-        TaskResource t1 = createAndSaveTask("1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
-            OffsetDateTime.now().minusDays(20), "wa-ct", "wa-jd");
-        TaskResource t2 = createAndSaveTask("1000000001", UUID.randomUUID().toString(), "UNASSIGNED",
-                                             OffsetDateTime.now().minusDays(1), "wa-ct", "wa-jd");
-        List<TaskResource> tasks = Arrays.asList(t1, t2);
-        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
+
+        TaskResource taskResource = createAndAssignTask();
+
+        List<OffsetDateTime> origTaskAssignmentReportRefreshTimes = new ArrayList<>();
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
             .atMost(10, SECONDS)
             .until(
                 () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                    assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+                    origTaskAssignmentReportRefreshTimes.add(taskAssignmentsList.get(0).getReportRefreshTime());
+
+                    return true;
+                });
+
+        List<OffsetDateTime> origReportableTaskReportRefreshTimes = new ArrayList<>();
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
+                        = miReportingServiceForTest.findByReportingTaskId(taskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
-                    assertEquals(task.getTaskId(), reportableTaskList.get(0).getTaskId());
-                    assertEquals(task.getState().getValue(), reportableTaskList.get(0).getState());
+                    assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(taskResource.getState().getValue(), reportableTaskList.get(0).getState());
+                    origReportableTaskReportRefreshTimes.add(reportableTaskList.get(0).getReportRefreshTime());
 
                     return true;
-                }));
+                });
 
         MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
                                                            containerReplica.getUsername(),
                                                            containerReplica.getPassword());
-
         // Mark filters to select both the tasks
         miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
                                       null, null, OffsetDateTime.now());
 
         List<Timestamp>  taskRefreshTimestamps =
-            miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(Arrays.asList(t1.getTaskId(), t2.getTaskId()));
+            miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(Collections.singletonList(taskResource.getTaskId()));
         Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
-        Assertions.assertEquals(2, count);
-        // verify marked times of both the tasks are different
-        Assertions.assertEquals(taskRefreshTimestamps.get(0), taskRefreshTimestamps.get(1));
-
+        Assertions.assertEquals(1, count);
         Timestamp taskRequestRefreshTime = taskRefreshTimestamps.get(0);
 
-        tasks.forEach(x -> {
-            List<ReportableTaskResource> reportableTaskList
-                = miReportingServiceForTest.findByReportingTaskId(x.getTaskId());
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(taskResource.getTaskId());
 
-            assertFalse(reportableTaskList.isEmpty());
-            assertEquals(1, reportableTaskList.size());
-            assertEquals(x.getTaskId(), reportableTaskList.get(0).getTaskId());
-            if (reportableTaskList.get(0).getReportRefreshTime() != null) {
-                Timestamp reportRefreshTime =
-                    Timestamp.valueOf(reportableTaskList.get(0).getReportRefreshTime().toLocalDateTime());
-                assertTrue(reportRefreshTime.after(taskRequestRefreshTime));
-            }
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(taskResource.getState().getValue(), reportableTaskList.get(0).getState());
+                    assertTrue(origReportableTaskReportRefreshTimes.get(0).isBefore(reportableTaskList.get(0).getReportRefreshTime()));
+                    LocalDateTime reportRefreshTime =
+                            reportableTaskList.get(0).getReportRefreshTime().toLocalDateTime();
+                    assertThat(reportRefreshTime).isCloseTo(taskRequestRefreshTime.toLocalDateTime(),
+                                                           within(100, ChronoUnit.MILLIS));
 
-            List<TaskAssignmentsResource> taskAssignmentsList
-                = miReportingServiceForTest.findByAssignmentsTaskId(x.getTaskId());
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
 
-            assertFalse(taskAssignmentsList.isEmpty());
-            assertEquals(1, taskAssignmentsList.size());
-            assertEquals(x.getTaskId(), taskAssignmentsList.get(0).getTaskId());
-            if (taskAssignmentsList.get(0).getReportRefreshTime() != null) {
-                Timestamp reportRefreshTime =
-                    Timestamp.valueOf(taskAssignmentsList.get(0).getReportRefreshTime().toLocalDateTime());
-                assertTrue(reportRefreshTime.after(taskRequestRefreshTime));
-            }
-        });
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertTrue(origTaskAssignmentReportRefreshTimes.get(0).isBefore(taskAssignmentsList.get(0).getReportRefreshTime()));
+                    reportRefreshTime =
+                        taskAssignmentsList.get(0).getReportRefreshTime().toLocalDateTime();
+                    assertThat(reportRefreshTime).isCloseTo(taskRequestRefreshTime.toLocalDateTime(),
+                                                           within(100, ChronoUnit.MILLIS));
+
+                    return true;
+                });
     }
 
     @ParameterizedTest
