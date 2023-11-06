@@ -960,7 +960,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(1, reportableTaskList.size());
                     assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(taskResource.getState().getValue(), reportableTaskList.get(0).getState());
-                    assertTrue(origReportableTaskReportRefreshTimes.get(0).isBefore(reportableTaskList.get(0).getReportRefreshTime()));
+                    assertTrue(origReportableTaskReportRefreshTimes.get(0)
+                                   .isBefore(reportableTaskList.get(0).getReportRefreshTime()));
                     LocalDateTime reportRefreshTime =
                             reportableTaskList.get(0).getReportRefreshTime().toLocalDateTime();
                     assertThat(reportRefreshTime).isCloseTo(taskRequestRefreshTime.toLocalDateTime(),
@@ -972,7 +973,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertFalse(taskAssignmentsList.isEmpty());
                     assertEquals(1, taskAssignmentsList.size());
                     assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
-                    assertTrue(origTaskAssignmentReportRefreshTimes.get(0).isBefore(taskAssignmentsList.get(0).getReportRefreshTime()));
+                    assertTrue(origTaskAssignmentReportRefreshTimes.get(0)
+                                   .isBefore(taskAssignmentsList.get(0).getReportRefreshTime()));
                     reportRefreshTime =
                         taskAssignmentsList.get(0).getReportRefreshTime().toLocalDateTime();
                     assertThat(reportRefreshTime).isCloseTo(taskRequestRefreshTime.toLocalDateTime(),
