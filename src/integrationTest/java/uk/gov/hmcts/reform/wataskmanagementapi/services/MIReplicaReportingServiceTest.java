@@ -763,7 +763,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
             taskResource = taskResourceRepository.save(taskResource);
 
-            if(!"ASSIGNED".equals(taskState)) {
+            if (!"ASSIGNED".equals(taskState)) {
                 taskResource.setState(CFTTaskState.valueOf(taskState));
                 taskResource.setAssignee("SomeAssignee");
                 taskResource.setLastUpdatedAction("AutoAssign");
@@ -1028,7 +1028,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             .until(
                 () -> {
 
-                    if("ASSIGNED".equals(task.getState().getValue())) {
+                    if ("ASSIGNED".equals(task.getState().getValue())) {
                         List<TaskAssignmentsResource> taskAssignmentsList
                             = miReportingServiceForTest.findByAssignmentsTaskId(task.getTaskId());
 
@@ -1148,12 +1148,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
         Assertions.assertEquals(expectedMarkedCount, count, String.format("%s-%s:", testCategory, testName));
 
-        if(count > 0) {
+        if (count > 0) {
             Timestamp taskRequestRefreshTime =
                 taskRefreshTimestamps.stream().filter(Objects::nonNull).findFirst()
                     .orElse(Timestamp.valueOf(LocalDateTime.now().minusYears(1L)));
 
-            expectedMarkedTasks.forEach( taskId ->
+            expectedMarkedTasks.forEach(taskId ->
                 await().ignoreException(AssertionFailedError.class)
                 .pollInterval(1, SECONDS)
                 .atMost(30, SECONDS)
@@ -1174,7 +1174,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                             within(100, ChronoUnit.MILLIS)
                         );
 
-                        if("ASSIGNED".equals(reportableTaskList.get(0).getState())) {
+                        if ("ASSIGNED".equals(reportableTaskList.get(0).getState())) {
 
                             List<TaskAssignmentsResource> taskAssignmentsList
                                 = miReportingServiceForTest.findByAssignmentsTaskId(taskId);
