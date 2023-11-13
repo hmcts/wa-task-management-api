@@ -2,7 +2,7 @@
  -----------------------------------------
  select task_id from cft_task_db.tasks where role_category is null and jurisdiction = 'IA';
  --  take a backup of all the task_id's into a CSV file OR create a temporary table as below
- CREATE TABLE tmp_task_ids_for_ia AS SELECT task_id FROM tasks WHERE role_category is null;
+ CREATE TABLE tmp_task_ids_for_ia AS SELECT task_id FROM cft_task_db.tasks WHERE role_category is null;
 
  select count(*) from cft_task_db.tasks where role_category is null and jurisdiction = 'IA';
  --23,120 or even more by then
