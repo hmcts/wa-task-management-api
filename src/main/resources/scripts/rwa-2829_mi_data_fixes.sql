@@ -157,6 +157,23 @@ select first_assigned_date, first_assigned_date_time, wait_time_days, wait_time,
 
 -- DATA CHANGE IMPLEMENTATION BY JURISDICTION - IA
 ---------------------------------------------------------------
+-- Some dates to pick from
+select count(*) from tasks where created < to_timestamp('2022-10-20 16:00:00','YYYY-MM-DD HH24:MI:SS') and jurisdiction = 'IA'  -- 99,584
+select count(*) from reportable_task rt  where task_id in (select task_id  from tasks where created < to_timestamp('2022-10-20 16:00:00','YYYY-MM-DD HH24:MI:SS') and jurisdiction = 'IA') -- 31
+
+select count(*) from tasks where created < to_timestamp('2023-03-10 16:00:00','YYYY-MM-DD HH24:MI:SS') and jurisdiction = 'IA'  -- 254,232
+select count(*) from reportable_task rt  where task_id in (select task_id  from tasks where created < to_timestamp('2023-03-10 16:00:00','YYYY-MM-DD HH24:MI:SS') and jurisdiction = 'IA') -- 1,124
+
+select count(*) from tasks where created < to_timestamp('2023-06-20 16:00:00','YYYY-MM-DD HH24:MI:SS') and jurisdiction = 'IA'  -- 371,224
+select count(*) from reportable_task rt  where task_id in (select task_id  from tasks where created < to_timestamp('2023-06-20 16:00:00','YYYY-MM-DD HH24:MI:SS') and jurisdiction = 'IA') -- 2,961
+
+select count(*) from tasks where created < to_timestamp('2023-07-20 16:00:00','YYYY-MM-DD HH24:MI:SS') and jurisdiction = 'IA'  -- 412,202
+select count(*) from reportable_task rt  where task_id in (select task_id  from tasks where created < to_timestamp('2023-07-20 16:00:00','YYYY-MM-DD HH24:MI:SS') and jurisdiction = 'IA') -- 10,590
+
+select count(*) from tasks where created < to_timestamp('2023-09-18 16:00:00','YYYY-MM-DD HH24:MI:SS') and jurisdiction = 'IA'  -- 495,899
+select count(*) from reportable_task rt  where task_id in (select task_id  from tasks where created < to_timestamp('2023-09-18 16:00:00','YYYY-MM-DD HH24:MI:SS') and jurisdiction = 'IA') -- 83,509
+-- end of date pick up
+
 
 CALL cft_task_db.mark_report_tasks_for_refresh(null,null,'IA',null,null, '2023-09-18 16:00:00'::timestamp);
 
