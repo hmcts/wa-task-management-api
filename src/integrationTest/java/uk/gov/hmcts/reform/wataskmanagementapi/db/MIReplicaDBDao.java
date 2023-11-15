@@ -32,10 +32,10 @@ public class MIReplicaDBDao {
 
     public void callMarkReportTasksForRefresh(List<String> caseIdList, List<String> taskIdList, String jurisdiction,
                                               String caseTypeId, List<String> stateList,
-                                              OffsetDateTime createdBefore) {
+                                              OffsetDateTime createdBefore, OffsetDateTime createdAfter) {
 
         log.info(String.valueOf(Timestamp.valueOf(createdBefore.toLocalDateTime())));
-        String runFunction = " call cft_task_db.mark_report_tasks_for_refresh( ?,?,?,?,?,? ) ";
+        String runFunction = " call cft_task_db.mark_report_tasks_for_refresh( ?,?,?,?,?,?,? ) ";
 
         try (Connection conn = DriverManager.getConnection(jdbcUrl, userName, password);
              PreparedStatement preparedStatement = conn.prepareStatement(runFunction)) {
@@ -55,6 +55,7 @@ public class MIReplicaDBDao {
                 Objects.isNull(stateList) ? null : stateList.toArray()
             ));
             preparedStatement.setTimestamp(6, Timestamp.valueOf(createdBefore.toLocalDateTime()));
+            preparedStatement.setTimestamp(7, Timestamp.valueOf(createdAfter.toLocalDateTime()));
 
             preparedStatement.execute();
 
