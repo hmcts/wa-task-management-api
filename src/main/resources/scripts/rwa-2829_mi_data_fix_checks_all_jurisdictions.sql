@@ -1,3 +1,6 @@
+-- The TM Replica Reporting fields will be re-calculated by Adding tasks.report-refresh-request-time
+-- making use of cft_task_db.mark_report_tasks_for_refresh procedure call. Which implicitly invokes triggers to re-calculate all the reportable calculated fields
+
 -- PRE - IMPLEMENTATION CHECKS
 -------------------------------------------
 select count(*)  from tasks where created < to_timestamp('2023-09-18 16:00:00','YYYY-MM-DD HH24:MI:SS');
