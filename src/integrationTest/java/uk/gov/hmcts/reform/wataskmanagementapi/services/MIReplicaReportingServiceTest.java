@@ -952,7 +952,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                            containerReplica.getPassword());
         // Mark filters to select both the tasks
         miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
-                                      null, null, OffsetDateTime.now());
+                                      null, null, OffsetDateTime.now(), taskResource.getCreated().minusDays(2L));
 
         List<Timestamp>  taskRefreshTimestamps =
             miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(Collections.singletonList(taskResource.getTaskId()));
@@ -1002,6 +1002,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                        final String testName,
                                        final Stream<String> taskParamsStream,
                                        final OffsetDateTime markBeforeTime,
+                                       final OffsetDateTime markAfterTime,
                                        final Long expectedMarkedCount,
                                        final Stream<String> expectedMarkedTasks) {
         List<TaskResource> tasks = new ArrayList<>();
@@ -1078,71 +1079,71 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         switch (testCategory) {
             case "ProcTestsWithDefaultNulls" ->
                 miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
-                                              null, null, markBeforeTime);
+                                              null, null, markBeforeTime, markAfterTime);
             case "ProcTestsWithDefaultEmpty" ->
                 miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), "",
-                                              "", Collections.emptyList(), markBeforeTime);
+                                              "", Collections.emptyList(), markBeforeTime, markAfterTime);
             case "MarkBeforeTimeTests" ->
                 miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
-                                              null, Collections.emptyList(), markBeforeTime);
+                                              null, Collections.emptyList(), markBeforeTime, markAfterTime);
             case "TaskStateTests" -> {
                 if ("matchPartialRecordsByMultipleStatuses".equals(testName)) {
                     miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
-                                                  null, List.of("COMPLETED", "TERMINATED"), markBeforeTime);
+                                             null, List.of("COMPLETED", "TERMINATED"), markBeforeTime, markAfterTime);
                 } else if ("matchNoRecordsByInvalidStatuses".equals(testName)) {
                     miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
-                                                  null, List.of("DUMMY", "TEST"), markBeforeTime);
+                                                  null, List.of("DUMMY", "TEST"), markBeforeTime, markAfterTime);
                 } else {
                     miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
-                                                  null, taskStates, markBeforeTime);
+                                                  null, taskStates, markBeforeTime, markAfterTime);
                 }
             }
             case "TaskIdTests" -> {
                 if ("matchPartialRecordsByMultipleTaskIds".equals(testName)) {
                     miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), taskIds.subList(0, 2), null,
-                                                  null, Collections.emptyList(), markBeforeTime);
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
                 } else if ("matchNoRecordsByInvalidTaskIds".equals(testName)) {
                     miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(),
                                                   Collections.singletonList("alsdjf-aldsj-dummy"), null,
-                                                  null, Collections.emptyList(), markBeforeTime);
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
                 } else {
                     miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), taskIds, null,
-                                                  null, Collections.emptyList(), markBeforeTime);
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
                 }
             }
             case "CaseIdTests" -> {
                 if ("matchPartialRecordsByMultipleCaseIds".equals(testName)) {
                     miReplicaDBDao.callMarkReportTasksForRefresh(caseIds.subList(0, 2), Collections.emptyList(), null,
-                                                  null, Collections.emptyList(), markBeforeTime);
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
                 } else if ("matchNoRecordsByInvalidCaseIds".equals(testName)) {
                     miReplicaDBDao.callMarkReportTasksForRefresh(Collections.singletonList("9999999"),
                                                   Collections.emptyList(), null,
-                                                  null, Collections.emptyList(), markBeforeTime);
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
                 } else {
                     miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, Collections.emptyList(), null,
-                                                  null, Collections.emptyList(), markBeforeTime);
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
                 }
             }
             case "MarkByJurisdictionTests" ->
                 miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), "WA",
-                                              "", Collections.emptyList(), markBeforeTime);
+                                              "", Collections.emptyList(), markBeforeTime, markAfterTime);
             case "MarkByCaseTypeIdTests" ->
                 miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
-                                              "WAAPPS", Collections.emptyList(), markBeforeTime);
+                                              "WAAPPS", Collections.emptyList(), markBeforeTime, markAfterTime);
             case "MarkByAllParamsTests" -> {
                 if ("matchPartialRecordsByAllParams".equals(testName)) {
                     miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "TEST",
-                                                  "TESTAPPS", taskStates, markBeforeTime);
+                                                  "TESTAPPS", taskStates, markBeforeTime, markAfterTime);
                 } else if ("matchNoRecordsByInvalidParams".equals(testName)) {
                     miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
-                                            "TESTAPPS", Collections.singletonList("DUMMY"), markBeforeTime);
+                                  "TESTAPPS", Collections.singletonList("DUMMY"), markBeforeTime, markAfterTime);
                 } else {
                     miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
-                                                  "WAAPPS", taskStates, markBeforeTime);
+                                                  "WAAPPS", taskStates, markBeforeTime, markAfterTime);
                 }
             }
             default -> miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
-                                                     "WAAPPS", taskStates, markBeforeTime);
+                                                     "WAAPPS", taskStates, markBeforeTime, markAfterTime);
         }
         taskRefreshTimestamps = miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
         Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
@@ -1224,6 +1225,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(1).toString(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(24), waCaseTypeId, waJurisdiction)),
                 OffsetDateTime.now().minusDays(23).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(26).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(0).toString(),taskIds.get(1).toString())),
 
             Arguments.arguments(
@@ -1235,9 +1237,10 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(3).toString(), terminatedStatus,
                               OffsetDateTime.now().minusDays(28), waCaseTypeId, waJurisdiction)),
                 OffsetDateTime.now().minusDays(26).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(29).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(2).toString(),taskIds.get(3).toString())),
 
-            // The 4'th Argument markBeforeTime is used as filtering criteria
+            // The 4'th and 5th Arguments markBeforeTime, markAfterTime are used as filtering criteria
             Arguments.arguments(
                 "MarkBeforeTimeTests",
                 "matchAllRecords",
@@ -1247,9 +1250,10 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(5).toString(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(18), waCaseTypeId, waJurisdiction)),
                 OffsetDateTime.now().minusDays(17).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(21).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(4).toString(),taskIds.get(5).toString())),
 
-            // The 4'th Argument markBeforeTime is used as filtering criteria
+            // The 4'th and 5th Arguments markBeforeTime, markAfterTime are used as filtering criteria
             Arguments.arguments(
                 "MarkBeforeTimeTests",
                 "matchPartialRecords",
@@ -1259,6 +1263,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(7).toString(), terminatedStatus,
                               OffsetDateTime.now().minusDays(13), waCaseTypeId, waJurisdiction)),
                 OffsetDateTime.now().minusDays(14).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 1L, Stream.of(taskIds.get(6).toString())),
 
             // The 4'th Argument markBeforeTime is used as filtering criteria
@@ -1271,6 +1276,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(9).toString(), unassignedStatus,
                                   OffsetDateTime.now().minusDays(11), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(21).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(23).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 0L, Stream.empty()),
 
             Arguments.arguments(
@@ -1282,6 +1288,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(11).toString(), completedStatus,
                                   OffsetDateTime.now().minusDays(17), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(15).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(19).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(10).toString(), taskIds.get(11).toString())),
 
             Arguments.arguments(
@@ -1293,6 +1300,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(13).toString(), assignedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(12).toString(), taskIds.get(13).toString())),
 
             Arguments.arguments(
@@ -1306,6 +1314,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(16).toString(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(14).toString(), taskIds.get(16).toString())),
 
             Arguments.arguments(
@@ -1319,6 +1328,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(19).toString(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 0L, Stream.empty()),
 
             Arguments.arguments(
@@ -1330,6 +1340,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(21).toString(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(20).toString(), taskIds.get(21).toString())),
 
             Arguments.arguments(
@@ -1343,6 +1354,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(24).toString(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(22).toString(), taskIds.get(23).toString())),
 
             Arguments.arguments(
@@ -1356,6 +1368,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(27).toString(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 0L, Stream.empty()),
 
             Arguments.arguments(
@@ -1367,6 +1380,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(29).toString(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(28).toString(), taskIds.get(29).toString())),
 
             Arguments.arguments(
@@ -1380,6 +1394,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId1, taskIds.get(32).toString(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(30).toString(), taskIds.get(31).toString())),
 
             Arguments.arguments(
@@ -1391,6 +1406,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(34).toString(), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 0L, Stream.empty()),
 
             Arguments.arguments(
@@ -1402,6 +1418,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(36), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 0L, Stream.empty()),
 
             Arguments.arguments(
@@ -1413,6 +1430,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(38), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 1L, Stream.of(taskIds.get(37).toString())),
 
             Arguments.arguments(
@@ -1424,6 +1442,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(40), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, waJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(39).toString(), taskIds.get(40).toString())),
 
             Arguments.arguments(
@@ -1435,6 +1454,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(42), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 0L, Stream.empty()),
 
             Arguments.arguments(
@@ -1446,6 +1466,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(44), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 1L, Stream.of(taskIds.get(43).toString())),
 
             Arguments.arguments(
@@ -1457,6 +1478,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(46), terminatedStatus,
                                   OffsetDateTime.now().minusDays(14), waCaseTypeId, waJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(45).toString(), taskIds.get(46).toString())),
 
             Arguments.arguments(
@@ -1472,6 +1494,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId1, taskIds.get(50), unassignedStatus,
                                   OffsetDateTime.now().minusDays(17), waCaseTypeId, waJurisdiction)),
                 OffsetDateTime.now().minusDays(15).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(19).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 4L, Stream.of(taskIds.get(47).toString(), taskIds.get(48).toString(), taskIds.get(49).toString(),
                               taskIds.get(50).toString())),
 
@@ -1488,6 +1511,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId1, taskIds.get(54), unassignedStatus,
                                   OffsetDateTime.now().minusDays(17), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(19).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 2L, Stream.of(taskIds.get(52).toString(), taskIds.get(54).toString())),
 
             Arguments.arguments(
@@ -1503,6 +1527,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     String.format("%s,%s,%s,%s,%s,%s", testCaseId1, taskIds.get(58), unassignedStatus,
                                   OffsetDateTime.now().minusDays(17), testCaseTypeId, testJurisdiction)),
                 OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(19).withHour(10).withMinute(0).withSecond(0).withNano(0),
                 0L, Stream.empty())
         );
     }
@@ -1573,7 +1598,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskRefreshTimestamps.forEach(Assertions::assertNull);
 
         miReplicaDBDao.callMarkReportTasksForRefresh(null, taskIds, null,
-                                      null, null, OffsetDateTime.now());
+                                      null, null, OffsetDateTime.now(), tasks.get(0).getCreated().minusDays(5));
 
         taskRefreshTimestamps = miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
         long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
