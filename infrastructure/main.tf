@@ -79,6 +79,10 @@ module "wa_task_management_api_database_flexible" {
     {
       name  = "azure.extensions"
       value = "btree_gin"
+    },
+    {
+      name  = "max_slot_wal_keep_size"
+      value = "536870912"
     }
   ]
 
