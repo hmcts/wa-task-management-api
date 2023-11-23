@@ -82,7 +82,7 @@ module "wa_task_management_api_database_flexible" {
     },
     {
       name  = "max_slot_wal_keep_size"
-      value = "536870912"
+      value = "100"
     }
   ]
 
@@ -111,7 +111,7 @@ module "wa_task_management_api_database_flexible_replica" {
       name : var.postgresql_database_name
     }
   ]
-  
+
   pgsql_version      = 14
   common_tags        = local.common_tags
 
@@ -138,7 +138,7 @@ module "wa_task_management_api_database_flexible_replica_2" {
       name : var.postgresql_database_name
     }
   ]
-  
+
   pgsql_version      = 14
   common_tags        = local.common_tags
 
