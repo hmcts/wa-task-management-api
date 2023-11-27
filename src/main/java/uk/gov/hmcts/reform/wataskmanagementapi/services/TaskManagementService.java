@@ -541,7 +541,8 @@ public class TaskManagementService {
 
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);
-        taskHasCompleted = task.getState() == CFTTaskState.COMPLETED;
+        taskHasCompleted = task.getState() != null
+            && (task.getState().equals(CFTTaskState.COMPLETED) || task.getState().equals(CFTTaskState.TERMINATED));
 
         if (!taskHasCompleted) {
             //scenario, task not completed anywhere

@@ -2328,9 +2328,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
 
-                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                    .thenReturn(Optional.of(taskResource));
-
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
@@ -2339,6 +2336,41 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 boolean taskStateIsCompletedAlready = CFTTaskState.COMPLETED.getValue()
                     .equals(taskResource.getState().getValue());
                 assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+                verify(camundaService, times(0)).completeTask(taskId, taskStateIsCompletedAlready);
+            }
+
+            @Test
+            void should_succeed_task_already_terminated() {
+                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+                RoleAssignment roleAssignment = mock(RoleAssignment.class);
+                when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
+                List<RoleAssignment> roleAssignments = List.of(roleAssignment);
+                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
+                TaskResource taskResource = spy(TaskResource.class);
+                when(taskResource.getState()).thenReturn(CFTTaskState.TERMINATED);
+                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
+
+                when(cftQueryService.getTask(any(), anyList(),
+                                             any(PermissionRequirements.class)
+                )).thenReturn(Optional.of(taskResource));
+
+                when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
+                when(taskResource.getState()).thenReturn(CFTTaskState.TERMINATED);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                    taskId,
+                    accessControlResponse,
+                    new CompletionOptions(false)
+                );
+                boolean taskStateIsCompletedAlready = CFTTaskState.TERMINATED.getValue()
+                    .equals(taskResource.getState().getValue());
+                assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
                 verify(camundaService, times(0)).completeTask(taskId, taskStateIsCompletedAlready);
             }
