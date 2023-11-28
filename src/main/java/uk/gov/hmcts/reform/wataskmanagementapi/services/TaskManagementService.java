@@ -81,6 +81,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TERMINATION_REASON;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE;
@@ -541,8 +542,10 @@ public class TaskManagementService {
 
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);
-        taskHasCompleted = task.getState() != null
-            && (task.getState().equals(CFTTaskState.COMPLETED) || task.getState().equals(CFTTaskState.TERMINATED));
+        taskHasCompleted = (task.getState() != null)
+            && (task.getState().equals(CFTTaskState.COMPLETED)
+                   || (task.getState().equals(CFTTaskState.TERMINATED)
+                           && task.getTerminationReason().equals("completed")));
 
         if (!taskHasCompleted) {
             //scenario, task not completed anywhere
@@ -552,7 +555,9 @@ public class TaskManagementService {
             //check the state, if not complete, complete
             completeCamundaTask(taskId, taskHasCompleted);
             //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
+            if(task.isActive()){
+                cftTaskDatabaseService.saveTask(task);
+            }
         }
     }
 

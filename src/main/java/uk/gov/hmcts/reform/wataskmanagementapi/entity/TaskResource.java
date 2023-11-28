@@ -575,4 +575,10 @@ public class TaskResource implements Serializable {
         this.roleCategory = roleCategory;
         this.taskName = taskName;
     }
+
+    public boolean isActive(){
+        return !(state.equals(CFTTaskState.TERMINATED)
+                      || state.equals(CFTTaskState.COMPLETED)
+                      || state.equals(CFTTaskState.CANCELLED));
+    }
 }
