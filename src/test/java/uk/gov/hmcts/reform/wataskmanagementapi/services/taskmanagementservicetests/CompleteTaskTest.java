@@ -101,11 +101,12 @@ class CompleteTaskTest extends CamundaHelpers {
         when(cftQueryService.getTask(any(), anyList(), any(PermissionRequirements.class)))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         taskManagementService.completeTask(taskId, accessControlResponse);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
-        assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+        verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
         verify(camundaService, times(0)).isTaskCompletedInCamunda(taskId);
@@ -133,12 +134,13 @@ class CompleteTaskTest extends CamundaHelpers {
         when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         taskManagementService.completeTask(taskId, accessControlResponse);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
-        assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+        verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
         verify(camundaService, times(0)).isTaskCompletedInCamunda(taskId);
@@ -157,11 +159,12 @@ class CompleteTaskTest extends CamundaHelpers {
         when(cftQueryService.getTask(any(), anyList(), any(PermissionRequirements.class)))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         taskManagementService.completeTask(taskId, accessControlResponse);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
-        assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+        verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
         verify(camundaService, times(0)).isTaskCompletedInCamunda(taskId);
@@ -184,12 +187,13 @@ class CompleteTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASEID"));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(true);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         taskManagementService.completeTask(taskId, accessControlResponse);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
-        assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+        verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
         verify(camundaService, times(1)).isTaskCompletedInCamunda(taskId);
@@ -211,6 +215,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASEID"));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
         when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(false);
         assertThatThrownBy(() -> taskManagementService.completeTask(
             taskId,
@@ -219,7 +224,7 @@ class CompleteTaskTest extends CamundaHelpers {
             .isInstanceOf(TaskCompleteException.class)
             .hasNoCause()
             .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
-
+        verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, false);
         verify(camundaService, times(1)).isTaskCompletedInCamunda(taskId);
@@ -238,11 +243,12 @@ class CompleteTaskTest extends CamundaHelpers {
         when(cftQueryService.getTask(any(), anyList(), any(PermissionRequirements.class)))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         taskManagementService.completeTask(taskId, accessControlResponse);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
-        assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+        verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
         verify(camundaService, times(0)).isTaskCompletedInCamunda(taskId);

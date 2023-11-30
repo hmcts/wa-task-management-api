@@ -46,11 +46,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomCo
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -541,9 +537,10 @@ public class TaskManagementService {
 
         //Lock & update Task
         TaskResource task = findByIdAndObtainLock(taskId);
-        taskHasCompleted = task.getState() != null
-            && (task.getState().equals(CFTTaskState.COMPLETED)
-                   || task.getState().equals(CFTTaskState.TERMINATED)
+        CFTTaskState state = task.getState();
+        taskHasCompleted = state != null
+            && (state.equals(CFTTaskState.COMPLETED)
+                   || state.equals(CFTTaskState.TERMINATED)
                            && task.getTerminationReason().equals("completed"));
 
         if (!taskHasCompleted) {
@@ -551,14 +548,18 @@ public class TaskManagementService {
             //check the state, if not complete, complete
             completeCamundaTask(taskId, taskHasCompleted);
             //Commit transaction
-            if (!(task.getState().equals(CFTTaskState.TERMINATED)
-                || task.getState().equals(CFTTaskState.COMPLETED)
-                || task.getState().equals(CFTTaskState.CANCELLED))) {
+            if (isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
                 setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
                 cftTaskDatabaseService.saveTask(task);
             }
         }
+    }
+
+    private static boolean isActive(CFTTaskState state) {
+        return !(state.equals(CFTTaskState.TERMINATED)
+            || state.equals(CFTTaskState.COMPLETED)
+            || state.equals(CFTTaskState.CANCELLED));
     }
 
     private void completeCamundaTask(String taskId, boolean taskHasCompleted) {
