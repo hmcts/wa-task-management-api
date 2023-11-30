@@ -552,18 +552,12 @@ public class TaskManagementService {
             //check the state, if not complete, complete
             completeCamundaTask(taskId, taskHasCompleted);
             //Commit transaction
-            if (isActive(state)) {
+            if (task.isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
                 setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
                 cftTaskDatabaseService.saveTask(task);
             }
         }
-    }
-
-    private static boolean isActive(CFTTaskState state) {
-        return !(state.equals(CFTTaskState.TERMINATED)
-            || state.equals(CFTTaskState.COMPLETED)
-            || state.equals(CFTTaskState.CANCELLED));
     }
 
     private void completeCamundaTask(String taskId, boolean taskHasCompleted) {
