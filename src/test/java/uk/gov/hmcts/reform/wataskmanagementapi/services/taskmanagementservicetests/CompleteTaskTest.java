@@ -250,7 +250,7 @@ class CompleteTaskTest extends CamundaHelpers {
     }
 
     @Test
-    void completeTask_where_status_already_terminated_with_completed_reason_should_skip_camunda_task_completion_and_task_status_updated() {
+    void completeTask_with_status_terminated_and_completed_should_skip_camunda_task_complete_and_task_status_update() {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
