@@ -19,7 +19,6 @@ import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -577,10 +576,4 @@ public class TaskResource implements Serializable {
         this.taskName = taskName;
     }
 
-    public boolean isActive() {
-        return !(this.state != null
-                      && Objects.equals(this.state, CFTTaskState.TERMINATED)
-                      || Objects.equals(this.state, CFTTaskState.COMPLETED)
-                      || Objects.equals(this.state, CFTTaskState.CANCELLED));
-    }
 }

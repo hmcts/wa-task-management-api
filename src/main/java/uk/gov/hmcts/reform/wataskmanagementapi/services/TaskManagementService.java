@@ -551,7 +551,9 @@ public class TaskManagementService {
             //check the state, if not complete, complete
             completeCamundaTask(taskId, taskHasCompleted);
             //Commit transaction
-            if (task.isActive()) {
+            if (!(task.getState().equals(CFTTaskState.TERMINATED)
+                || task.getState().equals(CFTTaskState.COMPLETED)
+                || task.getState().equals(CFTTaskState.CANCELLED))) {
                 task.setState(CFTTaskState.COMPLETED);
                 setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
                 cftTaskDatabaseService.saveTask(task);
