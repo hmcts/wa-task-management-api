@@ -9,7 +9,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -236,6 +238,63 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
         assertions.taskStateWasUpdatedInDatabase(taskId, "completed", waCaseworkerCredentials.getHeaders());
+
+        common.cleanUpTask(taskId);
+
+    }
+
+    @Test
+    public void should_return_a_204_when_completing_a_task_with_completion_options_after_assign_complete_terminate_true() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
+        taskId = taskVariables.getTaskId();
+        initiateTask(taskVariables);
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            waCaseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            new CompleteTaskRequest(new CompletionOptions(true)),
+            waCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", waCaseworkerCredentials.getHeaders());
+
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("completed")
+        );
+
+        Response deleteResult = restApiActions.delete(
+            "/task/{task-id}",
+            taskId,
+            terminateTaskRequest,
+            waCaseworkerCredentials.getHeaders()
+        );
+
+        deleteResult.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskStateWasUpdatedInDatabase(taskId, "terminated", waCaseworkerCredentials.getHeaders());
+
+        Response reCompleteResult = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            new CompleteTaskRequest(new CompletionOptions(false)),
+            waCaseworkerCredentials.getHeaders()
+        );
+
+        reCompleteResult.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskStateWasUpdatedInDatabase(taskId, "terminated", waCaseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
