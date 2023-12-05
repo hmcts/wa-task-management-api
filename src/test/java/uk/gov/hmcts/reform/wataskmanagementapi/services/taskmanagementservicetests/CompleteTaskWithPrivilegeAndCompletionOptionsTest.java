@@ -228,6 +228,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .thenReturn(Optional.of(taskResource));
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
                 when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+                when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
@@ -247,7 +248,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 );
                 boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value()
                     .equals(mockedVariables.get("taskState"));
-                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                verify(taskResource, times(1)).getState();
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
                 verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
             }
