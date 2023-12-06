@@ -268,6 +268,11 @@ dependencyManagement {
       entry 'selenium-api'
       entry 'selenium-support'
     }
+
+    dependencySet(group: 'ch.qos.logback', version: '1.2.13') {
+      entry 'logback-classic'
+      entry 'logback-core'
+    }
   }
 }
 
@@ -288,7 +293,7 @@ def versions = [
   sonarPitest   : '0.5',
   pactVersion   : '4.3.4',
   logbook       : '2.6.2',
-  tomcat        : '9.0.81',
+  tomcat        : '9.0.83',
   testcontainers: '1.17.6'
 ]
 
@@ -316,6 +321,8 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.6'
+
+  implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.1'
 
   implementation('org.springframework.retry:spring-retry')
 
