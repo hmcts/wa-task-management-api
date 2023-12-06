@@ -316,6 +316,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.6'
+  implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.1'
 
   implementation('org.springframework.retry:spring-retry')
 
