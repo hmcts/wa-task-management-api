@@ -461,6 +461,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     return true;
                 });
     }
+
     @Test
     void should_save_task_and_get_task_from_task_assignments_with_taskName_null() {
         TaskResource taskResource = createAndAssignTask();
