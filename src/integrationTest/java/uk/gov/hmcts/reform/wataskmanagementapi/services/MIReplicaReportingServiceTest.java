@@ -896,11 +896,11 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
-            "someNewCaseId",
-            "someJurisdiction",
-            "someLocation",
-            "someRoleCategory",
-            "someTaskName");
+            caseId,
+            jurisdiction,
+            location,
+            roleCategory,
+            taskName);
 
         taskResource.setDueDateTime(OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"));
