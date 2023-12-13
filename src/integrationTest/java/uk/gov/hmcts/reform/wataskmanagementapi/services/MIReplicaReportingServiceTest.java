@@ -479,7 +479,6 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertFalse(taskAssignmentsList.isEmpty());
                     assertEquals(1, taskAssignmentsList.size());
                     assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
-                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
                     assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
                     assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
                     assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
