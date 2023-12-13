@@ -435,6 +435,59 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
+    @Test
+    void should_save_task_and_get_task_from_task_assignments_with_location_null() {
+        TaskResource taskResource = createAndAssignTask();
+        taskResource.setLocation(null);
+        checkHistory(taskResource.getTaskId(), 1);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                    assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+
+                    return true;
+                });
+    }
+    @Test
+    void should_save_task_and_get_task_from_task_assignments_with_taskName_null() {
+        TaskResource taskResource = createAndAssignTask();
+        taskResource.setTaskName(null);
+        checkHistory(taskResource.getTaskId(), 1);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                    assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+
+                    return true;
+                });
+    }
+
     @ParameterizedTest
     @CsvSource(value = {
         "COMPLETED,Complete,COMPLETED, COMPLETED",
