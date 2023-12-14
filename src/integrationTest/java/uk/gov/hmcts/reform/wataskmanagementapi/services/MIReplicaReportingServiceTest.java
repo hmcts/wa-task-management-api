@@ -411,7 +411,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @Test
     void should_save_task_and_get_task_from_task_assignments() {
-        TaskResource taskResource = createAndAssignTask();
+        TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+                                                        "someLocation", "someRoleCategory",
+                                                        "someTaskName");;
         checkHistory(taskResource.getTaskId(), 1);
 
         await().ignoreException(AssertionFailedError.class)
@@ -431,6 +433,61 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
                     assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
 
+                    return true;
+                });
+    }
+
+    @Test
+    void should_save_task_and_get_task_from_task_assignments_with_location_null() {
+        TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+            null, "someRoleCategory",
+                                                        "someTaskName");;
+        checkHistory(taskResource.getTaskId(), 1);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                    assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+                    assertNull(taskResource.getLocation());
+                    return true;
+                });
+    }
+
+    @Test
+    void should_save_task_and_get_task_from_task_assignments_with_taskName_null() {
+        TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+                                                        "someLocation", "someRoleCategory",
+                                                        null);;
+        checkHistory(taskResource.getTaskId(), 1);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+                    assertNull(taskResource.getTaskName());
                     return true;
                 });
     }
@@ -570,7 +627,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @Test
     void should_save_task_and_record_multiple_task_assignments() {
-        TaskResource taskResource = createAndAssignTask();
+        TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+                                                        "someLocation", "someRoleCategory",
+                                                        "someTaskName");;
         checkHistory(taskResource.getTaskId(), 1);
         taskResource.setLastUpdatedAction("Unclaim");
         taskResource.setState(CFTTaskState.UNASSIGNED);
@@ -832,15 +891,16 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         return taskResourceRepository.save(taskResource);
     }
 
-    private TaskResource createAndAssignTask() {
+    private TaskResource createAndAssignTask(String caseId, String jurisdiction, String location, String roleCategory,
+                                             String taskName) {
 
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
-            "someNewCaseId",
-            "someJurisdiction",
-            "someLocation",
-            "someRoleCategory",
-            "someTaskName");
+            caseId,
+            jurisdiction,
+            location,
+            roleCategory,
+            taskName);
 
         taskResource.setDueDateTime(OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"));
@@ -905,7 +965,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     @Test
     public void should_test_mark_functionality_with_refresh() {
 
-        TaskResource taskResource = createAndAssignTask();
+        TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+                                                        "someLocation", "someRoleCategory",
+                                                        "someTaskName");;
 
         List<OffsetDateTime> origTaskAssignmentReportRefreshTimes = new ArrayList<>();
         await().ignoreException(AssertionFailedError.class)
@@ -1561,7 +1623,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                  Integer expectedProcessed) {
         List<TaskResource> tasks = new ArrayList<>();
         IntStream.range(0, taskResourcesToCreate).forEach(x -> {
-            TaskResource taskResource = createAndAssignTask();
+            TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+                                                            "someLocation", "someRoleCategory",
+                                                            "someTaskName");
             log.info(taskResource.toString());
             tasks.add(taskResource);
         });
