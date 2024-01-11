@@ -37,6 +37,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService.TOTAL_RECORDS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi.V2_MEDIA_TYPE_POST_ASSIGNMENTS;
 
@@ -74,6 +75,11 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
             .method(HttpMethod.POST.toString())
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .matchHeader(
+                CONTENT_TYPE,
+                "application\\/vnd\\.uk\\.gov\\.hmcts\\.role-assignment-service\\.post-assignment-query-request\\+json\\;charset\\=UTF-8\\;version\\=2\\.0",
+                "application/vnd.uk.gov.hmcts.role-assignment-service.post-assignment-query-request+json;charset=UTF-8;version=2.0"
+            )
             .body(createRoleAssignmentRequestSearchQueryMultipleRoleAssignments(), V2_MEDIA_TYPE_POST_ASSIGNMENTS)
             .willRespondWith()
             .matchHeader(
