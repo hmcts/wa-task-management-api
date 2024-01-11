@@ -89,8 +89,8 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
             )
             .matchHeader(
                 TOTAL_RECORDS,
-                "\\d+",
-                "1"
+                "0",
+                "0"
             )
             .status(HttpStatus.OK.value())
             .headers(getResponseHeaders())
