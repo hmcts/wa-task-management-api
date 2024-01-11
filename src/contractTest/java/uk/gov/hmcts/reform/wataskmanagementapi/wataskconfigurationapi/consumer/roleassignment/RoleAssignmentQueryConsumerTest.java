@@ -46,7 +46,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServ
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest {
 
-    private final String assigneeId = "14a21569-eb80-4681-b62c-6ae2ed069e5f";
+    private final String assigneeId = "14a21569-eb80-4681-b62c-6ae2ed069e7f";
     private final LocalDateTime validAtDate = LocalDateTime.parse("2021-12-04T00:00:00");
     @Autowired
     protected ObjectMapper objectMapper;
@@ -89,8 +89,8 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
             )
             .matchHeader(
                 TOTAL_RECORDS,
-                "0",
-                "0"
+                "1",
+                "1"
             )
             .status(HttpStatus.OK.value())
             .headers(getResponseHeaders())
@@ -140,5 +140,4 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
         responseHeaders.put(TOTAL_RECORDS, "1");
         return responseHeaders;
     }
-
 }
