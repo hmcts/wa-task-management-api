@@ -153,7 +153,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
-    public static final String SOME_ROLE_ASSIGNMENT_ID = "someRoleAssignmentId";
+    public static final String SOME_ROLE_ASSIGNMENT_ID = "someRoleAssignmentIdTest";
     public static final String IDAM_SYSTEM_USER = "IDAM_SYSTEM_USER";
 
     @Mock

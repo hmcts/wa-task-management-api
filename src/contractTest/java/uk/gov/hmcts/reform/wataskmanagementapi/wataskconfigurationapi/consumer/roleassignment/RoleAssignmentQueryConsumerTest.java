@@ -84,8 +84,8 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
             .willRespondWith()
             .matchHeader(
                 TOTAL_RECORDS,
-                "0",
-                "0"
+                "1",
+                "1"
             )
             .status(HttpStatus.OK.value())
             .headers(getResponseHeaders())
@@ -132,7 +132,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     private Map<String, String> getResponseHeaders() {
         Map<String, String> responseHeaders = Maps.newHashMap();
         responseHeaders.put("Content-Type", V2_MEDIA_TYPE_POST_ASSIGNMENTS);
-        responseHeaders.put(TOTAL_RECORDS, "0");
+        responseHeaders.put(TOTAL_RECORDS, "1");
         return responseHeaders;
     }
 
