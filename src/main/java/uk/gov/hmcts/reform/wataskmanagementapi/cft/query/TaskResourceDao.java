@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
@@ -173,10 +174,13 @@ public class TaskResourceDao {
             selectQueryBuilder.root
         );
 
-        return selectQueryBuilder
+        TypedQuery<TaskResource> query = selectQueryBuilder
             .where(selectPredicate)
-            .build()
-            .getResultList();
+            .build();
+
+        log.info("Query is" + query.toString());
+
+        return query.getResultList();
     }
 
     private List<Order> getSortOrders(SearchRequest searchRequest,
