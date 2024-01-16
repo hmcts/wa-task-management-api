@@ -178,8 +178,6 @@ public class TaskResourceDao {
             .where(selectPredicate)
             .build();
 
-        log.info("Query is" + query.toString());
-
         return query.getResultList();
     }
 
