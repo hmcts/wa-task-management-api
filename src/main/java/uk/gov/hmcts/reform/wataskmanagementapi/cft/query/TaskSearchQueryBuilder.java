@@ -114,7 +114,7 @@ public final class TaskSearchQueryBuilder {
 
         ArrayList<Predicate> predicates = new ArrayList<>();
 
-        log.info(searchByCaseId(searchEventAndCase.getCaseId(), builder, root));
+        log.info("Predicate is {}", searchByCaseId(searchEventAndCase.getCaseId(), builder, root));
         predicates.add(searchByCaseId(searchEventAndCase.getCaseId(), builder, root));
         predicates.add(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), builder, root));
         predicates.add(searchByTaskTypes(taskTypes, builder, root));
