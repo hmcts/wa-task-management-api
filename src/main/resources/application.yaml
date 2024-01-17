@@ -153,8 +153,6 @@ logging:
     org.zalando.logbook: INFO
     org.testcontainers: INFO
     com.github.dockerjava: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type: TRACE
 
 logbook:
   include: /task/**
