@@ -177,7 +177,8 @@ public class TaskResourceDao {
         TypedQuery<TaskResource> query = selectQueryBuilder
             .where(selectPredicate)
             .build();
-        String sqlQuery=query.unwrap(org.hibernate.Query.class).getQueryString();
+        String sqlQuery=query.unwrap(org.hibernate.Query.class)!=null ?
+            query.unwrap(org.hibernate.Query.class).getQueryString():null;
         log.info("SQL Query is {} and Predicate is {}", sqlQuery, selectPredicate);
 
         return query.getResultList();
