@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Query;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
@@ -173,10 +174,12 @@ public class TaskResourceDao {
             selectQueryBuilder.builder,
             selectQueryBuilder.root
         );
-
         TypedQuery<TaskResource> query = selectQueryBuilder
             .where(selectPredicate)
             .build();
+        Query sqlQuery=query.unwrap(org.hibernate.Query.class);
+        log.info("SQL Query is {} ", sqlQuery.getQueryString());
+
         return query.getResultList();
     }
 

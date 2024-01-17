@@ -114,6 +114,7 @@ public final class TaskSearchQueryBuilder {
 
         ArrayList<Predicate> predicates = new ArrayList<>();
 
+        log.info(searchByCaseId(searchEventAndCase.getCaseId(), builder, root));
         predicates.add(searchByCaseId(searchEventAndCase.getCaseId(), builder, root));
         predicates.add(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), builder, root));
         predicates.add(searchByTaskTypes(taskTypes, builder, root));
@@ -123,6 +124,9 @@ public final class TaskSearchQueryBuilder {
             builder,
             root
         ));
+        predicates.forEach(p -> {
+            log.info("Predicate is {}", p);
+        } );
         return builder.and(predicates.toArray(new Predicate[0]));
     }
 
