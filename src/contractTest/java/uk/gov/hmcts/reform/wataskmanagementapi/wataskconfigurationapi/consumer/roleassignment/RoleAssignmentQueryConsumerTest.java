@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.consumer.roleassignment;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
+import au.com.dius.pact.consumer.dsl.LambdaDslObject;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
@@ -45,9 +46,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServ
 @PactTestFor(providerName = "am_roleAssignment_queryAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest {
-
+    private final  String id = "9785c98c-78f2-418b-ab74-a892c3ccca9f";
     private final String assigneeId = "14a21569-eb80-4681-b62c-6ae2ed069e5f";
     private final LocalDateTime validAtDate = LocalDateTime.parse("2021-12-04T00:00:00");
+
     @Autowired
     protected ObjectMapper objectMapper;
     @Autowired
@@ -83,6 +85,11 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
             .body(createRoleAssignmentRequestSearchQueryMultipleRoleAssignments(), V2_MEDIA_TYPE_POST_ASSIGNMENTS)
             .willRespondWith()
             .matchHeader(
+                CONTENT_TYPE,
+                "application\\/vnd\\.uk\\.gov\\.hmcts\\.role-assignment-service\\.post-assignment-query-request\\+json\\;charset\\=UTF-8\\;version\\=2\\.0",
+                "application/vnd.uk.gov.hmcts.role-assignment-service.post-assignment-query-request+json;charset=UTF-8;version=2.0"
+            )
+            .matchHeader(
                 TOTAL_RECORDS,
                 "\\d+",
                 "1"
@@ -116,11 +123,25 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     }
 
     private DslPart createRoleAssignmentResponseSearchQueryResponse() {
+
         return newJsonBody(o ->
             o.minArrayLike(
                 "roleAssignmentResponse", 1, 1,
-                roleAssignmentResponse ->
-                    roleAssignmentResponse.stringType("actorId", assigneeId)
+                roleAssignmentResponse -> roleAssignmentResponse
+                    .stringType("id", id)
+                    .stringValue("actorIdType", "IDAM")
+                    .stringType("actorId", assigneeId)
+                    .stringValue("roleName", "senior-tribunal-caseworker")
+                    .stringValue("classification", "PRIVATE")
+                    .stringValue("classification", "PRIVATE")
+                    .stringValue("grantType", "STANDARD")
+                    .stringValue("roleCategory", "LEGAL_OPERATIONS")
+                    .booleanValue("readOnly", false)
+                    .object("attributes", attribute -> attribute
+                        .stringType("jurisdiction", "IA")
+                        .stringType("primaryLocation", "500A2S"))
+                    .minArrayLike("authorisations", 0, 0,
+                        LambdaDslObject::getPactDslObject)
             )).build();
     }
 
