@@ -3,8 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums;
 import com.fasterxml.jackson.core.type.TypeReference;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 
 import java.util.Map;
 import java.util.Set;

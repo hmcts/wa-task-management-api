@@ -3,9 +3,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.RequestContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameter;
 
 import java.util.List;
 import javax.validation.Valid;
@@ -22,11 +22,13 @@ public class SearchTaskRequest {
 
     @Schema(
         required = true,
+        name = "search_parameters",
         description = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
     @NotEmpty(message = "At least one search_parameter element is required.")
     private List<@Valid SearchParameter<?>> searchParameters;
+    @Schema(name = "sorting_parameters")
     private List<SortingParameter> sortingParameters;
-    @Schema(allowableValues = "ALL_WORK, AVAILABLE_TASKS", example = "ALL_WORK")
+    @Schema(name = "request_context", allowableValues = "ALL_WORK, AVAILABLE_TASKS", example = "ALL_WORK")
     private RequestContext requestContext;
 
     private SearchTaskRequest() {

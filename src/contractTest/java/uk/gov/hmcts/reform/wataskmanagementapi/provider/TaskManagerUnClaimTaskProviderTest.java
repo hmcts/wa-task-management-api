@@ -10,6 +10,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractProviderBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -37,7 +38,7 @@ public class TaskManagerUnClaimTaskProviderTest extends SpringBootContractProvid
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            launchDarklyFeatureFlagProvider
+            taskDeletionService
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -52,6 +53,9 @@ public class TaskManagerUnClaimTaskProviderTest extends SpringBootContractProvid
 
     private void setInitMock() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         doNothing().when(taskManagementService).claimTask(any(), any());
     }

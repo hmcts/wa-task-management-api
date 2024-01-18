@@ -16,10 +16,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskDeletionService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskTypesService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationService;
 
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -49,6 +52,12 @@ public class SpringBootContractProviderBaseTest {
     protected TaskManagementService taskManagementService;
 
     @Mock
+    protected TaskOperationService taskOperationService;
+
+    @Mock
+    protected TaskDeletionService taskDeletionService;
+
+    @Mock
     protected CftQueryService cftQueryService;
 
     @Mock
@@ -59,6 +68,9 @@ public class SpringBootContractProviderBaseTest {
 
     @Mock
     protected TaskTypesService taskTypesService;
+
+    @Mock
+    protected CFTTaskDatabaseService cftTaskDatabaseService;
 
     @Autowired
     protected MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;

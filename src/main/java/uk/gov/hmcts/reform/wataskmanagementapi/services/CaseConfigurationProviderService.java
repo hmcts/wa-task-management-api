@@ -5,24 +5,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 
 @Slf4j
 @Component
@@ -77,11 +78,21 @@ public class CaseConfigurationProviderService {
             );
         log.debug("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
 
+        taskConfigurationDmnResults
+            .forEach(r -> {
+                Objects.requireNonNull(r.getName(), "Configuration name cannot be null");
+                Objects.requireNonNull(r.getName().getValue(), "Configuration name value cannot be null");
+                Objects.requireNonNull(r.getValue(), "Configuration value cannot be null");
+            });
+
         boolean initiationDueDateFound = taskAttributes.containsKey(DUE_DATE.value());
 
-        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsAfterUpdate
             = updateTaskConfigurationDmnResultsForAdditionalProperties(
-                taskConfigurationDmnResults, initiationDueDateFound, isReconfigureRequest
+            taskConfigurationDmnResults,
+            initiationDueDateFound,
+            isReconfigureRequest,
+            taskAttributes
         );
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
@@ -98,7 +109,7 @@ public class CaseConfigurationProviderService {
             .collect(Collectors.toList());
 
         Map<String, Object> caseConfigurationVariables = extractDmnResults(
-            taskConfigurationDmnResultsWithAdditionalProperties,
+            taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
         log.debug("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
@@ -110,7 +121,7 @@ public class CaseConfigurationProviderService {
 
         return new TaskConfigurationResults(
             allCaseConfigurationValues,
-            taskConfigurationDmnResultsWithAdditionalProperties,
+            taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
     }
@@ -139,7 +150,9 @@ public class CaseConfigurationProviderService {
 
     private List<ConfigurationDmnEvaluationResponse> updateTaskConfigurationDmnResultsForAdditionalProperties(
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
-        boolean initiationDueDateFound, boolean isReconfigureRequest) {
+        boolean initiationDueDateFound,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
 
         Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
             .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
@@ -156,7 +169,12 @@ public class CaseConfigurationProviderService {
             ));
         }
 
-        return dateTypeConfigurator.configureDate(configResponses, initiationDueDateFound, isReconfigureRequest);
+        return dateTypeConfigurator.configureDates(
+            configResponses,
+            initiationDueDateFound,
+            isReconfigureRequest,
+            taskAttributes
+        );
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(
@@ -183,13 +201,20 @@ public class CaseConfigurationProviderService {
 
         List<String> commonCategories = caseAccessCategories.stream()
             .filter(caseFromCategoriesFromCase::contains)
-            .collect(Collectors.toList());
+            .toList();
         return !commonCategories.isEmpty();
     }
 
     private Map<String, Object> extractDmnResults(List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
                                                   List<PermissionsDmnEvaluationResponse> permissionsDmnResults) {
 
+        List<ConfigurationDmnEvaluationResponse> configDmnNullValues = taskConfigurationDmnResults.stream()
+            .filter(d -> d.getValue().getValue() == null).toList();
+
+        configDmnNullValues.forEach(d -> log.error(
+            "The field '{}' in the configuration DMN file  has a null value ",
+            d.getName().getValue()
+        ));
         // Combine and Collect all dmns results into a single map
         Map<String, Object> caseConfigurationVariables = new ConcurrentHashMap<>();
 

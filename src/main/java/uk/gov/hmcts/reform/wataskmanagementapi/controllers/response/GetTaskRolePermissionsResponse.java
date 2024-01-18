@@ -1,9 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
 
 import java.util.List;
 
@@ -12,6 +13,11 @@ import java.util.List;
 public class GetTaskRolePermissionsResponse {
 
     @JsonProperty("roles")
+    @Schema(
+        name = "permissions_list",
+        requiredMode = Schema.RequiredMode.REQUIRED,
+        description = "Task role permission list"
+    )
     private final List<TaskRolePermissions> permissionsList;
 
     public GetTaskRolePermissionsResponse(List<TaskRolePermissions> permissionsList) {

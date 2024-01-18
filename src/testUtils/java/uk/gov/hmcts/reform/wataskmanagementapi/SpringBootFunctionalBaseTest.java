@@ -20,13 +20,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
@@ -52,12 +51,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WARNING_LIST;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -76,6 +75,9 @@ public abstract class SpringBootFunctionalBaseTest {
     protected static final String TASK_GET_ROLES_ENDPOINT = "task/{task-id}/roles";
     protected static final String WA_JURISDICTION = "WA";
     protected static final String WA_CASE_TYPE = "WaCaseType";
+    protected static final String EMAIL_PREFIX_R3_5 = "wa-granular-permission-";
+    protected static final String EMAIL_PREFIX_R2 = "wa-ft-test-r2-";
+    protected static final String EMAIL_PREFIX_GIN_INDEX = "wa-gin-index-";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
         "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
@@ -98,8 +100,6 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired
     protected CcdRetryableClient ccdRetryableClient;
     @Autowired
-    protected DocumentManagementFiles documentManagementFiles;
-    @Autowired
     protected RoleAssignmentHelper roleAssignmentHelper;
     @Autowired
     protected IdamService idamService;
@@ -121,7 +121,17 @@ public abstract class SpringBootFunctionalBaseTest {
     @Value("${initiation_job_running}")
     private Boolean initiationJobRunning;
 
+    protected TestAuthenticationCredentials baseCaseworkerCredentials;
     protected TestAuthenticationCredentials waCaseworkerCredentials;
+    protected TestAuthenticationCredentials caseworkerCredentials;
+    protected TestAuthenticationCredentials assignerCredentials;
+    protected TestAuthenticationCredentials assigneeCredentials;
+    protected TestAuthenticationCredentials secondAssigneeCredentials;
+    protected TestAuthenticationCredentials caseworkerForReadCredentials;
+    protected TestAuthenticationCredentials currentCaseworkerCredentials;
+    protected TestAuthenticationCredentials unassignUser;
+    protected TestAuthenticationCredentials otherUser;
+    protected TestAuthenticationCredentials ginIndexCaseworkerCredentials;
     protected String idamSystemUser;
 
     @Before
@@ -132,14 +142,12 @@ public abstract class SpringBootFunctionalBaseTest {
         assertions = new Assertions(camundaApiActions, restApiActions, authorizationProvider);
 
         launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
-        documentManagementFiles.prepare();
 
         given = new GivensBuilder(
             camundaApiActions,
             restApiActions,
             authorizationProvider,
             ccdRetryableClient,
-            documentManagementFiles,
             workflowApiActions
         );
 
@@ -152,15 +160,15 @@ public abstract class SpringBootFunctionalBaseTest {
             roleAssignmentServiceApi,
             workflowApiActions);
 
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         idamSystemUser = idamTokenGenerator.getUserInfo(idamTokenGenerator.generate()).getUid();
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        common.setupWAOrganisationalRoleAssignment(baseCaseworkerCredentials.getHeaders());
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
+        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     public AtomicReference<String> getTaskId(Object taskName, String filter) {
@@ -211,7 +219,7 @@ public abstract class SpringBootFunctionalBaseTest {
     }
 
     protected void initiateTask(TestVariables testVariables) {
-        Headers headers = waCaseworkerCredentials.getHeaders();
+        Headers headers = baseCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, null, defaultInitiationAssert(testVariables));
     }
 
@@ -223,7 +231,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     protected void initiateTask(TestVariables testVariables,
                                 Consumer<Response> assertConsumer) {
-        Headers headers = waCaseworkerCredentials.getHeaders();
+        Headers headers = baseCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, null, assertConsumer);
     }
 
@@ -235,7 +243,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     protected void initiateTask(TestVariables testVariables,
                                 Map<String, String> additionalProperties) {
-        Headers headers = waCaseworkerCredentials.getHeaders();
+        Headers headers = baseCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
     }
 
@@ -291,7 +299,7 @@ public abstract class SpringBootFunctionalBaseTest {
     private void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties) {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
+        ZonedDateTime dueDate = createdDate.plusDays(10);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         boolean hasWarnings = !testVariables.getWarnings().getValues().isEmpty();
 

@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.WorkTypeResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.WorkTypeResourceRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -71,7 +71,9 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkTypeResource("error-management", "Error management"),
             new WorkTypeResource("review-case", "Review Case"),
             new WorkTypeResource("evidence", "Evidence"),
-            new WorkTypeResource("follow-up", "Follow Up")
+            new WorkTypeResource("follow-up", "Follow Up"),
+            new WorkTypeResource("pre-hearing", "Pre-Hearing"),
+            new WorkTypeResource("post-hearing", "Post-Hearing")
         );
 
         when(workTypeResourceRepository.findAll()).thenReturn(workTypeResources);
@@ -100,7 +102,9 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkType("error-management", "Error management"),
             new WorkType("review-case", "Review Case"),
             new WorkType("evidence", "Evidence"),
-            new WorkType("follow-up", "Follow Up")
+            new WorkType("follow-up", "Follow Up"),
+            new WorkType("pre_hearing", "Pre-Hearing"),
+            new WorkType("post_hearing", "Post-Hearing")
         );
     }
 }

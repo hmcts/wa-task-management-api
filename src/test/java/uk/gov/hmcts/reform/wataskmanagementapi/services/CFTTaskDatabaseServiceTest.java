@@ -6,40 +6,66 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
+import org.springframework.data.domain.Sort;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.persistence.LockTimeoutException;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithStandardGrantType;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithoutAttributes;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 
 @ExtendWith(MockitoExtension.class)
 class CFTTaskDatabaseServiceTest {
 
     @Mock
     TaskResourceRepository taskResourceRepository;
+    @Mock
+    CFTTaskMapper cftTaskMapper;
 
     private CFTTaskDatabaseService cftTaskDatabaseService;
     private String taskId;
 
     @BeforeEach
     void setUp() {
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
+        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
 
         taskId = UUID.randomUUID().toString();
     }
@@ -56,6 +82,28 @@ class CFTTaskDatabaseServiceTest {
         assertNotNull(actualTaskResource);
         assertTrue(actualTaskResource.isPresent());
         assertEquals(someTaskResource, actualTaskResource.get());
+    }
+
+    @Test
+    void should_find_by_id_and_wait_and_obtain_pessimistic_write_lock() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByIdAndWaitForLock(taskId)).thenReturn(Optional.of(someTaskResource));
+
+        final Optional<TaskResource> actualTaskResource =
+            cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId);
+
+        assertNotNull(actualTaskResource);
+        assertTrue(actualTaskResource.isPresent());
+        assertEquals(someTaskResource, actualTaskResource.get());
+    }
+
+    @Test
+    void should_find_by_id_and_wait_and_obtain_pessimistic_write_lock_throw_exception() {
+        when(taskResourceRepository.findByIdAndWaitForLock(taskId)).thenThrow(new LockTimeoutException());
+
+        assertThatThrownBy(() -> cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId))
+            .isInstanceOf(LockTimeoutException.class);
     }
 
     @Test
@@ -88,10 +136,10 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
 
         when(taskResourceRepository.findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(
-            List.of("1234"), List.of(CFTTaskState.ASSIGNED))).thenReturn(List.of(someTaskResource));
+            List.of("1234"), List.of(ASSIGNED))).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(List.of("1234"), List.of(CFTTaskState.ASSIGNED));
+            .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(List.of("1234"), List.of(ASSIGNED));
 
         assertNotNull(actualTaskResource);
         assertEquals(someTaskResource, actualTaskResource.get(0));
@@ -102,10 +150,10 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime reconfigureRequestTime = OffsetDateTime.now().minusHours(1L);
         when(taskResourceRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
-            List.of(CFTTaskState.ASSIGNED), reconfigureRequestTime)).thenReturn(List.of(someTaskResource));
+            List.of(ASSIGNED), reconfigureRequestTime)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeGreaterThan(List.of(CFTTaskState.ASSIGNED),
+            .getActiveTasksAndReconfigureRequestTimeGreaterThan(List.of(ASSIGNED),
                 reconfigureRequestTime);
 
         assertNotNull(actualTaskResource);
@@ -117,12 +165,12 @@ class CFTTaskDatabaseServiceTest {
         TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime retry = OffsetDateTime.now().minusHours(2);
 
-        when(taskResourceRepository.findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
-            List.of("199"), List.of(CFTTaskState.ASSIGNED), retry)).thenReturn(List.of(someTaskResource));
+        when(taskResourceRepository.findByStateInAndReconfigureRequestTimeIsLessThan(
+            List.of(ASSIGNED), retry)).thenReturn(List.of(someTaskResource));
 
         final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getTasksByTaskIdAndStateInAndReconfigureRequestTimeIsLessThanRetry(
-                List.of("199"), List.of(CFTTaskState.ASSIGNED), retry);
+            .getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
+                List.of(ASSIGNED), retry);
 
         assertNotNull(actualTaskResource);
         assertEquals(someTaskResource, actualTaskResource.get(0));
@@ -137,6 +185,7 @@ class CFTTaskDatabaseServiceTest {
         final TaskResource actualTaskResource = cftTaskDatabaseService.saveTask(someTaskResource);
 
         assertNotNull(actualTaskResource);
+
         verify(someTaskResource, times(1)).getPriorityDate();
         verify(someTaskResource, times(1)).setPriorityDate(any());
         verify(someTaskResource, times(1)).getDueDateTime();
@@ -179,5 +228,184 @@ class CFTTaskDatabaseServiceTest {
 
         assertTrue(taskBySpecification.isEmpty());
         verify(taskResourceRepository, times(1)).findOne(any());
+    }
+
+    @Test
+    void should_return_empty_list_when_search_not_find_any_task() {
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("IA"))
+            .locations(List.of("765324"))
+            .build();
+
+        when(taskResourceRepository.searchTasksIds(1, 25,
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest))
+            .thenReturn(List.of());
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlResponse.getRoleAssignments())
+            .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
+            accessControlResponse);
+        assertEquals(0, response.getTotalRecords());
+        assertTrue(response.getTasks().isEmpty());
+    }
+
+    @Test
+    void should_return_task_list_and_count_when_search_find_some_task_and_sort_default_order() {
+        List<String> taskIds = List.of("1");
+        List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+            .map(s -> Sort.Order.asc(s.value()))
+            .collect(Collectors.toList());
+        TaskResource taskResource = mock(TaskResource.class);
+        Task task = mock(Task.class);
+        List<TaskResource> taskResources = List.of(taskResource);
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("IA"))
+            .locations(List.of("765324"))
+            .build();
+
+        when(accessControlResponse.getRoleAssignments())
+            .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
+
+        when(taskResourceRepository.searchTasksIds(1, 25,
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest))
+            .thenReturn(taskIds);
+        when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
+            .thenReturn(taskResources);
+        when(taskResourceRepository.searchTasksCount(Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest))
+            .thenReturn(1L);
+        when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+            eq(taskResource),
+            anyList()
+        )).thenReturn(task);
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
+            accessControlResponse);
+        assertEquals(1, response.getTotalRecords());
+        assertEquals(1, response.getTasks().size());
+        assertEquals(task, response.getTasks().get(0));
+    }
+
+    @Test
+    void should_return_task_list_and_count_when_search_find_some_task_and_sort_request_order() {
+        List<String> taskIds = List.of("1");
+        List<Sort.Order> orders = Stream.of(CASE_NAME, MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+            .map(s -> Sort.Order.asc(s.value()))
+            .collect(Collectors.toList());
+        TaskResource taskResource = mock(TaskResource.class);
+        Task task = mock(Task.class);
+        List<TaskResource> taskResources = List.of(taskResource);
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("IA"))
+            .locations(List.of("765324"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .build();
+
+        when(accessControlResponse.getRoleAssignments())
+            .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
+
+        when(taskResourceRepository.searchTasksIds(1, 25,
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest))
+            .thenReturn(taskIds);
+        when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
+            .thenReturn(taskResources);
+        when(taskResourceRepository.searchTasksCount(Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest))
+            .thenReturn(1L);
+        when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+            eq(taskResource),
+            anyList()
+        )).thenReturn(task);
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
+            accessControlResponse);
+        assertEquals(1, response.getTotalRecords());
+        assertEquals(1, response.getTasks().size());
+        assertEquals(task, response.getTasks().get(0));
+    }
+
+    @Test
+    void should_return_task_list_and_count_when_search_find_some_task_other_than_from_excluded_case() {
+        List<String> taskIds = List.of("1");
+        List<String> caseIds = List.of("1623278362431003");
+        List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+            .map(s -> Sort.Order.asc(s.value()))
+            .collect(Collectors.toList());
+        TaskResource taskResource = mock(TaskResource.class);
+        Task task = mock(Task.class);
+        List<TaskResource> taskResources = List.of(taskResource);
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        SearchRequest searchRequest = SearchRequest.builder()
+            .jurisdictions(List.of("IA"))
+            .locations(List.of("765324"))
+            .build();
+
+        when(accessControlResponse.getRoleAssignments())
+            .thenReturn(roleAssignmentWithStandardGrantType(Classification.PUBLIC));
+
+        when(taskResourceRepository.searchTasksIds(1, 25,
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("IA:1:765324:hmcts-judiciary:*:r:U:*"),
+            caseIds,
+            searchRequest))
+            .thenReturn(taskIds);
+        when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
+            .thenReturn(taskResources);
+        when(taskResourceRepository.searchTasksCount(Set.of("*:IA:*:*:*:765324"),
+            Set.of("IA:1:765324:hmcts-judiciary:*:r:U:*"),
+            caseIds,
+            searchRequest))
+            .thenReturn(1L);
+        when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+            eq(taskResource),
+            anyList()
+        )).thenReturn(task);
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
+            accessControlResponse);
+        assertEquals(1, response.getTotalRecords());
+        assertEquals(1, response.getTasks().size());
+        assertEquals(task, response.getTasks().get(0));
+    }
+
+    @Test
+    void should_find_task_to_update_index_return_list_of_tasks() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByIndexedFalseAndStateIn(List.of(ASSIGNED, UNASSIGNED)))
+            .thenReturn(List.of(someTaskResource));
+
+        final List<TaskResource> actualTaskResource = cftTaskDatabaseService.findTaskToUpdateIndex();
+
+        assertNotNull(actualTaskResource);
+        assertEquals(1, actualTaskResource.size());
+    }
+
+
+    @Test
+    void should_delete_tasks_by_task_ids() {
+        final List<String> taskIds = List.of("123", "456");
+        doNothing().when(taskResourceRepository).deleteAllById(taskIds);
+
+        cftTaskDatabaseService.deleteTasks(taskIds);
+
+        verify(taskResourceRepository, times(1))
+                .deleteAllById(taskIds);
     }
 }

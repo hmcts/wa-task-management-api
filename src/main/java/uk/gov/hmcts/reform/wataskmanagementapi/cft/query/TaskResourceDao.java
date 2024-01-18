@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
 import static java.util.Arrays.stream;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder.ASCENDANT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder.ASCENDANT;
 
 @Slf4j
 @Service
@@ -44,7 +44,7 @@ public class TaskResourceDao {
 
     public List<Object[]> getTaskResourceSummary(int firstResult,
                                                  int maxResults,
-                                                 SearchTaskRequest searchTaskRequest,
+                                                 SearchRequest searchRequest,
                                                  List<RoleAssignment> roleAssignments,
                                                  PermissionRequirements permissionsRequired,
                                                  Boolean availableTasksOnly) {
@@ -53,10 +53,10 @@ public class TaskResourceDao {
         CriteriaBuilder builder = summaryQueryBuilder.builder;
         Root<TaskResource> root = summaryQueryBuilder.root;
 
-        List<Selection<?>> selections = getSelections(searchTaskRequest, root);
+        List<Selection<?>> selections = getSelections(searchRequest, root);
 
         Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest,
+            searchRequest,
             roleAssignments,
             permissionsRequired,
             availableTasksOnly,
@@ -64,7 +64,7 @@ public class TaskResourceDao {
             root
         );
 
-        List<Order> orders = getSortOrders(searchTaskRequest, builder, root);
+        List<Order> orders = getSortOrders(searchRequest, builder, root);
         return summaryQueryBuilder
             .where(selectPredicate)
             .withOrders(orders)
@@ -76,12 +76,12 @@ public class TaskResourceDao {
 
     }
 
-    private List<Selection<?>> getSelections(SearchTaskRequest searchTaskRequest, Root<TaskResource> root) {
+    private List<Selection<?>> getSelections(SearchRequest searchRequest, Root<TaskResource> root) {
         List<Selection<?>> selections = new ArrayList<>();
 
         selections.add(root.get("taskId"));
 
-        List<SortingParameter> sortingParameters = searchTaskRequest.getSortingParameters();
+        List<SortingParameter> sortingParameters = searchRequest.getSortingParameters();
         if (sortingParameters == null || sortingParameters.isEmpty()) {
             selections.addAll(List.of(root.get(MAJOR_PRIORITY), root.get(PRIORITY_DATE), root.get(MINOR_PRIORITY)));
         } else {
@@ -91,7 +91,7 @@ public class TaskResourceDao {
         return selections;
     }
 
-    public List<TaskResource> getTaskResources(SearchTaskRequest searchTaskRequest,
+    public List<TaskResource> getTaskResources(SearchRequest searchRequest,
                                                List<Object[]> taskResourcesSummary) {
         SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager, true);
         CriteriaBuilder builder = selectQueryBuilder.builder;
@@ -103,7 +103,7 @@ public class TaskResourceDao {
             .map(Optional::get)
             .map(Object::toString)
             .collect(Collectors.toList());
-        List<Order> orders = getSortOrders(searchTaskRequest, builder, root);
+        List<Order> orders = getSortOrders(searchRequest, builder, root);
         Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskQuery(taskIds, builder, root);
 
         return selectQueryBuilder
@@ -113,7 +113,7 @@ public class TaskResourceDao {
             .getResultList();
     }
 
-    public Long getTotalCount(SearchTaskRequest searchTaskRequest,
+    public Long getTotalCount(SearchRequest searchRequest,
                               List<RoleAssignment> roleAssignments,
                               PermissionRequirements permissionsRequired,
                               boolean availableTasksOnly) {
@@ -123,7 +123,7 @@ public class TaskResourceDao {
             .createSubRoot();
 
         Predicate countPredicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest,
+            searchRequest,
             roleAssignments,
             permissionsRequired,
             availableTasksOnly,
@@ -179,10 +179,10 @@ public class TaskResourceDao {
             .getResultList();
     }
 
-    private List<Order> getSortOrders(SearchTaskRequest searchTaskRequest,
+    private List<Order> getSortOrders(SearchRequest searchRequest,
                                       CriteriaBuilder builder,
                                       Root<TaskResource> root) {
-        final List<SortingParameter> sortingParameters = searchTaskRequest.getSortingParameters();
+        final List<SortingParameter> sortingParameters = searchRequest.getSortingParameters();
 
         List<Order> orders = new ArrayList<>();
 

@@ -11,24 +11,24 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskPermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -48,13 +48,13 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WARNING_LIST;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator.DATE_TIME_FORMATTER;
 
 
@@ -69,20 +69,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateC
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
-    private final Set<PermissionTypes> permissionsNewGranular = new HashSet<>(
-        asList(
-            PermissionTypes.COMPLETE,
-            PermissionTypes.COMPLETE_OWN,
-            PermissionTypes.CANCEL_OWN,
-            PermissionTypes.CLAIM,
-            PermissionTypes.UNCLAIM,
-            PermissionTypes.ASSIGN,
-            PermissionTypes.UNASSIGN,
-            PermissionTypes.UNCLAIM_ASSIGN,
-            PermissionTypes.UNASSIGN_CLAIM,
-            PermissionTypes.UNASSIGN_ASSIGN
-        )
-    );
 
     public CFTTaskMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -226,19 +212,14 @@ public class CFTTaskMapper {
     }
 
 
-    public Task mapToTaskAndExtractPermissionsUnion(TaskResource taskResource, List<RoleAssignment> roleAssignments,
-                                                    boolean granularPermissionResponseFeature) {
+    public Task mapToTaskAndExtractPermissionsUnion(TaskResource taskResource,
+                                                    List<RoleAssignment> roleAssignments) {
         Set<PermissionTypes> permissionsUnionForUser =
             extractUnionOfPermissionsForUser(
                 taskResource.getTaskRoleResources(),
                 roleAssignments,
-                taskResource.getCaseId(),
-                granularPermissionResponseFeature
+                taskResource.getCaseId()
             );
-
-        if (!granularPermissionResponseFeature) {
-            permissionsUnionForUser.removeAll(permissionsNewGranular);
-        }
 
         return mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
     }
@@ -269,15 +250,14 @@ public class CFTTaskMapper {
     }
 
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
-                                                                 List<RoleAssignment> roleAssignments,
-                                                                 boolean granularPermissionResponseFeature) {
+                                                                 List<RoleAssignment> roleAssignments) {
         Optional caseId = taskRoleResources.stream()
             .filter(t -> t.getTaskResource() != null
                 && t.getTaskResource().getCaseId() != null).map(t -> t.getTaskResource().getCaseId())
             .findFirst();
         if (caseId.isPresent()) {
             return extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments,
-                                                    (String) caseId.get(), granularPermissionResponseFeature);
+                                                    (String) caseId.get());
         } else {
             return new TreeSet<PermissionTypes>();
         }
@@ -285,8 +265,7 @@ public class CFTTaskMapper {
 
     private Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments,
-                                                                 String caseId,
-                                                                 boolean granularPermissionResponseFeature) {
+                                                                 String caseId) {
         TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
         if (caseId != null) {
             List<String> userRoleNames = roleAssignments.stream()
@@ -308,22 +287,13 @@ public class CFTTaskMapper {
             }
         }
 
-        if (!granularPermissionResponseFeature) {
-            permissionsFound.removeAll(permissionsNewGranular);
-        }
-
         return permissionsFound;
     }
 
-    public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource,
-                                                        boolean granularPermissionResponseFeature) {
+    public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
         List<String> authorisations = asList(taskRoleResource.getAuthorizations());
 
         final Set<PermissionTypes> permissionTypes = extractUnionOfPermissions(Set.of(taskRoleResource));
-
-        if (!granularPermissionResponseFeature) {
-            permissionTypes.removeAll(permissionsNewGranular);
-        }
 
         return new TaskRolePermissions(
             taskRoleResource.getRoleCategory(),

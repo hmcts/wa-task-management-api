@@ -7,17 +7,17 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.AddLocalVariableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaExceptionMessage;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaObjectMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CompleteTaskVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAlreadyClaimedException;
@@ -46,11 +46,11 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.INITIATION_TIMESTAMP;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_COMPLETION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.INITIATION_TIMESTAMP;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_COMPLETE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_UPDATE_STATE;
@@ -72,8 +72,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
     "PMD.CyclomaticComplexity", "PMD.PreserveStackTrace"
 })
 public class CamundaService {
-
-    public static final String THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH = "There was a problem performing the search";
 
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
 
@@ -392,6 +390,7 @@ public class CamundaService {
 
         try {
             camundaServiceApi.assignTask(authTokenGenerator.generate(), taskId, body);
+            log.info("Task id '{}' assigned to user id: '{}'", taskId, userId);
         } catch (FeignException ex) {
             throw new CamundaTaskAssignException(ex);
         }
@@ -407,7 +406,7 @@ public class CamundaService {
         updateTaskStateTo(taskId, TaskState.ASSIGNED);
         try {
             camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
-            log.debug("Task id '{}' successfully claimed", taskId);
+            log.info("Task id '{}' successfully claimed", taskId);
         } catch (FeignException ex) {
             CamundaExceptionMessage camundaException =
                 camundaObjectMapper.readValue(ex.contentUTF8(), CamundaExceptionMessage.class);
@@ -443,7 +442,7 @@ public class CamundaService {
 
         try {
             camundaServiceApi.completeTask(authTokenGenerator.generate(), taskId, new CompleteTaskVariables());
-            log.debug("Task '{}' completed", taskId);
+            log.info("Task '{}' completed", taskId);
         } catch (FeignException ex) {
             log.error("There was a problem completing the task '{}'", taskId);
             throw new CamundaTaskCompleteException(ex);
@@ -463,7 +462,7 @@ public class CamundaService {
         }
         try {
             camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
-            log.debug("Task id '{}' unclaimed", taskId);
+            log.info("Task id '{}' unclaimed", taskId);
         } catch (FeignException ex) {
             log.error("There was a problem while claiming task id '{}'", taskId);
             throw new CamundaTaskUnclaimException(ex);
@@ -494,7 +493,7 @@ public class CamundaService {
             throw new CamundaCftTaskStateUpdateException(ex);
         }
 
-        log.debug("Updated task '{}' with cft task state '{}'", taskId, newState.value());
+        log.info("Updated task '{}' with cft task state '{}'", taskId, newState.value());
     }
 
     /**
@@ -518,7 +517,7 @@ public class CamundaService {
             throw new CamundaTaskStateUpdateException(ex);
         }
 
-        log.debug("Updated task '{}' with state '{}'", taskId, newState.value());
+        log.info("Updated task '{}' with state '{}'", taskId, newState.value());
     }
 
     /**
@@ -531,7 +530,7 @@ public class CamundaService {
         body.put("escalationCode", ESCALATION_CODE);
         try {
             camundaServiceApi.bpmnEscalation(authTokenGenerator.generate(), taskId, body);
-            log.debug("Task id '{}' cancelled", taskId);
+            log.info("Task id '{}' cancelled", taskId);
         } catch (FeignException ex) {
             log.error("Task id '{}' could not be cancelled", taskId);
             throw new CamundaTaskCancelException(ex);

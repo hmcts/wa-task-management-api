@@ -1,10 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,12 +20,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskTypesService;
 
+import java.util.Locale;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 @RequestMapping(path = "/task/task-types", produces = APPLICATION_JSON_VALUE)
 @RestController
+@Slf4j
 public class TaskTypesController extends BaseController {
 
     private final AccessControlService accessControlService;
@@ -35,7 +41,8 @@ public class TaskTypesController extends BaseController {
         this.taskTypesService = taskTypesService;
     }
 
-    @Operation(description = "Retrieve list of task types with filter by jurisdiction")
+    @Operation(description = "Retrieve list of task types with filter by jurisdiction",
+        security = {@SecurityRequirement(name = "ServiceAuthorization"), @SecurityRequirement(name = "Authorization")})
     @ApiResponses({
         @ApiResponse(
             responseCode = "200", description = OK,
@@ -54,11 +61,13 @@ public class TaskTypesController extends BaseController {
     })
     @GetMapping
     public ResponseEntity<GetTaskTypesResponse> getTaskTypes(
-        @RequestHeader(AUTHORIZATION) String authToken,
+        @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
         @RequestParam(name = "jurisdiction") String jurisdiction
     ) {
         AccessControlResponse roles = accessControlService.getRoles(authToken);
-        GetTaskTypesResponse response = taskTypesService.getTaskTypes(roles, jurisdiction);
+        log.info("Get task type request from user {}", roles.getUserInfo().getUid());
+
+        GetTaskTypesResponse response = taskTypesService.getTaskTypes(roles, jurisdiction.toLowerCase(Locale.ENGLISH));
 
         return ResponseEntity
             .ok()

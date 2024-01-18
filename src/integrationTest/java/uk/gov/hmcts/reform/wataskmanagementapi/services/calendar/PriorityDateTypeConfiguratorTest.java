@@ -7,27 +7,34 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_ZONED_DATE_TIME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
 public class PriorityDateTypeConfiguratorTest {
 
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 
-    public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 00, 00);
-    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 03, 26, 18, 00, 00);
+    public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 0, 0);
+    public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 3, 26, 18, 0, 0);
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
-    private String isReConfigurationRequest = "false";
+    private final String isReConfigurationRequest = "false";
+    private final Map<String, Object> taskAttributes = new HashMap<>();
 
     @ParameterizedTest
     @CsvSource(value = {
@@ -59,14 +66,19 @@ public class PriorityDateTypeConfiguratorTest {
             .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(canConfigure)))
             .build();
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDateOrigin, priorityDateOrigin, thirdPriorityDateOrigin),
-                              Boolean.parseBoolean(initiationPriorityDateFound),
-                              Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDates(
+                List.of(defaultPriorityDateOrigin, priorityDateOrigin, thirdPriorityDateOrigin),
+                Boolean.parseBoolean(initiationPriorityDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(thirdPriorityDate + "T16:00"))
+                                   .value(CamundaValue.stringValue(thirdPriorityDate + "T10:00"))
+                                   .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(
+                                       isReConfigurationRequest)))
                                    .build()));
     }
 
@@ -106,20 +118,25 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate, defaultPriorityDateTime, priorityDate, priorityDateTime), false,
-                              Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDates(List.of(defaultPriorityDate, defaultPriorityDateTime, priorityDate, priorityDateTime),
+                            false, Boolean.parseBoolean(isReConfigurationRequest),
+                            taskAttributes
+            );
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(secondPriorityDate + expectedTime))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(secondPriorityDate + expectedTime))
+                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                    .build()
+            ));
     }
 
     @ParameterizedTest
@@ -146,14 +163,19 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate, priorityDate),
-                              Boolean.parseBoolean(initiationPriorityDateFound),
-                              Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDates(
+                List.of(defaultPriorityDate, priorityDate),
+                Boolean.parseBoolean(initiationPriorityDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
                                    .value(CamundaValue.stringValue(secondPriorityDate + "T18:00"))
+                                   .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(
+                                       isReConfigurationRequest)))
                                    .build()));
     }
 
@@ -180,9 +202,12 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDateTime, priorityDateTime),
-                              Boolean.parseBoolean(initiationPriorityDateFound),
-                              Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDates(
+                List.of(defaultPriorityDateTime, priorityDateTime),
+                Boolean.parseBoolean(initiationPriorityDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes
+            );
 
         String defaultPriorityDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -190,6 +215,8 @@ public class PriorityDateTypeConfiguratorTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
                                    .value(CamundaValue.stringValue(defaultPriorityDate + "T18:00"))
+                                   .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(
+                                       isReConfigurationRequest)))
                                    .build()));
     }
 
@@ -217,14 +244,19 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate, defaultPriorityDateTime),
-                              Boolean.parseBoolean(initiationPriorityDateFound),
-                              Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDates(
+                List.of(defaultPriorityDate, defaultPriorityDateTime),
+                Boolean.parseBoolean(initiationPriorityDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
                                    .value(CamundaValue.stringValue(givenPriorityDate + "T16:00"))
+                                   .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(
+                                       isReConfigurationRequest)))
                                    .build()));
     }
 
@@ -244,9 +276,11 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDateTime),
-                              Boolean.parseBoolean(initiationPriorityDateFound),
-                              Boolean.parseBoolean(isReConfigurationRequest)
+            .configureDates(
+                List.of(defaultPriorityDateTime),
+                Boolean.parseBoolean(initiationPriorityDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes
             );
         String defaultPriorityDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -254,6 +288,8 @@ public class PriorityDateTypeConfiguratorTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
                                    .value(CamundaValue.stringValue(defaultPriorityDate + "T16:00"))
+                                   .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(
+                                       isReConfigurationRequest)))
                                    .build()));
     }
 
@@ -275,9 +311,11 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate),
-                              Boolean.parseBoolean(initiationPriorityDateFound),
-                              Boolean.parseBoolean(isReConfigurationRequest)
+            .configureDates(
+                List.of(defaultPriorityDate),
+                Boolean.parseBoolean(initiationPriorityDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes
             );
 
 
@@ -285,13 +323,15 @@ public class PriorityDateTypeConfiguratorTest {
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
                                    .value(CamundaValue.stringValue(givenPriorityDate + "T19:00"))
+                                   .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(
+                                       isReConfigurationRequest)))
                                    .build()));
     }
 
     @Test
     public void shouldNotReturnPriorityDateWhenNoPriorityDatePropertiesAreAvailableAndJurisdictionIsIA() {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(), false, true);
+            .configureDates(List.of(), false, true, taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
@@ -299,37 +339,41 @@ public class PriorityDateTypeConfiguratorTest {
     @Test
     public void shouldReturnDefaultPriorityDateWhenNoPriorityDatePropertiesAreAvailableAndJurisdictionIsIA() {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(), false, false);
+            .configureDates(List.of(), false, false, taskAttributes);
 
         String expectedPriorityDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
+                    .build()
+            ));
     }
 
     @Test
     public void shouldReturnDefaultPriorityDateWhenDatePropertiesAreNotAvailableAndInitiationPriorityDateNotFound() {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(), false, false);
+            .configureDates(List.of(), false, false, taskAttributes);
 
         String expectedPriorityDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
+                    .build()
+            ));
     }
 
     @ParameterizedTest
@@ -356,14 +400,19 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDate, priorityDateOrigin),
-                              Boolean.parseBoolean(initiationPriorityDateFound),
-                              Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDates(
+                List.of(priorityDate, priorityDateOrigin),
+                Boolean.parseBoolean(initiationPriorityDateFound),
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes
+            );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
                                    .name(CamundaValue.stringValue("priorityDate"))
                                    .value(CamundaValue.stringValue(givenPriorityDate + "T16:00"))
+                                   .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(
+                                       isReConfigurationRequest)))
                                    .build()));
 
     }
@@ -384,20 +433,25 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateOrigin), false,
-                           Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDates(List.of(priorityDateOrigin), false,
+                            Boolean.parseBoolean(isReConfigurationRequest),
+                            taskAttributes
+            );
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(givenPriorityDate + "T16:00"))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(givenPriorityDate + "T20:00"))
+                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                    .build()
+            ));
 
     }
 
@@ -425,20 +479,25 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate, priorityDateOrigin, priorityDateTime), false,
-                              Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDates(List.of(defaultPriorityDate, priorityDateOrigin, priorityDateTime), false,
+                            Boolean.parseBoolean(isReConfigurationRequest),
+                            taskAttributes
+            );
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + "T18:00"))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate + "T18:00"))
+                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                    .build()
+            ));
     }
 
     @ParameterizedTest
@@ -456,21 +515,27 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
-            = dateTypeConfigurator.configureDate(List.of(defaultPriorityDateTime),
-                                                 false,
-                                                 Boolean.parseBoolean(isReConfigurationRequest));
+            = dateTypeConfigurator.configureDates(
+            List.of(defaultPriorityDateTime),
+            false,
+            Boolean.parseBoolean(isReConfigurationRequest),
+            taskAttributes
+        );
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
+                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                    .build()
+            ));
     }
 
     @ParameterizedTest
@@ -491,20 +556,25 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate), false,
-                           Boolean.parseBoolean(isReConfigurationRequest));
+            .configureDates(List.of(defaultPriorityDate), false,
+                            Boolean.parseBoolean(isReConfigurationRequest),
+                            taskAttributes
+            );
 
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + time))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate + time))
+                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                    .build()
+            ));
     }
 
     @ParameterizedTest
@@ -571,12 +641,14 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
-                                   priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
-                                   priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
+            .configureDates(
+                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+                        priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
+                        priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
                 ),
                 false,
-                Boolean.parseBoolean(isReConfigurationRequest)
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes
             );
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(Integer.parseInt(expectedDays))
@@ -584,14 +656,17 @@ public class PriorityDateTypeConfiguratorTest {
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + expectedTime))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate + expectedTime))
+                    .canReconfigure(CamundaValue.booleanValue(canConfigurable))
+                    .build()
+            ));
     }
 
     @ParameterizedTest
@@ -655,12 +730,14 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
-                                   priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
-                                   priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
+            .configureDates(
+                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+                        priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
+                        priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
                 ),
                 false,
-                Boolean.parseBoolean(isReConfigurationRequest)
+                Boolean.parseBoolean(isReConfigurationRequest),
+                taskAttributes
             );
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(Integer.parseInt(expectedDays))
@@ -669,14 +746,17 @@ public class PriorityDateTypeConfiguratorTest {
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + expectedTime))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate + expectedTime))
+                    .canReconfigure(CamundaValue.booleanValue(canConfigurable))
+                    .build()
+            ));
     }
 
     @Test
@@ -715,12 +795,13 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(
+            .configureDates(
                 List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
                         priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin
                 ),
                 false,
-                false
+                false,
+                taskAttributes
             );
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(Integer.parseInt("8"))
@@ -729,14 +810,17 @@ public class PriorityDateTypeConfiguratorTest {
         String expectedDueDate = DEFAULT_ZONED_DATE_TIME.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate + "T20:00"))
+                    .canReconfigure(CamundaValue.booleanValue(Boolean.parseBoolean(isReConfigurationRequest)))
+                    .build()
+            ));
     }
 
     @Test
@@ -755,7 +839,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDateTime, priorityDateTime), false, true);
+            .configureDates(List.of(defaultPriorityDateTime, priorityDateTime), false, true, taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -778,7 +862,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDate, defaultPriorityDateTime), false, true);
+            .configureDates(List.of(defaultPriorityDate, defaultPriorityDateTime), false, true, taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -793,7 +877,7 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(defaultPriorityDateTime), false, true);
+            .configureDates(List.of(defaultPriorityDateTime), false, true, taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -810,10 +894,11 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(
+            .configureDates(
                 List.of(defaultPriorityDate),
                 false,
-                true
+                true,
+                taskAttributes
             );
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
@@ -822,7 +907,7 @@ public class PriorityDateTypeConfiguratorTest {
     @Test
     public void shouldNotReturnDPriorityDateWhenDatePropertiesAreNotAvailableAndJurisdictionIsWAAndIsReconfiguration() {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(), false, true);
+            .configureDates(List.of(), false, true, taskAttributes);
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(0);
     }
@@ -866,25 +951,29 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
-                                   priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
-                                   priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
-                ),
-                false, false
+            .configureDates(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+                                    priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
+                                    priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
+                            ),
+                            false, false,
+                            taskAttributes
             );
 
         String expectedPriorityDate = "2022-10-30T02:30";
         String expectedDueDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate))
+                    .canReconfigure(CamundaValue.booleanValue(false))
+                    .build()
+            ));
     }
 
     @Test
@@ -927,24 +1016,136 @@ public class PriorityDateTypeConfiguratorTest {
             .build();
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
-            .configureDate(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
-                                   priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
-                                   priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
-                ),
-                false, false
+            .configureDates(List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar,
+                                    priorityDateMustBeWorkingDay, priorityDateNonWorkingDaysOfWeek,
+                                    priorityDateSkipNonWorkingDays, priorityDateOrigin, priorityDateTime
+                            ),
+                            false, false,
+                            taskAttributes
             );
 
         String expectedPriorityDate = "2023-03-30T01:30";
         String expectedDueDate = DEFAULT_ZONED_DATE_TIME.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(2)
-            .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("dueDate"))
-                                   .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-                                   .build(),
-                               ConfigurationDmnEvaluationResponse.builder()
-                                   .name(CamundaValue.stringValue("priorityDate"))
-                                   .value(CamundaValue.stringValue(expectedPriorityDate))
-                                   .build()));
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedPriorityDate))
+                    .canReconfigure(CamundaValue.booleanValue(false))
+                    .build()
+            ));
     }
+
+    @Test
+    public void shouldProvideDefaultForPriorityDateAsOfDueDateWhenNoneOfPriorityAttributesArePresent() {
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(), false, false, taskAttributes);
+
+        String expectedDueDate = DEFAULT_ZONED_DATE_TIME.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        assertThat(configurationDmnEvaluationResponses)
+            .hasSize(2)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+                    .build()
+            ));
+    }
+
+    @Test
+    public void shouldDefaultToDueDateWhenOriginRefAttributesPresentButHaveEmptyValue() {
+        ConfigurationDmnEvaluationResponse nextHearingDateOriginRef = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDateOriginRef"))
+            .value(CamundaValue.stringValue("dueDate"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        assertThatThrownBy(() -> dateTypeConfigurator.configureDates(
+            List.of(nextHearingDateOriginRef),
+            false,
+            false,
+            taskAttributes
+        ))
+            .isInstanceOf(DateCalculationException.class)
+            .hasMessage(String.format(INVALID_DATE_REFERENCE_FIELD, "dueDate"));
+    }
+
+    @Test
+    public void shouldNotRecalculateDateWhenDueDateIsUnconfigurableButOriginIsConfigurable() {
+        String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String priorityDateOriginValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
+            .value(CamundaValue.stringValue(priorityDateValue + "T18:00"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(priorityDateOriginValue + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true, taskAttributes);
+
+        assertThat(configurationDmnEvaluationResponses).isEmpty();
+    }
+
+    @Test
+    public void shouldNotRecalculateDateWhenPriorityDateIsUnconfigurableButOriginLatestIsConfigurable() {
+        String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
+            .value(CamundaValue.stringValue(priorityDateValue + "T18:00"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOriginEarliest"))
+            .value(CamundaValue.stringValue("nextHearingDate,priorityDate"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true, taskAttributes);
+
+        assertThat(configurationDmnEvaluationResponses).isEmpty();
+    }
+
+    @Test
+    public void shouldNotRecalculateDateWhenPriorityDateIsUnconfigurableButOriginDurationIsConfigurable() {
+        String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String priorityDateDurationValue = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
+            .value(CamundaValue.stringValue(priorityDateValue + "T18:00"))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        ConfigurationDmnEvaluationResponse priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateDuration"))
+            .value(CamundaValue.stringValue(priorityDateDurationValue + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(priorityDate, priorityDateOrigin), false, true, taskAttributes);
+
+        assertThat(configurationDmnEvaluationResponses).isEmpty();
+    }
+
 }

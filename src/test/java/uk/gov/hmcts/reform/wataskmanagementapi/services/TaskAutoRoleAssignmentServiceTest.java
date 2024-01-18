@@ -18,11 +18,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -1356,8 +1356,7 @@ class TaskAutoRoleAssignmentServiceTest {
             .userId("someUserId")
             .build();
 
-        RoleAssignment roleAssignmentNoAuthorizations = getBaseRoleAssignment();
-        roleAssignmentNoAuthorizations.setAuthorisations(emptyList());
+        RoleAssignment roleAssignmentNoAuthorizations = getRoleAssignmentWithEmptyAuthorisation();
 
         CheckAssigneeScenario noRoleAssignmentAuthorizationsScenario = CheckAssigneeScenario.builder()
             .roleAssignments(singletonList(roleAssignmentNoAuthorizations))
@@ -1410,6 +1409,19 @@ class TaskAutoRoleAssignmentServiceTest {
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .authorisations(singletonList("IA"))
+            .build();
+    }
+
+    private static RoleAssignment getRoleAssignmentWithEmptyAuthorisation() {
+        return RoleAssignment.builder()
+            .id("someId")
+            .actorIdType(ActorIdType.IDAM)
+            .actorId("someUserId")
+            .roleName("tribunal-caseworker")
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .roleType(RoleType.ORGANISATION)
+            .classification(Classification.PUBLIC)
+            .authorisations(emptyList())
             .build();
     }
 

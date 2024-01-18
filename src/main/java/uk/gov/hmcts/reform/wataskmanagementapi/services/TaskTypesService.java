@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypesResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskType;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskTypeResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskTypesDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskTypesDmnResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskTypeResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomizedConstraintViolationException;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import static java.util.Collections.singletonList;
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class TaskTypesService {
 
-    private static final String DMN_NAME = "Task Types DMN";
+    private static final String DECISION_KEY_PREFIX = "wa-task-types-";
     private final DmnEvaluationService dmnEvaluationService;
 
     @Autowired
@@ -51,8 +51,8 @@ public class TaskTypesService {
 
         //get task-type-dmn(s) for jurisdiction
         Set<TaskTypesDmnResponse> taskTypesDmnResponse =
-            dmnEvaluationService.retrieveTaskTypesDmn(jurisdiction, DMN_NAME);
-
+            dmnEvaluationService.retrieveTaskTypesDmn(jurisdiction, DECISION_KEY_PREFIX);
+        log.info("Retrieved {} task types files for a jurisdiction: {}, ", taskTypesDmnResponse.size(), jurisdiction);
         List<TaskTypesDmnEvaluationResponse> taskTypesDmnEvaluationResponses = new ArrayList<>();
 
         //evaluate dmn(s)
@@ -61,7 +61,8 @@ public class TaskTypesService {
             )
         );
 
-        List<TaskTypeResponse> taskTypeResponses = extractValues(taskTypesDmnEvaluationResponses);
+        Set<TaskTypeResponse> taskTypeResponses = extractValues(taskTypesDmnEvaluationResponses);
+        log.info("Retrieved {} task types for a jurisdiction: {}, ", taskTypeResponses.size(), jurisdiction);
 
         if (!taskTypeResponses.isEmpty()) {
             getTaskTypesResponse = new GetTaskTypesResponse(taskTypeResponses);
@@ -70,23 +71,12 @@ public class TaskTypesService {
         return getTaskTypesResponse;
     }
 
-    private List<TaskTypeResponse> extractValues(List<TaskTypesDmnEvaluationResponse> evaluationResponses) {
-
-        Set<TaskType> taskTypeResponses = new LinkedHashSet<>();
-
-        evaluationResponses.forEach(item -> {
-
-                TaskType taskType = new TaskType(
-                    item.getTaskTypeId().getValue(),
-                    item.getTaskTypeName().getValue()
-                );
-
-                taskTypeResponses.add(taskType);
-            }
-        );
-
-        return taskTypeResponses.stream().map(TaskTypeResponse::new).collect(Collectors.toList());
-
+    private Set<TaskTypeResponse> extractValues(List<TaskTypesDmnEvaluationResponse> evaluationResponses) {
+        return evaluationResponses.stream()
+            .map(r -> new TaskType(r.getTaskTypeId().getValue(), r.getTaskTypeName().getValue()))
+            .distinct()
+            .map(TaskTypeResponse::new)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private void validateRequest(String jurisdiction) {

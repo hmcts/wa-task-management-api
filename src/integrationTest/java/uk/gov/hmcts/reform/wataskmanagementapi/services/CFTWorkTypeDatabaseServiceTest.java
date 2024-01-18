@@ -3,9 +3,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.WorkTypeResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.WorkTypeResourceRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
@@ -31,7 +33,7 @@ class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
 
         final List<WorkType> allWorkTypes = cftWorkTypeDatabaseService.getAllWorkTypes();
 
-        assertEquals(11, allWorkTypes.size());
+        assertEquals(13, allWorkTypes.size());
         assertEquals("hearing_work", allWorkTypes.get(0).getId());
         assertEquals("Hearing work", allWorkTypes.get(0).getLabel());
         assertEquals("upper_tribunal", allWorkTypes.get(1).getId());
@@ -54,6 +56,10 @@ class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
         assertEquals("Evidence", allWorkTypes.get(9).getLabel());
         assertEquals("follow_up", allWorkTypes.get(10).getId());
         assertEquals("Follow Up", allWorkTypes.get(10).getLabel());
+        assertEquals("pre_hearing", allWorkTypes.get(11).getId());
+        assertEquals("Pre-Hearing", allWorkTypes.get(11).getLabel());
+        assertEquals("post_hearing", allWorkTypes.get(12).getId());
+        assertEquals("Post-Hearing", allWorkTypes.get(12).getLabel());
     }
 
     @Test
