@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationService;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -52,9 +53,10 @@ public class TaskOperationController extends BaseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/operation")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public ResponseEntity<Void> performOperation(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+    public ResponseEntity<Void> performOperation(@Parameter(hidden = true)
+                                                 @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @RequestBody TaskOperationRequest taskOperationRequest) {
-        log.info("task operation request received '{}'", taskOperationRequest);
+        log.info("Task operation request received '{}'", taskOperationRequest);
         boolean hasExclusiveAccessRequest =
             clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
 
@@ -67,7 +69,7 @@ public class TaskOperationController extends BaseController {
         }
 
         return ResponseEntity
-            .noContent()
+            .ok()
             .cacheControl(CacheControl.noCache())
             .build();
     }

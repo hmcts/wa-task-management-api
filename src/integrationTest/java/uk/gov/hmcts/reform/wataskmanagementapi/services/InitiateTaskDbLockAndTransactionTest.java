@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -60,6 +61,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 
 @Slf4j
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationBaseTest {
 
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
@@ -87,6 +89,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private CamundaService camundaService;
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
+    private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @SpyBean
     private CftQueryService cftQueryService;
     @SpyBean
@@ -131,19 +135,18 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         taskId = UUID.randomUUID().toString();
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
-            cftQueryService
-        );
+            cftQueryService,
+            cftSensitiveTaskEventLogsDatabaseService);
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
             entityManager,
-            idamTokenGenerator
-        );
+            idamTokenGenerator,
+            cftSensitiveTaskEventLogsDatabaseService);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
         testTaskResource.setCreated(OffsetDateTime.now());

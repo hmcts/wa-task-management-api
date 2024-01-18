@@ -12,7 +12,7 @@ management:
         include: health, info, prometheus
 
 config:
-  privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
+  privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp,ccd_case_disposer}
   exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler,wa_workflow_api}
   allowedJurisdictions: ${ALLOWED_JURISDICTIONS:ia,wa,sscs,civil,publiclaw,privatelaw,employment}
   allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,care_supervision_epo,prlapps,et_englandwales,et_englandwales_listings,et_englandwales_multiple,et_scotland,et_scotland_listings,et_scotland_multiple,et_admin}
@@ -58,7 +58,7 @@ idam:
     secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
   s2s-authorised:
-    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api,wa_case_event_handler}
+    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api,wa_case_event_handler,ccd_case_disposer}
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
   system:
@@ -66,7 +66,18 @@ idam:
     password: ${WA_SYSTEM_PASSWORD:password}
 
 springdoc:
+  swagger-ui:
+    enabled: true
+    operationsSorter: method
   writer-with-order-by-keys: true
+
+replication:
+  username: ${REPLICATION_USERNAME:repl_user}
+  password: ${REPLICATION_PASSWORD:repl_password}
+  subscriptionUrl: postgresql://${POSTGRES_CLUSTER_HOST:localhost}:${POSTGRES_PORT:5432}
+primary:
+  username: ${POSTGRES_USERNAME:wa_user}
+  password: ${POSTGRES_PASSWORD:wa_password}
 
 spring:
   config:
@@ -77,9 +88,14 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
+    jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:}
+  datasource-replica:
+    driverClassName: org.postgresql.Driver
+    jdbcUrl: jdbc:postgresql://${POSTGRES_REPLICA_HOST:ccd-shared-database-replica}:${POSTGRES_REPLICA_PORT:5433}/${POSTGRES_REPLICA_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
+    username: ${REPLICATION_USERNAME:postgres}
+    password: ${REPLICATION_PASSWORD:}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -91,11 +107,16 @@ spring:
           in_clause_parameter_padding: true
         default_schema: ${POSTGRES_NAME:cft_task_db}
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
+        physical_naming_strategy: "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy"
   flyway:
     enabled: true
     baselineOnMigrate: true
     defaultSchema: ${POSTGRES_NAME:cft_task_db}
     schemas: ${POSTGRES_NAME:cft_task_db}
+    placeholders:
+      dbPrimaryUserName: ${POSTGRES_USERNAME}
+      dbReplicaUserName: ${REPLICATION_USERNAME}
+      dbReaderUserName: ${DB_READER_USERNAME:postgres}
   security:
     oauth2:
       resourceserver:
@@ -123,11 +144,15 @@ launchDarkly:
   connectionTimeout: 5000
   socketTimeout: 5000
 
+environment: ${ENVIRONMENT:local}
+
 logging:
   level:
     root: INFO
     uk.gov.hmcts.reform.wataskmanagementapi.clients.*: INFO
     org.zalando.logbook: INFO
+    org.testcontainers: INFO
+    com.github.dockerjava: INFO
 
 logbook:
   include: /task/**

@@ -13,9 +13,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
@@ -35,30 +35,28 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 
 @ExtendWith(MockitoExtension.class)
 class AssignTaskTest extends CamundaHelpers {
 
-    public static final String A_TASK_TYPE = "aTaskType";
-    public static final String A_TASK_NAME = "aTaskName";
     @Mock
     CamundaService camundaService;
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
+    CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
+    @Mock
     CftQueryService cftQueryService;
     @Mock
     CFTTaskMapper cftTaskMapper;
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
@@ -78,19 +76,18 @@ class AssignTaskTest extends CamundaHelpers {
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
-            cftQueryService
-        );
+            cftQueryService,
+            cftSensitiveTaskEventLogsDatabaseService);
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
             entityManager,
-            idamTokenGenerator
-        );
+            idamTokenGenerator,
+            cftSensitiveTaskEventLogsDatabaseService);
 
 
         taskId = UUID.randomUUID().toString();
@@ -115,10 +112,8 @@ class AssignTaskTest extends CamundaHelpers {
             .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
         TaskResource taskResource = spy(TaskResource.class);
-
-        PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
         when(cftQueryService.getTask(
-            taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            any(), anyList(), any(PermissionRequirements.class))
         ).thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
@@ -150,13 +145,8 @@ class AssignTaskTest extends CamundaHelpers {
         AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
         when(assigneeAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
-
-        TaskResource taskResource = spy(TaskResource.class);
-        PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
         when(cftQueryService.getTask(
-            taskId,
-            assignerAccessControlResponse.getRoleAssignments(),
-            requirements
+            any(), anyList(), any(PermissionRequirements.class)
         )).thenReturn(Optional.empty());
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
@@ -192,11 +182,10 @@ class AssignTaskTest extends CamundaHelpers {
             .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
         TaskResource taskResource = spy(TaskResource.class);
-        PermissionRequirements requirements = PermissionRequirementBuilder.builder()
-            .buildSingleType(MANAGE);
+
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
         when(cftQueryService.getTask(
-            taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            any(), anyList(), any(PermissionRequirements.class))
         ).thenReturn(Optional.of(taskResource));
 
         PermissionRequirements otherRequirements = PermissionRequirementBuilder.builder()
@@ -242,10 +231,8 @@ class AssignTaskTest extends CamundaHelpers {
             .thenReturn(UserInfo.builder().uid(null).build());
 
         TaskResource taskResource = spy(TaskResource.class);
-
-        PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
         when(cftQueryService.getTask(
-            taskId, assignerAccessControlResponse.getRoleAssignments(), requirements)
+            any(), anyList(), any(PermissionRequirements.class))
         ).thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 

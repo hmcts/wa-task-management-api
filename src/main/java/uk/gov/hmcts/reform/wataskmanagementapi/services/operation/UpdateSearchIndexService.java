@@ -4,11 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -22,19 +24,20 @@ public class UpdateSearchIndexService implements TaskOperationPerformService {
     }
 
     @Override
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
+    public TaskOperationResponse performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getType().equals(TaskOperationType.UPDATE_SEARCH_INDEX)) {
             return updateSearchIndex();
         }
-        return List.of();
+        return new TaskOperationResponse();
     }
 
-    private List<TaskResource> updateSearchIndex() {
+    private TaskOperationResponse updateSearchIndex() {
         List<TaskResource> taskToReIndexed =  cftTaskDatabaseService.findTaskToUpdateIndex();
         List<TaskResource> successfulTaskResources = new ArrayList<>();
 
         if (taskToReIndexed != null) {
             taskToReIndexed.forEach(t -> {
+                log.info("Update search index for task-id {}", t.getTaskId());
                 Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
                     .findByIdAndWaitAndObtainPessimisticWriteLock(t.getTaskId());
 
@@ -46,6 +49,6 @@ public class UpdateSearchIndexService implements TaskOperationPerformService {
             });
         }
 
-        return successfulTaskResources;
+        return new TaskOperationResponse(Map.of("successfulTaskResources", successfulTaskResources.size()));
     }
 }

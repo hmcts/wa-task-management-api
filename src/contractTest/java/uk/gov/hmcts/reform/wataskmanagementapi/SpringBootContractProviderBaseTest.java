@@ -18,10 +18,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskDeletionService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskTypesService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationService;
 
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -52,6 +53,9 @@ public class SpringBootContractProviderBaseTest {
 
     @Mock
     protected TaskOperationService taskOperationService;
+
+    @Mock
+    protected TaskDeletionService taskDeletionService;
 
     @Mock
     protected CftQueryService cftQueryService;

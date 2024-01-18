@@ -4,9 +4,7 @@ public enum FeatureFlag {
 
     WA_TASK_SEARCH_GIN_INDEX("wa-task-search-gin-index"),
 
-    GRANULAR_PERMISSION_FEATURE("wa-task-management-granular-permission-feature"),
-
-    RELEASE_4_GRANULAR_PERMISSION_RESPONSE("wa-r4-granular-permission-response"),
+    WA_DELETE_TASK_BY_CASE_ID("wa-delete-task-by-case-id"),
 
     //The following keys are used for testing purposes only.
     TEST_KEY("tester"),

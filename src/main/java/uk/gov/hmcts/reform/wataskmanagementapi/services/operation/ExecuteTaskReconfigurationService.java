@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -8,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperation
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskExecuteReconfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
@@ -17,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentServic
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,22 +45,21 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
 
     @Override
     @Transactional(noRollbackFor = TaskExecuteReconfigurationException.class)
-    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
+    @Async
+    public TaskOperationResponse performOperation(TaskOperationRequest taskOperationRequest) {
         if (taskOperationRequest.getOperation().getType().equals(TaskOperationType.EXECUTE_RECONFIGURE)) {
             return executeTasksToReconfigure(taskOperationRequest);
         }
-        return List.of();
+        return new TaskOperationResponse();
     }
 
-    private List<TaskResource> executeTasksToReconfigure(TaskOperationRequest request) {
-        log.debug("execute tasks toReconfigure request: {}", request);
-        OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(request.getTaskFilter());
+    private TaskOperationResponse executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
+        log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
+        OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
-
         List<TaskResource> taskResources = cftTaskDatabaseService
             .getActiveTasksAndReconfigureRequestTimeGreaterThan(
                 List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), reconfigureDateTime);
-
         List<TaskResource> successfulTaskResources = new ArrayList<>();
 
         List<String> taskIds = taskResources.stream()
@@ -66,19 +68,22 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
 
         List<String> failedTaskIds = executeReconfiguration(taskIds,
             successfulTaskResources,
-            request.getOperation().getMaxTimeLimit());
+            taskOperationRequest.getOperation().getMaxTimeLimit());
 
         if (!failedTaskIds.isEmpty()) {
-            failedTaskIds = executeReconfiguration(failedTaskIds,
+            executeReconfiguration(
+                failedTaskIds,
                 successfulTaskResources,
-                request.getOperation().getMaxTimeLimit());
+                taskOperationRequest.getOperation().getMaxTimeLimit()
+            );
+            taskOperationRequest.getOperation().getMaxTimeLimit();
         }
 
         if (!failedTaskIds.isEmpty()) {
-            configurationFailLog(failedTaskIds, request.getOperation().getRetryWindowHours());
+            configurationFailLog(failedTaskIds, taskOperationRequest.getOperation().getRetryWindowHours());
         }
 
-        return successfulTaskResources;
+        return new TaskOperationResponse(Map.of("successfulTaskResources", successfulTaskResources.size()));
     }
 
     private void configurationFailLog(List<String> failedTaskIds, long retryWindowHours) {
@@ -90,7 +95,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
 
         if (!failedTasksToReport.isEmpty()) {
             throw new TaskExecuteReconfigurationException(TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED,
-                failedTasksToReport
+                                                          failedTasksToReport
             );
         }
     }
@@ -117,6 +122,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         if (endTimer.isAfter(OffsetDateTime.now())) {
             taskIds.forEach(taskId -> {
                 try {
+                    log.info("Re-configure task-id {}", taskId);
                     Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
                         .findByIdAndObtainPessimisticWriteLock(taskId);
 
@@ -126,6 +132,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
                         taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
                         taskResource.setReconfigureRequestTime(null);
                         taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+                        resetIndexed(taskResource);
                         successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
                     }
                 } catch (Exception e) {
@@ -136,6 +143,18 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         }
 
         return failedTaskIds;
+    }
+
+    private void resetIndexed(TaskResource taskResource) {
+        log.info("indexed attribute for the task (id={}) before change is {} ",
+                 taskResource.getTaskId(), taskResource.getIndexed());
+        if (!taskResource.getIndexed()
+            && (taskResource.getState() == CFTTaskState.ASSIGNED
+                || taskResource.getState() == CFTTaskState.UNASSIGNED)) {
+            taskResource.setIndexed(true);
+        }
+        log.info("indexed attribute for the task (id={}) after change is {} ",
+                 taskResource.getTaskId(), taskResource.getIndexed());
     }
 
     private OffsetDateTime getReconfigureRequestTime(List<TaskFilter<?>> taskFilters) {

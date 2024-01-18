@@ -7,16 +7,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
@@ -45,16 +44,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @ExtendWith(MockitoExtension.class)
 class GetTaskTest extends CamundaHelpers {
 
-    public static final String A_TASK_TYPE = "aTaskType";
-    public static final String A_TASK_NAME = "aTaskName";
     @Mock
     CamundaService camundaService;
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
-    CFTTaskMapper cftTaskMapper;
+    CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    CFTTaskMapper cftTaskMapper;
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
@@ -81,8 +78,6 @@ class GetTaskTest extends CamundaHelpers {
         when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
             .thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
-        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
         Task mockedMappedTask = mock(Task.class);
         when(cftTaskMapper.mapToTaskWithPermissions(any(), any()))
@@ -100,8 +95,6 @@ class GetTaskTest extends CamundaHelpers {
         when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
         List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-
-        TaskResource taskResource = spy(TaskResource.class);
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
         assertThatThrownBy(() -> taskManagementService.getTask(taskId, accessControlResponse))
@@ -114,19 +107,18 @@ class GetTaskTest extends CamundaHelpers {
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
-            cftQueryService
-        );
+            cftQueryService,
+            cftSensitiveTaskEventLogsDatabaseService);
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
             entityManager,
-            idamTokenGenerator
-        );
+            idamTokenGenerator,
+            cftSensitiveTaskEventLogsDatabaseService);
 
 
         taskId = UUID.randomUUID().toString();

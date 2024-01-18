@@ -11,8 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractProviderBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskOperationController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 
-import java.util.List;
+import java.util.HashMap;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -58,6 +59,6 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
 
     private void setInitMock() {
         when(clientAccessControlService.hasExclusiveAccess(anyString())).thenReturn(true);
-        when(taskOperationService.performOperation(any())).thenReturn(List.of());
+        when(taskOperationService.performOperation(any())).thenReturn(new TaskOperationResponse(new HashMap<>()));
     }
 }

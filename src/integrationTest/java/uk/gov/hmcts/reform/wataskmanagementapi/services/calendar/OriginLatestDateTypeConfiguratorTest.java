@@ -20,7 +20,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.AMBIGUOUS_ORIGIN_DATES_PROVIDED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollectionTest.CALENDAR_URI;
 
@@ -87,12 +86,8 @@ public class OriginLatestDateTypeConfiguratorTest {
         );
 
         assertThat(configurationDmnEvaluationResponses)
-            .hasSize(5)
+            .hasSize(4)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue("2022-10-13T16:00"))
@@ -186,15 +181,32 @@ public class OriginLatestDateTypeConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueDateOriginFields(
             dueDateOriginLatest, nextHearingDuration, calculatedDates);
 
-        assertThatThrownBy(() -> dateTypeConfigurator
-            .configureDates(
-                evaluationResponses,
-                false,
-                false,
-                taskAttributes
-            ))
-            .isInstanceOf(DateCalculationException.class)
-            .hasMessage(INVALID_DATE_REFERENCE_FIELD);
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses
+            = dateTypeConfigurator.configureDates(
+            evaluationResponses,
+            false,
+            false,
+            taskAttributes
+        );
+
+        assertThat(configurationDmnEvaluationResponses)
+            .hasSize(3)
+            .isEqualTo(List.of(
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("nextHearingDuration"))
+                    .value(CamundaValue.stringValue("2022-10-15T16:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("dueDate"))
+                    .value(CamundaValue.stringValue("2022-10-19T17:00"))
+                    .canReconfigure(CamundaValue.booleanValue(false))
+                    .build(),
+                ConfigurationDmnEvaluationResponse.builder()
+                    .name(CamundaValue.stringValue("priorityDate"))
+                    .value(CamundaValue.stringValue("2022-10-19T17:00"))
+                    .build()
+            ));
     }
 
     private List<ConfigurationDmnEvaluationResponse> readDueAndPriorityDateOriginFields(
@@ -411,12 +423,8 @@ public class OriginLatestDateTypeConfiguratorTest {
                 taskAttributes
             );
 
-        assertThat(configurationDmnEvaluationResponses).hasSize(5)
+        assertThat(configurationDmnEvaluationResponses).hasSize(4)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("calculatedDates"))
-                    .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
-                    .build(),
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(nextHearingDateValue))
@@ -1254,8 +1262,8 @@ public class OriginLatestDateTypeConfiguratorTest {
         List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
             .configureDates(
                 List.of(dueDateIntervalDays, dueDateNonWorkingCalendar,
-                    dueDateMustBeWorkingDay, dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays,
-                    dueDateOriginLatest
+                        dueDateMustBeWorkingDay, dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays,
+                        dueDateOriginLatest
                 ),
                 false, true,
                 taskAttributes

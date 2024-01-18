@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -46,6 +47,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @Import(AllowedJurisdictionConfiguration.class)
 @Testcontainers
 @Sql("/scripts/wa/search_for_completable_tasks_data.sql")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignmentHelper {
 
     private PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
@@ -104,8 +106,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -149,8 +150,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            true
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -208,8 +208,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -251,8 +250,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -308,8 +306,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -351,8 +348,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();
@@ -408,8 +404,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             roleAssignments,
-            permissionsRequired,
-            false
+            permissionsRequired
         );
         assertThat(task).isNotNull();
         assertThat(task.isTaskRequiredForEvent()).isTrue();

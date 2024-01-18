@@ -451,6 +451,8 @@ public class Common {
 
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
+        createStandardTribunalCaseworker(userInfo, headers, jurisdiction, caseType);
+
         log.info("Creating Case manager Case Role");
 
         postRoleAssignment(

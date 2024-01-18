@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfigu
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -59,6 +60,8 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
+    private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
+    @MockBean
     private IdamService idamService;
     @MockBean
     private RoleAssignmentService roleAssignmentService;
@@ -93,19 +96,18 @@ public class TaskManagementProviderTestConfiguration {
     public TaskManagementService taskManagementService() {
         roleAssignmentVerificationService = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
-            cftQueryService
-        );
+            cftQueryService,
+            cftSensitiveTaskEventLogsDatabaseService);
         return new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerificationService,
             entityManager,
-            idamTokenGenerator
-        );
+            idamTokenGenerator,
+            cftSensitiveTaskEventLogsDatabaseService);
     }
 
     @Bean
