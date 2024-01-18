@@ -178,7 +178,8 @@ public class TaskResourceDao {
             .where(selectPredicate)
             .build();
         Query sqlQuery = query.unwrap(org.hibernate.Query.class);
-        log.info("SQL Query is {} ", sqlQuery.getQueryString());
+
+        log.info("SQL Query is {} ", sqlQuery != null ? sqlQuery.getQueryString() : null);
 
         return query.getResultList();
     }

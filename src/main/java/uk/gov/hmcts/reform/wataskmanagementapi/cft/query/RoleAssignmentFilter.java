@@ -373,6 +373,7 @@ public final class RoleAssignmentFilter {
             if (caseIds.size() == ONE) {
                 return builder.equal(root.get(CASE_ID_COLUMN), caseIds.iterator().next());
             }
+            log.info("Case Ids are {}", caseIds);
             return builder.in(root.get(CASE_ID_COLUMN)).value(caseIds);
         }
         return builder.conjunction();
