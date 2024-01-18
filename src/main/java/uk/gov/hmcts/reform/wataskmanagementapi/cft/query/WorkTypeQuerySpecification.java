@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 
 import java.util.Set;
 

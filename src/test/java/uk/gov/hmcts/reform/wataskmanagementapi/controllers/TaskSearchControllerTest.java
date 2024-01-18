@@ -16,18 +16,21 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Collections.emptyList;
@@ -37,13 +40,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.TASK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class TaskSearchControllerTest {
@@ -59,6 +63,8 @@ class TaskSearchControllerTest {
     @Mock
     private CftQueryService cftQueryService;
     @Mock
+    private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     private TaskSearchController taskSearchController;
@@ -69,6 +75,7 @@ class TaskSearchControllerTest {
         taskSearchController = new TaskSearchController(
             accessControlService,
             cftQueryService,
+            cftTaskDatabaseService,
             launchDarklyFeatureFlagProvider
         );
     }
@@ -80,7 +87,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(tasksResponse);
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
@@ -95,44 +102,25 @@ class TaskSearchControllerTest {
     }
 
     @Test
-    void should_succeed_when_performing_search_for_returning_available_tasks_only_and_return_a_200_ok() {
+    void should_succeed_when_performing_search_for_returning_available_tasks_and_return_a_200_ok() {
         when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
             .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(tasksResponse);
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
             new SearchTaskRequest(
-                singletonList(new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true))
+                RequestContext.AVAILABLE_TASKS,
+                singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("ia")))
             )
         );
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().getTotalRecords());
-    }
-
-    @Test
-    void should_fail_when_performing_search_for_returning_available_tasks_only_and_return_a_200_ok() {
-        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
-            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
-
-        List<Task> taskList = Lists.newArrayList(mock(Task.class));
-        GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
-            .thenReturn(tasksResponse);
-        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
-            IDAM_AUTH_TOKEN, 0, 1,
-            new SearchTaskRequest(
-                singletonList(new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true))
-            )
-        );
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals(1, response.getBody().getTotalRecords());
     }
 
@@ -144,7 +132,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(tasksResponse);
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")))
@@ -157,6 +145,7 @@ class TaskSearchControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals(1, response.getBody().getTotalRecords());
     }
 
@@ -167,7 +156,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean()))
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(tasksResponse);
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")))
@@ -230,6 +219,10 @@ class TaskSearchControllerTest {
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "caseId", "eventId", "caseJurisdiction", "caseType");
+        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        GetTasksCompletableResponse<Task> tasksResponse = new GetTasksCompletableResponse<>(true, taskList);
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any())).thenReturn(tasksResponse);
+
         ResponseEntity<GetTasksCompletableResponse<Task>> response =
             taskSearchController.searchWithCriteriaForAutomaticCompletion(IDAM_AUTH_TOKEN, searchEventAndCase);
         assertNotNull(response);
@@ -243,8 +236,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(),
-            anyBoolean())).thenReturn(tasksResponse);
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any())).thenReturn(tasksResponse);
 
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
@@ -264,9 +256,14 @@ class TaskSearchControllerTest {
         when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
             .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
-        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        Task task1 = mock(Task.class);
+        when(task1.getId()).thenReturn("taskId1");
+        Task task2 = mock(Task.class);
+        when(task2.getId()).thenReturn("taskId2");
+        List<Task> taskList = List.of(task1, task2);
+
         GetTasksCompletableResponse<Task> tasksResponse = new GetTasksCompletableResponse<>(true, taskList);
-        when(cftQueryService.searchForCompletableTasks(any(), any(), any(), anyBoolean())).thenReturn(tasksResponse);
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any())).thenReturn(tasksResponse);
 
         ResponseEntity<GetTasksCompletableResponse<Task>> response =
             taskSearchController.searchWithCriteriaForAutomaticCompletion(
@@ -323,7 +320,8 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), anyBoolean())).thenReturn(tasksResponse);
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+            .thenReturn(tasksResponse);
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
             new SearchTaskRequest(
@@ -339,6 +337,63 @@ class TaskSearchControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().getTotalRecords());
+    }
+
+    @Test
+    void should_search_by_search_index_when_gin_index_feature_flag_is_true() {
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
+
+        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
+            mockedUserInfo.getUid(),
+            mockedUserInfo.getEmail())).thenReturn(true);
+
+        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
+        when(cftTaskDatabaseService.searchForTasks(anyInt(), anyInt(), any(), any()))
+            .thenReturn(tasksResponse);
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, 0, 1,
+            new SearchTaskRequest(
+                singletonList(new SearchParameterList(
+                        TASK_TYPE,
+                        SearchOperator.IN,
+                        singletonList("processApplication")
+                    )
+                )
+            )
+        );
+
+        verify(cftQueryService, never()).searchForTasks(anyInt(), anyInt(), any(), any());
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, Objects.requireNonNull(response.getBody()).getTotalRecords());
+    }
+
+    @Test
+    void should_not_search_by_search_index_when_gin_index_feature_flag_is_false() {
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
+
+        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
+            mockedUserInfo.getUid(),
+            mockedUserInfo.getEmail())).thenReturn(false);
+
+        taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, 0, 1,
+            new SearchTaskRequest(
+                singletonList(new SearchParameterList(
+                        TASK_TYPE,
+                        SearchOperator.IN,
+                        singletonList("processApplication")
+                    )
+                )
+            )
+        );
+
+        verify(cftTaskDatabaseService, never()).searchForTasks(anyInt(), anyInt(), any(), any());
     }
 
 }

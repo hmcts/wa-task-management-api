@@ -11,9 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractProviderBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
 
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class TaskManagementGetTaskRolePermissionsTest extends SpringBootContract
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            launchDarklyFeatureFlagProvider
+            taskDeletionService
         ));
 
         if (context != null) {
@@ -63,6 +64,9 @@ public class TaskManagementGetTaskRolePermissionsTest extends SpringBootContract
 
     private void setInitMockTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(taskManagementService.getTaskRolePermissions(any(), any())).thenReturn(createTaskRolePermissions());
     }
@@ -71,8 +75,22 @@ public class TaskManagementGetTaskRolePermissionsTest extends SpringBootContract
         TaskRolePermissions taskRolePermissions = new TaskRolePermissions(
             "LEGAL_OPERATIONS",
             "tribunal-caseworker",
-            List.of(PermissionTypes.READ, PermissionTypes.MANAGE, PermissionTypes.EXECUTE,
-                    PermissionTypes.COMPLETE_OWN, PermissionTypes.ASSIGN, PermissionTypes.UNCLAIM),
+            List.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.MANAGE,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.COMPLETE_OWN,
+                PermissionTypes.CANCEL_OWN,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.ASSIGN,
+                PermissionTypes.UNASSIGN,
+                PermissionTypes.UNCLAIM_ASSIGN,
+                PermissionTypes.UNASSIGN_CLAIM,
+                PermissionTypes.UNASSIGN_ASSIGN
+                ),
             List.of("IAC", "SCSS")
         );
 

@@ -22,15 +22,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
@@ -63,7 +63,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_OTHER_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL_GP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID_GP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
@@ -1054,6 +1053,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1112,8 +1113,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             mockServices.mockServiceAPIsGp();
             when(mockedUserInfo.getUid())
                 .thenReturn(IDAM_USER_ID_GP);
-            when(mockedUserInfo.getEmail())
-                .thenReturn(IDAM_USER_EMAIL_GP);
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -1185,8 +1184,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             mockServices.mockServiceAPIsGp();
             when(mockedUserInfo.getUid())
                 .thenReturn(IDAM_USER_ID_GP);
-            when(mockedUserInfo.getEmail())
-                .thenReturn(IDAM_USER_EMAIL_GP);
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 

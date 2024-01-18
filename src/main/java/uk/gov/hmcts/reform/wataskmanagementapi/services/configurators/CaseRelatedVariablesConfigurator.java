@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.configurators;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
 
 import java.util.Objects;

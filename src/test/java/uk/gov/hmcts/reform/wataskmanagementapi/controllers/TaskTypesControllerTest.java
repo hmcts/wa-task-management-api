@@ -17,12 +17,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskTypesResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskType;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.tasktype.TaskTypeResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskTypeResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskTypesService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -83,7 +84,7 @@ class TaskTypesControllerTest {
 
         TaskType taskType = new TaskType("taskTypeId1", "Task type name");
         TaskTypeResponse taskTypeResponse = new TaskTypeResponse(taskType);
-        List<TaskTypeResponse> taskTypeResponses = List.of(taskTypeResponse);
+        Set<TaskTypeResponse> taskTypeResponses = Set.of(taskTypeResponse);
         GetTaskTypesResponse getTaskTypesResponse = new GetTaskTypesResponse(taskTypeResponses);
         when(taskTypesService.getTaskTypes(accessControlResponse, "wa"))
             .thenReturn(getTaskTypesResponse);

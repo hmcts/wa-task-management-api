@@ -1,5 +1,3 @@
-logging.level.org.springframework.web: DEBUG
-logging.level.uk.gov.hmcts.reform: debug
 
 feign:
   client:
@@ -12,6 +10,7 @@ feign:
 logging:
   level:
     org.springframework:
+      web: debug
       dao: debug
       transaction: debug
       jdbc.core.JdbcTemplate: info
@@ -19,4 +18,4 @@ logging:
       SQL: debug
       type.descriptor.sql.BasicBinder: debug
       engine: debug
-    uk.gov.hmcts.reform: info
+    uk.gov.hmcts.reform: debug

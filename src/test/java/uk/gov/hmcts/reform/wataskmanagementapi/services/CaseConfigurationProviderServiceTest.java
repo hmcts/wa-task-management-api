@@ -14,10 +14,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ccd.CaseDetails;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateIntervalCalculator;
@@ -36,6 +36,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,8 +44,8 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.booleanValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
 
 @ExtendWith(MockitoExtension.class)
 class CaseConfigurationProviderServiceTest {
@@ -213,6 +214,28 @@ class CaseConfigurationProviderServiceTest {
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
 
+    }
+
+    @Test
+    void should_throw_an_exception_and_log_when_dmn_has_null_values() {
+        String someCaseId = "someCaseId";
+        String taskAttributesString = "{\"taskType\":\"taskType\"}";
+        Map<String, Object> taskAttributes = Map.of("taskType", "taskType");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate date = LocalDate.now().plusDays(2);
+        String defaultDate = date.format(formatter) + "T16:00";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", taskAttributesString))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue(null))
+            ));
+
+        assertThatThrownBy(() -> caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false))
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -624,6 +647,45 @@ class CaseConfigurationProviderServiceTest {
     }
 
     @Test
+    void should_return_value_from_configuration_dmn_when_null_values_exist() {
+        String someCaseId = "someCaseId";
+        Map<String, Object> taskAttributes = Map.of("taskAdditionalProperties", Map.of());
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+
+        List<PermissionsDmnEvaluationResponse> permissions = List.of(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("reviewSpecificAccessRequestJudiciary"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("JUDICIAL"),
+                stringValue("categoryB")
+            )
+        );
+
+        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
+            .thenReturn(permissions);
+
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+            .thenReturn(List.of(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue(null),
+                    stringValue("value1")
+                ),
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties_roleAssignmentId"),
+                    stringValue("roleAssignmentId")
+                )
+            ));
+
+        assertThatThrownBy(() -> caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("Configuration name value cannot be null");
+    }
+
+    @Test
     void should_return_default_value_from_configuration_dmn_when_additional_properties_is_empty() {
         String someCaseId = "someCaseId";
         Map<String, Object> taskAttributes = Map.of("taskAdditionalProperties", Map.of());
@@ -753,7 +815,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(localDateTime + "T18:00")
+                    stringValue(localDateTime + "T18:00"),
+                    booleanValue(false)
                 ));
     }
 
@@ -808,7 +871,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(localDateTime + "T18:00")
+                    stringValue(localDateTime + "T18:00"),
+                    booleanValue(true)
                 ));
     }
 
@@ -885,7 +949,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(expectedDate + "T18:00")
+                    stringValue(expectedDate + "T18:00"),
+                    booleanValue(false)
                 ));
     }
 
@@ -949,7 +1014,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(expectedDate + "T18:00")
+                    stringValue(expectedDate + "T18:00"),
+                    booleanValue(true)
                 ));
     }
 
@@ -1006,7 +1072,6 @@ class CaseConfigurationProviderServiceTest {
             .getCaseRelatedConfiguration(someCaseId, Map.of(), true);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
-        String expectedDate = GIVEN_DATE.plusDays(8).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isEmpty();
     }
 

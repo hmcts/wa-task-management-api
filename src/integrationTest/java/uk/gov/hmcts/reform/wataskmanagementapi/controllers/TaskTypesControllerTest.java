@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -22,10 +25,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.util.HashMap;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -44,6 +49,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles({"integration"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/task-types";
     private static final String DMN_NAME = "Task Types DMN";
@@ -182,14 +188,24 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         final List<String> roleNames = singletonList("tribunal-caseworker");
         List<RoleAssignment> allTestRoles = mockServices.createTestRoleAssignments(roleNames);
 
+        Request request = Request.create(Request.HttpMethod.POST, "url",
+                                         new HashMap<>(), null, new RequestTemplate());
+
+        FeignException exception = new FeignException.BadGateway(
+            "Camunda is down.",
+            request,
+            null,
+            null);
+
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
 
         when(camundaServiceApi.getTaskTypesDmnTable(
             anyString(),
             anyString(),
-            anyString()
-        )).thenThrow(FeignException.FeignServerException.class);
+            anyString(),
+            anyBoolean()
+        )).thenThrow(exception);
 
         mockMvc.perform(
             get(ENDPOINT_PATH + "?jurisdiction=some_jurisdiction")
@@ -206,7 +222,8 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status")
                 .value(502),
             jsonPath("$.detail")
-                .value("Downstream dependency did not respond as expected and the request could not be completed.")
+                .value("Downstream dependency did not respond as expected and the request could not be completed."
+                           + " Message from downstream system: Camunda is down.")
         );
     }
 
@@ -221,7 +238,8 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTaskTypesDmnTable(
             anyString(),
             anyString(),
-            anyString()
+            anyString(),
+            anyBoolean()
         )).thenThrow(FeignException.ServiceUnavailable.class);
 
         mockMvc.perform(

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,9 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
@@ -58,16 +59,18 @@ public class ExclusiveTaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "/{task-id}/initiation")
-    public ResponseEntity<TaskResource> initiate(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+    public ResponseEntity<TaskResource> initiate(@Parameter(hidden = true)
+                                                     @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @PathVariable(TASK_ID) String taskId,
                                                  @RequestBody InitiateTaskRequestMap initiateTaskRequest) {
-        log.debug("Initiate task(id={}) with attributes: {} ", taskId, initiateTaskRequest.getTaskAttributes());
+        log.info("Initiate task-id {} with attributes: {} ", taskId, initiateTaskRequest.getTaskAttributes());
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
 
         TaskResource savedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        taskManagementService.updateTaskIndex(savedTask.getTaskId());
 
         return ResponseEntity
             .status(HttpStatus.CREATED)
@@ -87,9 +90,11 @@ public class ExclusiveTaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(path = "/{task-id}")
-    public ResponseEntity<Void> terminateTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+    public ResponseEntity<Void> terminateTask(@Parameter(hidden = true)
+                                                  @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                               @PathVariable(TASK_ID) String taskId,
                                               @RequestBody TerminateTaskRequest terminateTaskRequest) {
+        log.info("Terminate task-id {} with {} ", taskId, terminateTaskRequest.getTerminateInfo());
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
