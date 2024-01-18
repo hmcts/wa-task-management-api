@@ -112,6 +112,7 @@ public final class RoleAssignmentFilter {
                                                               Join<TaskResource, TaskRoleResource> taskRoleResources) {
         final List<RoleAssignment> activeRoleAssignments = roleAssignments
             .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
+        log.info("Active Role assignments are {}", activeRoleAssignments.toString());
 
         RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
             activeRoleAssignments,

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Query;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
@@ -165,6 +163,8 @@ public class TaskResourceDao {
                                                           PermissionRequirements permissionsRequired,
                                                           List<String> taskTypes) {
         SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
+        log.info("Task types are {}", taskTypes.toString());
+        log.info("Role assignments are {}", roleAssignments.toString());
 
         final Predicate selectPredicate = TaskSearchQueryBuilder.buildQueryForCompletable(
             searchEventAndCase,
@@ -174,14 +174,11 @@ public class TaskResourceDao {
             selectQueryBuilder.builder,
             selectQueryBuilder.root
         );
-        TypedQuery<TaskResource> query = selectQueryBuilder
+
+        return selectQueryBuilder
             .where(selectPredicate)
-            .build();
-        Query sqlQuery = query.unwrap(org.hibernate.Query.class);
-
-        log.info("SQL Query is {} ", sqlQuery != null ? sqlQuery.getQueryString() : null);
-
-        return query.getResultList();
+            .build()
+            .getResultList();
     }
 
     private List<Order> getSortOrders(SearchRequest searchRequest,
