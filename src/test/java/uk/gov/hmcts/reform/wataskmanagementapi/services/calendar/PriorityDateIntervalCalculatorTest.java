@@ -8,12 +8,14 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -21,10 +23,10 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NO;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NO;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class PriorityDateIntervalCalculatorTest {
@@ -42,6 +44,13 @@ class PriorityDateIntervalCalculatorTest {
         return Stream.of(
             new ConfigurableScenario(true, GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"),
             new ConfigurableScenario(false, GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0() {
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00")
         );
     }
 
@@ -70,6 +79,13 @@ class PriorityDateIntervalCalculatorTest {
         return Stream.of(
             new ConfigurableScenario(true, GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"),
             new ConfigurableScenario(false, GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays() {
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00")
         );
     }
 
@@ -151,8 +167,10 @@ class PriorityDateIntervalCalculatorTest {
                                                                    priorityDateOrigin,
                                                                    priorityDateTime
                                                                ),
-                                                               PRIORITY_DATE,
-                                                               configurable
+                                                               PRIORITY_DATE_TYPE,
+                                                               configurable,
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
@@ -210,8 +228,69 @@ class PriorityDateIntervalCalculatorTest {
                         priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
                         priorityDateTime
                 ),
-                PRIORITY_DATE,
-                scenario.configurable
+                PRIORITY_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ).getValue().getValue();
+
+        assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
+    }
+
+    @ParameterizedTest
+    @MethodSource({"getConfigurablesWhenIntervalIsLessThan0"})
+    void shouldCalculateWhenIntervalIsLessThan0(ConfigurableScenario scenario) {
+        String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
+
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateIntervalDays"))
+            .value(CamundaValue.stringValue("-3"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue(""))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
+            .value(CamundaValue.stringValue("18:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        String priorityDateValue = priorityDateIntervalCalculator
+            .calculateDate(
+                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
+                    priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                    priorityDateTime
+                ),
+                PRIORITY_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
@@ -267,8 +346,69 @@ class PriorityDateIntervalCalculatorTest {
                         priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
                         priorityDateTime
                 ),
-                PRIORITY_DATE,
-                scenario.configurable
+                PRIORITY_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ).getValue().getValue();
+        LocalDateTime resultDate = LocalDateTime.parse(priorityDateValue);
+        assertThat(resultDate).isEqualTo(scenario.expectedDate);
+    }
+
+    @ParameterizedTest
+    @MethodSource({"getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays"})
+    void shouldCalculateWhenIntervalIsLessThan0AndGivenHolidays(ConfigurableScenario scenario) {
+        String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
+
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var priorityDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateIntervalDays"))
+            .value(CamundaValue.stringValue("-5"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var priorityDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var priorityDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var priorityDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        var priorityDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
+            .value(CamundaValue.stringValue("18:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        String priorityDateValue = priorityDateIntervalCalculator
+            .calculateDate(
+                List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
+                    priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                    priorityDateTime
+                ),
+                PRIORITY_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -327,8 +467,10 @@ class PriorityDateIntervalCalculatorTest {
                         priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
                         priorityDateTime
                 ),
-                PRIORITY_DATE,
-                scenario.configurable
+                PRIORITY_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
@@ -380,8 +522,10 @@ class PriorityDateIntervalCalculatorTest {
                 priorityDateOrigin,
                 priorityDateTime
             ),
-            PRIORITY_DATE,
-            false
+            PRIORITY_DATE_TYPE,
+            false,
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -441,8 +585,10 @@ class PriorityDateIntervalCalculatorTest {
                         priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
                         priorityDateTime
                 ),
-                PRIORITY_DATE,
-                scenario.configurable
+                PRIORITY_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(priorityDateValue)).isEqualTo(scenario.expectedDate);
@@ -497,8 +643,10 @@ class PriorityDateIntervalCalculatorTest {
                                                                    priorityDateSkipNonWorkingDays,
                                                                    priorityDateOrigin
                                                                ),
-                                                               PRIORITY_DATE,
-                                                               scenario.configurable
+                                                               PRIORITY_DATE_TYPE,
+                                                               scenario.configurable,
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -522,8 +670,10 @@ class PriorityDateIntervalCalculatorTest {
         LocalDateTime resultDate = LocalDateTime
             .parse(priorityDateIntervalCalculator.calculateDate(
                 List.of(priorityDateOrigin),
-                PRIORITY_DATE,
-                configurable
+                PRIORITY_DATE_TYPE,
+                configurable,
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
@@ -553,8 +703,10 @@ class PriorityDateIntervalCalculatorTest {
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator.calculateDate(
             List.of(priorityDateOrigin, priorityDateTime),
-            PRIORITY_DATE,
-            false
+            PRIORITY_DATE_TYPE,
+            false,
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -583,7 +735,8 @@ class PriorityDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDate);
 
-        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable)).isFalse();
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
+            .isFalse();
     }
 
     @ParameterizedTest
@@ -605,7 +758,7 @@ class PriorityDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDate);
 
-        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable))
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
             .isFalse();
     }
 
@@ -621,7 +774,8 @@ class PriorityDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateTime);
 
-        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable)).isFalse();
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
+            .isFalse();
     }
 
     @ParameterizedTest
@@ -644,7 +798,8 @@ class PriorityDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDateTime);
 
-        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable)).isTrue();
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
+            .isTrue();
     }
 
     @ParameterizedTest
@@ -667,7 +822,7 @@ class PriorityDateIntervalCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDateTime);
 
-        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE, configurable))
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
             .isTrue();
     }
 

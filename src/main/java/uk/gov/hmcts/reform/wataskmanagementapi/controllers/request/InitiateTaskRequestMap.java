@@ -13,6 +13,7 @@ import java.util.Map;
 )
 @Value
 public class InitiateTaskRequestMap implements InitiateTask<Map<String, Object>> {
+    @Schema(name = "task_attributes")
     Map<String, Object> taskAttributes;
     InitiateTaskOperation operation;
 

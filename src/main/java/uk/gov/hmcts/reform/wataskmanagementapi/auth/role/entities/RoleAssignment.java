@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Setter;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -14,13 +13,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings("PMD.ExcessiveParameterList")
 @Builder
 @EqualsAndHashCode
 @ToString
-@Setter
 public class RoleAssignment {
 
     private String id;
@@ -85,6 +84,13 @@ public class RoleAssignment {
         this.endTime = endTime;
         this.created = created;
         this.authorisations = authorisations;
+    }
+
+    public Optional<String> getAttributeValue(RoleAttributeDefinition key) {
+        if (attributes != null && key != null) {
+            return Optional.ofNullable(this.attributes.get(key.value()));
+        }
+        return Optional.empty();
     }
 
     public String getId() {

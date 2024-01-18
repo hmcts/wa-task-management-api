@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -17,10 +19,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaExceptionMessage;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -135,8 +137,18 @@ public class ServiceMocks {
     }
 
     public void throwFeignExceptionForIdam() throws FeignException.FeignServerException {
+
+        Request request = Request.create(Request.HttpMethod.POST, "url",
+                                         new HashMap<>(), null, new RequestTemplate());
+
+        FeignException exception = new FeignException.BadGateway(
+            "IDAM is down.",
+            request,
+            null,
+            null);
+
         lenient().when(idamWebApi.userInfo(eq(IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION)))
-            .thenThrow(FeignException.FeignServerException.class);
+            .thenThrow(exception);
     }
 
     public void mockVariables() {
@@ -217,37 +229,6 @@ public class ServiceMocks {
         final RoleAssignment caseRoleAssignment = createBaseAssignment(
             UUID.randomUUID().toString(),
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            RoleType.CASE,
-            Classification.PUBLIC,
-            roleAttributes
-        );
-        allTestRoles.add(caseRoleAssignment);
-
-        return allTestRoles;
-    }
-
-
-    public List<RoleAssignment> createRoleAssignmentsWithWorkTypes(String workTypes) {
-        List<RoleAssignment> allTestRoles = new ArrayList<>();
-        Map<String, String> roleAttributes = new HashMap<>();
-        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "IA");
-        final RoleAssignment orgRoleAssignment = createBaseAssignment(
-            UUID.randomUUID().toString(),
-            "tribunal-caseworker",
-            RoleType.ORGANISATION,
-            Classification.PUBLIC,
-            roleAttributes
-        );
-        allTestRoles.add(orgRoleAssignment);
-
-        // Role Assignment with SCSS and RoleType CASE
-        roleAttributes = new HashMap<>();
-        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "SSCS");
-        roleAttributes.put(RoleAttributeDefinition.CASE_ID.value(), "caseId1");
-        final RoleAssignment caseRoleAssignment = createBaseAssignment(
-            UUID.randomUUID().toString(),
-            "tribunal-caseworker",
             RoleType.CASE,
             Classification.PUBLIC,
             roleAttributes

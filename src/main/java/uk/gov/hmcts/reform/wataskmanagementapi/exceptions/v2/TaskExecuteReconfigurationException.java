@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2;
 
 import org.zalando.problem.AbstractThrowableProblem;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 
 import java.net.URI;

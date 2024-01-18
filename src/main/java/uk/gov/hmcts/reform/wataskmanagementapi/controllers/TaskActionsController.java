@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -23,62 +25,68 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskDeletionService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.InputParamsVerifier.verifyCaseId;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.GENERIC_FORBIDDEN_ERROR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEntityBuilder.buildErrorResponseEntityAndLogError;
 
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
-@SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
     private final TaskManagementService taskManagementService;
     private final AccessControlService accessControlService;
     private final ClientAccessControlService clientAccessControlService;
-    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final SystemDateProvider systemDateProvider;
+
+    private final TaskDeletionService taskDeletionService;
 
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
                                  ClientAccessControlService clientAccessControlService,
-                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
+                                 TaskDeletionService taskDeletionService) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
         this.clientAccessControlService = clientAccessControlService;
-        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
+        this.taskDeletionService = taskDeletionService;
     }
 
-    @Operation(description = "Retrieve a Task Resource identified by its unique id.")
+    @Operation(description = "Retrieve a Task Resource identified by its unique id.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = GetTaskResponse.class))}),
@@ -88,11 +96,14 @@ public class TaskActionsController extends BaseController {
         @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
-    @GetMapping(path = "/{task-id}")
-    public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader(AUTHORIZATION) String authToken,
+    @GetMapping(path = "/{task-id}", consumes = {ALL_VALUE})
+    public ResponseEntity<GetTaskResponse<Task>> getTask(@Parameter(hidden = true)
+                                                             @RequestHeader(AUTHORIZATION) String authToken,
                                                          @PathVariable(TASK_ID) String id) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Get task request for task-id {}, user {}", id,
+            accessControlResponse.getUserInfo().getUid());
 
         Task task = taskManagementService.getTask(
             id,
@@ -105,7 +116,8 @@ public class TaskActionsController extends BaseController {
             .body(new GetTaskResponse<>(task));
     }
 
-    @Operation(description = "Claim the identified Task for the currently logged in user.")
+    @Operation(description = "Claim the identified Task for the currently logged in user.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = NO_CONTENT, content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
@@ -117,10 +129,13 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/claim")
-    public ResponseEntity<Void> claimTask(@RequestHeader(AUTHORIZATION) String authToken,
+    public ResponseEntity<Void> claimTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
                                           @PathVariable(TASK_ID) String taskId) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Claim task request for task-id {}, user {}", taskId,
+            accessControlResponse.getUserInfo().getUid());
+
         taskManagementService.claimTask(taskId, accessControlResponse);
         return ResponseEntity
             .noContent()
@@ -129,7 +144,8 @@ public class TaskActionsController extends BaseController {
 
     }
 
-    @Operation(description = "Unclaim the identified Task for the currently logged in user.")
+    @Operation(description = "Unclaim the identified Task for the currently logged in user.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task unclaimed", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
@@ -141,10 +157,13 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/unclaim")
-    public ResponseEntity<Void> unclaimTask(@RequestHeader(AUTHORIZATION) String authToken,
+    public ResponseEntity<Void> unclaimTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
                                             @PathVariable(TASK_ID) String taskId) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Unclaim task request for task-id {}, user {}", taskId,
+            accessControlResponse.getUserInfo().getUid());
+
         taskManagementService.unclaimTask(taskId, accessControlResponse);
         return ResponseEntity
             .noContent()
@@ -152,7 +171,8 @@ public class TaskActionsController extends BaseController {
             .build();
     }
 
-    @Operation(description = "Assign the identified Task to a specified user.")
+    @Operation(description = "Assign the identified Task to a specified user.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task assigned", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
@@ -164,16 +184,20 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/assign")
-    public ResponseEntity<Void> assignTask(@RequestHeader(AUTHORIZATION) String assignerAuthToken,
+    public ResponseEntity<Void> assignTask(@Parameter(hidden = true)
+                                               @RequestHeader(AUTHORIZATION) String assignerAuthToken,
                                            @PathVariable(TASK_ID) String taskId,
                                            @RequestBody AssignTaskRequest assignTaskRequest) {
 
         AccessControlResponse assignerAccessControlResponse = accessControlService.getRoles(assignerAuthToken);
         Optional<AccessControlResponse> assigneeAccessControlResponse = getAssigneeAccessControlResponse(
             assignerAuthToken,
-            assignTaskRequest,
-            assignerAccessControlResponse
+            assignTaskRequest
         );
+
+        LOG.info("Task Action: Assign task request for task-id {}, user {}, assignee {}", taskId,
+            assignerAccessControlResponse.getUserInfo().getUid(),
+            assigneeAccessControlResponse.map(AccessControlResponse::getUserInfo).map(UserInfo::getUid));
 
         taskManagementService.assignTask(
             taskId,
@@ -183,7 +207,8 @@ public class TaskActionsController extends BaseController {
         return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
     }
 
-    @Operation(description = "Completes a Task identified by an id.")
+    @Operation(description = "Completes a Task identified by an id.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task has been completed", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
@@ -196,12 +221,15 @@ public class TaskActionsController extends BaseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public ResponseEntity<Void> completeTask(@RequestHeader(AUTHORIZATION) String authToken,
-                                             @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+    public ResponseEntity<Void> completeTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
+                                             @Parameter(hidden = true)
+                                                @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
+            accessControlResponse.getUserInfo().getUid());
 
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
             taskManagementService.completeTask(taskId, accessControlResponse);
@@ -225,7 +253,8 @@ public class TaskActionsController extends BaseController {
             .build();
     }
 
-    @Operation(description = "Cancel a Task identified by an id.")
+    @Operation(description = "Cancel a Task identified by an id.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task has been cancelled", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
@@ -237,9 +266,11 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/cancel")
-    public ResponseEntity<Void> cancelTask(@RequestHeader(AUTHORIZATION) String authToken,
+    public ResponseEntity<Void> cancelTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
                                            @PathVariable(TASK_ID) String taskId) {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Cancel task request for task-id {}, user {}", taskId,
+            accessControlResponse.getUserInfo().getUid());
 
         taskManagementService.cancelTask(taskId, accessControlResponse);
 
@@ -265,11 +296,12 @@ public class TaskActionsController extends BaseController {
     @PostMapping(path = "/{task-id}/notes")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public ResponseEntity<Void> updatesTaskWithNotes(
-        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+        @Parameter(hidden = true) @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
         @PathVariable(TASK_ID) String taskId,
         @RequestBody NotesRequest notesRequest
     ) {
 
+        LOG.info("Task Action: Add task notes request for task-id {}", taskId);
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
@@ -288,7 +320,8 @@ public class TaskActionsController extends BaseController {
             .build();
     }
 
-    @Operation(description = "Retrieve the role permissions information for the task identified by the given task-id.")
+    @Operation(description = "Retrieve the role permissions information for the task identified by the given task-id.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
                 schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
@@ -298,11 +331,13 @@ public class TaskActionsController extends BaseController {
         @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
-    @GetMapping(path = "/{task-id}/roles")
+    @GetMapping(path = "/{task-id}/roles", consumes = {ALL_VALUE})
     public ResponseEntity<GetTaskRolePermissionsResponse> getTaskRolePermissions(
-        @RequestHeader(AUTHORIZATION) String authToken, @PathVariable(TASK_ID) String id) {
+        @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken, @PathVariable(TASK_ID) String id) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        LOG.info("Task Action: Get task role permission request for task-id {}, user {}", id,
+            accessControlResponse.getUserInfo().getUid());
 
         final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
             id,
@@ -313,6 +348,41 @@ public class TaskActionsController extends BaseController {
             .ok()
             .cacheControl(CacheControl.noCache())
             .body(new GetTaskRolePermissionsResponse(taskRolePermissions));
+    }
+
+
+    @Operation(description = "Deletes all tasks related to a case.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = CREATED),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
+    })
+    @PostMapping(path = "/delete", consumes = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> deleteTasks(
+            @RequestBody final DeleteTasksRequest deleteTasksRequest,
+            @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken) {
+        try {
+            boolean hasAccess = clientAccessControlService.hasPrivilegedAccess(serviceAuthToken);
+
+            if (!hasAccess) {
+                return buildErrorResponseEntityAndLogError(HttpStatus.FORBIDDEN.value(),
+                        new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR));
+            }
+
+            verifyCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
+
+            taskDeletionService.deleteTasksByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
+
+            return status(HttpStatus.CREATED.value())
+                    .cacheControl(CacheControl.noCache())
+                    .build();
+
+        } catch (final InvalidRequestException invalidRequestException) {
+            return buildErrorResponseEntityAndLogError(HttpStatus.BAD_REQUEST.value(), invalidRequestException);
+        } catch (final Exception exception) {
+            return buildErrorResponseEntityAndLogError(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception);
+        }
     }
 
     @ExceptionHandler(NoRoleAssignmentsFoundException.class)
@@ -329,25 +399,13 @@ public class TaskActionsController extends BaseController {
 
     private Optional<AccessControlResponse> getAssigneeAccessControlResponse(
         String assignerAuthToken,
-        AssignTaskRequest assignTaskRequest,
-        AccessControlResponse assignerAccessControlResponse) {
+        AssignTaskRequest assignTaskRequest) {
 
-        UserInfo userInfo = assignerAccessControlResponse.getUserInfo();
         return assignTaskRequest.getUserId() == null
-            && isGranularPermissionFeatureEnabled(userInfo.getUid(), userInfo.getEmail())
             ? Optional.empty()
             : Optional.ofNullable(accessControlService.getRolesGivenUserId(
             assignTaskRequest.getUserId(),
             assignerAuthToken
         ));
-    }
-
-    private boolean isGranularPermissionFeatureEnabled(String userId, String email) {
-        return launchDarklyFeatureFlagProvider
-            .getBooleanValue(
-                FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-                userId,
-                email
-            );
     }
 }

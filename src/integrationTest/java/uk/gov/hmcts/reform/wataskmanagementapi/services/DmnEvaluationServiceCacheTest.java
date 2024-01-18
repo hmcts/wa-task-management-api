@@ -11,11 +11,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DmnRequest;
 
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
@@ -27,6 +27,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 
 @SpringBootTest
 @ActiveProfiles("integration")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class DmnEvaluationServiceCacheTest {
 
     @MockBean
@@ -34,9 +35,6 @@ public class DmnEvaluationServiceCacheTest {
 
     @MockBean
     private CamundaServiceApi camundaServiceApi;
-
-    @MockBean
-    private CamundaObjectMapper camundaObjectMapper;
 
     @Autowired
     private DmnEvaluationService dmnEvaluationService;
@@ -54,7 +52,7 @@ public class DmnEvaluationServiceCacheTest {
             return FAKE_TICKER::read;
         }
     }
-    
+
     @Nested
     @DisplayName("Retrieve task type")
     class Test1 {
@@ -65,24 +63,26 @@ public class DmnEvaluationServiceCacheTest {
 
         @Test
         void should_call_camunda_api_once_when_retrieving_task_type_dmn() {
-            String dmnName = "Task Types DMN";
+            String dmnKey = "wa-task-types-";
 
 
-            IntStream.range(0, 4).forEach(x -> dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnName));
-            IntStream.range(0, 5).forEach(x -> dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnName));
+            IntStream.range(0, 4).forEach(x -> dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnKey));
+            IntStream.range(0, 5).forEach(x -> dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnKey));
 
             verify(camundaServiceApi, times(1))
                 .getTaskTypesDmnTable(
                     SERVICE_AUTHORIZATION_TOKEN,
                     "wa",
-                    dmnName
+                    dmnKey + "wa%",
+                    true
                 );
 
             verify(camundaServiceApi, times(1))
                 .getTaskTypesDmnTable(
                     SERVICE_AUTHORIZATION_TOKEN,
                     "ia",
-                    dmnName
+                     dmnKey + "ia%",
+                    true
                 );
 
         }
@@ -99,15 +99,16 @@ public class DmnEvaluationServiceCacheTest {
         @Test
         void should_call_camunda_api_once_when_evaluating_task_type_dmn() {
 
-            String dmnKey = "wa-task-types-wa-wacasetype";
+            String dmnKey1 = "wa-task-types-wa-wacasetype1";
+            String dmnKey2 = "wa-task-types-wa-wacasetype2";
 
-            IntStream.range(0, 4).forEach(x -> dmnEvaluationService.evaluateTaskTypesDmn("wa", dmnKey));
-            IntStream.range(0, 5).forEach(x -> dmnEvaluationService.evaluateTaskTypesDmn("ia", dmnKey));
+            IntStream.range(0, 4).forEach(x -> dmnEvaluationService.evaluateTaskTypesDmn("wa", dmnKey1));
+            IntStream.range(0, 5).forEach(x -> dmnEvaluationService.evaluateTaskTypesDmn("wa", dmnKey2));
 
             verify(camundaServiceApi, times(1))
                 .evaluateTaskTypesDmnTable(
                     SERVICE_AUTHORIZATION_TOKEN,
-                    dmnKey,
+                    dmnKey1,
                     "wa",
                     new DmnRequest<>()
                 );
@@ -115,8 +116,8 @@ public class DmnEvaluationServiceCacheTest {
             verify(camundaServiceApi, times(1))
                 .evaluateTaskTypesDmnTable(
                     SERVICE_AUTHORIZATION_TOKEN,
-                    dmnKey,
-                    "ia",
+                    dmnKey2,
+                    "wa",
                     new DmnRequest<>()
                 );
 

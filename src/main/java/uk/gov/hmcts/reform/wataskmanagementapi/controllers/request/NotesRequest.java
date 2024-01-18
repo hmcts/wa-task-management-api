@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 
 import java.util.List;
 
@@ -17,6 +17,7 @@ import java.util.List;
 @ToString
 public class NotesRequest {
 
+    @Schema(name = "note_resource")
     private final List<NoteResource> noteResource;
 
     @JsonCreator

@@ -114,6 +114,7 @@
   "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id_POST": "ignore",
   "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id/configuration_POST": "ignore",
   "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id_POST": "ignore",
+  "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
   "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id_POST": "ignore",
   "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id/configuration_POST": "ignore",
   "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id_POST": "ignore",
@@ -138,5 +139,9 @@
   "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
   "10054_Cookie without SameSite Attribute_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
-  "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore"
+  "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
+  "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
+  "10054_Cookie Without SameSite Attribute_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
+  "10049_Non-Storable Content_http://wa-task-management-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "10112_Session Management Response Identified_http://wa-task-management-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore"
 }

@@ -16,10 +16,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskPermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
@@ -29,7 +29,6 @@ import java.util.Set;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,6 +50,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
         testTarget.setControllers(new TaskSearchController(
             accessControlService,
             cftQueryService,
+            cftTaskDatabaseService,
             launchDarklyFeatureFlagProvider
         ));
 
@@ -87,8 +87,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
                 PermissionTypes.OWN,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE,
-                PermissionTypes.REFER
+                PermissionTypes.MANAGE
             )
         );
 
@@ -136,7 +135,6 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
             Set.of(
                 PermissionTypes.READ,
                 PermissionTypes.EXECUTE,
-                PermissionTypes.REFER,
                 PermissionTypes.COMPLETE,
                 PermissionTypes.ASSIGN,
                 PermissionTypes.UNCLAIM
@@ -194,8 +192,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
                 PermissionTypes.OWN,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE,
-                PermissionTypes.REFER
+                PermissionTypes.MANAGE
             )
         );
 
@@ -247,7 +244,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForCompletableTasks(any(), any(), any(), anyBoolean()))
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createTasks()));
 
     }
@@ -260,7 +257,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForCompletableTasks(any(), any(), any(), anyBoolean()))
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createWaTasks()));
     }
 
@@ -273,7 +270,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
 
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForCompletableTasks(any(), any(), any(), anyBoolean()))
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createTasksWithWarnings()));
     }
 
