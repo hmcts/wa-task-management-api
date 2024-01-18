@@ -2,16 +2,18 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
 @Slf4j
@@ -24,28 +26,29 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
 
     @Override
     public boolean supports(
-        List<ConfigurationDmnEvaluationResponse> priorityDateProperties,
-        DateType dateType,
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        DateTypeObject dateTypeObject,
         boolean isReconfigureRequest) {
 
-        return PRIORITY_DATE == dateType
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE_ORIGIN,
-                                               isReconfigureRequest
-        )).isPresent()
-            && Optional.ofNullable(getProperty(priorityDateProperties, PRIORITY_DATE.getType(),
-                                               isReconfigureRequest
-        )).isEmpty();
+        return PRIORITY_DATE == dateTypeObject.dateType()
+            && Optional.ofNullable(getProperty(configResponses, PRIORITY_DATE_ORIGIN, isReconfigureRequest))
+            .isPresent()
+            && isPropertyEmptyIrrespectiveOfReconfiguration(configResponses, PRIORITY_DATE.getType());
     }
 
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateType dateType, boolean isReconfigureRequest) {
+        DateTypeObject dateType,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return calculateDate(
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
-            getReferenceDate(configResponses, isReconfigureRequest).orElse(DEFAULT_ZONED_DATE_TIME)
-        );
+            getReferenceDate(configResponses, isReconfigureRequest, taskAttributes, calculatedConfigurations)
+                .orElse(DEFAULT_ZONED_DATE_TIME),
+            isReconfigureRequest);
     }
 
     @Override
@@ -106,19 +109,24 @@ public class PriorityDateIntervalCalculator extends DueDateIntervalCalculator {
                               .reduce((a, b) -> b)
                               .map(ConfigurationDmnEvaluationResponse::getValue)
                               .map(CamundaValue::getValue)
-                              .orElse(DEFAULT_DATE_TIME))
+                              .orElse(null))
             .build();
     }
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, boolean reconfigure) {
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean reconfigure,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return configResponses.stream()
             .filter(r -> r.getName().getValue().equals(PRIORITY_DATE_ORIGIN))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
-            .map(ConfigurationDmnEvaluationResponse::getValue)
-            .map(CamundaValue::getValue)
-            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
+            .map(v -> {
+                log.info("Input {}: {}", PRIORITY_DATE_ORIGIN, v);
+                return v.getValue().getValue();
+            })
+            .map(this::parseDateTime);
     }
 }

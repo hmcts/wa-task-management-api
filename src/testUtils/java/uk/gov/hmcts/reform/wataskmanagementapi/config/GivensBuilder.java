@@ -12,16 +12,14 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaSendMessageRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.request.SendMessageRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -39,10 +37,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.DocumentNames.NOTICE_OF_APPEAL_PDF;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 @Slf4j
 public class GivensBuilder {
@@ -51,7 +48,6 @@ public class GivensBuilder {
     private final RestApiActions workflowApiActions;
     private final RestApiActions restApiActions;
     private final AuthorizationProvider authorizationProvider;
-    private final DocumentManagementFiles documentManagementFiles;
 
     private final AtomicInteger nextHearingDateCounter = new AtomicInteger();
     private final CcdRetryableClient ccdRetryableClient;
@@ -61,14 +57,12 @@ public class GivensBuilder {
                          RestApiActions restApiActions,
                          AuthorizationProvider authorizationProvider,
                          CcdRetryableClient ccdRetryableClient,
-                         DocumentManagementFiles documentManagementFiles,
                          RestApiActions workflowApiActions
     ) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationProvider = authorizationProvider;
         this.ccdRetryableClient = ccdRetryableClient;
-        this.documentManagementFiles = documentManagementFiles;
         this.workflowApiActions = workflowApiActions;
 
     }
@@ -339,6 +333,14 @@ public class GivensBuilder {
         );
     }
 
+    public void updateWACcdCase(String caseId, Map<String, Object> updates, String event) {
+        TestAuthenticationCredentials lawFirmCredentials
+            = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
+        updateCase("WA", "WaCaseType", event,
+                   caseId, lawFirmCredentials, updates
+        );
+    }
+
     public String createCCDCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
                                                                     String caseType,
                                                                     String startEventId,
@@ -349,8 +351,6 @@ public class GivensBuilder {
         String userToken = credentials.getHeaders().getValue(AUTHORIZATION);
         String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
-
-        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, credentials);
 
         StartEventResponse startCase = ccdRetryableClient.startForCaseworker(
             userToken,
@@ -377,19 +377,6 @@ public class GivensBuilder {
             if (nextHearingDateCounter.get() > 10) {
                 nextHearingDateCounter.set(0);
             }
-
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-                document.getDocumentUrl()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-                document.getDocumentFilename()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-                document.getDocumentBinaryUrl()
-            );
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
         } catch (IOException e) {
@@ -419,15 +406,37 @@ public class GivensBuilder {
 
         log.info("Created case [" + caseDetails.getId() + "]");
 
+        updateCase(jurisdiction, caseType, submitEventId, caseDetails.getId().toString(), credentials, Map.of());
+
+        authorizationProvider.deleteAccount(credentials.getAccount().getUsername());
+
+        return caseDetails.getId().toString();
+    }
+
+    private void updateCase(String jurisdiction,
+                            String caseType,
+                            String submitEventId,
+                            String caseId,
+                            TestAuthenticationCredentials credentials,
+                            Map<String, Object> updates
+    ) {
+
+        String userToken = credentials.getHeaders().getValue(AUTHORIZATION);
+        String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
+        UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
         StartEventResponse submitCase = ccdRetryableClient.startEventForCaseWorker(
             userToken,
             serviceToken,
             userInfo.getUid(),
             jurisdiction,
             caseType,
-            caseDetails.getId().toString(),
+            caseId,
             submitEventId
         );
+
+        Map<String, Object> data = submitCase.getCaseDetails().getData();
+
+        data.putAll(updates);
 
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
@@ -445,15 +454,12 @@ public class GivensBuilder {
             userInfo.getUid(),
             jurisdiction,
             caseType,
-            caseDetails.getId().toString(),
+            caseId,
             true,
             submitCaseDataContent
         );
-        log.info("Submitted case [" + caseDetails.getId() + "]");
 
-        authorizationProvider.deleteAccount(credentials.getAccount().getUsername());
-
-        return caseDetails.getId().toString();
+        log.info("Submitted case [" + caseId + "]");
     }
 
     public Map<String, DmnValue<?>> standaloneProcessVariables(String caseId,

@@ -1,10 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
 import java.util.List;
@@ -26,6 +29,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 @RequestMapping(path = "/work-types", produces = APPLICATION_JSON_VALUE)
 @RestController
+@Slf4j
 public class WorkTypesController extends BaseController {
     private final AccessControlService accessControlService;
     private final WorkTypesService workTypesService;
@@ -37,7 +41,8 @@ public class WorkTypesController extends BaseController {
         this.workTypesService = workTypesService;
     }
 
-    @Operation(description = "Retrieve a list of work types with or without filter by user")
+    @Operation(description = "Retrieve a list of work types with or without filter by user",
+        security = {@SecurityRequirement(name = "ServiceAuthorization"), @SecurityRequirement(name = "Authorization")})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
                 schema = @Schema(implementation = GetWorkTypesResponse.class))}),
@@ -53,13 +58,14 @@ public class WorkTypesController extends BaseController {
     })
     @GetMapping
     public ResponseEntity<GetWorkTypesResponse> getWorkTypes(
-        @RequestHeader(AUTHORIZATION) String authToken,
+        @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
         @RequestParam(
             required = false, name = "filter-by-user", defaultValue = "false") boolean filterByUser
     ) {
         AccessControlResponse roles = accessControlService.getRoles(authToken);
-        List<WorkType> workTypes;
+        log.info("Get work type request from user {}", roles.getUserInfo().getUid());
 
+        List<WorkType> workTypes;
         if (filterByUser) {
             workTypes = workTypesService.getWorkTypes(roles);
         } else {

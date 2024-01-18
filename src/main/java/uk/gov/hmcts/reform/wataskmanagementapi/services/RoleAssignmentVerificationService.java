@@ -1,13 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
@@ -26,12 +27,15 @@ public class RoleAssignmentVerificationService {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CftQueryService cftQueryService;
+    private final CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
 
     @Autowired
     public RoleAssignmentVerificationService(CFTTaskDatabaseService cftTaskDatabaseService,
-                                             CftQueryService cftQueryService) {
+                                             CftQueryService cftQueryService,
+                                             CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDb) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftQueryService = cftQueryService;
+        this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDb;
     }
 
     public TaskResource verifyRoleAssignments(String taskId,
@@ -63,10 +67,16 @@ public class RoleAssignmentVerificationService {
             );
 
             if (optionalTaskResource.isEmpty()) {
+                ErrorMessages currentErrorMessage = ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
                 if (customErrorMessage != null) {
-                    throw new RoleAssignmentVerificationException(customErrorMessage);
+                    currentErrorMessage = customErrorMessage;
                 }
-                throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+
+                cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(taskId,
+                    roleAssignments,
+                    currentErrorMessage);
+                throw new RoleAssignmentVerificationException(currentErrorMessage);
+
             }
             return optionalTaskResource.get();
         }

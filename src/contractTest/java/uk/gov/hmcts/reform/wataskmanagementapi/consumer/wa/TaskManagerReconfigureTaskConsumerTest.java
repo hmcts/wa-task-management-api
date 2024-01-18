@@ -29,8 +29,8 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
     private static final String WA_RECONFIGURE_TASK_BY_ID = WA_URL + "/operation";
 
     @Test
-    @PactTestFor(pactMethod = "markTaskToReconfigureById204", pactVersion = PactSpecVersion.V3)
-    void testMarkTaskToReconfigureById204Test(MockServer mockServer) {
+    @PactTestFor(pactMethod = "markTaskToReconfigureById200", pactVersion = PactSpecVersion.V3)
+    void testMarkTaskToReconfigureById200Test(MockServer mockServer) {
 
         SerenityRest
             .given()
@@ -39,12 +39,12 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
             .body(createMarkTaskToReconfigureOperationRequest())
             .post(mockServer.getUrl() + WA_RECONFIGURE_TASK_BY_ID)
             .then()
-            .statusCode(204);
+            .statusCode(200);
 
     }
 
     @Pact(provider = "wa_task_management_api_reconfigure_task_by_case_id", consumer = "wa_task_management_api")
-    public RequestResponsePact markTaskToReconfigureById204(PactDslWithProvider builder) {
+    public RequestResponsePact markTaskToReconfigureById200(PactDslWithProvider builder) {
 
         return builder
             .given("reconfigure a task using caseId")
@@ -55,12 +55,12 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
             .body(createMarkTaskToReconfigureOperationRequest(), String.valueOf(ContentType.JSON))
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
             .willRespondWith()
-            .status(HttpStatus.NO_CONTENT.value())
+            .status(HttpStatus.OK.value())
             .toPact();
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeReconfigurationTaskById204", pactVersion = PactSpecVersion.V3)
+    @PactTestFor(pactMethod = "executeReconfigurationTaskById200", pactVersion = PactSpecVersion.V3)
     void testExecuteReconfigureTaskByTaskId204Test(MockServer mockServer) {
 
         SerenityRest
@@ -70,12 +70,12 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
             .body(createExecuteReconfigureTaskOperationRequest())
             .post(mockServer.getUrl() + WA_RECONFIGURE_TASK_BY_ID)
             .then()
-            .statusCode(204);
+            .statusCode(200);
 
     }
 
     @Pact(provider = "wa_task_management_api_reconfigure_task_by_case_id", consumer = "wa_task_management_api")
-    public RequestResponsePact executeReconfigurationTaskById204(PactDslWithProvider builder) {
+    public RequestResponsePact executeReconfigurationTaskById200(PactDslWithProvider builder) {
 
         return builder
             .given("reconfigure a task")
@@ -86,7 +86,7 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
             .body(createExecuteReconfigureTaskOperationRequest(), String.valueOf(ContentType.JSON))
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
             .willRespondWith()
-            .status(HttpStatus.NO_CONTENT.value())
+            .status(HttpStatus.OK.value())
             .toPact();
     }
 

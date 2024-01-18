@@ -1,17 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
-import feign.Feign;
 import feign.FeignException;
 import feign.codec.DecodeException;
-import feign.codec.Decoder;
-import feign.codec.Encoder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.SnakeCaseFeignConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.calendar.BankHolidays;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.BankHolidays;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceInvalidException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceNotFoundException;
 
@@ -31,12 +26,10 @@ import java.util.stream.Collectors;
 @Import(SnakeCaseFeignConfiguration.class)
 public class PublicHolidaysCollection {
 
-    public final Decoder feignDecoder;
-    public final Encoder feignEncoder;
+    private final PublicHolidayService publicHolidayService;
 
-    public PublicHolidaysCollection(Decoder feignDecoder, Encoder feignEncoder) {
-        this.feignDecoder = feignDecoder;
-        this.feignEncoder = feignEncoder;
+    public PublicHolidaysCollection(PublicHolidayService publicHolidayService) {
+        this.publicHolidayService = publicHolidayService;
     }
 
     public Set<LocalDate> getPublicHolidays(List<String> uris) {
@@ -45,7 +38,7 @@ public class PublicHolidaysCollection {
         if (uris != null) {
             for (String uri : uris) {
                 try {
-                    BankHolidays publicHolidays = getPublicHolidays(uri);
+                    BankHolidays publicHolidays = publicHolidayService.getPublicHolidays(uri);
                     processCalendar(publicHolidays, allPublicHolidays);
                 } catch (DecodeException e) {
                     log.error("Could not read calendar resource {}", uri, e);
@@ -63,12 +56,6 @@ public class PublicHolidaysCollection {
             .collect(Collectors.toSet());
     }
 
-    @Cacheable(value = "calendar_cache", key = "#uri", sync = true, cacheManager = "calendarCacheManager")
-    public BankHolidays getPublicHolidays(String uri) {
-        BankHolidaysApi bankHolidaysApi = bankHolidaysApi(uri);
-        return bankHolidaysApi.retrieveAll();
-    }
-
     private void processCalendar(BankHolidays publicHolidays, BankHolidays allPublicHolidays) {
         for (BankHolidays.EventDate eventDate : publicHolidays.getEvents()) {
             if (eventDate.isWorkingDay()) {
@@ -79,12 +66,5 @@ public class PublicHolidaysCollection {
                 allPublicHolidays.getEvents().add(eventDate);
             }
         }
-    }
-
-    private BankHolidaysApi bankHolidaysApi(String uri) {
-        return Feign.builder()
-            .decoder(feignDecoder)
-            .encoder(feignEncoder)
-            .target(BankHolidaysApi.class, uri);
     }
 }

@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Compl
 @ToString
 public class CompleteTaskRequest {
 
+    @Schema(name = "completion_options")
     private final CompletionOptions completionOptions;
 
     @JsonCreator

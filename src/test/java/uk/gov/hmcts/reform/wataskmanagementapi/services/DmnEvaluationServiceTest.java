@@ -14,15 +14,15 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DecisionTableRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DmnRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.EvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskTypesDmnResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaExceptionMessage;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaObjectMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DecisionTableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.EvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskTypesDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskTypesDmnResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -42,12 +43,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_PERMISSIONS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.jsonValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_CONFIGURATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_PERMISSIONS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.booleanValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.integerValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.jsonValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
 
 @ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 class DmnEvaluationServiceTest {
@@ -55,7 +56,7 @@ class DmnEvaluationServiceTest {
     private static final String BEARER_SERVICE_TOKEN = "Bearer service token";
     private static final String TASK_TYPE_ID = "taskType";
     private static final String TASK_ATTRIBUTES = "{ \"taskTypeId\": " + TASK_TYPE_ID + "}";
-    private static final String DMN_NAME = "Task Types DMN";
+    private static final String DMN_KEY_PREFIX = "wa-task-types-";
 
     @Mock
     private CamundaServiceApi camundaServiceApi;
@@ -67,7 +68,8 @@ class DmnEvaluationServiceTest {
     DmnRequest<DecisionTableRequest> dmnRequest = new DmnRequest<>();
     DmnEvaluationService dmnEvaluationService;
     Request request = Request.create(Request.HttpMethod.GET, "url",
-        new HashMap<>(), null, new RequestTemplate());
+                                     new HashMap<>(), null, new RequestTemplate()
+    );
 
     @BeforeEach
     void setUp() {
@@ -224,12 +226,13 @@ class DmnEvaluationServiceTest {
             .getTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
                 "wa",
-                DMN_NAME
+                DMN_KEY_PREFIX + "wa%",
+                true
             );
 
         Set<TaskTypesDmnResponse> response = dmnEvaluationService.retrieveTaskTypesDmn(
             "wa",
-            DMN_NAME
+                DMN_KEY_PREFIX
         );
 
         assertThat(response.size(), is(1));
@@ -241,7 +244,7 @@ class DmnEvaluationServiceTest {
         assertThat(taskTypesDmnResponseList.get(0).getResource(), is("someResource"));
 
         verify(camundaServiceApi, times(1))
-            .getTaskTypesDmnTable(anyString(), anyString(), anyString());
+            .getTaskTypesDmnTable(anyString(), anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -255,30 +258,33 @@ class DmnEvaluationServiceTest {
             .getTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
                 jurisdiction,
-                DMN_NAME
+                DMN_KEY_PREFIX + jurisdiction + "%",
+                true
             );
 
-        CamundaExceptionMessage camundaExceptionMessage = new CamundaExceptionMessage("some_type",
-            "some_message");
+        CamundaExceptionMessage camundaExceptionMessage = new CamundaExceptionMessage(
+            "some_type",
+            "some_message"
+        );
 
         when(camundaObjectMapper.readValue(exception.contentUTF8(), CamundaExceptionMessage.class))
             .thenReturn(camundaExceptionMessage);
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .retrieveTaskTypesDmn(jurisdiction, DMN_NAME)
+            .retrieveTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX)
         )
             .isInstanceOf(FeignException.BadRequest.class)
             .hasMessage("Downstream Dependency Error");
 
         String expectedMessage = String.format("An error occurred when getting task-type dmn. "
-                                               + "Could not get Task Types DMN from camunda for %s. "
-                                               + "Exception: Downstream Dependency Error", jurisdiction);
+                                                   + "Could not get Task Types DMN from camunda for %s. "
+                                                   + "Exception: Downstream Dependency Error", jurisdiction);
 
         Assertions.assertThat(output.getOut().contains(expectedMessage));
 
 
         expectedMessage = "An error occurred when getting task-type dmn. "
-                          + "CamundaException type:some_type message:some_message";
+            + "CamundaException type:some_type message:some_message";
 
         Assertions.assertThat(output.getOut().contains(expectedMessage));
 
@@ -295,19 +301,20 @@ class DmnEvaluationServiceTest {
             .getTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
                 jurisdiction,
-                DMN_NAME
+                DMN_KEY_PREFIX + jurisdiction + "%",
+                true
             );
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .retrieveTaskTypesDmn(jurisdiction, DMN_NAME)
+            .retrieveTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX)
         )
             .isInstanceOf(FeignException.ServiceUnavailable.class)
             .hasMessage("Service unavailable");
 
         String expectedMessage = String.format(
             "An error occurred when getting task-type dmn due to service unavailable. "
-            + "Could not get Task Types DMN from camunda for %s. "
-            + "Exception: Service unavailable", jurisdiction);
+                + "Could not get Task Types DMN from camunda for %s. "
+                + "Exception: Service unavailable", jurisdiction);
 
         Assertions.assertThat(output.getOut().contains(expectedMessage));
     }
@@ -330,14 +337,16 @@ class DmnEvaluationServiceTest {
 
         doReturn(mockedResponse)
             .when(camundaServiceApi)
-            .evaluateTaskTypesDmnTable(BEARER_SERVICE_TOKEN,
-                DMN_NAME,
+            .evaluateTaskTypesDmnTable(
+                BEARER_SERVICE_TOKEN,
+                    DMN_KEY_PREFIX,
                 "wa",
-                dmnRequest);
+                dmnRequest
+            );
 
         List<TaskTypesDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskTypesDmn(
             "wa",
-            DMN_NAME
+                DMN_KEY_PREFIX
         );
 
         assertThat(response.size(), is(2));
@@ -352,9 +361,10 @@ class DmnEvaluationServiceTest {
         verify(camundaServiceApi, times(1))
             .evaluateTaskTypesDmnTable(
                 eq(BEARER_SERVICE_TOKEN),
-                eq(DMN_NAME),
+                eq(DMN_KEY_PREFIX),
                 eq("wa"),
-                eq(dmnRequest));
+                eq(dmnRequest)
+            );
     }
 
     @Test
@@ -367,7 +377,7 @@ class DmnEvaluationServiceTest {
             .when(camundaServiceApi)
             .evaluateTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
-                DMN_NAME,
+                    DMN_KEY_PREFIX,
                 jurisdiction,
                 dmnRequest
             );
@@ -377,14 +387,14 @@ class DmnEvaluationServiceTest {
             .readValue(exception.contentUTF8(), CamundaExceptionMessage.class);
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .evaluateTaskTypesDmn(jurisdiction, DMN_NAME)
+            .evaluateTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX)
         )
             .isInstanceOf(FeignException.BadRequest.class)
             .hasMessage("Downstream Dependency Error");
 
         String expectedMessage = String.format("An error occurred when evaluating task-type dmn. "
-                                               + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
-                                               + "Exception:Downstream Dependency Error", jurisdiction);
+                                                   + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
+                                                   + "Exception:Downstream Dependency Error", jurisdiction);
         Assertions.assertThat(output.getOut().contains(expectedMessage));
 
         expectedMessage = "An error occurred when reading CamundaException. Exception:Downstream Dependency Error";
@@ -402,21 +412,21 @@ class DmnEvaluationServiceTest {
             .when(camundaServiceApi)
             .evaluateTaskTypesDmnTable(
                 BEARER_SERVICE_TOKEN,
-                DMN_NAME,
+                    DMN_KEY_PREFIX,
                 jurisdiction,
                 dmnRequest
             );
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .evaluateTaskTypesDmn(jurisdiction, DMN_NAME)
+            .evaluateTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX)
         )
             .isInstanceOf(FeignException.class)
             .hasMessage("Service unavailable");
 
         String expectedMessage = String.format(
             "An error occurred when evaluating task-type dmn due to service unavailable. "
-            + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
-            + "Exception:Service unavailable", jurisdiction);
+                + "jurisdiction:%s - decisionTableKey:Task Types DMN. "
+                + "Exception:Service unavailable", jurisdiction);
         Assertions.assertThat(output.getOut().contains(expectedMessage));
     }
 
@@ -577,11 +587,11 @@ class DmnEvaluationServiceTest {
     @NotNull
     private String getCcdData() {
         return "{"
-               + "\"jurisdiction\": \"ia\","
-               + "\"case_type_id\": \"Asylum\","
-               + "\"security_classification\": \"PUBLIC\","
-               + "\"data\": {}"
-               + "}";
+            + "\"jurisdiction\": \"ia\","
+            + "\"case_type_id\": \"Asylum\","
+            + "\"security_classification\": \"PUBLIC\","
+            + "\"data\": {}"
+            + "}";
     }
 
     private FeignException createFeignExceptionFor502() {
@@ -590,7 +600,8 @@ class DmnEvaluationServiceTest {
             "Downstream Dependency Error",
             request,
             null,
-            null);
+            null
+        );
 
     }
 
@@ -600,7 +611,8 @@ class DmnEvaluationServiceTest {
             "Service unavailable",
             request,
             null,
-            null);
+            null
+        );
     }
 
 }

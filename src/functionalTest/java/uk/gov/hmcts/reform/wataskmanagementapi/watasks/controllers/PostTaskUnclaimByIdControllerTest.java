@@ -6,14 +6,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.REGION;
 
 
 public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -21,23 +20,22 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";
     private static final String CLAIM_ENDPOINT = "task/{task-id}/claim";
 
-    private TestAuthenticationCredentials caseworkerCredentials;
-
-    private TestAuthenticationCredentials unassignUser;
-
     @Before
     public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        unassignUser =
-            authorizationProvider.getNewTribunalCaseworker("wa-granular-permission-");
+        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        unassignUser = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
+
         common.clearAllRoleAssignments(unassignUser.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
         authorizationProvider.deleteAccount(unassignUser.getAccount().getUsername());
+
+        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -51,17 +49,17 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         Response result = restApiActions.post(
             CLAIM_ENDPOINT,
             taskId,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
+        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "task-supervisor");
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
 
         );
         result.then().assertThat()
@@ -69,12 +67,11 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "cftTaskState", "unassigned");
-        assertions.taskStateWasUpdatedInDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
-        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", null, caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId, "unassigned", waCaseworkerCredentials.getHeaders());
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", null, waCaseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
-
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
@@ -87,7 +84,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(REGION, "1"));
 
         common.setupWAOrganisationalRoleAssignmentWithCustomAttributes(
-            caseworkerCredentials.getHeaders(),
+            waCaseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "WA",
@@ -99,7 +96,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            caseworkerCredentials.getHeaders()
+            waCaseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -118,7 +115,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
             "Process Application");
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
+        common.setupCFTOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "WA", "WaCaseType");
 
         initiateTask(taskVariables);
 
@@ -151,7 +148,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
             "Process Application");
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "WA", "WaCaseType");
+        common.setupCFTOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "WA", "WaCaseType");
 
         initiateTask(taskVariables);
 
@@ -161,7 +158,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            waCaseworkerCredentials.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
@@ -184,7 +181,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(),
+        common.setupCFTOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(),
             "WA", "WaCaseType");
 
         initiateTask(taskVariables);
@@ -195,7 +192,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            waCaseworkerCredentials.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
@@ -220,7 +217,8 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
             = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
             taskType,
             taskName);
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupCFTOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(),
+            WA_JURISDICTION, WA_CASE_TYPE);
         return taskVariables;
     }
 

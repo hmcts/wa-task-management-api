@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -23,7 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -55,6 +58,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AU
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @ExtendWith(MockitoExtension.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/work-types";
 
@@ -102,7 +106,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(11)
+            jsonPath("$.work_types.length()").value(13)
         ).andReturn();
 
 
@@ -126,7 +130,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(11)
+            jsonPath("$.work_types.length()").value(13)
         );
     }
 
@@ -138,7 +142,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal,post_hearing");
 
         List<RoleAssignment> allTestRoles = mockServices
             .createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
@@ -158,8 +162,12 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
 
         WorkType expectedWorkType1 = new WorkType("hearing_work", "Hearing work");
         WorkType expectedWorkType2 = new WorkType("upper_tribunal", "Upper Tribunal");
+        WorkType expectedWorkType3 = new WorkType("post_hearing", "Post-Hearing");
 
-        GetWorkTypesResponse expectedResponse = new GetWorkTypesResponse(asList(expectedWorkType1, expectedWorkType2));
+        GetWorkTypesResponse expectedResponse = new GetWorkTypesResponse(asList(
+            expectedWorkType1,
+            expectedWorkType2,
+            expectedWorkType3));
 
         runWorkTypeAssertion(expectedResponse, response);
     }
@@ -282,8 +290,17 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
         mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
+        Request request = Request.create(Request.HttpMethod.POST, "url",
+                                         new HashMap<>(), null, new RequestTemplate());
+
+        FeignException exception = new FeignException.Unauthorized(
+            "The user is unauthorised.",
+            request,
+            null,
+            null);
+
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
-            .thenThrow(FeignException.Unauthorized.class);
+            .thenThrow(exception);
 
         mockMvc.perform(
             get(ENDPOINT_PATH + "?filter-by-user=true")
@@ -299,7 +316,8 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.status")
                 .value(502),
             jsonPath("$.detail")
-                .value("Downstream dependency did not respond as expected and the request could not be completed.")
+                .value("Downstream dependency did not respond as expected and the request could not be completed."
+                           + " Message from downstream system: The user is unauthorised.")
         );
 
     }
@@ -316,12 +334,14 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         WorkType expectedWorkType9 = new WorkType("review_case", "Review Case");
         WorkType expectedWorkType10 = new WorkType("evidence", "Evidence");
         WorkType expectedWorkType11 = new WorkType("follow_up", "Follow Up");
+        WorkType expectedWorkType12 = new WorkType("pre_hearing", "Pre-Hearing");
+        WorkType expectedWorkType13 = new WorkType("post_hearing", "Post-Hearing");
 
         return new GetWorkTypesResponse(asList(
             expectedWorkType1, expectedWorkType2, expectedWorkType3,
             expectedWorkType4, expectedWorkType5, expectedWorkType6,
             expectedWorkType7, expectedWorkType8, expectedWorkType9,
-            expectedWorkType10, expectedWorkType11
+            expectedWorkType10, expectedWorkType11, expectedWorkType12, expectedWorkType13
         ));
     }
 

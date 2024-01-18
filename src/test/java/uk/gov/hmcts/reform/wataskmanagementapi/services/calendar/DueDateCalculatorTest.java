@@ -4,13 +4,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
@@ -18,9 +24,40 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 @ExtendWith(MockitoExtension.class)
 class DueDateCalculatorTest {
 
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
-
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
+    public static final DateTypeConfigurator.DateTypeObject DUE_DATE_TYPE = new DateTypeConfigurator.DateTypeObject(
+        DUE_DATE,
+        DUE_DATE.getType()
+    );
     private DueDateCalculator dueDateCalculator;
+
+    public static Stream<ConfigurableScenario> getPossibleDates() {
+        return Stream.of(
+            new ConfigurableScenario(
+                LocalDateTime.of(2023, 10, 12, 16, 12, 13).format(DateTimeFormatter.ISO_DATE_TIME),
+                LocalDateTime.of(2023, 10, 12, 16, 12).format(DateCalculator.DATE_TIME_FORMATTER)
+            ),
+            new ConfigurableScenario(
+                LocalDateTime.of(2023, 10, 12, 16, 12, 13, 123)
+                    .format(DateTimeFormatter.ISO_DATE_TIME),
+                LocalDateTime.of(2023, 10, 12, 16, 12).format(DateCalculator.DATE_TIME_FORMATTER)
+            ),
+            new ConfigurableScenario(
+                LocalDateTime.of(2023, 10, 12, 16, 12).format(DateTimeFormatter.ISO_DATE_TIME),
+                LocalDateTime.of(2023, 10, 12, 16, 12).format(DateCalculator.DATE_TIME_FORMATTER)
+            ),
+            new ConfigurableScenario(
+                LocalDateTime.of(2023, 10, 12, 16, 0, 0).format(DateTimeFormatter.ISO_DATE_TIME),
+                LocalDateTime.of(2023, 10, 12, 16, 0, 0).format(DateCalculator.DATE_TIME_FORMATTER)
+            ),
+            new ConfigurableScenario(
+                ZonedDateTime.of(2023, 10, 12, 16, 12, 16,123, ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_DATE_TIME),
+                LocalDateTime.of(2023, 10, 12, 16, 12, 0)
+                    .format(DateCalculator.DATE_TIME_FORMATTER)
+            )
+        );
+    }
 
 
     @BeforeEach
@@ -50,7 +87,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE, configurable)).isFalse();
+        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE_TYPE, configurable)).isFalse();
     }
 
     @ParameterizedTest
@@ -67,7 +104,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
 
-        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE, configurable)).isFalse();
+        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE_TYPE, configurable)).isFalse();
     }
 
     @ParameterizedTest
@@ -92,7 +129,7 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE, configurable)).isTrue();
+        assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE_TYPE, configurable)).isTrue();
     }
 
 
@@ -114,10 +151,34 @@ class DueDateCalculatorTest {
 
         String dateValue = dueDateCalculator.calculateDate(
             evaluationResponses,
-            DUE_DATE,
-            configurable
+            DUE_DATE_TYPE,
+            configurable,
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
+    }
+
+    @ParameterizedTest
+    @MethodSource("getPossibleDates")
+    void should_calculate_due_date_for_different_formats(ConfigurableScenario configurableScenario) {
+
+        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDate"))
+            .value(CamundaValue.stringValue(configurableScenario.inputDate))
+            .canReconfigure(CamundaValue.booleanValue(false))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate);
+
+        String dateValue = dueDateCalculator.calculateDate(
+            evaluationResponses,
+            DUE_DATE_TYPE,
+            false,
+            new HashMap<>(),
+            new ArrayList<>()
+        ).getValue().getValue();
+        assertThat(dateValue).isEqualTo(configurableScenario.expectedDate);
     }
 
     @ParameterizedTest
@@ -143,7 +204,10 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE, configurable)
+        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
+                                                           new HashMap<>(),
+                                                           new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -170,7 +234,10 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE, configurable)
+        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
+                                                           new HashMap<>(),
+                                                           new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -198,8 +265,21 @@ class DueDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDate2);
 
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE, configurable)
+        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
+                                                           new HashMap<>(),
+                                                           new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + time);
+    }
+
+    static class ConfigurableScenario {
+        String inputDate;
+        String expectedDate;
+
+        public ConfigurableScenario(String inputDate, String expectedDate) {
+            this.inputDate = inputDate;
+            this.expectedDate = expectedDate;
+        }
     }
 }

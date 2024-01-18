@@ -12,24 +12,24 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.ConfigurationDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.PermissionsDmnEvaluationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.configuration.TaskConfigurationResults;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskPermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -64,38 +64,38 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_MANAGEMENT_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.booleanValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.integerValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.ASSIGNEE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_MANAGEMENT_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.LOCATION_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.NEXT_HEARING_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_SYSTEM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WARNING_LIST;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState.CONFIGURED;
 
 @ExtendWith(MockitoExtension.class)
 class CFTTaskMapperTest {
@@ -786,9 +786,9 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type "
-                    + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
-                    + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
-                    + "[PUBLIC, RESTRICTED, PRIVATE]")
+                + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification` "
+                + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
+                + "[PUBLIC, RESTRICTED, PRIVATE]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -1406,7 +1406,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertThat(taskAttributes).size().isEqualTo(41);
+        assertThat(taskAttributes).size().isEqualTo(42);
     }
 
     @Test
@@ -1429,7 +1429,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1438,63 +1438,6 @@ class CFTTaskMapperTest {
         assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
         assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
-    }
-
-    @Test
-    void should_extract_permission_union_all_true_with_non_granular_permission() {
-
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            "tribunal-caseworker",
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            new String[]{},
-            0,
-            false,
-            "JUDICIAL",
-            taskId,
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
-            true,
-            false,
-            false,
-            true,
-            false,
-            true,
-            false,
-            false,
-            false,
-            true
-        );
-        TaskResource taskResource = mock(TaskResource.class);
-        when(taskResource.getCaseId()).thenReturn("CASE_ID");
-        taskRoleResource.setTaskResource(taskResource);
-        Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
-
-        Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
-
-        assertFalse(permissionsUnion.isEmpty());
-        assertTrue(permissionsUnion.contains(PermissionTypes.READ));
-        assertTrue(permissionsUnion.contains(PermissionTypes.OWN));
-        assertTrue(permissionsUnion.contains(PermissionTypes.MANAGE));
-        assertTrue(permissionsUnion.contains(PermissionTypes.EXECUTE));
-        assertTrue(permissionsUnion.contains(PermissionTypes.CANCEL));
-        assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
-
-        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE));
-        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE_OWN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL_OWN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.CLAIM));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM));
-        assertFalse(permissionsUnion.contains(PermissionTypes.ASSIGN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM_ASSIGN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_CLAIM));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_ASSIGN));
     }
 
     @Test
@@ -1532,7 +1475,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, true);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1651,7 +1594,7 @@ class CFTTaskMapperTest {
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
-        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments, false);
+        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments);
 
         assertNotNull(mappedTask);
 
@@ -1659,23 +1602,23 @@ class CFTTaskMapperTest {
         assertNotNull(taskPermissions.getValues());
 
         Set<PermissionTypes> permissionsUnion = taskPermissions.getValues();
+        assertTrue(permissionsUnion.contains(PermissionTypes.ASSIGN));
+        assertTrue(permissionsUnion.contains(PermissionTypes.CLAIM));
+        assertTrue(permissionsUnion.contains(PermissionTypes.COMPLETE));
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
         assertTrue(permissionsUnion.contains(PermissionTypes.OWN));
+        assertTrue(permissionsUnion.contains(PermissionTypes.UNASSIGN_ASSIGN));
+
         assertFalse(permissionsUnion.contains(PermissionTypes.EXECUTE));
         assertFalse(permissionsUnion.contains(PermissionTypes.MANAGE));
         assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL));
         assertFalse(permissionsUnion.contains(PermissionTypes.REFER));
-
-        assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE));
         assertFalse(permissionsUnion.contains(PermissionTypes.COMPLETE_OWN));
         assertFalse(permissionsUnion.contains(PermissionTypes.CANCEL_OWN));
-        assertFalse(permissionsUnion.contains(PermissionTypes.CLAIM));
         assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM));
-        assertFalse(permissionsUnion.contains(PermissionTypes.ASSIGN));
         assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN));
         assertFalse(permissionsUnion.contains(PermissionTypes.UNCLAIM_ASSIGN));
         assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_CLAIM));
-        assertFalse(permissionsUnion.contains(PermissionTypes.UNASSIGN_ASSIGN));
     }
 
     @Test
@@ -1774,7 +1717,7 @@ class CFTTaskMapperTest {
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
-        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments, true);
+        Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments);
 
         assertNotNull(mappedTask);
 
@@ -1821,7 +1764,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertFalse(permissionsUnion.contains(PermissionTypes.READ));
@@ -1852,7 +1795,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1883,7 +1826,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1914,7 +1857,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1945,7 +1888,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -1976,7 +1919,7 @@ class CFTTaskMapperTest {
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertTrue(permissionsUnion.contains(PermissionTypes.READ));
@@ -2023,7 +1966,7 @@ class CFTTaskMapperTest {
         );
 
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertEquals(2, permissionsUnion.size());
@@ -2071,7 +2014,7 @@ class CFTTaskMapperTest {
             RoleAssignmentCreator.aRoleAssignment().roleName("senior-tribunal-caseworker").build()
         );
         Set<PermissionTypes> permissionsUnion =
-            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments, false);
+            cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
 
         assertFalse(permissionsUnion.isEmpty());
         assertEquals(5, permissionsUnion.size());
@@ -2101,7 +2044,7 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
 
-        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource, false);
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
 
         assertEquals("tribunal-caseworker", taskRolePermissions.getRoleName());
         assertEquals("JUDICIAL", taskRolePermissions.getRoleCategory());
@@ -2137,7 +2080,7 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
 
-        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource, false);
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
 
         assertEquals("tribunal-caseworker", taskRolePermissions.getRoleName());
         assertEquals("JUDICIAL", taskRolePermissions.getRoleCategory());
@@ -2182,7 +2125,7 @@ class CFTTaskMapperTest {
             false, false, false, false, false, false, false, false, false, false
         );
 
-        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource, false);
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
 
         assertEquals("tribunal-caseworker", taskRolePermissions.getRoleName());
         assertEquals("JUDICIAL", taskRolePermissions.getRoleCategory());
@@ -2447,7 +2390,7 @@ class CFTTaskMapperTest {
             true
         );
 
-        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource, true);
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
 
         assertEquals("ctsc", taskRolePermissions.getRoleName());
         assertEquals("CTSC", taskRolePermissions.getRoleCategory());
