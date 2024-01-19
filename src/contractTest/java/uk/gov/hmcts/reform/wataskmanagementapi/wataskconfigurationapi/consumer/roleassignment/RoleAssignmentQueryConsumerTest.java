@@ -131,7 +131,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
                     .stringType("id", id)
                     .stringValue("actorIdType", "IDAM")
                     .stringType("actorId", assigneeId)
-                    .stringValue("roleName", "senior-tribunal-caseworker")
+                    .stringType("roleName", "senior-tribunal-caseworker")
                     .stringValue("classification", "PRIVATE")
                     .stringValue("grantType", "STANDARD")
                     .stringValue("roleCategory", "LEGAL_OPERATIONS")
@@ -141,6 +141,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
                         .stringType("primaryLocation", "500A2S"))
                     .minArrayLike("authorisations", 0, 0,
                         LambdaDslObject::getPactDslObject)
+
             )).build();
     }
 
