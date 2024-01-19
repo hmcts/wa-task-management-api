@@ -46,7 +46,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServ
 @PactTestFor(providerName = "am_roleAssignment_queryAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest {
-    private final  String id = "9785c98c-78f2-418b-ab74-a892c3ccca9f";
     private final String assigneeId = "14a21569-eb80-4681-b62c-6ae2ed069e5f";
     private final LocalDateTime validAtDate = LocalDateTime.parse("2021-12-04T00:00:00");
 
@@ -123,6 +122,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     }
 
     private DslPart createRoleAssignmentResponseSearchQueryResponse() {
+        final String id = "9785c98c-78f2-418b-ab74-a892c3ccca9f";
 
         return newJsonBody(o ->
             o.minArrayLike(
