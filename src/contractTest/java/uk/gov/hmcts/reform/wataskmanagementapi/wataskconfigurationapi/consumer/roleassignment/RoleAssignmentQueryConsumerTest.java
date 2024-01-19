@@ -133,7 +133,6 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
                     .stringType("actorId", assigneeId)
                     .stringValue("roleName", "senior-tribunal-caseworker")
                     .stringValue("classification", "PRIVATE")
-                    .stringValue("classification", "PRIVATE")
                     .stringValue("grantType", "STANDARD")
                     .stringValue("roleCategory", "LEGAL_OPERATIONS")
                     .booleanValue("readOnly", false)
