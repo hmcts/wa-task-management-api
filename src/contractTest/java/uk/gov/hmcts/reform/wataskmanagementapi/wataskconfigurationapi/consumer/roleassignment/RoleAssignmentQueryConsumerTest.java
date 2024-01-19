@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.consumer.roleassignment;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
-import au.com.dius.pact.consumer.dsl.LambdaDslObject;
+import au.com.dius.pact.consumer.dsl.PactDslJsonRootValue;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
@@ -139,9 +139,8 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
                     .object("attributes", attribute -> attribute
                         .stringType("jurisdiction", "IA")
                         .stringType("primaryLocation", "500A2S"))
-                    .minArrayLike("authorisations", 0, 0,
-                        LambdaDslObject::getPactDslObject)
-
+                    .minArrayLike("authorisations", 0,
+                        PactDslJsonRootValue.stringMatcher("[a-zA-Z]*", "IAC"), 1)
             )).build();
     }
 
