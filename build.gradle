@@ -13,7 +13,7 @@ plugins {
   id 'io.freefair.lombok' version '6.5.1'
   // If Pact version is changed, make sure serenity report works.
   id 'au.com.dius.pact' version '4.3.12'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '3.3.0'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '3.2.5'
   id 'org.flywaydb.flyway' version '9.3.0'
 }
 
@@ -309,6 +309,17 @@ ext.libraries = [
 ext['snakeyaml.version'] = '1.33'
 
 dependencies {
+  modules {
+    module("org.codehaus.groovy:groovy") {
+      replacedBy("org.apache.groovy:groovy", "conflicts in current rest-assured version")
+    }
+    module("org.codehaus.groovy:groovy-xml") {
+      replacedBy("org.apache.groovy:groovy-xml", "conflicts in current rest-assured version")
+    }
+    module("org.codehaus.groovy:groovy-json") {
+      replacedBy("org.apache.groovy:groovy-json", "conflicts in current rest-assured version")
+    }
+  }
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
