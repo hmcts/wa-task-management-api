@@ -106,7 +106,7 @@ task functional(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
-  finalizedBy aggregate
+  // finalizedBy aggregate
 }
 
 task integration(type: Test) {
