@@ -13,7 +13,7 @@ plugins {
   id 'io.freefair.lombok' version '6.5.1'
   // If Pact version is changed, make sure serenity report works.
   id 'au.com.dius.pact' version '4.3.12'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '3.2.0'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '3.2.3'
   id 'org.flywaydb.flyway' version '9.3.0'
 }
 
@@ -106,7 +106,7 @@ task functional(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
-
+  // finalizedBy aggregate
 }
 
 task integration(type: Test) {
@@ -187,7 +187,6 @@ project.tasks['sonarqube'].dependsOn test, integration, jacocoTestReport
 // Ensures that functional tests index page is generated
 // Functional tests should run two tasks "functional" and "aggregate"
 gradle.startParameter.continueOnFailure = true
-functional.finalizedBy aggregate
 
 sonarqube {
   properties {
