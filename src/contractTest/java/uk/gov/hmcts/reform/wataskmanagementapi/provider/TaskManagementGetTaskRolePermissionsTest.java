@@ -72,8 +72,9 @@ public class TaskManagementGetTaskRolePermissionsTest extends SpringBootContract
     }
 
     private List<TaskRolePermissions> createTaskRolePermissions() {
+        final String roleCategory = "LEGAL_OPERATIONS";
         TaskRolePermissions taskRolePermissions = new TaskRolePermissions(
-            "LEGAL_OPERATIONS",
+            roleCategory,
             "tribunal-caseworker",
             List.of(
                 PermissionTypes.READ,
@@ -84,6 +85,7 @@ public class TaskManagementGetTaskRolePermissionsTest extends SpringBootContract
                 PermissionTypes.COMPLETE,
                 PermissionTypes.COMPLETE_OWN,
                 PermissionTypes.CANCEL_OWN,
+                PermissionTypes.CLAIM,
                 PermissionTypes.UNCLAIM,
                 PermissionTypes.ASSIGN,
                 PermissionTypes.UNASSIGN,
