@@ -1,31 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-  <suppress>
-    <notes>Changing SecurityContext More Than Once in Single Request Can Fail to Save</notes>
-    <cve>CVE-2021-22112</cve>
-  </suppress>
-  <suppress>
-    <notes>temp</notes>
-    <cve>CVE-2022-31690</cve>
-  </suppress>
-  <suppress>
-    <notes>
-      commons-fileupload-1.4 is directly used by spring-boot-starter-json 2.7.7, spring boot 3 needed
-    </notes>
-    <cve>CVE-2023-24998</cve>
-  </suppress>
-  <suppress>
-    <notes>
-      This CVE is related to spring-boot-starter-json 2.7.7, spring boot 3 needed
-    </notes>
-    <cve>CVE-2023-20863</cve>
-  </suppress>
-  <suppress>
-    <notes>
-      com.launchdarkly:launchdarkly-java-server-sdk:5.10.2 is directly used by spring-boot-starter-json 2.7.7, spring boot 3 needed
-    </notes>
-    <cve>CVE-2022-1471</cve>
-  </suppress>
   <suppress until ="2024-01-31">
     <notes>Wait for updates on dependencies</notes>
     <cve>CVE-2021-37533</cve>
