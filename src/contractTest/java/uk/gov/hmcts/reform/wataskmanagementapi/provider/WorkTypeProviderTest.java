@@ -81,10 +81,11 @@ public class WorkTypeProviderTest extends SpringBootContractProviderBaseTest {
     @State({"retrieve work types by userId"})
     public void workTypesByUserId() {
         List<WorkType> workTypes = new ArrayList<>();
-        workTypes.add(new WorkType("hearing_work", "Hearing Work"));
+        final String hearingWork = "hearing_work";
+        workTypes.add(new WorkType(hearingWork, "Hearing Work"));
 
         Map<String, String> attributes = Map.of(
-            WORK_TYPES.value(), "hearing_work"
+            WORK_TYPES.value(), hearingWork
         );
 
         List<RoleAssignment> roleAssignmentList = List.of(
