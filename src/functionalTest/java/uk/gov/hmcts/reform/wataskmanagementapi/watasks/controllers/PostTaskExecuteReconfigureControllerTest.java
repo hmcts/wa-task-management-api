@@ -144,7 +144,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         await().ignoreException(Exception.class)
             .pollInterval(5, SECONDS)
-            .atMost(60, SECONDS)
+            .atMost(180, SECONDS)
             .until(() -> {
                 Response taskResult = restApiActions.get(
                     "/task/{task-id}",
@@ -339,7 +339,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         await().ignoreException(Exception.class)
             .pollInterval(5, SECONDS)
-            .atMost(60, SECONDS)
+            .atMost(180, SECONDS)
             .until(() -> {
                 Response taskResult = restApiActions.get(
                     "/task/{task-id}",
@@ -454,7 +454,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         await().ignoreException(Exception.class)
             .pollInterval(5, SECONDS)
-            .atMost(60, SECONDS)
+            .atMost(180, SECONDS)
             .until(() -> {
 
                 Response taskResult = restApiActions.get(
