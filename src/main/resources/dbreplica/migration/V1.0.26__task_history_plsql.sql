@@ -10,7 +10,7 @@ declare
   l_update_id bigint;
 
 begin
-  RAISE INFO 'Attempting to insert task_history record for task_id : %', l_task.task_id;
+  RAISE INFO 'Attempting to insert task_history record for : %', l_task.task_id;
   insert into cft_task_db.task_history
   (task_id, task_name, task_type, due_date_time,
    state, task_system, security_classification,

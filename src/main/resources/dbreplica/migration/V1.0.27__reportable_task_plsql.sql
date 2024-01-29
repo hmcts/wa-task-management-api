@@ -198,7 +198,7 @@ FETCH NEXT FROM task_history_cursor INTO
         returning update_id into l_update_id;
         l_new_task = false;
     else
-        RAISE INFO 'Attempting to update task_id : %', l_task_id;
+        RAISE INFO 'Attempting to update reportable task record for : %', l_task_id;
         SELECT update_action, final_state_label, wait_time_days, handling_time_days, processing_time_days,
                is_within_sla, due_date_to_completed_diff_days, completed_date, completed_date_time, first_assigned_date,
                first_assigned_date_time, number_of_reassignments, due_date, last_updated_date, wait_time,
