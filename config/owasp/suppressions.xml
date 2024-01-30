@@ -6,11 +6,15 @@
     </notes>
     <cve>CVE-2023-24998</cve>
   </suppress>
-  <suppress until ="2024-01-31">
+  <suppress until ="2024-02-29">
+    <notes>Wait for updates on dependencies</notes>
+    <cve>CVE-2021-37533</cve>
+  </suppress>
+  <suppress until ="2024-02-29">
     <notes>Wait for spring boot upgrades</notes>
     <cve>CVE-2023-35116</cve>
   </suppress>
-  <suppress until ="2024-01-31">
+  <suppress until ="2024-02-29">
     <notes>Wait for spring boot upgrades</notes>
     <cve>CVE-2023-34055</cve>
   </suppress>-->
