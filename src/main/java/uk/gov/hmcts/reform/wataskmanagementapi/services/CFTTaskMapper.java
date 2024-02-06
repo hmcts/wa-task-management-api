@@ -145,6 +145,7 @@ public class CFTTaskMapper {
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
         taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
+        log.info("taskResource", taskResource);
         return taskResource;
     }
 
@@ -443,6 +444,7 @@ public class CFTTaskMapper {
     }
 
     private void mapVariableToTaskResourceProperty(TaskResource taskResource, String key, Object value) {
+        log.info("mapVariableToTaskResourceProperty taskResource: {}, key: {}, value: {}", taskResource, key, value);
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
         if (enumKey.isPresent()) {
             switch (enumKey.get()) {
@@ -552,6 +554,7 @@ public class CFTTaskMapper {
     }
 
     public static OffsetDateTime mapDate(Object value) {
+        log.info("mapDate value: {}", value);
         if (Objects.isNull(value) || value instanceof String && Strings.isBlank((String) value)) {
             return null;
         }
