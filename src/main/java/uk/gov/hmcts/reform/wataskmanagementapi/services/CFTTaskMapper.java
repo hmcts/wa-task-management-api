@@ -145,7 +145,7 @@ public class CFTTaskMapper {
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
         taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
-        log.info("taskResource", taskResource);
+        log.info("mapConfigurationAttributes: taskResource {}", taskResource);
         return taskResource;
     }
 
@@ -164,6 +164,7 @@ public class CFTTaskMapper {
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
         taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
+        log.info("reconfigureTaskResourceFromDmnResults: taskResource {}", taskResource);
         return taskResource;
     }
 
@@ -533,6 +534,7 @@ public class CFTTaskMapper {
                     }
                     break;
                 case NEXT_HEARING_DATE:
+                    log.info("next hearing date {}, mapDate vale {}", value, mapDate(value));
                     taskResource.setNextHearingDate(mapDate(value));
                     break;
                 case MINOR_PRIORITY:
@@ -634,6 +636,7 @@ public class CFTTaskMapper {
                     }
                     break;
                 case NEXT_HEARING_DATE:
+                    log.info("reconfiguration next hearing date {}, mapDate vale {}", value, mapDate(value));
                     taskResource.setNextHearingDate(mapDate(value));
                     break;
                 case DUE_DATE:

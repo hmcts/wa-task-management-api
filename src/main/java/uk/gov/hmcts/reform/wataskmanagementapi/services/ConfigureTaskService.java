@@ -38,6 +38,7 @@ public class ConfigureTaskService {
         TaskConfigurationResults configurationVariables = caseConfigurationProviderService
             .getCaseRelatedConfiguration(taskResource.getCaseId(), taskAttributes, true);
 
+        log.info("reconfigureCFTTask: taskResource {}", taskResource);
         return cftTaskMapper.reconfigureTaskResourceFromDmnResults(taskResource, configurationVariables);
     }
 
