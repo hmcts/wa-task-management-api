@@ -154,12 +154,15 @@ public class CFTTaskMapper {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnResponse = taskConfigurationResults
             .getConfigurationDmnResponse();
-        configurationDmnResponse.forEach(response -> reconfigureTaskAttribute(
-            taskResource,
-            response.getName().getValue(),
-            response.getValue().getValue(),
-            response.getCanReconfigure() != null && response.getCanReconfigure().getValue()
-            )
+
+        configurationDmnResponse.forEach(response -> {
+                log.info("reconfigureTaskResourceFromDmnResults: taskResource {}, response {}", taskResource, response);
+                reconfigureTaskAttribute(
+                    taskResource,
+                    response.getName().getValue(),
+                    response.getValue().getValue(),
+                    response.getCanReconfigure() != null && response.getCanReconfigure().getValue());
+            }
         );
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
@@ -590,6 +593,8 @@ public class CFTTaskMapper {
                                           Object value,
                                           boolean canReconfigure) {
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
+        log.info("reconfigureTaskAttribute taskResource: {}, key: {}, value: {}, canReconfigure: {}, enumKey: {}",
+            taskResource, key, value, canReconfigure, enumKey);
         if (enumKey.isPresent() & canReconfigure) {
             switch (enumKey.get()) {
                 case CASE_NAME:
