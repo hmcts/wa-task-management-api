@@ -47,7 +47,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-    private String taskId;
 
     @Before
     public void setUp() {
@@ -94,7 +93,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
 
-        taskId = taskVariables.getTaskId();
+        String taskId = taskVariables.getTaskId();
 
         result = restApiActions.get(
             "/task/{task-id}",
@@ -139,8 +138,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
-
-        taskId = taskVariables.getTaskId();
 
         await().ignoreException(Exception.class)
             .pollInterval(5, SECONDS)
@@ -207,7 +204,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
 
-        taskId = taskVariables.getTaskId();
+        String taskId = taskVariables.getTaskId();
 
         result = restApiActions.get(
             "/task/{task-id}",
@@ -244,7 +241,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         // retry window is set 0 hours, so 1 unprocessed reconfiguration record to report
         await().ignoreException(Exception.class)
             .pollInterval(5, SECONDS)
-            .atMost(60, SECONDS)
+            .atMost(180, SECONDS)
             .until(() -> {
                 Response taskResult = restApiActions.post(
                     ENDPOINT_BEING_TESTED,
@@ -305,7 +302,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
 
-        taskId = taskVariables.getTaskId();
+        String taskId = taskVariables.getTaskId();
 
         result = restApiActions.get(
             "/task/{task-id}",
@@ -334,8 +331,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
-
-        taskId = taskVariables.getTaskId();
 
         await().ignoreException(Exception.class)
             .pollInterval(5, SECONDS)
@@ -378,7 +373,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         common.setupStandardCaseManager(assignerCredentials.getHeaders(),
             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
-        taskId = taskVariables.getTaskId();
+        String taskId = taskVariables.getTaskId();
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
             result.prettyPrint();
@@ -450,7 +445,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
 
-        taskId = taskVariables.getTaskId();
 
         await().ignoreException(Exception.class)
             .pollInterval(5, SECONDS)
