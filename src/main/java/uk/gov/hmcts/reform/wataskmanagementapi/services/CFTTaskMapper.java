@@ -156,7 +156,7 @@ public class CFTTaskMapper {
             .getConfigurationDmnResponse();
 
         configurationDmnResponse.forEach(response -> {
-                log.info("reconfigureTaskResourceFromDmnResults: taskResource {}, response {}", taskResource, response);
+                log.info("reconfigureTaskResourceFromDmnResults loop: taskResource {}, response {}", taskResource, response);
                 reconfigureTaskAttribute(
                     taskResource,
                     response.getName().getValue(),
@@ -167,7 +167,7 @@ public class CFTTaskMapper {
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
         taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
-        log.info("reconfigureTaskResourceFromDmnResults: taskResource {}", taskResource);
+        log.info("reconfigureTaskResourceFromDmnResults final: taskResource {}", taskResource);
         return taskResource;
     }
 
