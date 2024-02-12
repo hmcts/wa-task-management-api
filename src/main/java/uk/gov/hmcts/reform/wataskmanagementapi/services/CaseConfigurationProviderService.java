@@ -67,7 +67,7 @@ public class CaseConfigurationProviderService {
         String caseDataString = writeValueAsString(caseDetails.getData());
         String taskAttributesString = writeValueAsString(taskAttributes);
         log.debug("Case Configuration : case data {}", caseDataString);
-        log.debug("Case Configuration : task Attributes {}", taskAttributesString);
+        log.info("Case Configuration : task Attributes {}", taskAttributesString);
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
             dmnEvaluationService.evaluateTaskConfigurationDmn(
