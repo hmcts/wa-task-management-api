@@ -90,7 +90,7 @@ public class DateTypeConfigurator {
                 calculatedResponses.get().add(dateTypeResponse);
                 filterOutOldValueAndAddDateType(configurationResponses, dateTypeObject, dateTypeResponse);
             });
-
+        log.info("Calculated responses are {}", configurationResponses.get());
         return configurationResponses.get();
     }
 
@@ -134,6 +134,7 @@ public class DateTypeConfigurator {
     }
 
     private ConfigurationDmnEvaluationResponse addEmptyConfiguration(String type) {
+        log.info("Adding empty configuration for {}", type);
         return ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue(type))
             .value(CamundaValue.stringValue(""))
@@ -174,9 +175,11 @@ public class DateTypeConfigurator {
         Map<String, Object> taskAttributes,
         List<ConfigurationDmnEvaluationResponse> configurationResponses,
         boolean initiationDueDateFound) {
+        log.info("Calculating dateProperties for {}", dateProperties);
         Optional<DateCalculator> dateCalculator = dateProperties.isEmpty()
             ? Optional.empty()
             : getDateCalculator(dateProperties, dateTypeObject, isReconfigureRequest);
+        log.info("DateCalculator is present: {}", dateCalculator.isPresent());
         if (dateCalculator.isPresent()) {
             return dateCalculator.get().calculateDate(
                 dateProperties,
@@ -186,6 +189,8 @@ public class DateTypeConfigurator {
                 calculatedConfigurations.get()
             );
         } else {
+            log.info("isReconfigureRequest {}, dataTypeObject.dateTypeName {}", isReconfigureRequest,
+                dateTypeObject.dateTypeName);
             return isReconfigureRequest
                 ? addEmptyConfiguration(dateTypeObject.dateTypeName)
                 : getDefaultValueForConfiguration(dateTypeObject, configurationResponses, initiationDueDateFound);

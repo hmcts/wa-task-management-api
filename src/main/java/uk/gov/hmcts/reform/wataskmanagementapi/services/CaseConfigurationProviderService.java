@@ -66,8 +66,8 @@ public class CaseConfigurationProviderService {
 
         String caseDataString = writeValueAsString(caseDetails.getData());
         String taskAttributesString = writeValueAsString(taskAttributes);
-        log.debug("Case Configuration : case data {}", caseDataString);
-        log.debug("Case Configuration : task Attributes {}", taskAttributesString);
+        log.info("Case Configuration : case data {}", caseDataString);
+        log.info("Case Configuration : task Attributes {}", taskAttributesString);
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
             dmnEvaluationService.evaluateTaskConfigurationDmn(
@@ -76,7 +76,7 @@ public class CaseConfigurationProviderService {
                 caseDataString,
                 taskAttributesString
             );
-        log.debug("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
+        log.info("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
 
         taskConfigurationDmnResults
             .forEach(r -> {
@@ -102,7 +102,7 @@ public class CaseConfigurationProviderService {
                 caseDataString,
                 taskAttributesString
             );
-        log.debug("Case Configuration : permissionsDmn Results {}", permissionsDmnResults);
+        log.info("Case Configuration : permissionsDmn Results {}", permissionsDmnResults);
         List<PermissionsDmnEvaluationResponse> filteredPermissionDmnResults
             = permissionsDmnResults.stream()
             .filter(dmnResult -> filterBasedOnCaseAccessCategory(caseDetails, dmnResult))
@@ -112,7 +112,7 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
-        log.debug("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
+        log.info("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
         // Enrich case configuration variables with extra variables
         Map<String, Object> allCaseConfigurationValues = new ConcurrentHashMap<>(caseConfigurationVariables);
         allCaseConfigurationValues.put(SECURITY_CLASSIFICATION.value(), caseDetails.getSecurityClassification());
@@ -159,8 +159,12 @@ public class CaseConfigurationProviderService {
             .map(this::removeAdditionalFromCamundaName)
             .collect(toMap(r -> r.getName().getValue(), r -> r.getValue().getValue()));
 
+        log.info("Case Configuration : additionalProperties {}", additionalProperties);
+
         List<ConfigurationDmnEvaluationResponse> configResponses = taskConfigurationDmnResults.stream()
             .filter(r -> !r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX)).collect(Collectors.toList());
+
+        log.info("Case Configuration : configResponses {}", configResponses);
 
         if (!additionalProperties.isEmpty()) {
             configResponses.add(new ConfigurationDmnEvaluationResponse(
