@@ -64,18 +64,23 @@ public class DateTypeConfigurator {
         );
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> calculatedResponses
             = new AtomicReference<>(new ArrayList<>());
+        log.info("Calculated responses are {}", calculatedResponses.get());
         List<ConfigurationDmnEvaluationResponse> configurationResponsesWithoutCalculatedDates
             = dmnConfigurationResponses.stream()
             .filter(r -> !r.getName().getValue().contains(CALCULATED_DATES.getType()))
             .toList();
+        log.info("Configuration responses without calculated dates are {}", configurationResponsesWithoutCalculatedDates);
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configurationResponses
             = new AtomicReference<>(new ArrayList<>(configurationResponsesWithoutCalculatedDates));
+        log.info("Configuration responses are {}", configurationResponses.get());
 
         calculationOrder
             .forEach(dateTypeObject -> {
+                log.info("Start loop, dateTypeObject is {}", dateTypeObject.dateTypeName);
                 List<ConfigurationDmnEvaluationResponse> dateProperties = configurationResponses.get().stream()
                     .filter(r -> r.getName().getValue().contains(dateTypeObject.dateTypeName))
                     .collect(Collectors.toList());
+                log.info("DateProperties are {}", dateProperties);
 
                 ConfigurationDmnEvaluationResponse dateTypeResponse = getResponseFromDateCalculator(
                     isReconfigureRequest,
@@ -86,8 +91,9 @@ public class DateTypeConfigurator {
                     configurationResponses.get(),
                     initiationDueDateFound
                 );
-                log.info("Calculated value of {} is as {}", dateTypeObject.dateTypeName, dateTypeResponse);
+                log.info("DateTypeObject.dataTypeName {} is as {}", dateTypeObject.dateTypeName, dateTypeResponse);
                 calculatedResponses.get().add(dateTypeResponse);
+                log.info("Calculated responses in loop are {}", calculatedResponses.get());
                 filterOutOldValueAndAddDateType(configurationResponses, dateTypeObject, dateTypeResponse);
             });
         log.info("Calculated responses are {}", configurationResponses.get());
@@ -231,6 +237,7 @@ public class DateTypeConfigurator {
         List<ConfigurationDmnEvaluationResponse> filtered = configResponses.get().stream()
             .filter(r -> !r.getName().getValue().contains(dateTypeObject.dateTypeName))
             .collect(Collectors.toList());
+        log.info("Filtered responses are {}", filtered);
 
         if (dateTypeResponse != null) {
             Optional.of(dateTypeResponse).filter(r -> !r.getValue().getValue().isBlank()).ifPresent(filtered::add);
