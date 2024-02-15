@@ -69,7 +69,8 @@ public class DateTypeConfigurator {
             = dmnConfigurationResponses.stream()
             .filter(r -> !r.getName().getValue().contains(CALCULATED_DATES.getType()))
             .toList();
-        log.info("Configuration responses without calculated dates are {}", configurationResponsesWithoutCalculatedDates);
+        log.info("Configuration responses without calculated dates are {}",
+            configurationResponsesWithoutCalculatedDates);
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configurationResponses
             = new AtomicReference<>(new ArrayList<>(configurationResponsesWithoutCalculatedDates));
         log.info("Configuration responses are {}", configurationResponses.get());
