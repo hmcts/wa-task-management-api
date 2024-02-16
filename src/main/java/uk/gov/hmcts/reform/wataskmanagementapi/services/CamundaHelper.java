@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
     "PMD.DataflowAnomalyAnalysis",
     "PMD.AvoidInstantiatingObjectsInLoops"
 })
+@Slf4j
 public final class CamundaHelper {
 
     private CamundaHelper() {
@@ -60,6 +62,7 @@ public final class CamundaHelper {
     }
 
     public static ConfigurationDmnEvaluationResponse removeSpaces(ConfigurationDmnEvaluationResponse dmnResponse) {
+       log.info("removeSpaces DMN Response {}", dmnResponse);
         ConfigurationDmnEvaluationResponse response = new ConfigurationDmnEvaluationResponse();
         response.setName(checkAndSetStringField(dmnResponse.getName()));
         response.setValue(checkAndSetStringField(dmnResponse.getValue()));

@@ -76,7 +76,7 @@ public class CaseConfigurationProviderService {
                 caseDataString,
                 taskAttributesString
             );
-        log.debug("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
+        log.info("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
 
         taskConfigurationDmnResults
             .forEach(r -> {
@@ -94,6 +94,7 @@ public class CaseConfigurationProviderService {
             isReconfigureRequest,
             taskAttributes
         );
+        log.info("Case Configuration : taskConfigurationDmn Results After update {}", taskConfigurationDmnResultsAfterUpdate);
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(
@@ -102,7 +103,7 @@ public class CaseConfigurationProviderService {
                 caseDataString,
                 taskAttributesString
             );
-        log.debug("Case Configuration : permissionsDmn Results {}", permissionsDmnResults);
+        log.info("Case Configuration : permissionsDmn Results {}", permissionsDmnResults);
         List<PermissionsDmnEvaluationResponse> filteredPermissionDmnResults
             = permissionsDmnResults.stream()
             .filter(dmnResult -> filterBasedOnCaseAccessCategory(caseDetails, dmnResult))
@@ -112,18 +113,20 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
-        log.debug("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
+        log.info("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
         // Enrich case configuration variables with extra variables
         Map<String, Object> allCaseConfigurationValues = new ConcurrentHashMap<>(caseConfigurationVariables);
         allCaseConfigurationValues.put(SECURITY_CLASSIFICATION.value(), caseDetails.getSecurityClassification());
         allCaseConfigurationValues.put(JURISDICTION.value(), caseDetails.getJurisdiction());
         allCaseConfigurationValues.put(CASE_TYPE_ID.value(), caseDetails.getCaseType());
 
-        return new TaskConfigurationResults(
-            allCaseConfigurationValues,
-            taskConfigurationDmnResultsAfterUpdate,
-            filteredPermissionDmnResults
+        TaskConfigurationResults results = new TaskConfigurationResults(
+                allCaseConfigurationValues,
+                taskConfigurationDmnResultsAfterUpdate,
+                filteredPermissionDmnResults
         );
+        log.info("TaskConfigurationResults {}", results);
+        return results;
     }
 
     public List<ConfigurationDmnEvaluationResponse> evaluateConfigurationDmn(
@@ -154,13 +157,18 @@ public class CaseConfigurationProviderService {
         boolean isReconfigureRequest,
         Map<String, Object> taskAttributes) {
 
+        log.info("taskConfigurationDmnResults1 {}", taskConfigurationDmnResults);
+        log.info("taskAttributes {}", taskAttributes);
+
         Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
             .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
             .map(this::removeAdditionalFromCamundaName)
             .collect(toMap(r -> r.getName().getValue(), r -> r.getValue().getValue()));
+        log.info("additionalProperties {}", writeValueAsString(additionalProperties));
 
         List<ConfigurationDmnEvaluationResponse> configResponses = taskConfigurationDmnResults.stream()
             .filter(r -> !r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX)).collect(Collectors.toList());
+        log.info("configResponse1 {} ", configResponses);
 
         if (!additionalProperties.isEmpty()) {
             configResponses.add(new ConfigurationDmnEvaluationResponse(
@@ -168,6 +176,7 @@ public class CaseConfigurationProviderService {
                 CamundaValue.stringValue(writeValueAsString(additionalProperties))
             ));
         }
+        log.info("configResponse2 {}", configResponses);
 
         return dateTypeConfigurator.configureDates(
             configResponses,

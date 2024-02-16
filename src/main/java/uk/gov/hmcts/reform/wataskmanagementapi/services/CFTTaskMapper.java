@@ -153,6 +153,9 @@ public class CFTTaskMapper {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnResponse = taskConfigurationResults
             .getConfigurationDmnResponse();
+        log.info("test configurationDmnResponse {}", configurationDmnResponse);
+        log.info("test taskResource {}", taskResource);
+
         configurationDmnResponse.forEach(response -> reconfigureTaskAttribute(
             taskResource,
             response.getName().getValue(),
@@ -585,7 +588,10 @@ public class CFTTaskMapper {
                                           Object value,
                                           boolean canReconfigure) {
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
+        log.info("Actual key {} value {} enumKey {} canReconfigure {}, enumKeyPresent{}",key, value, enumKey, canReconfigure, enumKey.isPresent());
+
         if (enumKey.isPresent() & canReconfigure) {
+            log.info("Actual key {} value {}",key, value);
             switch (enumKey.get()) {
                 case CASE_NAME:
                     taskResource.setCaseName((String) value);
@@ -614,6 +620,7 @@ public class CFTTaskMapper {
                     break;
                 case ADDITIONAL_PROPERTIES:
                     Map<String, String> additionalProperties = extractAdditionalProperties(value);
+                    log.info("Actual additionalProperties {}", additionalProperties);
                     taskResource.setAdditionalProperties(additionalProperties);
                     break;
                 case PRIORITY_DATE:
