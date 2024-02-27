@@ -4,4 +4,8 @@
     <notes>Wait for spring boot upgrades</notes>
     <cve>CVE-2023-35116</cve>
   </suppress>
+  <suppress until ="2024-03-31">
+    <notes>Wait for spring boot upgrades</notes>
+    <cve>CVE-2023-34055</cve>
+  </suppress>
 </suppressions>
