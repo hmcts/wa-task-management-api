@@ -323,14 +323,14 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpectAll(
-            status().is4xxClientError(),
-            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-            jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
-            jsonPath("$.title").value("Role Assignment Verification"),
-            jsonPath("$.status").value(403),
-            jsonPath("$.detail").value(
-                "Role Assignment Verification: "
-                    + "The request failed the Role Assignment checks performed.")
+                status().is4xxClientError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
+                jsonPath("$.title").value("Role Assignment Verification"),
+                jsonPath("$.status").value(403),
+                jsonPath("$.detail").value(
+                    "Role Assignment Verification: "
+                        + "The request failed the Role Assignment checks performed.")
             );
 
     }
