@@ -67,10 +67,11 @@ public class CaseConfigurationProviderService {
         String caseDataString = writeValueAsString(caseDetails.getData());
         log.debug("Case Configuration : case data {}", caseDataString);
 
-        Map<String,String> map = (Map<String, String>) taskAttributes.get(ADDITIONAL_PROPERTIES_KEY);
+        Map<String,String> additionalPropertiesMap =
+            (Map<String, String>) taskAttributes.get(ADDITIONAL_PROPERTIES_KEY);
         // Copy all additional properties as top level elements in task attributes
-        if (map != null && !map.isEmpty()) {
-            taskAttributes.putAll(map);
+        if (additionalPropertiesMap != null && !additionalPropertiesMap.isEmpty()) {
+            taskAttributes.putAll(additionalPropertiesMap);
             taskAttributes.remove(ADDITIONAL_PROPERTIES_KEY);
         }
 

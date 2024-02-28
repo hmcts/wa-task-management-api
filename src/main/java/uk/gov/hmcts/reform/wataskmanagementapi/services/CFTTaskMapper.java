@@ -169,9 +169,7 @@ public class CFTTaskMapper {
         List<ConfigurationDmnEvaluationResponse> configurationAdditionalAttributeDmnResponse =
                 configurationDmnResponse.stream().filter(response ->
                         response.getName().getValue().startsWith(ADDITIONAL_PROPERTIES_PREFIX)).toList();
-        reconfigureAdditionalTaskAttribute(
-                        taskResource,
-               configurationAdditionalAttributeDmnResponse);
+        reconfigureAdditionalTaskAttribute(taskResource, configurationAdditionalAttributeDmnResponse);
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
         taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
@@ -677,8 +675,10 @@ public class CFTTaskMapper {
 
         taskResource.setAdditionalProperties(
                 Collections.synchronizedMap(additionalProperties.entrySet().stream()
-                        .collect(HashMap::new, (m,v) -> m.put(v.getKey(),
-                                v.getValue().isPresent() ? v.getValue().get() : null), HashMap::putAll)));
+                        .collect(HashMap::new,
+                                 (map,value) -> map.put(value.getKey(),
+                                                        value.getValue().isPresent() ? value.getValue().get() : null),
+                                 HashMap::putAll)));
     }
 
     private Map<String, String> extractAdditionalProperties(Object value) {
