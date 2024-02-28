@@ -658,6 +658,7 @@ public class CFTTaskMapper {
         Map<String, String> existingAdditionalProperties = taskResource.getAdditionalProperties();
         Map<String, Optional<String>> additionalProperties = new ConcurrentHashMap<>();
 
+        //Use optionals to be able to set null values
         if (existingAdditionalProperties != null) {
             existingAdditionalProperties.entrySet().forEach(
                     e -> additionalProperties.put(e.getKey(), Optional.ofNullable(e.getValue())));
@@ -672,7 +673,7 @@ public class CFTTaskMapper {
                                     Optional.ofNullable(response.getValue().getValue()));
                         }
                     });
-
+        //Get the value from optional object and if not present then set to null
         taskResource.setAdditionalProperties(
                 Collections.synchronizedMap(additionalProperties.entrySet().stream()
                         .collect(HashMap::new,

@@ -170,6 +170,7 @@ public class CaseConfigurationProviderService {
             Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
                     .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
                     .map(this::removeAdditionalFromCamundaName)
+                    //Using optional to allow null values
                     .collect(toMap(r -> r.getName().getValue(), r -> Optional.ofNullable(r.getValue().getValue())));
 
             configResponses = taskConfigurationDmnResults.stream()
