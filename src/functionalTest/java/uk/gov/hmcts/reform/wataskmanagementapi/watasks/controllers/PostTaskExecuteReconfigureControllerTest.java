@@ -31,6 +31,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static java.util.Arrays.asList;
@@ -142,10 +143,11 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
 
-        await().ignoreException(Exception.class)
-            .pollInterval(5, SECONDS)
+        await()
+            .atLeast(5, TimeUnit.SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
             .atMost(180, SECONDS)
-            .until(() -> {
+            .untilAsserted(() -> {
                 Response taskResult = restApiActions.get(
                     "/task/{task-id}",
                     taskId,
@@ -161,7 +163,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.task_state", is("assigned"))
                     .body("task.reconfigure_request_time", nullValue())
                     .body("task.last_reconfiguration_time", notNullValue());
-                return true;
             });
 
         //no unprocessed reconfiguration records so no error should report
@@ -335,10 +336,11 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
 
-        await().ignoreException(Exception.class)
-            .pollInterval(5, SECONDS)
+        await()
+            .atLeast(5, TimeUnit.SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
             .atMost(180, SECONDS)
-            .until(() -> {
+            .untilAsserted(() -> {
                 Response taskResult = restApiActions.get(
                     "/task/{task-id}",
                     taskId,
@@ -359,7 +361,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                                                                     20, 00, 0, 0)
                                                        .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
-                return true;
             });
 
         common.cleanUpTask(taskId);
