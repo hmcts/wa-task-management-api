@@ -238,6 +238,7 @@ public class DateTypeConfigurator {
         ConfigurationDmnEvaluationResponse dateTypeResponse) {
         List<ConfigurationDmnEvaluationResponse> filtered = new ArrayList<>();
         if (dateTypeObject.dateTypeName.equals("nextHearingDate") && dateTypeResponse.getValue().getValue().isEmpty()) {
+            log.info("NextHearingDate is empty, adding it to filtered responses");
             Optional.of(dateTypeResponse).filter(r -> r.getValue().getValue().isBlank()).ifPresent(filtered::add);
         }
         else {
