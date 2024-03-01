@@ -95,6 +95,7 @@ public class DateTypeConfigurator {
                 log.info("DateTypeObject.dataTypeName {} is as {}", dateTypeObject.dateTypeName, dateTypeResponse);
                 calculatedResponses.get().add(dateTypeResponse);
                 log.info("Calculated responses in loop are {}", calculatedResponses.get());
+
                 filterOutOldValueAndAddDateType(configurationResponses, dateTypeObject, dateTypeResponse);
             });
         log.info("Calculated responses are {}", configurationResponses.get());
@@ -231,17 +232,23 @@ public class DateTypeConfigurator {
         }
     }
 
-    private void filterOutOldValueAndAddDateType(
+    public void filterOutOldValueAndAddDateType(
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses,
         DateTypeObject dateTypeObject,
         ConfigurationDmnEvaluationResponse dateTypeResponse) {
-        List<ConfigurationDmnEvaluationResponse> filtered = configResponses.get().stream()
-            .filter(r -> !r.getName().getValue().contains(dateTypeObject.dateTypeName))
-            .collect(Collectors.toList());
-        log.info("Filtered responses are {}", filtered);
+        List<ConfigurationDmnEvaluationResponse> filtered = new ArrayList<>();
+        if (dateTypeObject.dateTypeName.equals("nextHearingDate") && dateTypeResponse.getValue().getValue().isEmpty()) {
+            Optional.of(dateTypeResponse).filter(r -> r.getValue().getValue().isBlank()).ifPresent(filtered::add);
+        }
+        else {
+            filtered = configResponses.get().stream()
+                .filter(r -> !r.getName().getValue().contains(dateTypeObject.dateTypeName))
+                .collect(Collectors.toList());
+            log.info("Filtered responses are {}", filtered);
 
-        if (dateTypeResponse != null) {
-            Optional.of(dateTypeResponse).filter(r -> !r.getValue().getValue().isBlank()).ifPresent(filtered::add);
+            if (dateTypeResponse != null) {
+                Optional.of(dateTypeResponse).filter(r -> !r.getValue().getValue().isBlank()).ifPresent(filtered::add);
+            }
         }
         configResponses.getAndSet(filtered);
     }
