@@ -1698,7 +1698,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     List<ReplicaTaskResource> replicaTaskResourceList =
                         replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
                     List<OffsetDateTime> taskRefreshTimestampList = replicaTaskResourceList.stream()
-                        .map(ReplicaTaskResource::getReportRefreshRequestTime).filter(Objects::nonNull)
+                        .map(ReplicaTaskResource::getReportRefreshRequestTime)
+                        .filter(Objects::nonNull)
                         .toList();
 
                     long countNotRefreshed = taskRefreshTimestampList.stream().map(Objects::nonNull).count();
