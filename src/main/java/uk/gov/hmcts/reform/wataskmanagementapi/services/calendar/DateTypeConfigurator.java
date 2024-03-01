@@ -240,8 +240,7 @@ public class DateTypeConfigurator {
         if (dateTypeObject.dateTypeName.equals("nextHearingDate") && dateTypeResponse.getValue().getValue().isEmpty()) {
             log.info("NextHearingDate is empty, adding it to filtered responses");
             Optional.of(dateTypeResponse).filter(r -> r.getValue().getValue().isBlank()).ifPresent(filtered::add);
-        }
-        else {
+        } else {
             filtered = configResponses.get().stream()
                 .filter(r -> !r.getName().getValue().contains(dateTypeObject.dateTypeName))
                 .collect(Collectors.toList());
