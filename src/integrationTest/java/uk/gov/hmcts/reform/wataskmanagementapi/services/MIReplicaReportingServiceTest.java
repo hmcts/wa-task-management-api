@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -1139,8 +1140,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
         List<OffsetDateTime> taskRefreshTimestamps = replicaTaskResources.stream()
             .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
             .toList();
-        taskRefreshTimestamps.forEach(Assertions::assertNull);
+        assertTrue(taskRefreshTimestamps.isEmpty());
 
         switch (testCategory) {
             case "ProcTestsWithDefaultNulls" ->
@@ -1214,6 +1216,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         replicaTaskResources = replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
         taskRefreshTimestamps = replicaTaskResources.stream()
             .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
             .toList();
         Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
         Assertions.assertEquals(expectedMarkedCount, count, String.format("%s-%s:", testCategory, testName));
@@ -1670,8 +1673,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
         List<OffsetDateTime> taskRefreshTimestamps = replicaTaskResources.stream()
             .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
             .toList();
-        taskRefreshTimestamps.forEach(Assertions::assertNull);
+        assertTrue(taskRefreshTimestamps.isEmpty());
 
         miReplicaDBDao.callMarkReportTasksForRefresh(null, taskIds, null,
                                       null, null, OffsetDateTime.now(), tasks.get(0).getCreated().minusDays(5));
@@ -1679,6 +1683,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         replicaTaskResources = replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
         taskRefreshTimestamps = replicaTaskResources.stream()
             .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
             .toList();
         long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
         Assertions.assertEquals(taskResourcesToCreate,
@@ -1694,7 +1699,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     List<ReplicaTaskResource> replicaTaskResourceList =
                         replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
                     List<OffsetDateTime> taskRefreshTimestampList = replicaTaskResourceList.stream()
-                        .map(ReplicaTaskResource::getReportRefreshRequestTime)
+                        .map(ReplicaTaskResource::getReportRefreshRequestTime).filter(Objects::nonNull)
                         .toList();
 
                     long countNotRefreshed = taskRefreshTimestampList.stream().map(Objects::nonNull).count();
