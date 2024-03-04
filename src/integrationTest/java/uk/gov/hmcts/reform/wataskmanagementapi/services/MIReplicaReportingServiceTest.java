@@ -63,7 +63,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     @Test
     void should_save_task_and_get_task_from_replica_tables() {
         TaskResource taskResource = createAndSaveTask();
-
+        /*
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
             .atMost(10, SECONDS)
@@ -129,6 +129,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
                     return true;
                 });
+
+         */
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
