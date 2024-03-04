@@ -33,7 +33,7 @@ public class DateTypeConfiguratorTest {
         .build();
     ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
         .name(CamundaValue.stringValue("nextHearingDate"))
-        .value(CamundaValue.stringValue("2023-01-15T16:00"))
+        .value(CamundaValue.stringValue(""))
         .build();
     String defaultDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
     private DateTypeConfigurator dateTypeConfigurator;
@@ -45,6 +45,33 @@ public class DateTypeConfiguratorTest {
         @BeforeEach
         public void setUp() {
             dateTypeConfigurator = new DateTypeConfigurator(List.of());
+        }
+
+        @Test
+        void should_return_nextHearingDate_empty() {
+            //create a list of dmn responses including nextHearingDate which is set to null
+            // e.g. when camunda value is empty for nextHearingDate it should set the value to empty
+            List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, dueDate,
+                                                                                   priorityDate
+            );
+
+            //call the configureDates method using the list of dmn responses
+            List<ConfigurationDmnEvaluationResponse> dmnEvaluationResponses = dateTypeConfigurator.configureDates(
+                evaluationResponses,
+                false,
+                true,
+                taskAttributes
+            );
+
+            //assert that the dmnEvaluationResponses contains the nextHearingDate with an empty value
+            assertThat(dmnEvaluationResponses)
+                .hasSize(1)
+                .contains(
+                    ConfigurationDmnEvaluationResponse.builder()
+                        .name(CamundaValue.stringValue("nextHearingDate"))
+                        .value(CamundaValue.stringValue(nextHearingDate.getValue().getValue()))
+                        .build()
+                );
         }
 
         @Test

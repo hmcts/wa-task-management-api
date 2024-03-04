@@ -237,10 +237,15 @@ public class DateTypeConfigurator {
         DateTypeObject dateTypeObject,
         ConfigurationDmnEvaluationResponse dateTypeResponse) {
         List<ConfigurationDmnEvaluationResponse> filtered = new ArrayList<>();
+
+        //when configureDates is going through calculationOrder, and it's nextHearingDate & the value is empty,
+        // add it to the filtered responses and return
         if (dateTypeObject.dateTypeName.equals("nextHearingDate") && dateTypeResponse.getValue().getValue().isEmpty()) {
             log.info("NextHearingDate is empty, adding it to filtered responses");
             Optional.of(dateTypeResponse).filter(r -> r.getValue().getValue().isBlank()).ifPresent(filtered::add);
-        } else {
+        }
+        //otherwise do original method
+        else {
             filtered = configResponses.get().stream()
                 .filter(r -> !r.getName().getValue().contains(dateTypeObject.dateTypeName))
                 .collect(Collectors.toList());
@@ -252,6 +257,21 @@ public class DateTypeConfigurator {
         }
         configResponses.getAndSet(filtered);
     }
+
+    //original method
+//    private void filterOutOldValueAndAddDateType(
+//        AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses,
+//        DateTypeObject dateTypeObject,
+//        ConfigurationDmnEvaluationResponse dateTypeResponse) {
+//        List<ConfigurationDmnEvaluationResponse> filtered = configResponses.get().stream()
+//            .filter(r -> !r.getName().getValue().contains(dateTypeObject.dateTypeName))
+//            .collect(Collectors.toList());
+//
+//        if (dateTypeResponse != null) {
+//            Optional.of(dateTypeResponse).filter(r -> !r.getValue().getValue().isBlank()).ifPresent(filtered::add);
+//        }
+//        configResponses.getAndSet(filtered);
+//    }
 
     record DateTypeObject(DateType dateType, String dateTypeName) {
     }
