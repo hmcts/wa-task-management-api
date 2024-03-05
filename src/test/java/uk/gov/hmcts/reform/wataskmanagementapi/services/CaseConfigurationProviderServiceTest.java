@@ -1078,11 +1078,17 @@ class CaseConfigurationProviderServiceTest {
     }
 
     @Test
-    void should_not_include_single_db_additional_properties_for_camunda_add_properties_on_reconfigure_request() {
+    void should_include_additional_properties_on_reconfigure_request() {
         String someCaseId = "someCaseId";
-        String taskAttributesString = "{\"taskType\":\"taskType\"}";
-        Map<String, Object> taskAttributes = Map.of("taskType", "taskType");
-
+        Map<String, Object> taskAttributes = new ConcurrentHashMap<>();
+        taskAttributes.put("taskType", "taskType");
+        Map<String, String> additionalPropertiesMap = Map.of(
+            "additionalProperties_name3", "value3",
+            "additionalProperties_name4", "value4",
+            "additionalProperties_name5", "value5",
+            "additionalProperties_name6", "value6"
+        );
+        taskAttributes.put("additionalProperties", additionalPropertiesMap);
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         when(caseDetails.getData()).thenReturn(Map.of("caseAccessCategory", ""));
 
@@ -1107,29 +1113,28 @@ class CaseConfigurationProviderServiceTest {
                 )
         );
 
-        String caseData = "{\"caseAccessCategory\":\"\"}";
-
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", caseData, taskAttributesString))
+        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
                 .thenReturn(permissions);
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", caseData, taskAttributesString))
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
                 .thenReturn(asList(
                         new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
                         new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
                         new ConfigurationDmnEvaluationResponse(
                                 stringValue("additionalProperties_name3"),
-                                stringValue("value3")
+                                stringValue("updatedvalue3")
                         ),
                         new ConfigurationDmnEvaluationResponse(
                                 stringValue("additionalProperties_name4"),
-                                stringValue("value4")
+                                stringValue("updatedvalue4")
                         ),
                         new ConfigurationDmnEvaluationResponse(
                                 stringValue("additionalProperties_name5"),
-                                stringValue("value5")
+                                stringValue("updatedvalue5")
                         ),
                         new ConfigurationDmnEvaluationResponse(
-                            stringValue("additionalProperties_name6"), stringValue("value6"))
+                            stringValue("additionalProperties_name6"),
+                            stringValue("updatedvalue6"))
                 ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
@@ -1143,7 +1148,13 @@ class CaseConfigurationProviderServiceTest {
                         new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
                         new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
                         new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name3"),
-                                stringValue("value3")));
+                                stringValue("updatedvalue3")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name4"),
+                                                               stringValue("updatedvalue4")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name5"),
+                                               stringValue("updatedvalue5")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name6"),
+                                                               stringValue("updatedvalue6")));
     }
 
     @Test

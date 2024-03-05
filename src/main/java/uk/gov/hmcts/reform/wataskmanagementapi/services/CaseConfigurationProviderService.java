@@ -72,7 +72,6 @@ public class CaseConfigurationProviderService {
         // Copy all additional properties as top level elements in task attributes
         if (additionalPropertiesMap != null && !additionalPropertiesMap.isEmpty()) {
             taskAttributes.putAll(additionalPropertiesMap);
-            taskAttributes.remove(ADDITIONAL_PROPERTIES_KEY);
         }
 
         String taskAttributesString = writeValueAsString(taskAttributes);
