@@ -8,8 +8,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.replica.ReplicaTaskResourc
 import java.util.List;
 import java.util.Optional;
 
-@SuppressWarnings({
-    "PMD.UseVarargs", "PMD.TooManyMethods"})
 @Profile("replica | preview")
 public interface ReplicaTaskResourceRepository extends CrudRepository<ReplicaTaskResource, String> {
 

@@ -4,9 +4,10 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -40,7 +41,8 @@ import javax.persistence.Table;
 
 @ToString
 @Getter
-@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Profile("replica | preview")
 @Entity(name = "replica_tasks")
@@ -210,9 +212,5 @@ public class ReplicaTaskResource implements Serializable {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "report_refresh_request_time")
     private OffsetDateTime reportRefreshRequestTime;
-
-    protected ReplicaTaskResource() {
-        // required for runtime proxy generation in Hibernate
-    }
 
 }
