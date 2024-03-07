@@ -15,7 +15,6 @@ class ReplicaTaskResourceTest {
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
-            .testing(Method.SETTER)
             .testing(Method.CONSTRUCTOR)
             .areWellImplemented();
 
