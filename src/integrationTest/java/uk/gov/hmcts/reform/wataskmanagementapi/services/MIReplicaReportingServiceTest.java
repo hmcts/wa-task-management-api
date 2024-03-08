@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.opentest4j.AssertionFailedError;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -18,9 +19,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskAssignmentsResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.replica.ReplicaTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -30,6 +31,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -154,8 +156,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                         ? taskHistoryResourceList.get(1) : taskHistoryResourceList.get(0);
                     assertEquals(savedTaskResource.getTaskId(), taskHistoryResource.getTaskId());
                     assertEquals(savedTaskResource.getDescription(), taskHistoryResource.getDescription(),
-                                 "Discription should match");
-                    log.info("Discription should match : {}, {}",
+                                 "Description should match");
+                    log.info("Description should match : {}, {}",
                              savedTaskResource.getDescription(), taskHistoryResource.getDescription());
                     assertEquals(savedTaskResource.getRegionName(), taskHistoryResource.getRegionName(),
                                  "RegionName should match");
@@ -413,7 +415,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     void should_save_task_and_get_task_from_task_assignments() {
         TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
                                                         "someLocation", "someRoleCategory",
-                                                        "someTaskName");;
+                                                        "someTaskName");
         checkHistory(taskResource.getTaskId(), 1);
 
         await().ignoreException(AssertionFailedError.class)
@@ -440,8 +442,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     @Test
     void should_save_task_and_get_task_from_task_assignments_with_location_null() {
         TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
-            null, "someRoleCategory",
-                                                        "someTaskName");;
+            null, "someRoleCategory", "someTaskName");
         checkHistory(taskResource.getTaskId(), 1);
 
         await().ignoreException(AssertionFailedError.class)
@@ -468,8 +469,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     @Test
     void should_save_task_and_get_task_from_task_assignments_with_taskName_null() {
         TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
-                                                        "someLocation", "someRoleCategory",
-                                                        null);;
+                                                        "someLocation", "someRoleCategory", null);
         checkHistory(taskResource.getTaskId(), 1);
 
         await().ignoreException(AssertionFailedError.class)
@@ -509,7 +509,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                      String finalState) {
         String taskId = UUID.randomUUID().toString();
         TaskResource taskResource = createAndSaveThisTask(taskId, "someTaskName",
-            UNASSIGNED, "Configure");
+                                                          UNASSIGNED, "Configure");
 
         taskResource.setAssignee("someAssignee");
         taskResource.setLastUpdatedAction("AutoAssign");
@@ -629,7 +629,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     void should_save_task_and_record_multiple_task_assignments() {
         TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
                                                         "someLocation", "someRoleCategory",
-                                                        "someTaskName");;
+                                                        "someTaskName");
         checkHistory(taskResource.getTaskId(), 1);
         taskResource.setLastUpdatedAction("Unclaim");
         taskResource.setState(CFTTaskState.UNASSIGNED);
@@ -967,7 +967,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
                                                         "someLocation", "someRoleCategory",
-                                                        "someTaskName");;
+                                                        "someTaskName");
 
         List<OffsetDateTime> origTaskAssignmentReportRefreshTimes = new ArrayList<>();
         await().ignoreException(AssertionFailedError.class)
@@ -1016,11 +1016,10 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
                                       null, null, OffsetDateTime.now(), taskResource.getCreated().minusDays(2L));
 
-        List<Timestamp>  taskRefreshTimestamps =
-            miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(Collections.singletonList(taskResource.getTaskId()));
-        Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
-        Assertions.assertEquals(1, count);
-        Timestamp taskRequestRefreshTime = taskRefreshTimestamps.get(0);
+        Optional<ReplicaTaskResource> optionalReplicaTaskResource
+            = replicaTaskResourceRepository.getByTaskId(taskResource.getTaskId());
+        Assertions.assertTrue(optionalReplicaTaskResource.isPresent());
+        OffsetDateTime taskRequestRefreshTime = optionalReplicaTaskResource.get().getReportRefreshRequestTime();
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -1135,8 +1134,14 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                            containerReplica.getUsername(),
                                                            containerReplica.getPassword());
 
-        List<Timestamp> taskRefreshTimestamps = miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
-        taskRefreshTimestamps.forEach(Assertions::assertNull);
+        Sort sort = Sort.by(Sort.Order.asc("caseName"));
+        List<ReplicaTaskResource> replicaTaskResources =
+            replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
+        List<OffsetDateTime> taskRefreshTimestamps = replicaTaskResources.stream()
+            .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
+            .toList();
+        assertTrue(taskRefreshTimestamps.isEmpty());
 
         switch (testCategory) {
             case "ProcTestsWithDefaultNulls" ->
@@ -1207,14 +1212,18 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             default -> miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
                                                      "WAAPPS", taskStates, markBeforeTime, markAfterTime);
         }
-        taskRefreshTimestamps = miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
+        replicaTaskResources = replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
+        taskRefreshTimestamps = replicaTaskResources.stream()
+            .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
+            .toList();
         Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
         Assertions.assertEquals(expectedMarkedCount, count, String.format("%s-%s:", testCategory, testName));
 
         if (count > 0) {
-            Timestamp taskRequestRefreshTime =
+            OffsetDateTime taskRequestRefreshTime =
                 taskRefreshTimestamps.stream().filter(Objects::nonNull).findFirst()
-                    .orElse(Timestamp.valueOf(LocalDateTime.now().minusYears(1L)));
+                    .orElse(OffsetDateTime.now().minusYears(1L));
 
             expectedMarkedTasks.forEach(taskId ->
                 await().ignoreException(AssertionFailedError.class)
@@ -1658,13 +1667,23 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                              containerReplica.getUsername(),
                                                              containerReplica.getPassword());
 
-        List<Timestamp> taskRefreshTimestamps = miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
-        taskRefreshTimestamps.forEach(Assertions::assertNull);
+        Sort sort = Sort.by(Sort.Order.asc("caseName"));
+        List<ReplicaTaskResource> replicaTaskResources =
+            replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
+        List<OffsetDateTime> taskRefreshTimestamps = replicaTaskResources.stream()
+            .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
+            .toList();
+        assertTrue(taskRefreshTimestamps.isEmpty());
 
         miReplicaDBDao.callMarkReportTasksForRefresh(null, taskIds, null,
                                       null, null, OffsetDateTime.now(), tasks.get(0).getCreated().minusDays(5));
 
-        taskRefreshTimestamps = miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
+        replicaTaskResources = replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
+        taskRefreshTimestamps = replicaTaskResources.stream()
+            .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
+            .toList();
         long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
         Assertions.assertEquals(taskResourcesToCreate,
                                 (int) count, String.format("Should mark all %s tasks:", taskResourcesToCreate));
@@ -1676,8 +1695,13 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             .atMost(30, SECONDS)
             .until(
                 () -> {
-                    List<Timestamp> taskRefreshTimestampList =
-                        miReplicaDBDao.callGetReplicaTaskRequestRefreshTimes(taskIds);
+                    List<ReplicaTaskResource> replicaTaskResourceList =
+                        replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
+                    List<OffsetDateTime> taskRefreshTimestampList = replicaTaskResourceList.stream()
+                        .map(ReplicaTaskResource::getReportRefreshRequestTime)
+                        .filter(Objects::nonNull)
+                        .toList();
+
                     long countNotRefreshed = taskRefreshTimestampList.stream().map(Objects::nonNull).count();
                     Assertions.assertEquals(expectedProcessed, taskResourcesToCreate - (int) countNotRefreshed,
                                             String.format("Should refresh %s tasks:", expectedProcessed));
