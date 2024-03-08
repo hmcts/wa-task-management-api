@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReplicaTaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
@@ -31,6 +32,9 @@ public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     protected TaskResourceRepository taskResourceRepository;
+
+    @Autowired
+    protected ReplicaTaskResourceRepository replicaTaskResourceRepository;
 
     @Autowired
     protected TaskHistoryResourceRepository taskHistoryResourceRepository;

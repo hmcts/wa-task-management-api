@@ -3,16 +3,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.db;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ReplicationException;
 
-import java.sql.Array;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -67,35 +63,6 @@ public class MIReplicaDBDao {
             log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
                       e.getCause(), e.getMessage());
             throw new ReplicationException("An error occurred while executing mark_report_tasks_for_refresh", e);
-        }
-    }
-
-    public List<Timestamp> callGetReplicaTaskRequestRefreshTimes(List<String> taskIdList) {
-
-        String runFunction = "{ ? = call cft_task_db.get_report_refresh_request_times( ? ) }";
-
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, userName, password);
-             CallableStatement callableStatement = conn.prepareCall(runFunction)) {
-
-            Array taskIds = conn.createArrayOf("TEXT", taskIdList.toArray());
-
-            callableStatement.registerOutParameter(1, Types.ARRAY);
-            callableStatement.setArray(2, taskIds);
-
-            callableStatement.execute();
-            Array reportRefreshRequestTimes = callableStatement.getArray(1);
-            log.info(reportRefreshRequestTimes.toString());
-            Timestamp[] stringReportRequestTimes = (Timestamp[]) reportRefreshRequestTimes.getArray();
-            return Arrays.stream(stringReportRequestTimes).filter(Objects::nonNull).toList();
-
-        } catch (SQLException e) {
-            log.error("Procedure call callGetReplicaTaskRequestRefreshTimes failed with SQL State : {}, {} ",
-                      e.getSQLState(), e.getMessage());
-            throw new ReplicationException("An error occurred while executing get_report_refresh_request_times", e);
-        } catch (Exception e) {
-            log.error("Procedure call callGetReplicaTaskRequestRefreshTimes failed with SQL State : {}, {} ",
-                      e.getCause(), e.getMessage());
-            throw new ReplicationException("An error occurred while executing get_report_refresh_request_times", e);
         }
     }
 
