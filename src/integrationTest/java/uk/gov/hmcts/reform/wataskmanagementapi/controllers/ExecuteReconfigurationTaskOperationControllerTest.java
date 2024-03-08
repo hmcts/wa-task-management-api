@@ -163,9 +163,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         //create mock task
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime,
-                                     null
-        );
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
 
         //mark to reconfigure
         mockMvc.perform(
@@ -214,69 +212,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         //assert nextHearingDate is null after reconfiguration
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
-                                       assertNull(task.getNextHearingDate());
-                                   }
-        );
-    }
-
-    @Test
-    void should_execute_reconfigure_nextHearingDate_to_null_from_date() throws Exception {
-        //create mock task
-        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-        OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime,
-                                     OffsetDateTime.parse("2021-05-09T11:15Z")
-        );
-
-        //mark to reconfigure
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
-        ).andExpectAll(
-            status().is(HttpStatus.OK.value())
-        );
-
-        //assert nextHearingDate is date set before reconfiguration
-        List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-        taskResourcesBefore.forEach(task -> {
-            assertNotNull(task.getNextHearingDate());
-        });
-
-        //call to update nextHearingDate to empty
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
-            anyString(),
-            anyString(),
-            anyString(),
-            anyString()
-        )).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
-            anyString(),
-            anyString(),
-            anyString(),
-            anyString()
-        )).thenReturn(permissionsResponse());
-        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
-
-        //execute reconfigure
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(
-                    EXECUTE_RECONFIGURE,
-                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
-                )))
-        ).andExpectAll(
-            status().is(HttpStatus.OK.value())
-        );
-
-        //assert nextHearingDate is null after reconfiguration
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-        taskResourcesAfter.forEach(task -> {
-                                       assertNull(task.getNextHearingDate());
-                                   }
+            assertNull(task.getNextHearingDate());
+        }
         );
     }
 
@@ -284,8 +221,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     void should_execute_reconfigure_on_task_and_not_update_data_when_can_reconfigure_is_false() throws Exception {
         String caseIdToday = "caseId1-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime,
-                                     OffsetDateTime.parse("2021-05-09T20:15Z"));
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -374,8 +310,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     void should_execute_reconfigure_on_task_and_update_data_when_can_reconfigure_is_true() throws Exception {
         String caseIdToday = "caseId2-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime,
-                                     OffsetDateTime.parse("2021-05-09T20:15Z"));
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -468,8 +403,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     void should_execute_reconfigure_autoassignment_unassigned_to_assigned() throws Exception {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime,
-            OffsetDateTime.parse("2021-05-09T20:15Z"));
+        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -557,8 +491,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     void should_execute_reconfigure_autoassignment_unassigned_to_unassigned() throws Exception {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime,
-            OffsetDateTime.parse("2021-05-09T20:15Z"));
+        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -648,8 +581,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     void should_execute_reconfigure_set_indexed_true() throws Exception {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime,
-            OffsetDateTime.parse("2021-05-09T20:15Z"));
+        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -708,8 +640,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     void should_execute_reconfigure_set_indexed_assigned_true() throws Exception {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime,
-            OffsetDateTime.parse("2021-05-09T20:15Z"));
+        createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -770,8 +701,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     void should_execute_reconfigure_autoassignment_assigned_to_assigned_another_user() throws Exception {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, OLD_ASSIGNEE_USER, caseIdToday, dueDateTime,
-                                     OffsetDateTime.parse("2021-05-09T20:15Z"));
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, OLD_ASSIGNEE_USER, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -864,8 +794,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         String dueDateTimeCheck = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime,
-                                     OffsetDateTime.parse("2021-05-09T20:15Z"));
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -960,8 +889,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
         String caseIdToday = "caseId" + OffsetDateTime.now();
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime,
-            OffsetDateTime.parse("2021-05-09T20:15Z"));
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -1006,8 +934,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         throws Exception {
         String caseIdToday = "calendarCaseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime,
-            OffsetDateTime.parse("2021-05-09T20:15Z"));
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -1252,7 +1179,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                                      CFTTaskState cftTaskState,
                                      String assignee,
                                      OffsetDateTime dueDateTime,
-                                     OffsetDateTime nextHearingDate,
                                      TaskRoleResource taskRoleResource) {
         TaskResource taskResource = new TaskResource(
             taskId,
@@ -1262,7 +1188,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         );
         taskResource.setCreated(OffsetDateTime.now());
         taskResource.setDueDateTime(dueDateTime);
-        taskResource.setNextHearingDate(nextHearingDate);
         taskResource.setJurisdiction(jurisdiction);
         taskResource.setCaseTypeId(caseType);
         taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
@@ -1279,7 +1204,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     }
 
     private void createTaskAndRoleAssignments(CFTTaskState cftTaskState, String assignee, String caseId,
-                                              OffsetDateTime dueDateTime, OffsetDateTime nextHearingDate) {
+                                              OffsetDateTime dueDateTime) {
 
         //assigner permission : manage, own, cancel
         TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
@@ -1291,7 +1216,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String jurisdiction = "IA";
         String caseType = "Asylum";
         insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignee, dueDateTime,
-            nextHearingDate, assignerTaskRoleResource
+            assignerTaskRoleResource
         );
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
@@ -1377,7 +1302,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("nextHearingDate"),
-                stringValue(""),
+                stringValue("2021-05-09T20:15"),
                 booleanValue(canReconfigure)
             )
         );

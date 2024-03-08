@@ -480,6 +480,110 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_set_next_hearing_date_to_empty_if_dmn_evaluates_to_empty_when_executed_for_reconfigure() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "endToEndTask",
+            "end To End Task"
+        );
+
+        common.setupStandardCaseManager(assignerCredentials.getHeaders(),
+                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        );
+        String taskId = taskVariables.getTaskId();
+        Consumer<Response> assertConsumer = (result) -> {
+            //Note: this is the TaskResource.class
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("end To End Task"))
+                .body("task.type", equalTo("endToEndTask"))
+                .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+        log.info("after initiation assert");
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+        log.info("after assign and validate");
+
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            assigneeCredentials.getHeaders()
+        );
+        log.info("after mark to reconfigure");
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue())
+            .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)));
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForExecuteReconfiguration(
+                TaskOperationType.EXECUTE_RECONFIGURE,
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
+            assigneeCredentials.getHeaders()
+        );
+
+        log.info("after reconfiguration execute");
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+
+        await().ignoreException(Exception.class)
+            .pollInterval(5, SECONDS)
+            .atMost(180, SECONDS)
+            .until(() -> {
+
+                Response taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
+
+                taskResult.prettyPrint();
+
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.reconfigure_request_time", nullValue())
+                    .body("task.last_reconfiguration_time", notNullValue())
+                    .body("task.next_hearing_date", nullValue());
+
+                return true;
+            });
+
+        common.cleanUpTask(taskId);
+    }
+
     private TaskOperationRequest taskOperationRequestForMarkToReconfigure(TaskOperationType operationName,
                                                                           String caseId) {
         TaskOperation operation = TaskOperation.builder()

@@ -101,10 +101,9 @@ public class DmnEvaluationService {
                 jurisdiction.toLowerCase(Locale.ROOT),
                 new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
-            log.info("Case Configuration : Successfully evaluated from decision table '{}'", dmnResponse);
             return dmnResponse.stream().map(CamundaHelper::removeSpaces).collect(Collectors.toList());
         } catch (FeignException e) {
-            log.info("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);
+            log.error("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);
             throw new IllegalStateException(
                 String.format("Could not evaluate from decision table %s", decisionTableKey),
                 e

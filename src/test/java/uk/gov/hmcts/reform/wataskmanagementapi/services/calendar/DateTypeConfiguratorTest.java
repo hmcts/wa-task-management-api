@@ -49,6 +49,11 @@ public class DateTypeConfiguratorTest {
 
         @Test
         void should_return_nextHearingDate_empty() {
+            ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+                .name(CamundaValue.stringValue("nextHearingDate"))
+                .value(CamundaValue.stringValue(""))
+                .canReconfigure(CamundaValue.booleanValue(true))
+                .build();
             //create a list of dmn responses including nextHearingDate which is set to null
             // e.g. when camunda value is empty for nextHearingDate it should set the value to empty
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, dueDate,
@@ -70,6 +75,7 @@ public class DateTypeConfiguratorTest {
                     ConfigurationDmnEvaluationResponse.builder()
                         .name(CamundaValue.stringValue("nextHearingDate"))
                         .value(CamundaValue.stringValue(nextHearingDate.getValue().getValue()))
+                        .canReconfigure(CamundaValue.booleanValue(true))
                         .build()
                 );
         }

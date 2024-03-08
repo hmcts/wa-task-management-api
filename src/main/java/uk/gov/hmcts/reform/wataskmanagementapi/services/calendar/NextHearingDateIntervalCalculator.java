@@ -48,7 +48,6 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
         var referenceDate = getReferenceDate(configResponses, isReconfigureRequest,
                                              taskAttributes, calculatedConfigurations
         );
-        log.info("Reference date: {}", referenceDate);
         return referenceDate.map(localDateTime -> calculateDate(
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),

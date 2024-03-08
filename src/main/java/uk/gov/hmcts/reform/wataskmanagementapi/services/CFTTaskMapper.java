@@ -145,7 +145,6 @@ public class CFTTaskMapper {
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
         taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
-        log.info("mapConfigurationAttributes: taskResource {}", taskResource);
         return taskResource;
     }
 
@@ -154,21 +153,16 @@ public class CFTTaskMapper {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnResponse = taskConfigurationResults
             .getConfigurationDmnResponse();
-
-        configurationDmnResponse.forEach(response -> {
-                log.info("reconfigureTaskResourceFromDmnResults loop: taskResource {}, response {}",
-                    taskResource, response);
-                reconfigureTaskAttribute(
-                    taskResource,
-                    response.getName().getValue(),
-                    response.getValue().getValue(),
-                    response.getCanReconfigure() != null && response.getCanReconfigure().getValue());
-            }
+        configurationDmnResponse.forEach(response -> reconfigureTaskAttribute(
+            taskResource,
+            response.getName().getValue(),
+            response.getValue().getValue(),
+            response.getCanReconfigure() != null && response.getCanReconfigure().getValue()
+            )
         );
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
         taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
-        log.info("reconfigureTaskResourceFromDmnResults final: taskResource {}", taskResource);
         return taskResource;
     }
 
@@ -449,7 +443,6 @@ public class CFTTaskMapper {
     }
 
     private void mapVariableToTaskResourceProperty(TaskResource taskResource, String key, Object value) {
-        log.info("mapVariableToTaskResourceProperty taskResource: {}, key: {}, value: {}", taskResource, key, value);
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
         if (enumKey.isPresent()) {
             switch (enumKey.get()) {
@@ -538,7 +531,6 @@ public class CFTTaskMapper {
                     }
                     break;
                 case NEXT_HEARING_DATE:
-                    log.info("next hearing date {}, mapDate vale {}", value, mapDate(value));
                     taskResource.setNextHearingDate(mapDate(value));
                     break;
                 case MINOR_PRIORITY:
@@ -560,7 +552,6 @@ public class CFTTaskMapper {
     }
 
     public static OffsetDateTime mapDate(Object value) {
-        log.info("mapDate value: {}", value);
         if (Objects.isNull(value) || value instanceof String && Strings.isBlank((String) value)) {
             return null;
         }
@@ -594,8 +585,6 @@ public class CFTTaskMapper {
                                           Object value,
                                           boolean canReconfigure) {
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
-        log.info("reconfigureTaskAttribute taskResource: {}, key: {}, value: {}, canReconfigure: {}, enumKey: {}",
-            taskResource, key, value, canReconfigure, enumKey);
         if (enumKey.isPresent() & canReconfigure) {
             switch (enumKey.get()) {
                 case CASE_NAME:
@@ -642,7 +631,6 @@ public class CFTTaskMapper {
                     }
                     break;
                 case NEXT_HEARING_DATE:
-                    log.info("reconfiguration next hearing date {}, mapDate vale {}", value, mapDate(value));
                     taskResource.setNextHearingDate(mapDate(value));
                     break;
                 case DUE_DATE:

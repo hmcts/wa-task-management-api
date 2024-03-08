@@ -54,7 +54,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
     }
 
     private TaskOperationResponse executeTasksToReconfigure(TaskOperationRequest taskOperationRequest) {
-        log.info("execute tasks toReconfigure request: {}", taskOperationRequest);
+        log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
         List<TaskResource> taskResources = cftTaskDatabaseService
@@ -106,7 +106,6 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
 
         final OffsetDateTime endTimer = OffsetDateTime.now().plusSeconds(maxTimeLimit);
         List<String> failedTaskIds = reconfigureTasks(taskIds, successfulTaskResources, endTimer);
-        log.info("executeReconfiguration: failedTaskIds {}", failedTaskIds);
 
         List<String> secondaryFailedTaskIds = new ArrayList<>();
 
@@ -130,7 +129,6 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
                     if (optionalTaskResource.isPresent()) {
                         TaskResource taskResource = optionalTaskResource.get();
                         taskResource = configureTaskService.reconfigureCFTTask(taskResource);
-                        log.info("reconfigureTasks: taskResource {}", taskResource);
                         taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
                         taskResource.setReconfigureRequestTime(null);
                         taskResource.setLastReconfigurationTime(OffsetDateTime.now());

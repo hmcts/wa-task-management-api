@@ -1201,8 +1201,7 @@ public class NextHearingDateTypeConfiguratorTest {
                 ConfigurationDmnEvaluationResponse.builder()
                     .name(CamundaValue.stringValue("nextHearingDate"))
                     .value(CamundaValue.stringValue(""))
-                    //should be .canReconfigure(CamundaValue.booleanValue(true))
-                    .canReconfigure(null)
+                    .canReconfigure(CamundaValue.booleanValue(true))
                     .build()
             ));
     }

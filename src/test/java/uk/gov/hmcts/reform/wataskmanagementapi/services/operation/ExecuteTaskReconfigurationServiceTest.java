@@ -47,44 +47,6 @@ class ExecuteTaskReconfigurationServiceTest {
     private ExecuteTaskReconfigurationService executeTaskReconfigurationService;
 
     @Test
-    void should_reconfigure_nextHearingDate() {
-        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
-        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
-
-        //set nextHearingDate to a date to test scenario where nextHearingDate is set to null
-        taskResources.get(0).setNextHearingDate(OffsetDateTime.parse("2021-05-09T20:15Z"));
-
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
-            anyList(), any())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
-            .thenReturn(Optional.of(taskResources.get(0)))
-            .thenReturn(Optional.of(taskResources.get(1)));
-        when(configureTaskService.reconfigureCFTTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
-        when(cftTaskDatabaseService.saveTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
-
-        TaskOperationRequest request = new TaskOperationRequest(
-            TaskOperation.builder()
-                .type(TaskOperationType.EXECUTE_RECONFIGURE)
-                .maxTimeLimit(2)
-                .runId("")
-                .build(), taskFilters
-        );
-        assertEquals(OffsetDateTime.parse("2021-05-09T20:15Z"), taskResources.get(0).getNextHearingDate());
-
-        //not sure where to define want to change nextHearingDate to null.
-        executeTaskReconfigurationService.performOperation(request);
-
-        assertEquals(null, taskResources.get(0).getNextHearingDate());
-    }
-
-    @Test
     void should_get_tasks_with_reconfigure_request_time_and_set_to_null() {
 
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
