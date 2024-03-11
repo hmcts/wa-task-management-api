@@ -636,6 +636,9 @@ public class CFTTaskMapper {
                 case DUE_DATE:
                     taskResource.setDueDateTime(mapDate(value));
                     break;
+                case TITLE:
+                    taskResource.setTitle((String) value);
+                    break;
                 default:
                     break;
             }
