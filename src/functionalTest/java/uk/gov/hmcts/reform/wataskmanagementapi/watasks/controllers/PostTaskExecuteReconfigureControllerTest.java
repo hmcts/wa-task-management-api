@@ -580,9 +580,10 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .statusCode(HttpStatus.OK.value());
 
         await().ignoreException(Exception.class)
+                .atLeast(5, TimeUnit.SECONDS)
                 .pollInterval(5, SECONDS)
                 .atMost(180, SECONDS)
-                .until(() -> {
+                .untilAsserted(() -> {
                     Response taskResult = restApiActions.get(
                             "/task/{task-id}",
                             taskId,
@@ -622,7 +623,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                                             "roleAssignmentId", roleAssignmentId
                                     ))
                     );
-                    return true;
                 });
         common.cleanUpTask(taskId);
     }
@@ -690,7 +690,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .statusCode(HttpStatus.OK.value())
                 .and().contentType(MediaType.APPLICATION_JSON_VALUE)
                 .and().body("task.id", equalTo(taskId))
-                // .body("task.task_state", is("assigned"))
+                .body("task.task_state", is("assigned"))
                 .body("task.reconfigure_request_time", notNullValue())
                 .body("task.last_reconfiguration_time", nullValue())
                 .body("task.additional_properties", equalToObject(Map.of(
@@ -711,9 +711,10 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .statusCode(HttpStatus.OK.value());
 
         await().ignoreException(Exception.class)
+                .atLeast(5, TimeUnit.SECONDS)
                 .pollInterval(5, SECONDS)
                 .atMost(180, SECONDS)
-                .until(() -> {
+                .untilAsserted(() -> {
                     Response taskResult = restApiActions.get(
                             "/task/{task-id}",
                             taskId,
@@ -731,9 +732,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                             .body("task.last_reconfiguration_time", notNullValue())
                             .body("task.additional_properties", equalToObject(Map.of(
                                     "roleAssignmentId", roleAssignmentId)));
-                    return true;
                 });
-
         common.cleanUpTask(taskId);
     }
 
@@ -769,7 +768,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .statusCode(HttpStatus.OK.value())
                 .and().contentType(MediaType.APPLICATION_JSON_VALUE)
                 .and().body("task.id", equalTo(taskId))
-                // .body("task.task_state", is("assigned"))
                 .body("task.additional_properties", equalToObject(Map.of(
                         "roleAssignmentId", roleAssignmentId)));
 
@@ -800,7 +798,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .statusCode(HttpStatus.OK.value())
                 .and().contentType(MediaType.APPLICATION_JSON_VALUE)
                 .and().body("task.id", equalTo(taskId))
-                // .body("task.task_state", is("assigned"))
+                .body("task.task_state", is("assigned"))
                 .body("task.reconfigure_request_time", notNullValue())
                 .body("task.last_reconfiguration_time", nullValue())
                 .body("task.additional_properties", equalToObject(Map.of(
@@ -821,9 +819,10 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .statusCode(HttpStatus.OK.value());
 
         await().ignoreException(Exception.class)
+                .atLeast(5, TimeUnit.SECONDS)
                 .pollInterval(5, SECONDS)
                 .atMost(180, SECONDS)
-                .until(() -> {
+                .untilAsserted(() -> {
                     Response taskResult = restApiActions.get(
                             "/task/{task-id}",
                             taskId,
@@ -841,8 +840,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                             .body("task.last_reconfiguration_time", notNullValue())
                             .body("task.additional_properties", equalToObject(Map.of(
                                     "roleAssignmentId", roleAssignmentId)));
-                    return true;
                 });
+        common.cleanUpTask(taskId);
     }
 
     private TaskOperationRequest taskOperationRequestForMarkToReconfigure(TaskOperationType operationName,

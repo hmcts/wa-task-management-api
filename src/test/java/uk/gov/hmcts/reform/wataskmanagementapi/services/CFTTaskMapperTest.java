@@ -2424,12 +2424,18 @@ class CFTTaskMapperTest {
                         booleanValue(false)
                 ),
                 new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key2"), stringValue("value2"),
+                                                       booleanValue(false)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key3"), stringValue("value3"),
+                                                       booleanValue(false)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key4"), stringValue("value4"),
                         null
                 ),
-                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key3"), stringValue(""),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key5"), stringValue(""),
                         booleanValue(true)
                 ),
-                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key4"), stringValue(null),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key6"), stringValue(null),
                         booleanValue(true)
                 )
         );
@@ -2437,8 +2443,8 @@ class CFTTaskMapperTest {
         cftTaskMapper.reconfigureAdditionalTaskAttribute(taskResource, additionalPropertyDMNResponse);
 
         assertEquals("roleAssignmentId", taskResource.getAdditionalProperties().get("roleAssignmentId"));
-        assertEquals("", taskResource.getAdditionalProperties().get("key3"));
-        assertEquals(null, taskResource.getAdditionalProperties().get("key4"));
+        assertEquals("", taskResource.getAdditionalProperties().get("key5"));
+        assertEquals(null, taskResource.getAdditionalProperties().get("key6"));
         assertEquals(3, taskResource.getAdditionalProperties().size());
 
     }
